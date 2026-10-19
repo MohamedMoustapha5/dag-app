@@ -10,6 +10,7 @@ import {
     login,
     register,
 } from '@/routes';
+import LanguageSwitcher from '@/components/public/language-switcher';
 
 const NAV_LINKS = [
     { href: home(), label: 'Accueil' },
@@ -63,20 +64,7 @@ export default function TopBar() {
                 </nav>
 
                 <div className="topbar-actions">
-                    <div className="lang-switch" aria-label="Langue">
-                        <button type="button" className="lang-option active">
-                            <span className="flag" aria-hidden="true">
-                                🇫🇷
-                            </span>
-                            <span className="code">FR</span>
-                        </button>
-                        <button type="button" className="lang-option">
-                            <span className="flag" aria-hidden="true">
-                                🇬🇧
-                            </span>
-                            <span className="code">EN</span>
-                        </button>
-                    </div>
+                    <LanguageSwitcher />
 
                     {auth.user ? (
                         <Link href={dashboardUrl} className="btn-ghost">
