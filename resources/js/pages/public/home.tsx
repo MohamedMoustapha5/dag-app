@@ -11,6 +11,7 @@ import {
     Users,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import AuditRequestModal from '@/components/public/audit-request-modal';
 import PublicLayout from '@/layouts/public-layout';
 import { abonnement, catalogue, contact, formations } from '@/routes';
 
@@ -186,6 +187,7 @@ function reordonnerFormules<T extends { populaire: boolean }>(
 export default function Home({ stats, equipe, formules }: HomeProps) {
     const [teamIndex, setTeamIndex] = useState(0);
     const [testimonialIndex, setTestimonialIndex] = useState(0);
+    const [auditModalOpen, setAuditModalOpen] = useState(false);
 
     const activeMember = equipe[teamIndex];
     const activeTestimonial = TESTIMONIALS[testimonialIndex];
@@ -1113,11 +1115,18 @@ export default function Home({ stats, equipe, formules }: HomeProps) {
                         </p>
                     </div>
                     <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                        <button
+                            type="button"
+                            className="btn-primary"
+                            onClick={() => setAuditModalOpen(true)}
+                        >
+                            Audit gratuit
+                        </button>
                         <a
                             href="https://wa.me/237699000000"
                             target="_blank"
                             rel="noreferrer"
-                            className="btn-primary"
+                            className="btn-ghost btn-ghost-dark"
                         >
                             WhatsApp
                         </a>
@@ -1136,6 +1145,11 @@ export default function Home({ stats, equipe, formules }: HomeProps) {
                     </div>
                 </div>
             </section>
+
+            <AuditRequestModal
+                open={auditModalOpen}
+                onClose={() => setAuditModalOpen(false)}
+            />
         </PublicLayout>
     );
 }

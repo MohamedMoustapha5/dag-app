@@ -166,11 +166,10 @@ section 6.1 :
   `ContactMessage` (statut initial `NOUVEAU`). Formulaire sur `/contact`.
 - `POST /audit-gratuit` (`audit-requests.store`) →
   `AuditRequestController@store` crée un `AuditRequest` (statut initial
-  `NOUVELLE`). **Le contrôleur et la route existent et sont testés, mais
-  aucune page n'affiche encore ce formulaire** : la maquette réelle de
-  l'accueil ne montre pas de champ de saisie pour l'audit gratuit (seulement
-  des boutons de contact direct). À rattacher à un écran (page contact ou
-  modale) lors d'une prochaine phase, une fois l'emplacement précisé.
+  `NOUVELLE`). Le bouton « Audit gratuit » de la bannière CTA de l'accueil
+  (`public/home.tsx`) ouvre une modale dédiée
+  (`components/public/audit-request-modal.tsx`) avec les champs URL de la
+  page + e-mail.
 
 Les deux modèles (`app/Models/ContactMessage.php`, `app/Models/AuditRequest.php`)
 sont des tables de capture simples, sans relation : leur traitement (passage à
@@ -229,10 +228,6 @@ encore de factory ni le trait `HasFactory`).
 ## 6. Hors périmètre (volontairement)
 
 - i18n réelle (le sélecteur FR/EN est un gabarit visuel, non fonctionnel).
-- Page « À propos » dédiée : le lien pointe vers l'ancre `#equipe` de
-  l'accueil en attendant — aucune maquette pour une page séparée n'a été
-  fournie.
-- Formulaire d'audit gratuit sans emplacement dans la maquette (voir section 3) : le backend est prêt et testé, l'écran reste à construire.
 - Inscription effective à une session de formation, et candidature à une
   offre de stage/emploi (nécessitent un compte Apprenant authentifié →
   phase 7).

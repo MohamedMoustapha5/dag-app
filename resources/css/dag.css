@@ -2715,3 +2715,70 @@
         opacity: 0 !important;
     }
 }
+
+/* modale audit gratuit */
+.dag .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(7, 19, 38, 0.55);
+    backdrop-filter: blur(2px);
+    z-index: 1300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: dagFadeIn 0.18s var(--dag-ease);
+}
+.dag .modal-panel {
+    position: relative;
+    background: #fff;
+    width: 100%;
+    max-width: 440px;
+    border-radius: var(--dag-radius-lg);
+    box-shadow: var(--dag-shadow-lg);
+    padding: 32px;
+    animation: dagModalIn 0.22s var(--dag-ease);
+}
+.dag .modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f1f2f6;
+    color: var(--dag-text-muted);
+    border: none;
+    cursor: pointer;
+    transition: background 0.15s var(--dag-ease);
+}
+.dag .modal-close:hover {
+    background: #e4e6ed;
+}
+@keyframes dagFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+@keyframes dagModalIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .dag .modal-backdrop,
+    .dag .modal-panel {
+        animation: none !important;
+    }
+}
