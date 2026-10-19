@@ -1,12 +1,6 @@
-import { Form, Head } from '@inertiajs/react';
-import InputError from '@/components/input-error';
-import PasswordInput from '@/components/password-input';
+import { Form, Head, Link } from '@inertiajs/react';
+import AuthPasswordField from '@/components/public/auth-password-field';
 import TeamInvitationAlert from '@/components/team-invitation-alert';
-import TextLink from '@/components/text-link';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Spinner } from '@/components/ui/spinner';
 import { login } from '@/routes';
 import { store } from '@/routes/register';
 import type { TeamInvitationContext } from '@/types';
@@ -19,12 +13,12 @@ type Props = {
 export default function Register({ passwordRules, teamInvitation }: Props) {
     return (
         <>
-            <Head title="Register" />
+            <Head title="Créer un compte" />
             <Form
                 {...store.form()}
                 resetOnSuccess={['password', 'password_confirmation']}
                 disableWhileProcessing
-                className="flex flex-col gap-6"
+                style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
             >
                 {({ processing, errors }) => (
                     <>
@@ -35,113 +29,151 @@ export default function Register({ passwordRules, teamInvitation }: Props) {
                             />
                         )}
 
-                        <div className="grid gap-6">
-                            <div className="grid gap-2">
-                                <Label htmlFor="compte_type">Je suis</Label>
-                                <select
-                                    id="compte_type"
-                                    name="compte_type"
-                                    required
-                                    tabIndex={1}
-                                    defaultValue="particulier"
-                                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
-                                >
-                                    <option value="particulier">
-                                        Particulier
-                                    </option>
-                                    <option value="entreprise">
-                                        Entreprise
-                                    </option>
-                                    <option value="organisation">
-                                        Organisation
-                                    </option>
-                                    <option value="apprenant">
-                                        Apprenant — je cherche une formation
-                                    </option>
-                                </select>
-                                <InputError
-                                    message={errors.compte_type}
-                                    className="mt-2"
-                                />
-                            </div>
-
-                            <div className="grid gap-2">
-                                <Label htmlFor="name">Name</Label>
-                                <Input
-                                    id="name"
-                                    type="text"
-                                    required
-                                    tabIndex={2}
-                                    autoComplete="name"
-                                    name="name"
-                                    placeholder="Full name"
-                                />
-                                <InputError
-                                    message={errors.name}
-                                    className="mt-2"
-                                />
-                            </div>
-
-                            <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    required
-                                    tabIndex={3}
-                                    autoComplete="email"
-                                    name="email"
-                                    placeholder="email@example.com"
-                                />
-                                <InputError message={errors.email} />
-                            </div>
-
-                            <div className="grid gap-2">
-                                <Label htmlFor="password">Password</Label>
-                                <PasswordInput
-                                    id="password"
-                                    required
-                                    tabIndex={4}
-                                    autoComplete="new-password"
-                                    name="password"
-                                    placeholder="Password"
-                                    passwordrules={passwordRules}
-                                />
-                                <InputError message={errors.password} />
-                            </div>
-
-                            <div className="grid gap-2">
-                                <Label htmlFor="password_confirmation">
-                                    Confirm password
-                                </Label>
-                                <PasswordInput
-                                    id="password_confirmation"
-                                    required
-                                    tabIndex={5}
-                                    autoComplete="new-password"
-                                    name="password_confirmation"
-                                    placeholder="Confirm password"
-                                    passwordrules={passwordRules}
-                                />
-                                <InputError
-                                    message={errors.password_confirmation}
-                                />
-                            </div>
-
-                            <Button
-                                type="submit"
-                                className="mt-2 w-full"
-                                tabIndex={6}
-                                data-test="register-user-button"
+                        <div className="auth-field">
+                            <label htmlFor="compte_type">Je suis</label>
+                            <select
+                                id="compte_type"
+                                name="compte_type"
+                                required
+                                tabIndex={1}
+                                defaultValue="particulier"
                             >
-                                {processing && <Spinner />}
-                                Create account
-                            </Button>
+                                <option value="particulier">Particulier</option>
+                                <option value="entreprise">Entreprise</option>
+                                <option value="organisation">
+                                    Organisation
+                                </option>
+                                <option value="apprenant">
+                                    Apprenant — je cherche une formation
+                                </option>
+                            </select>
+                            {errors.compte_type && (
+                                <p
+                                    style={{
+                                        color: 'var(--dag-red)',
+                                        fontSize: 12,
+                                        marginTop: 4,
+                                    }}
+                                >
+                                    {errors.compte_type}
+                                </p>
+                            )}
                         </div>
 
-                        <div className="text-center text-sm text-muted-foreground">
-                            Already have an account?{' '}
-                            <TextLink
+                        <div className="auth-field">
+                            <label htmlFor="name">Nom complet</label>
+                            <input
+                                id="name"
+                                type="text"
+                                required
+                                tabIndex={2}
+                                autoComplete="name"
+                                name="name"
+                                placeholder="Votre nom"
+                            />
+                            {errors.name && (
+                                <p
+                                    style={{
+                                        color: 'var(--dag-red)',
+                                        fontSize: 12,
+                                        marginTop: 4,
+                                    }}
+                                >
+                                    {errors.name}
+                                </p>
+                            )}
+                        </div>
+
+                        <div className="auth-field">
+                            <label htmlFor="email">Adresse e-mail</label>
+                            <input
+                                id="email"
+                                type="email"
+                                required
+                                tabIndex={3}
+                                autoComplete="email"
+                                name="email"
+                                placeholder="vous@exemple.com"
+                            />
+                            {errors.email && (
+                                <p
+                                    style={{
+                                        color: 'var(--dag-red)',
+                                        fontSize: 12,
+                                        marginTop: 4,
+                                    }}
+                                >
+                                    {errors.email}
+                                </p>
+                            )}
+                        </div>
+
+                        <div className="auth-field">
+                            <label htmlFor="password">Mot de passe</label>
+                            <AuthPasswordField
+                                id="password"
+                                required
+                                tabIndex={4}
+                                autoComplete="new-password"
+                                name="password"
+                                placeholder="Votre mot de passe"
+                                passwordrules={passwordRules}
+                            />
+                            {errors.password && (
+                                <p
+                                    style={{
+                                        color: 'var(--dag-red)',
+                                        fontSize: 12,
+                                        marginTop: 4,
+                                    }}
+                                >
+                                    {errors.password}
+                                </p>
+                            )}
+                        </div>
+
+                        <div className="auth-field">
+                            <label htmlFor="password_confirmation">
+                                Confirmer le mot de passe
+                            </label>
+                            <AuthPasswordField
+                                id="password_confirmation"
+                                required
+                                tabIndex={5}
+                                autoComplete="new-password"
+                                name="password_confirmation"
+                                placeholder="Confirmez votre mot de passe"
+                                passwordrules={passwordRules}
+                            />
+                            {errors.password_confirmation && (
+                                <p
+                                    style={{
+                                        color: 'var(--dag-red)',
+                                        fontSize: 12,
+                                        marginTop: 4,
+                                    }}
+                                >
+                                    {errors.password_confirmation}
+                                </p>
+                            )}
+                        </div>
+
+                        <button
+                            type="submit"
+                            className="btn-primary btn-block"
+                            tabIndex={6}
+                            disabled={processing}
+                            data-test="register-user-button"
+                        >
+                            {processing ? 'Création…' : 'Créer un compte'}
+                        </button>
+
+                        <p
+                            className="muted"
+                            style={{ textAlign: 'center', fontSize: 13 }}
+                        >
+                            Déjà un compte ?{' '}
+                            <Link
                                 href={
                                     teamInvitation
                                         ? login.url({
@@ -155,9 +187,9 @@ export default function Register({ passwordRules, teamInvitation }: Props) {
                                 data-test="team-invitation-login-link"
                                 tabIndex={7}
                             >
-                                Log in
-                            </TextLink>
-                        </div>
+                                Se connecter
+                            </Link>
+                        </p>
                     </>
                 )}
             </Form>
@@ -166,6 +198,6 @@ export default function Register({ passwordRules, teamInvitation }: Props) {
 }
 
 Register.layout = {
-    title: 'Create an account',
-    description: 'Enter your details below to create your account',
+    title: 'Créer votre compte DAG',
+    description: 'Renseignez vos informations pour commencer.',
 };

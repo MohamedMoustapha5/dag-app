@@ -1352,6 +1352,11 @@
 .dag .input-icon-wrap input {
     padding-left: 38px !important;
 }
+.dag .input-icon-wrap-right {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
 .dag .input-icon-clear {
     position: absolute;
     right: 7px;

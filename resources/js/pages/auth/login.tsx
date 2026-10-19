@@ -1,17 +1,10 @@
-import { Form, Head } from '@inertiajs/react';
-import InputError from '@/components/input-error';
-import PasswordInput from '@/components/password-input';
+import { Form, Head, Link } from '@inertiajs/react';
+import PasskeyVerify from '@/components/passkey-verify';
+import AuthPasswordField from '@/components/public/auth-password-field';
 import TeamInvitationAlert from '@/components/team-invitation-alert';
-import TextLink from '@/components/text-link';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Spinner } from '@/components/ui/spinner';
 import { register } from '@/routes';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
-import PasskeyVerify from '@/components/passkey-verify';
 import type { TeamInvitationContext } from '@/types';
 
 type Props = {
@@ -27,7 +20,7 @@ export default function Login({
 }: Props) {
     return (
         <>
-            <Head title="Log in" />
+            <Head title="Connexion" />
 
             {teamInvitation && (
                 <TeamInvitationAlert
@@ -36,79 +29,127 @@ export default function Login({
                 />
             )}
 
-            <PasskeyVerify />
+            <PasskeyVerify
+                label="Se connecter avec une clé d'accès"
+                loadingLabel="Authentification..."
+                separator="Ou continuez avec votre e-mail"
+            />
 
             <Form
                 {...store.form()}
                 resetOnSuccess={['password']}
-                className="flex flex-col gap-6"
+                style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
             >
                 {({ processing, errors }) => (
                     <>
-                        <div className="grid gap-6">
-                            <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    name="email"
-                                    required
-                                    autoFocus
-                                    tabIndex={1}
-                                    autoComplete="email"
-                                    placeholder="email@example.com"
-                                />
-                                <InputError message={errors.email} />
-                            </div>
-
-                            <div className="grid gap-2">
-                                <div className="flex items-center">
-                                    <Label htmlFor="password">Password</Label>
-                                    {canResetPassword && (
-                                        <TextLink
-                                            href={request()}
-                                            className="ml-auto text-sm"
-                                            tabIndex={5}
-                                        >
-                                            Forgot password?
-                                        </TextLink>
-                                    )}
-                                </div>
-                                <PasswordInput
-                                    id="password"
-                                    name="password"
-                                    required
-                                    tabIndex={2}
-                                    autoComplete="current-password"
-                                    placeholder="Password"
-                                />
-                                <InputError message={errors.password} />
-                            </div>
-
-                            <div className="flex items-center space-x-3">
-                                <Checkbox
-                                    id="remember"
-                                    name="remember"
-                                    tabIndex={3}
-                                />
-                                <Label htmlFor="remember">Remember me</Label>
-                            </div>
-
-                            <Button
-                                type="submit"
-                                className="mt-4 w-full"
-                                tabIndex={4}
-                                disabled={processing}
-                                data-test="login-button"
-                            >
-                                {processing && <Spinner />}
-                                Log in
-                            </Button>
+                        <div className="auth-field">
+                            <label htmlFor="email">Adresse e-mail</label>
+                            <input
+                                id="email"
+                                type="email"
+                                name="email"
+                                required
+                                autoFocus
+                                tabIndex={1}
+                                autoComplete="email"
+                                placeholder="vous@exemple.com"
+                            />
+                            {errors.email && (
+                                <p
+                                    style={{
+                                        color: 'var(--dag-red)',
+                                        fontSize: 12,
+                                        marginTop: 4,
+                                    }}
+                                >
+                                    {errors.email}
+                                </p>
+                            )}
                         </div>
 
-                        <div className="text-center text-sm text-muted-foreground">
-                            Don't have an account?{' '}
-                            <TextLink
+                        <div className="auth-field">
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    marginBottom: 6,
+                                }}
+                            >
+                                <label
+                                    htmlFor="password"
+                                    style={{ marginBottom: 0 }}
+                                >
+                                    Mot de passe
+                                </label>
+                                {canResetPassword && (
+                                    <Link
+                                        href={request()}
+                                        tabIndex={5}
+                                        style={{ fontSize: 12.5 }}
+                                    >
+                                        Mot de passe oublié ?
+                                    </Link>
+                                )}
+                            </div>
+                            <AuthPasswordField
+                                id="password"
+                                name="password"
+                                required
+                                tabIndex={2}
+                                autoComplete="current-password"
+                                placeholder="Votre mot de passe"
+                            />
+                            {errors.password && (
+                                <p
+                                    style={{
+                                        color: 'var(--dag-red)',
+                                        fontSize: 12,
+                                        marginTop: 4,
+                                    }}
+                                >
+                                    {errors.password}
+                                </p>
+                            )}
+                        </div>
+
+                        <label
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 8,
+                                fontSize: 13,
+                                fontWeight: 500,
+                                color: 'var(--dag-text)',
+                                cursor: 'pointer',
+                            }}
+                        >
+                            <input
+                                type="checkbox"
+                                id="remember"
+                                name="remember"
+                                tabIndex={3}
+                            />
+                            Se souvenir de moi
+                        </label>
+
+                        <button
+                            type="submit"
+                            className="btn-primary btn-block"
+                            style={{ marginTop: 4 }}
+                            tabIndex={4}
+                            disabled={processing}
+                            data-test="login-button"
+                        >
+                            {processing ? 'Connexion…' : 'Se connecter'}
+                        </button>
+
+                        <p
+                            className="muted"
+                            style={{ textAlign: 'center', fontSize: 13 }}
+                        >
+                            Pas encore de compte ?{' '}
+                            <Link
                                 href={register({
                                     query: {
                                         invitation: teamInvitation?.code,
@@ -117,23 +158,31 @@ export default function Login({
                                 data-test="register-link"
                                 tabIndex={5}
                             >
-                                Sign up
-                            </TextLink>
-                        </div>
+                                Créer un compte
+                            </Link>
+                        </p>
                     </>
                 )}
             </Form>
 
             {status && (
-                <div className="mb-4 text-center text-sm font-medium text-green-600">
+                <p
+                    style={{
+                        marginTop: 16,
+                        textAlign: 'center',
+                        fontSize: 13,
+                        fontWeight: 600,
+                        color: 'var(--dag-green)',
+                    }}
+                >
                     {status}
-                </div>
+                </p>
             )}
         </>
     );
 }
 
 Login.layout = {
-    title: 'Log in to your account',
-    description: 'Enter your email and password below to log in',
+    title: 'Connexion à votre espace DAG',
+    description: 'Entrez votre e-mail et votre mot de passe pour continuer.',
 };

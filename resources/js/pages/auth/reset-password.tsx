@@ -1,10 +1,5 @@
 import { Form, Head } from '@inertiajs/react';
-import InputError from '@/components/input-error';
-import PasswordInput from '@/components/password-input';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Spinner } from '@/components/ui/spinner';
+import AuthPasswordField from '@/components/public/auth-password-field';
 import { update } from '@/routes/password';
 
 type Props = {
@@ -16,7 +11,7 @@ type Props = {
 export default function ResetPassword({ token, email, passwordRules }: Props) {
     return (
         <>
-            <Head title="Reset password" />
+            <Head title="Réinitialiser le mot de passe" />
 
             <Form
                 {...update.form()}
@@ -24,65 +19,95 @@ export default function ResetPassword({ token, email, passwordRules }: Props) {
                 resetOnSuccess={['password', 'password_confirmation']}
             >
                 {({ processing, errors }) => (
-                    <div className="grid gap-6">
-                        <div className="grid gap-2">
-                            <Label htmlFor="email">Email</Label>
-                            <Input
+                    <div
+                        style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 16,
+                        }}
+                    >
+                        <div className="auth-field">
+                            <label htmlFor="email">E-mail</label>
+                            <input
                                 id="email"
                                 type="email"
                                 name="email"
                                 autoComplete="email"
                                 value={email}
-                                className="mt-1 block w-full"
                                 readOnly
                             />
-                            <InputError
-                                message={errors.email}
-                                className="mt-2"
-                            />
+                            {errors.email && (
+                                <p
+                                    style={{
+                                        color: 'var(--dag-red)',
+                                        fontSize: 12,
+                                        marginTop: 4,
+                                    }}
+                                >
+                                    {errors.email}
+                                </p>
+                            )}
                         </div>
 
-                        <div className="grid gap-2">
-                            <Label htmlFor="password">Password</Label>
-                            <PasswordInput
+                        <div className="auth-field">
+                            <label htmlFor="password">
+                                Nouveau mot de passe
+                            </label>
+                            <AuthPasswordField
                                 id="password"
                                 name="password"
                                 autoComplete="new-password"
-                                className="mt-1 block w-full"
                                 autoFocus
-                                placeholder="Password"
+                                placeholder="Votre nouveau mot de passe"
                                 passwordrules={passwordRules}
                             />
-                            <InputError message={errors.password} />
+                            {errors.password && (
+                                <p
+                                    style={{
+                                        color: 'var(--dag-red)',
+                                        fontSize: 12,
+                                        marginTop: 4,
+                                    }}
+                                >
+                                    {errors.password}
+                                </p>
+                            )}
                         </div>
 
-                        <div className="grid gap-2">
-                            <Label htmlFor="password_confirmation">
-                                Confirm password
-                            </Label>
-                            <PasswordInput
+                        <div className="auth-field">
+                            <label htmlFor="password_confirmation">
+                                Confirmer le mot de passe
+                            </label>
+                            <AuthPasswordField
                                 id="password_confirmation"
                                 name="password_confirmation"
                                 autoComplete="new-password"
-                                className="mt-1 block w-full"
-                                placeholder="Confirm password"
+                                placeholder="Confirmez le mot de passe"
                                 passwordrules={passwordRules}
                             />
-                            <InputError
-                                message={errors.password_confirmation}
-                                className="mt-2"
-                            />
+                            {errors.password_confirmation && (
+                                <p
+                                    style={{
+                                        color: 'var(--dag-red)',
+                                        fontSize: 12,
+                                        marginTop: 4,
+                                    }}
+                                >
+                                    {errors.password_confirmation}
+                                </p>
+                            )}
                         </div>
 
-                        <Button
+                        <button
                             type="submit"
-                            className="mt-4 w-full"
+                            className="btn-primary btn-block"
                             disabled={processing}
                             data-test="reset-password-button"
                         >
-                            {processing && <Spinner />}
-                            Reset password
-                        </Button>
+                            {processing
+                                ? 'Enregistrement…'
+                                : 'Réinitialiser le mot de passe'}
+                        </button>
                     </div>
                 )}
             </Form>
@@ -91,6 +116,6 @@ export default function ResetPassword({ token, email, passwordRules }: Props) {
 }
 
 ResetPassword.layout = {
-    title: 'Reset password',
-    description: 'Please enter your new password below',
+    title: 'Réinitialiser votre mot de passe',
+    description: 'Choisissez un nouveau mot de passe ci-dessous.',
 };

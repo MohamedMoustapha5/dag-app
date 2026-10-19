@@ -1,57 +1,68 @@
 import { Form, Head } from '@inertiajs/react';
-import InputError from '@/components/input-error';
-import PasswordInput from '@/components/password-input';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Spinner } from '@/components/ui/spinner';
-import { store } from '@/routes/password/confirm';
 import {
     index as confirmOptions,
     store as confirmStore,
 } from '@/actions/Laravel/Passkeys/Http/Controllers/PasskeyConfirmationController';
 import PasskeyVerify from '@/components/passkey-verify';
+import AuthPasswordField from '@/components/public/auth-password-field';
+import { store } from '@/routes/password/confirm';
 
 export default function ConfirmPassword() {
     return (
         <>
-            <Head title="Confirm password" />
+            <Head title="Confirmer le mot de passe" />
 
             <PasskeyVerify
                 routes={{
                     options: confirmOptions(),
                     submit: confirmStore(),
                 }}
-                label="Confirm with passkey"
-                loadingLabel="Confirming..."
-                separator="Or confirm with password"
+                label="Confirmer avec une clé d'accès"
+                loadingLabel="Confirmation..."
+                separator="Ou confirmez avec votre mot de passe"
             />
 
             <Form {...store.form()} resetOnSuccess={['password']}>
                 {({ processing, errors }) => (
-                    <div className="space-y-6">
-                        <div className="grid gap-2">
-                            <Label htmlFor="password">Password</Label>
-                            <PasswordInput
+                    <div
+                        style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 16,
+                        }}
+                    >
+                        <div className="auth-field">
+                            <label htmlFor="password">Mot de passe</label>
+                            <AuthPasswordField
                                 id="password"
                                 name="password"
-                                placeholder="Password"
+                                placeholder="Votre mot de passe"
                                 autoComplete="current-password"
                                 autoFocus
                             />
-
-                            <InputError message={errors.password} />
+                            {errors.password && (
+                                <p
+                                    style={{
+                                        color: 'var(--dag-red)',
+                                        fontSize: 12,
+                                        marginTop: 4,
+                                    }}
+                                >
+                                    {errors.password}
+                                </p>
+                            )}
                         </div>
 
-                        <div className="flex items-center">
-                            <Button
-                                className="w-full"
-                                disabled={processing}
-                                data-test="confirm-password-button"
-                            >
-                                {processing && <Spinner />}
-                                Confirm password
-                            </Button>
-                        </div>
+                        <button
+                            type="submit"
+                            className="btn-primary btn-block"
+                            disabled={processing}
+                            data-test="confirm-password-button"
+                        >
+                            {processing
+                                ? 'Confirmation…'
+                                : 'Confirmer le mot de passe'}
+                        </button>
                     </div>
                 )}
             </Form>
@@ -60,7 +71,7 @@ export default function ConfirmPassword() {
 }
 
 ConfirmPassword.layout = {
-    title: 'Confirm password',
+    title: 'Confirmez votre mot de passe',
     description:
-        'This is a secure area of the application. Please confirm your password before continuing.',
+        'Ceci est une zone sécurisée. Confirmez votre mot de passe avant de continuer.',
 };
