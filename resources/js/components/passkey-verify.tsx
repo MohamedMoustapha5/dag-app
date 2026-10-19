@@ -2,10 +2,6 @@ import type { UrlMethodPair } from '@inertiajs/core';
 import { router } from '@inertiajs/react';
 import { usePasskeyVerify } from '@laravel/passkeys/react';
 import { KeyRound } from 'lucide-react';
-import InputError from '@/components/input-error';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { Spinner } from '@/components/ui/spinner';
 
 type Props = {
     routes?: {
@@ -41,33 +37,61 @@ export default function PasskeyVerify({
 
     return (
         <>
-            <div className="grid gap-2">
-                <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full"
-                    onClick={verify}
-                    disabled={isLoading}
+            <button
+                type="button"
+                className="btn-outline btn-block"
+                onClick={verify}
+                disabled={isLoading}
+            >
+                <KeyRound size={16} />
+                {isLoading
+                    ? (loadingLabel ?? 'Authenticating...')
+                    : (label ?? 'Sign in with a passkey')}
+            </button>
+            {error && (
+                <p
+                    style={{
+                        marginTop: 8,
+                        textAlign: 'center',
+                        fontSize: 12.5,
+                        color: 'var(--dag-red)',
+                    }}
                 >
-                    {isLoading ? <Spinner /> : <KeyRound className="h-4 w-4" />}
-                    {isLoading
-                        ? (loadingLabel ?? 'Authenticating...')
-                        : (label ?? 'Sign in with a passkey')}
-                </Button>
-                {error && (
-                    <InputError message={error} className="text-center" />
-                )}
-            </div>
+                    {error}
+                </p>
+            )}
 
-            <div className="relative my-6">
-                <div className="absolute inset-0 flex items-center">
-                    <Separator className="w-full" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-background px-2 text-muted-foreground">
-                        {separator ?? 'Or continue with email'}
-                    </span>
-                </div>
+            <div
+                style={{
+                    position: 'relative',
+                    margin: '24px 0',
+                    textAlign: 'center',
+                }}
+            >
+                <div
+                    style={{
+                        position: 'absolute',
+                        left: 0,
+                        right: 0,
+                        top: '50%',
+                        height: 1,
+                        background: 'var(--dag-border)',
+                    }}
+                />
+                <span
+                    style={{
+                        position: 'relative',
+                        background: '#fff',
+                        padding: '0 10px',
+                        fontSize: 11,
+                        fontWeight: 700,
+                        textTransform: 'uppercase',
+                        letterSpacing: '.04em',
+                        color: 'var(--dag-text-muted)',
+                    }}
+                >
+                    {separator ?? 'Or continue with email'}
+                </span>
             </div>
         </>
     );

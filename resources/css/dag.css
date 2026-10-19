@@ -49,6 +49,30 @@
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+
+    /* La vitrine publique n'a pas de variante sombre : si l'appareil du
+       visiteur est en mode sombre, les composants shadcn non "dag-scopés"
+       (ex. le bouton clé d'accès) héritaient des jetons Tailwind sombres
+       et devenaient illisibles sur fond clair. On réaffirme ici les
+       valeurs claires pour que tout ce qui est sous .dag reste cohérent,
+       quel que soit le thème système. */
+    --background: oklch(1 0 0);
+    --foreground: oklch(0.145 0 0);
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.145 0 0);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.145 0 0);
+    --primary: oklch(0.205 0 0);
+    --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.97 0 0);
+    --secondary-foreground: oklch(0.205 0 0);
+    --muted: oklch(0.97 0 0);
+    --muted-foreground: oklch(0.556 0 0);
+    --accent: oklch(0.97 0 0);
+    --accent-foreground: oklch(0.205 0 0);
+    --border: oklch(0.922 0 0);
+    --input: oklch(0.922 0 0);
+    --ring: oklch(0.87 0 0);
 }
 .dag h1,
 .dag h2,
@@ -1156,10 +1180,23 @@
     border-radius: var(--dag-radius-sm);
     font-size: 14px;
     font-family: 'Plus Jakarta Sans', sans-serif;
+    color: var(--dag-text);
     background: #fff;
     transition:
         border-color 0.15s var(--dag-ease),
         box-shadow 0.15s var(--dag-ease);
+}
+/* Le remplissage automatique du navigateur (identifiants enregistrés)
+   applique sa propre couleur de fond — sombre/teintée sur certains
+   navigateurs en mode sombre — qui rendait le texte saisi illisible. */
+.dag input:-webkit-autofill,
+.dag input:-webkit-autofill:hover,
+.dag input:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--dag-text);
+    -webkit-box-shadow: 0 0 0 1000px #fff inset;
+    box-shadow: 0 0 0 1000px #fff inset;
+    caret-color: var(--dag-text);
+    transition: background-color 9999s ease-in-out 0s;
 }
 .dag input:not([type='checkbox']):not([type='radio']):hover,
 .dag select:hover,

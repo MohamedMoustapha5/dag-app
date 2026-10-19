@@ -132,8 +132,11 @@ export default function TwoFactorChallenge() {
                         </button>
 
                         <p
-                            className="muted"
-                            style={{ textAlign: 'center', fontSize: 13 }}
+                            style={{
+                                textAlign: 'center',
+                                fontSize: 13,
+                                color: 'var(--dag-text-muted)',
+                            }}
                         >
                             Ou{' '}
                             <button

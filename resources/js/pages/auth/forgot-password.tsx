@@ -63,8 +63,12 @@ export default function ForgotPassword({ status }: { status?: string }) {
             </Form>
 
             <p
-                className="muted"
-                style={{ textAlign: 'center', marginTop: 20, fontSize: 13 }}
+                style={{
+                    textAlign: 'center',
+                    marginTop: 20,
+                    fontSize: 13,
+                    color: 'var(--dag-text-muted)',
+                }}
             >
                 Ou retournez à la <Link href={login()}>page de connexion</Link>
             </p>

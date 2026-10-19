@@ -169,8 +169,11 @@ export default function Register({ passwordRules, teamInvitation }: Props) {
                         </button>
 
                         <p
-                            className="muted"
-                            style={{ textAlign: 'center', fontSize: 13 }}
+                            style={{
+                                textAlign: 'center',
+                                fontSize: 13,
+                                color: 'var(--dag-text-muted)',
+                            }}
                         >
                             Déjà un compte ?{' '}
                             <Link

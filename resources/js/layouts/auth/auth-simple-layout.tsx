@@ -40,11 +40,11 @@ export default function AuthSimpleLayout({
                             )}
                             {description && (
                                 <p
-                                    className="muted"
                                     style={{
                                         marginTop: 8,
                                         fontSize: 13.5,
                                         lineHeight: 1.6,
+                                        color: 'var(--dag-text-muted)',
                                     }}
                                 >
                                     {description}

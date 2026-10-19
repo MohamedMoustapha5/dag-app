@@ -145,8 +145,11 @@ export default function Login({
                         </button>
 
                         <p
-                            className="muted"
-                            style={{ textAlign: 'center', fontSize: 13 }}
+                            style={{
+                                textAlign: 'center',
+                                fontSize: 13,
+                                color: 'var(--dag-text-muted)',
+                            }}
                         >
                             Pas encore de compte ?{' '}
                             <Link
