@@ -13,8 +13,10 @@ use App\Models\TeamInvitation;
 use App\Models\User;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Events\RouteMatched;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -49,6 +51,7 @@ class FortifyServiceProvider extends ServiceProvider
         $this->configureAuthentication();
         $this->configureViews();
         $this->configureRateLimiting();
+        $this->configurePasswordResetThrottling();
     }
 
     /**
@@ -132,6 +135,32 @@ class FortifyServiceProvider extends ServiceProvider
             return Limit::perMinute(10)->by(
                 ($credentialId ?: $request->session()->getId()).'|'.$request->ip(),
             );
+        });
+
+        RateLimiter::for('password-reset', function (Request $request) {
+            $throttleKey = Str::transliterate(Str::lower((string) $request->input('email')).'|'.$request->ip());
+
+            return Limit::perMinutes(15, 5)->by($throttleKey)->response(
+                fn (Request $request, array $headers) => back()->withErrors([
+                    'email' => 'Trop de tentatives. Merci de réessayer dans 15 minutes.',
+                ])->withHeaders($headers)
+            );
+        });
+    }
+
+    /**
+     * Fortify registers the password-reset-request route ("password.email")
+     * without a throttle slot in config/fortify.php, unlike login/two-factor/
+     * passkeys. Web routes load lazily (after every provider's boot() has
+     * already run), so attach the limiter when the route is matched instead,
+     * which is guaranteed to run before its middleware pipeline is built.
+     */
+    private function configurePasswordResetThrottling(): void
+    {
+        Route::matched(function (RouteMatched $event): void {
+            if ($event->route->getName() === 'password.email') {
+                $event->route->middleware('throttle:password-reset');
+            }
         });
     }
 

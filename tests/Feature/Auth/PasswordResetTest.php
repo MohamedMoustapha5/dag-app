@@ -3,6 +3,8 @@
 use App\Models\User;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 use Laravel\Fortify\Features;
 
 beforeEach(function () {
@@ -62,6 +64,24 @@ test('password can be reset with valid token', function () {
 
         return true;
     });
+});
+
+test('forgot password requests are rate limited after five attempts', function () {
+    Notification::fake();
+
+    $user = User::factory()->create();
+
+    RateLimiter::increment(
+        md5('password-reset'.Str::transliterate(Str::lower($user->email).'|127.0.0.1')),
+        amount: 5,
+    );
+
+    $response = $this->post(route('password.email'), ['email' => $user->email]);
+
+    $response->assertSessionHasErrors([
+        'email' => 'Trop de tentatives. Merci de réessayer dans 15 minutes.',
+    ]);
+    Notification::assertNothingSent();
 });
 
 test('password cannot be reset with invalid token', function () {
