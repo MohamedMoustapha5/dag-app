@@ -9,7 +9,7 @@ export default function AuthSimpleLayout({
 }: AuthLayoutProps) {
     return (
         <div className="dag">
-            <div className="auth-shell">
+            <div className="auth-shell auth-shell-photo">
                 <div className="auth-card">
                     <Link
                         href={home()}

@@ -2478,6 +2478,11 @@
     .dag .auth-card {
         padding: 26px;
     }
+    .dag .auth-shell-photo {
+        /* background-attachment:fixed se comporte mal sur Safari iOS
+           (scintillement, repositionnement au défilement). */
+        background-attachment: scroll;
+    }
     .dag .cookie-banner {
         left: 12px;
         right: 12px;
