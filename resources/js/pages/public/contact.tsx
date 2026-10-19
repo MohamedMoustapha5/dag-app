@@ -1,13 +1,71 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
+import { Clock, Mail, MapPin, MessageCircle, Phone } from 'lucide-react';
 import PublicLayout from '@/layouts/public-layout';
+import { contact } from '@/routes';
 import contactRoutes from '@/routes/contact';
+
+const SUJETS = [
+    'Demander un devis',
+    'Question sur une formation',
+    'Question sur un abonnement',
+    'Support client',
+    'Autre demande',
+];
+
+const CONTACT_INFO = [
+    {
+        key: 'whatsapp',
+        titre: 'WhatsApp',
+        valeur: '+237 6 99 00 00 00',
+        href: 'https://wa.me/237699000000',
+        icon: MessageCircle,
+        iconBg: 'var(--dag-green-bg)',
+        iconColor: 'var(--dag-green)',
+    },
+    {
+        key: 'telephone',
+        titre: 'Téléphone',
+        valeur: '+237 6 99 00 00 00',
+        href: 'tel:+237699000000',
+        icon: Phone,
+        iconBg: 'var(--dag-blue-light)',
+        iconColor: 'var(--dag-blue)',
+    },
+    {
+        key: 'email',
+        titre: 'E-mail',
+        valeur: 'contact@dag.cm',
+        href: 'mailto:contact@dag.cm',
+        icon: Mail,
+        iconBg: 'var(--dag-orange-bg)',
+        iconColor: 'var(--dag-orange-ink)',
+    },
+    {
+        key: 'adresse',
+        titre: 'Adresse',
+        valeur: 'Akwa, Douala, Cameroun',
+        href: null,
+        icon: MapPin,
+        iconBg: '#F1F2F6',
+        iconColor: 'var(--dag-text-muted)',
+    },
+    {
+        key: 'horaires',
+        titre: 'Horaires',
+        valeur: 'Lun – Ven, 8h – 18h',
+        href: null,
+        icon: Clock,
+        iconBg: '#F1F2F6',
+        iconColor: 'var(--dag-text-muted)',
+    },
+];
 
 export default function Contact() {
     const { data, setData, post, processing, errors, wasSuccessful, reset } =
         useForm({
             nom: '',
             email: '',
-            sujet: '',
+            sujet: SUJETS[0],
             message: '',
         });
 
@@ -41,72 +99,77 @@ export default function Contact() {
             >
                 <div className="split-layout">
                     <div className="card" style={{ padding: 32 }}>
-                        <h2 style={{ fontSize: 19, color: 'var(--dag-navy)' }}>
-                            Envoyez-nous un message
-                        </h2>
                         <form
                             onSubmit={submit}
                             style={{
-                                marginTop: 24,
                                 display: 'flex',
                                 flexDirection: 'column',
                                 gap: 16,
                             }}
                         >
-                            <div>
-                                <label htmlFor="nom">Nom complet</label>
-                                <input
-                                    id="nom"
-                                    type="text"
-                                    value={data.nom}
-                                    onChange={(event) =>
-                                        setData('nom', event.target.value)
-                                    }
-                                />
-                                {errors.nom && (
-                                    <p
-                                        style={{
-                                            color: 'var(--dag-red)',
-                                            fontSize: 12,
-                                            marginTop: 4,
-                                        }}
-                                    >
-                                        {errors.nom}
-                                    </p>
-                                )}
-                            </div>
-                            <div>
-                                <label htmlFor="email">Email</label>
-                                <input
-                                    id="email"
-                                    type="email"
-                                    value={data.email}
-                                    onChange={(event) =>
-                                        setData('email', event.target.value)
-                                    }
-                                />
-                                {errors.email && (
-                                    <p
-                                        style={{
-                                            color: 'var(--dag-red)',
-                                            fontSize: 12,
-                                            marginTop: 4,
-                                        }}
-                                    >
-                                        {errors.email}
-                                    </p>
-                                )}
+                            <div className="form-row-2">
+                                <div>
+                                    <label htmlFor="nom">Nom complet</label>
+                                    <input
+                                        id="nom"
+                                        type="text"
+                                        value={data.nom}
+                                        onChange={(event) =>
+                                            setData('nom', event.target.value)
+                                        }
+                                        placeholder="Votre nom"
+                                    />
+                                    {errors.nom && (
+                                        <p
+                                            style={{
+                                                color: 'var(--dag-red)',
+                                                fontSize: 12,
+                                                marginTop: 4,
+                                            }}
+                                        >
+                                            {errors.nom}
+                                        </p>
+                                    )}
+                                </div>
+                                <div>
+                                    <label htmlFor="email">E-mail</label>
+                                    <input
+                                        id="email"
+                                        type="email"
+                                        value={data.email}
+                                        onChange={(event) =>
+                                            setData('email', event.target.value)
+                                        }
+                                        placeholder="vous@exemple.com"
+                                    />
+                                    {errors.email && (
+                                        <p
+                                            style={{
+                                                color: 'var(--dag-red)',
+                                                fontSize: 12,
+                                                marginTop: 4,
+                                            }}
+                                        >
+                                            {errors.email}
+                                        </p>
+                                    )}
+                                </div>
                             </div>
                             <div>
                                 <label htmlFor="sujet">Sujet</label>
-                                <input
+                                <select
                                     id="sujet"
-                                    type="text"
                                     value={data.sujet}
                                     onChange={(event) =>
                                         setData('sujet', event.target.value)
                                     }
-                                />
+                                >
+                                    {SUJETS.map((sujet) => (
+                                        <option key={sujet} value={sujet}>
+                                            {sujet}
+                                        </option>
+                                    ))}
+                                </select>
                                 {errors.sujet && (
                                     <p
                                         style={{
@@ -128,6 +191,7 @@ export default function Contact() {
                                     onChange={(event) =>
                                         setData('message', event.target.value)
                                     }
+                                    placeholder="Décrivez votre besoin..."
                                 />
                                 {errors.message && (
                                     <p
@@ -143,17 +207,25 @@ export default function Contact() {
                             </div>
                             <button
                                 type="submit"
-                                className="btn-primary"
+                                className="btn-primary btn-block"
                                 disabled={processing}
                             >
                                 {processing ? 'Envoi…' : 'Envoyer le message'}
                             </button>
+                            <p className="form-consent">
+                                En envoyant ce formulaire, vous acceptez la{' '}
+                                <Link href={contact()}>
+                                    politique de confidentialité
+                                </Link>{' '}
+                                de DAG.
+                            </p>
                             {wasSuccessful && (
                                 <p
                                     style={{
                                         color: 'var(--dag-green)',
                                         fontSize: 13,
                                         fontWeight: 600,
+                                        textAlign: 'center',
                                     }}
                                 >
                                     Merci, votre message a bien été envoyé.
@@ -166,49 +238,51 @@ export default function Contact() {
                         style={{
                             display: 'flex',
                             flexDirection: 'column',
-                            gap: 20,
+                            gap: 16,
                         }}
                     >
-                        <div className="card" style={{ padding: 24 }}>
-                            <h3
-                                style={{
-                                    fontSize: 15,
-                                    color: 'var(--dag-navy)',
-                                }}
-                            >
-                                Nos coordonnées
-                            </h3>
-                            <div
-                                style={{
-                                    marginTop: 14,
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: 10,
-                                    fontSize: 13.5,
-                                }}
-                            >
-                                <a href="mailto:contact@dag-agency.com">
-                                    contact@dag-agency.com
+                        {CONTACT_INFO.map((info) => {
+                            const content = (
+                                <>
+                                    <span
+                                        className="contact-info-icon"
+                                        style={{
+                                            background: info.iconBg,
+                                            color: info.iconColor,
+                                        }}
+                                    >
+                                        <info.icon size={18} />
+                                    </span>
+                                    <div>
+                                        <p className="contact-info-title">
+                                            {info.titre}
+                                        </p>
+                                        <p className="contact-info-value">
+                                            {info.valeur}
+                                        </p>
+                                    </div>
+                                </>
+                            );
+
+                            return info.href ? (
+                                <a
+                                    key={info.key}
+                                    href={info.href}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="card contact-info-card"
+                                >
+                                    {content}
                                 </a>
-                                <a href="tel:+000000000">+000 00 00 00 00</a>
-                            </div>
-                        </div>
-                        <div className="card" style={{ padding: 24 }}>
-                            <h3
-                                style={{
-                                    fontSize: 15,
-                                    color: 'var(--dag-navy)',
-                                }}
-                            >
-                                Horaires
-                            </h3>
-                            <p
-                                className="muted"
-                                style={{ marginTop: 10, fontSize: 13.5 }}
-                            >
-                                Du lundi au vendredi, 9h00 — 18h00.
-                            </p>
-                        </div>
+                            ) : (
+                                <div
+                                    key={info.key}
+                                    className="card contact-info-card"
+                                >
+                                    {content}
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
             </section>

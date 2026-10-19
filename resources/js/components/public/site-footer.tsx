@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import {
     abonnement,
+    aPropos,
     catalogue,
     contact,
     formations,
@@ -121,10 +122,7 @@ export default function SiteFooter() {
                             <Link href={contact()} className="navlink">
                                 Entreprise partenaire
                             </Link>
-                            <Link
-                                href={{ url: '/#equipe', method: 'get' }}
-                                className="navlink"
-                            >
+                            <Link href={aPropos()} className="navlink">
                                 Équipe DAG
                             </Link>
                         </nav>
@@ -145,10 +143,7 @@ export default function SiteFooter() {
                             <Link href={contact()} className="navlink">
                                 Nous contacter
                             </Link>
-                            <Link
-                                href={{ url: '/#equipe', method: 'get' }}
-                                className="navlink"
-                            >
+                            <Link href={aPropos()} className="navlink">
                                 À propos
                             </Link>
                             <a

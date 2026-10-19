@@ -204,7 +204,11 @@ export default function Home({ stats, equipe, formules }: HomeProps) {
                         des formations et du placement.
                     </p>
                     <div className="home-hero-actions">
-                        <Link href={catalogue()} className="btn-primary">
+                        <Link
+                            href={catalogue()}
+                            prefetch
+                            className="btn-primary"
+                        >
                             Découvrir nos services →
                         </Link>
                         <Link href={contact()} className="btn-ghost">
@@ -327,7 +331,7 @@ export default function Home({ stats, equipe, formules }: HomeProps) {
                     ))}
                 </div>
                 <div style={{ marginTop: 28 }}>
-                    <Link href={catalogue()} className="btn-primary">
+                    <Link href={catalogue()} prefetch className="btn-primary">
                         Parcourir nos services →
                     </Link>
                 </div>

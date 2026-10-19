@@ -28,6 +28,21 @@ test('the home page renders with published catalogue stats, the active team and 
         ->has('formules', 1));
 });
 
+test('the a propos page renders with published catalogue stats and the active team', function () {
+    Service::factory()->create(['statut' => 'PUBLIE']);
+    Service::factory()->create(['statut' => 'BROUILLON']);
+    MembreEquipe::factory()->juriste()->create();
+    MembreEquipe::factory()->inactif()->create();
+
+    $response = $this->get(route('a-propos'));
+
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page
+        ->component('public/a-propos')
+        ->where('stats.services', 1)
+        ->has('equipe', 1));
+});
+
 test('the catalogue page only lists published services', function () {
     $published = Service::factory()->create(['statut' => 'PUBLIE', 'nom' => 'Audit SEO']);
     Service::factory()->create(['statut' => 'BROUILLON', 'nom' => 'Service caché']);
@@ -53,6 +68,19 @@ test('the formations page only lists sessions that are open or full', function (
         ->component('public/formations')
         ->has('sessions', 1)
         ->where('sessions.0.sessionId', $openSession->id));
+});
+
+test('the formations page exposes the average seats per session', function () {
+    $formation = Formation::factory()->create(['statut' => 'PUBLIEE']);
+    FormationSession::factory()->for($formation)->create(['statut' => 'OUVERTE', 'places' => 10]);
+    FormationSession::factory()->for($formation)->create(['statut' => 'OUVERTE', 'places' => 20]);
+
+    $response = $this->get(route('formations'));
+
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page
+        ->component('public/formations')
+        ->where('stats.placesMoyennes', 15));
 });
 
 test('a formation detail page shows its open sessions', function () {

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Public\AProposController;
 use App\Http\Controllers\Public\AuditRequestController;
 use App\Http\Controllers\Public\CatalogueController;
 use App\Http\Controllers\Public\ContactController;
@@ -26,6 +27,8 @@ Route::get('formations/{formation}', [FormationController::class, 'show'])->name
 Route::get('abonnement', FormuleController::class)->name('abonnement');
 
 Route::get('offres-emploi', OffreEmploiController::class)->name('offres-emploi');
+
+Route::get('a-propos', AProposController::class)->name('a-propos');
 
 Route::get('contact', [ContactController::class, 'index'])->name('contact');
 Route::post('contact', [ContactController::class, 'store'])->name('contact.store');

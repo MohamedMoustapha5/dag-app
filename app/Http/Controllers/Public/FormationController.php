@@ -24,8 +24,20 @@ class FormationController extends Controller
             }
         }
 
+        $placesMoyennes = count($sessions) > 0
+            ? (int) round(array_sum(array_column($sessions, 'places')) / count($sessions))
+            : 0;
+
         return Inertia::render('public/formations', [
             'sessions' => $sessions,
+            'stats' => [
+                'placesMoyennes' => $placesMoyennes,
+                // Le taux de placement réel nécessiterait de croiser
+                // Candidature/Contrat sur l'ensemble des apprenants formés
+                // (pas encore suivi) — valeur de communication en attendant,
+                // comme les autres chiffres fixes de la vitrine publique.
+                'tauxPlacement' => 68,
+            ],
         ]);
     }
 
@@ -82,6 +94,7 @@ class FormationController extends Controller
             'formateur' => $session->formateur,
             'dateDebut' => $session->date_debut?->toDateString(),
             'dateFin' => $session->date_fin?->toDateString(),
+            'places' => $session->places,
             'placesRestantes' => $session->placesRestantes(),
             'statut' => $session->statut,
             'image' => $formation->image,

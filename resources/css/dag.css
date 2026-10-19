@@ -652,6 +652,54 @@
     }
 }
 
+/* formulaire de contact */
+.dag .form-row-2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+@media (max-width: 480px) {
+    .dag .form-row-2 {
+        grid-template-columns: 1fr;
+    }
+}
+.dag .form-consent {
+    margin-top: 2px;
+    font-size: 12px;
+    color: var(--dag-text-faint);
+    text-align: center;
+}
+.dag .form-consent a {
+    font-weight: 600;
+}
+
+/* cartes de coordonnées */
+.dag .contact-info-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 20px;
+}
+.dag .contact-info-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+}
+.dag .contact-info-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--dag-navy);
+}
+.dag .contact-info-value {
+    margin-top: 2px;
+    font-size: 13px;
+    color: var(--dag-text-muted);
+}
+
 .dag .icon-box {
     width: 42px;
     height: 42px;
@@ -746,27 +794,21 @@
 }
 .dag .training-hero {
     position: relative;
-    isolation: isolate;
     display: flex;
     align-items: center;
     min-height: 390px;
     overflow: hidden;
     border-radius: var(--dag-radius-lg);
-    background: #071f41 url('/images/photos/auditorium-welcome.jpg') center
-        48%/cover no-repeat;
+    background:
+        linear-gradient(
+            105deg,
+            rgba(5, 22, 46, 0.72) 0%,
+            rgba(7, 31, 65, 0.5) 52%,
+            rgba(7, 31, 65, 0.14) 100%
+        ),
+        url('/images/photos/auditorium-welcome.jpg') center 48% / cover
+            no-repeat;
     box-shadow: var(--dag-shadow-lg);
-}
-.dag .training-hero::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    background: linear-gradient(
-        105deg,
-        rgba(5, 22, 46, 0.95) 0%,
-        rgba(7, 31, 65, 0.82) 52%,
-        rgba(7, 31, 65, 0.3) 100%
-    );
 }
 .dag .training-hero-content {
     width: 100%;
@@ -835,28 +877,22 @@
 }
 .dag .contact-hero {
     position: relative;
-    isolation: isolate;
     display: flex;
     align-items: center;
     min-height: 300px;
     overflow: hidden;
     border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: var(--dag-radius-lg);
-    background: #071f41 url('/images/photos/team-meeting-laptop.jpg') center
-        48%/cover no-repeat;
+    background:
+        linear-gradient(
+            100deg,
+            rgba(5, 22, 46, 0.9) 0%,
+            rgba(7, 31, 65, 0.68) 54%,
+            rgba(7, 31, 65, 0.18) 100%
+        ),
+        url('/images/photos/team-meeting-laptop.jpg') center 48% / cover
+            no-repeat;
     box-shadow: var(--dag-shadow-lg);
-}
-.dag .contact-hero::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    background: linear-gradient(
-        100deg,
-        rgba(5, 22, 46, 0.9) 0%,
-        rgba(7, 31, 65, 0.68) 54%,
-        rgba(7, 31, 65, 0.18) 100%
-    );
 }
 .dag .contact-hero-content {
     max-width: 760px;
@@ -994,21 +1030,11 @@
 }
 .dag .subscription-hero {
     position: relative;
-    isolation: isolate;
     display: flex;
     align-items: center;
     min-height: 280px;
     overflow: hidden;
     border-radius: var(--dag-radius-lg);
-    background: #071f41 url('/images/photos/glass-charts.jpg') center 46%/cover
-        no-repeat;
-    box-shadow: var(--dag-shadow-lg);
-}
-.dag .subscription-hero::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: -1;
     background:
         linear-gradient(
             100deg,
@@ -1016,7 +1042,9 @@
             rgba(7, 31, 65, 0.82) 44%,
             rgba(7, 31, 65, 0.38) 100%
         ),
-        linear-gradient(0deg, rgba(3, 15, 32, 0.32), transparent 60%);
+        linear-gradient(0deg, rgba(3, 15, 32, 0.32), transparent 60%),
+        url('/images/photos/glass-charts.jpg') center 46% / cover no-repeat;
+    box-shadow: var(--dag-shadow-lg);
 }
 .dag .subscription-hero-content {
     max-width: 760px;
@@ -1249,10 +1277,90 @@
 }
 .dag .service-results-count {
     padding-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
     color: var(--dag-text-muted);
     font-size: 11.5px;
     font-weight: 700;
     white-space: nowrap;
+}
+.dag .service-filter-reset {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* champs de filtre avec icône */
+.dag .input-icon-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.dag .input-icon-wrap .input-icon-left {
+    position: absolute;
+    left: 13px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--dag-text-faint);
+    pointer-events: none;
+}
+.dag .input-icon-wrap input {
+    padding-left: 38px !important;
+}
+.dag .input-icon-clear {
+    position: absolute;
+    right: 7px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+    border: none;
+    border-radius: 999px;
+    background: none;
+    color: var(--dag-text-faint);
+    cursor: pointer;
+    transition:
+        background 0.15s var(--dag-ease),
+        color 0.15s var(--dag-ease);
+}
+.dag .input-icon-clear:hover {
+    background: #f1f2f6;
+    color: var(--dag-navy);
+}
+.dag .select-icon-wrap {
+    position: relative;
+    display: flex;
+}
+.dag .select-icon-wrap select {
+    width: 100%;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    padding-right: 34px !important;
+}
+.dag .select-icon-wrap .select-icon-chevron {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--dag-text-faint);
+    pointer-events: none;
+}
+
+/* bouton "Demander ce service" */
+.dag .btn-service-request {
+    justify-content: space-between;
+}
+.dag .btn-service-request .btn-service-request-icon {
+    transition: transform 0.2s var(--dag-ease);
+    flex: none;
+}
+.dag .btn-service-request:hover .btn-service-request-icon {
+    transform: translateX(3px);
 }
 .dag .service-empty-state {
     margin-top: 26px;
@@ -1352,6 +1460,61 @@
 }
 .dag .step-line.done {
     background: var(--dag-green);
+}
+
+/* parcours de formation (page Formations) */
+.dag .process-track-card {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 4px;
+    padding: 28px 32px;
+    background: #fff;
+    border: 1px solid var(--dag-border);
+    border-radius: var(--dag-radius-md);
+    box-shadow: var(--dag-shadow-sm);
+    overflow-x: auto;
+}
+.dag .process-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    flex: none;
+    min-width: 72px;
+}
+.dag .process-step-dot {
+    width: 38px;
+    height: 38px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: 'Sora', sans-serif;
+    background: var(--dag-blue-light);
+    color: var(--dag-blue);
+    flex: none;
+}
+.dag .process-step-dot.done {
+    background: var(--dag-green-bg);
+    color: var(--dag-green);
+}
+.dag .process-step-label {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--dag-text-muted);
+    white-space: nowrap;
+}
+.dag .process-step-arrow {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    margin-top: 19px;
+    color: #cbd2e0;
 }
 
 .dag .hero-row {
@@ -2271,6 +2434,7 @@
     }
     .dag .service-results-count {
         padding-top: 2px;
+        align-items: flex-start;
     }
     .dag .cat-nav-sticky {
         margin-top: 18px;
@@ -2299,8 +2463,20 @@
         padding-top: 24px;
     }
     .dag .training-hero {
+        /* Sur desktop, ce dégradé horizontal laisse la photo visible à
+           droite car le texte reste dans une colonne étroite. Sur mobile,
+           le texte prend toute la largeur : un dégradé horizontal aussi
+           sombre rendait la photo totalement invisible. */
         min-height: 0;
-        background-position: 58% center;
+        background:
+            linear-gradient(
+                180deg,
+                rgba(5, 22, 46, 0.35) 0%,
+                rgba(5, 22, 46, 0.55) 60%,
+                rgba(5, 22, 46, 0.72) 100%
+            ),
+            url('/images/photos/auditorium-welcome.jpg') 58% center / cover
+                no-repeat;
     }
     .dag .training-hero-content {
         padding: 28px 24px;
@@ -2328,13 +2504,40 @@
     }
     .dag .contact-hero {
         min-height: 250px;
-        background-position: 58% center;
+        background:
+            linear-gradient(
+                180deg,
+                rgba(5, 22, 46, 0.5) 0%,
+                rgba(5, 22, 46, 0.75) 60%,
+                rgba(5, 22, 46, 0.88) 100%
+            ),
+            url('/images/photos/team-meeting-laptop.jpg') 58% center / cover
+                no-repeat;
     }
     .dag .contact-hero-content {
         padding: 28px 24px;
     }
     .dag .contact-hero p {
         font-size: 14px;
+    }
+    .dag .process-track-card {
+        padding: 20px 16px;
+        gap: 2px;
+    }
+    .dag .process-step {
+        min-width: 58px;
+        gap: 7px;
+    }
+    .dag .process-step-dot {
+        width: 32px;
+        height: 32px;
+        font-size: 12.5px;
+    }
+    .dag .process-step-label {
+        font-size: 11px;
+    }
+    .dag .process-step-arrow {
+        margin-top: 16px;
     }
     .dag .training-session-grid {
         grid-template-columns: 1fr;
@@ -2354,7 +2557,15 @@
     }
     .dag .subscription-hero {
         min-height: 300px;
-        background-position: 58% center;
+        background:
+            linear-gradient(
+                180deg,
+                rgba(5, 22, 46, 0.55) 0%,
+                rgba(5, 22, 46, 0.8) 60%,
+                rgba(5, 22, 46, 0.92) 100%
+            ),
+            linear-gradient(0deg, rgba(3, 15, 32, 0.32), transparent 60%),
+            url('/images/photos/glass-charts.jpg') 58% center / cover no-repeat;
     }
     .dag .subscription-hero-content {
         padding: 28px 24px;

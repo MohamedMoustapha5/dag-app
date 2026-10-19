@@ -2,6 +2,7 @@ import { Link, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import {
     abonnement,
+    aPropos,
     catalogue,
     contact,
     formations,
@@ -15,7 +16,7 @@ const NAV_LINKS = [
     { href: catalogue(), label: 'Services' },
     { href: formations(), label: 'Formations' },
     { href: abonnement(), label: 'Abonnement' },
-    { href: { url: '/#equipe', method: 'get' as const }, label: 'À propos' },
+    { href: aPropos(), label: 'À propos' },
     { href: contact(), label: 'Contact' },
 ];
 
@@ -53,6 +54,7 @@ export default function TopBar() {
                         <Link
                             key={link.label}
                             href={link.href}
+                            prefetch
                             className={`navlink${url === link.href.url ? ' active' : ''}`}
                         >
                             {link.label}
