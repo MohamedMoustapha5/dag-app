@@ -180,6 +180,9 @@
 .dag .btn-block {
     width: 100%;
 }
+.dag .btn-label-short {
+    display: none;
+}
 .dag .btn-ghost-dark {
     background: rgba(255, 255, 255, 0.08) !important;
     color: #fff !important;
@@ -2327,13 +2330,17 @@
         margin-left: auto;
         gap: 6px;
     }
-    .dag .topbar-actions .btn-primary {
-        display: none;
-    }
+    .dag .topbar-actions .btn-primary,
     .dag .topbar-actions .btn-ghost {
         padding: 9px 13px;
         font-size: 13px;
         white-space: nowrap;
+    }
+    .dag .topbar-actions .btn-primary .btn-label-full {
+        display: none;
+    }
+    .dag .topbar-actions .btn-primary .btn-label-short {
+        display: inline;
     }
     .dag .lang-switch {
         padding: 2px;
@@ -2596,7 +2603,8 @@
     .dag .topbar-logo img {
         height: 46px;
     }
-    .dag .topbar-actions .btn-ghost {
+    .dag .topbar-actions .btn-ghost,
+    .dag .topbar-actions .btn-primary {
         padding: 8px 10px;
         font-size: 12.5px;
     }

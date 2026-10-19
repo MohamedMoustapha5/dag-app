@@ -88,7 +88,12 @@ export default function TopBar() {
                                 Connexion
                             </Link>
                             <Link href={register()} className="btn-primary">
-                                Démarrer un projet
+                                <span className="btn-label-full">
+                                    Démarrer un projet
+                                </span>
+                                <span className="btn-label-short">
+                                    Démarrer
+                                </span>
                             </Link>
                         </>
                     )}
