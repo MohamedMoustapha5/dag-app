@@ -24,8 +24,11 @@ graphique DAG d'octobre 2026).
   1:1, avec deux adaptations obligatoires :
     - **Scoping `.dag`** : tous les sélecteurs (`.btn-primary`, `.card`,
       `.topbar`, etc.) sont préfixés par `.dag ` pour qu'ils ne s'appliquent
-      qu'à l'intérieur d'un conteneur `<div className="dag">` — jamais à
-      l'espace authentifié qui utilise Tailwind/shadcn.
+      qu'à l'intérieur d'un conteneur `<div className="dag">`. À l'origine
+      réservé au site public, ce système a ensuite été étendu aux pages
+      d'authentification (phase 2, restylées selon la charte DAG) puis à
+      l'espace client (phase 4) — seul le dashboard générique du starter kit
+      (Teams/Settings) reste en Tailwind/shadcn.
     - **Préfixe `--dag-`** sur les ~27 variables CSS (`--navy` → `--dag-navy`,
       `--border` → `--dag-border`, `--radius-sm/md/lg` → `--dag-radius-*`,
       etc.). Le fichier `style.css` original définissait ces variables sur

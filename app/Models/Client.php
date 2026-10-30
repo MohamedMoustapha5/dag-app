@@ -16,6 +16,18 @@ class Client extends Model
     /** @use HasFactory<ClientFactory> */
     use HasFactory, HasUuids;
 
+    /** @var array<string, string> */
+    private const TYPE_LABELS = [
+        'PARTICULIER' => 'Particulier',
+        'ENTREPRISE' => 'Entreprise',
+        'ORGANISATION' => 'Organisation',
+    ];
+
+    public function typeLabel(): string
+    {
+        return self::TYPE_LABELS[$this->type];
+    }
+
     /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {

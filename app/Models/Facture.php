@@ -3,8 +3,10 @@
 namespace App\Models;
 
 use App\Concerns\GeneratesReference;
+use Database\Factories\FactureFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -16,7 +18,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 ])]
 class Facture extends Model
 {
-    use GeneratesReference, HasUuids;
+    /** @use HasFactory<FactureFactory> */
+    use GeneratesReference, HasFactory, HasUuids;
 
     protected function casts(): array
     {
@@ -78,5 +81,25 @@ class Facture extends Model
     public function paiements(): HasMany
     {
         return $this->hasMany(Paiement::class);
+    }
+
+    /**
+     * Display label for what this facture covers: the demande's service/
+     * formule for a one-off prestation, or the subscribed formule for a
+     * recurring abonnement invoice.
+     */
+    public function libelleObjet(): string
+    {
+        if ($this->demande_id !== null) {
+            return $this->demande->libelleObjet();
+        }
+
+        if ($this->abonnement_id !== null) {
+            $formuleNom = $this->abonnement->formule_id !== null ? $this->abonnement->formule->nom : 'Formule';
+
+            return 'Abonnement — '.$formuleNom;
+        }
+
+        return $this->reference;
     }
 }

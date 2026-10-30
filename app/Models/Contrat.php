@@ -3,8 +3,10 @@
 namespace App\Models;
 
 use App\Concerns\GeneratesReference;
+use Database\Factories\ContratFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -18,7 +20,8 @@ use Illuminate\Support\Str;
 ])]
 class Contrat extends Model
 {
-    use GeneratesReference, HasUuids;
+    /** @use HasFactory<ContratFactory> */
+    use GeneratesReference, HasFactory, HasUuids;
 
     protected function casts(): array
     {
@@ -91,5 +94,23 @@ class Contrat extends Model
     public function facture(): HasOne
     {
         return $this->hasOne(Facture::class);
+    }
+
+    /**
+     * Display label combining the contrat's type and what it covers
+     * (the formule for an abonnement, the service/formule of the demande
+     * for a one-off prestation).
+     */
+    public function libelleObjet(): string
+    {
+        if ($this->type === 'ABONNEMENT') {
+            $formuleNom = $this->abonnement_id !== null && $this->abonnement->formule_id !== null
+                ? $this->abonnement->formule->nom
+                : 'Formule';
+
+            return 'Abonnement — '.$formuleNom;
+        }
+
+        return 'Prestation — '.($this->demande_id !== null ? $this->demande->libelleObjet() : $this->reference);
     }
 }

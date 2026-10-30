@@ -3,8 +3,10 @@
 namespace App\Models;
 
 use App\Concerns\GeneratesReference;
+use Database\Factories\DemandeFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -15,7 +17,18 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 ])]
 class Demande extends Model
 {
-    use GeneratesReference, HasUuids;
+    /** @use HasFactory<DemandeFactory> */
+    use GeneratesReference, HasFactory, HasUuids;
+
+    /**
+     * Linear progression of a demande, excluding REFUSEE which is a
+     * terminal state reachable from any step rather than a step itself.
+     *
+     * @var list<string>
+     */
+    public const SUIVI_STEPS = [
+        'BROUILLON', 'EN_ETUDE', 'DEVIS_ENVOYE', 'PAYEE', 'EN_COURS', 'LIVREE', 'TERMINEE',
+    ];
 
     protected function casts(): array
     {
@@ -65,5 +78,44 @@ class Demande extends Model
     public function facture(): HasOne
     {
         return $this->hasOne(Facture::class);
+    }
+
+    /**
+     * Display label for the service or formule this demande is about.
+     * Checks the foreign key columns rather than the loaded relations,
+     * since exactly one of them is set for a client-initiated demande.
+     */
+    public function libelleObjet(): string
+    {
+        if ($this->service_id !== null) {
+            return $this->service->nom;
+        }
+
+        if ($this->formule_id !== null) {
+            return $this->formule->nom;
+        }
+
+        return 'Demande';
+    }
+
+    /**
+     * Status label override for a demande transmitted to the Nova-Tech
+     * partner, whose progress is tracked via avancement_partenaire rather
+     * than the regular statut. Null when the demande is handled directly
+     * by DAG, so callers fall back to the regular statut label.
+     */
+    public function libelleStatutPartenaire(): ?string
+    {
+        if (! $this->est_partenaire_nova_tech || ! $this->avancement_partenaire) {
+            return null;
+        }
+
+        return match ($this->avancement_partenaire) {
+            'A_TRANSMETTRE' => 'À transmettre',
+            'TRANSMIS' => 'Transmis',
+            'DEVIS_RECU' => 'Devis reçu',
+            'EN_COURS' => 'Transmis — en cours',
+            'LIVRE' => 'Livré',
+        };
     }
 }

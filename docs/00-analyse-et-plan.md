@@ -73,8 +73,8 @@ matrice de droits par type de donnée est implémentée depuis la phase 2
 | ----- | ------------------------------------------------------------------------------ | ------- |
 | 1     | Base de données : migrations, modèles, enums, seeders de démo, tests           | ✅ fait |
 | 2     | Authentification par type de compte, rôles, matrice de droits, espaces de base | ✅ fait |
-| 3     | Espace public : catalogue, formations, formules, contact, audit gratuit        | à venir |
-| 4     | Espace client : demandes, suivi, documents                                     | à venir |
+| 3     | Espace public : catalogue, formations, formules, contact, audit gratuit        | ✅ fait |
+| 4     | Espace client : demandes, suivi, documents                                     | ✅ fait |
 | 5     | Paiement & facturation (Orange Money / MTN MoMo / carte, facture manuelle)     | à venir |
 | 6     | Contrats & signature par photo importée                                        | à venir |
 | 7     | Module Formation (inscription, présence, attestation)                          | à venir |

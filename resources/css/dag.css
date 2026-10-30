@@ -2782,3 +2782,563 @@
         animation: none !important;
     }
 }
+
+/* espace client — structure générale */
+.dag .espace-shell {
+    display: flex;
+    min-height: 100vh;
+    background: #f5f6fa;
+}
+.dag .espace-sidebar {
+    width: 260px;
+    flex: none;
+    background: var(--dag-navy);
+    display: flex;
+    flex-direction: column;
+    padding: 24px 16px;
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+    height: 100vh;
+    overflow-y: auto;
+}
+.dag .espace-sidebar-logo {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 28px;
+}
+.dag .espace-sidebar-logo img {
+    height: 48px;
+    width: auto;
+    border-radius: 10px;
+    display: block;
+}
+.dag .espace-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+.dag .espace-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 14px;
+    border-radius: var(--dag-radius-sm);
+    color: rgba(255, 255, 255, 0.72) !important;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition:
+        background 0.15s var(--dag-ease),
+        color 0.15s var(--dag-ease);
+}
+.dag .espace-nav-link:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff !important;
+}
+.dag .espace-nav-link.active {
+    background: var(--dag-blue);
+    color: #fff !important;
+}
+.dag .espace-nav-link.inert {
+    cursor: not-allowed;
+    opacity: 0.45;
+}
+.dag .espace-nav-link.inert:hover {
+    background: none;
+    color: rgba(255, 255, 255, 0.72) !important;
+}
+.dag .espace-sidebar-support {
+    margin-top: 20px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--dag-radius-md);
+    padding: 18px;
+}
+.dag .espace-sidebar-support-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--dag-blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    margin-bottom: 12px;
+}
+.dag .espace-sidebar-support p {
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 12px;
+    line-height: 1.5;
+    margin-bottom: 12px;
+}
+.dag .espace-sidebar-support strong {
+    display: block;
+    color: #fff;
+    font-size: 13.5px;
+    margin-bottom: 4px;
+}
+.dag .espace-sidebar-support a {
+    color: #fff !important;
+    font-size: 12.5px;
+    font-weight: 700;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.dag .espace-sidebar-backdrop {
+    display: none;
+}
+
+.dag .espace-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+.dag .espace-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    background: #fff;
+    border-bottom: 1px solid var(--dag-border);
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+.dag .espace-sidebar-toggle {
+    display: none;
+}
+.dag .espace-search {
+    flex: 1;
+    max-width: 420px;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.dag .espace-search input {
+    width: 100%;
+    padding: 10px 14px 10px 38px;
+    border-radius: var(--dag-radius-sm);
+    border: 1px solid var(--dag-border);
+    background: #f5f6fa;
+    font-size: 13.5px;
+}
+.dag .espace-search svg {
+    position: absolute;
+    left: 12px;
+    color: var(--dag-text-faint);
+    pointer-events: none;
+}
+.dag .espace-topbar-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+.dag .espace-notif {
+    position: relative;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #f5f6fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--dag-text-muted);
+    flex: none;
+}
+.dag .espace-notif-dot {
+    position: absolute;
+    top: 8px;
+    right: 9px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--dag-red);
+    border: 2px solid #fff;
+}
+.dag .espace-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.dag .espace-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--dag-blue-light);
+    color: var(--dag-blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 13px;
+    flex: none;
+}
+.dag .espace-user-name {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--dag-navy);
+    line-height: 1.3;
+}
+.dag .espace-user-type {
+    font-size: 11.5px;
+    color: var(--dag-text-faint);
+}
+.dag .espace-content {
+    padding: 32px;
+    flex: 1;
+}
+
+/* héros avec photo */
+.dag .espace-hero {
+    position: relative;
+    border-radius: var(--dag-radius-lg);
+    overflow: hidden;
+    min-height: 180px;
+    display: flex;
+    align-items: center;
+    padding: 32px;
+    background-size: cover;
+    background-position: center;
+    margin-bottom: 28px;
+}
+.dag .espace-hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        100deg,
+        rgba(6, 11, 24, 0.88) 20%,
+        rgba(6, 11, 24, 0.5) 100%
+    );
+}
+.dag .espace-hero-content {
+    position: relative;
+    z-index: 1;
+}
+.dag .espace-hero-content h1 {
+    color: #fff;
+    font-size: 24px;
+}
+.dag .espace-hero-content p {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 13.5px;
+    margin-top: 6px;
+}
+
+/* cartes statistiques */
+.dag .espace-stat-card {
+    border-top: 3px solid var(--dag-blue);
+}
+.dag .espace-stat-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 14px;
+}
+
+/* actions rapides */
+.dag .espace-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: var(--dag-radius-sm);
+    border: 1px solid var(--dag-border);
+    background: #fff;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--dag-text) !important;
+    text-decoration: none;
+    transition:
+        border-color 0.15s var(--dag-ease),
+        box-shadow 0.15s var(--dag-ease);
+}
+.dag .espace-action-btn:hover {
+    border-color: var(--dag-blue);
+    box-shadow: var(--dag-shadow-sm);
+}
+.dag .espace-action-btn.inert {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+.dag .espace-action-btn.inert:hover {
+    border-color: var(--dag-border);
+    box-shadow: none;
+}
+.dag .espace-action-badge {
+    background: var(--dag-orange-bg);
+    color: var(--dag-orange-ink);
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 1px 7px;
+    margin-left: auto;
+}
+
+/* activité récente */
+.dag .espace-timeline-item {
+    position: relative;
+    display: flex;
+    gap: 14px;
+    padding-bottom: 22px;
+}
+.dag .espace-timeline-item:last-child {
+    padding-bottom: 0;
+}
+.dag .espace-timeline-item::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 32px;
+    bottom: 0;
+    width: 1px;
+    background: var(--dag-border);
+}
+.dag .espace-timeline-item:last-child::before {
+    display: none;
+}
+.dag .espace-timeline-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    z-index: 1;
+}
+.dag .espace-timeline-label {
+    font-size: 13.5px;
+    font-weight: 600;
+}
+.dag .espace-timeline-date {
+    font-size: 12px;
+    color: var(--dag-text-faint);
+    margin-top: 2px;
+}
+
+/* carte formule */
+.dag .espace-formule-progress {
+    height: 6px;
+    border-radius: 999px;
+    background: #eef0f6;
+    overflow: hidden;
+    margin: 10px 0 16px;
+}
+.dag .espace-formule-progress-bar {
+    height: 100%;
+    background: var(--dag-blue);
+    border-radius: 999px;
+}
+.dag .espace-formule-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    padding: 6px 0;
+    color: var(--dag-text-muted);
+}
+
+@media (max-width: 960px) {
+    .dag .espace-sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        transform: translateX(-100%);
+        transition: transform 0.25s var(--dag-ease);
+        z-index: 200;
+        box-shadow: var(--dag-shadow-lg);
+    }
+    .dag .espace-sidebar.open {
+        transform: translateX(0);
+    }
+    .dag .espace-sidebar-backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(6, 11, 24, 0.5);
+        z-index: 190;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s var(--dag-ease);
+    }
+    .dag .espace-sidebar-backdrop.open {
+        opacity: 1;
+        pointer-events: auto;
+    }
+    .dag .espace-sidebar-toggle {
+        display: flex;
+        width: 38px;
+        height: 38px;
+        align-items: center;
+        justify-content: center;
+        border-radius: var(--dag-radius-sm);
+        border: 1px solid var(--dag-border);
+        background: #fff;
+        flex: none;
+    }
+    .dag .espace-search {
+        display: none;
+    }
+    .dag .espace-topbar {
+        padding: 12px 16px;
+        gap: 12px;
+    }
+    .dag .espace-user-name,
+    .dag .espace-user-type {
+        display: none;
+    }
+    .dag .espace-content {
+        padding: 20px 16px;
+    }
+    .dag .espace-hero {
+        padding: 24px;
+        min-height: 140px;
+    }
+    .dag .espace-hero-content h1 {
+        font-size: 20px;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .dag .espace-sidebar,
+    .dag .espace-sidebar-backdrop {
+        transition: none !important;
+    }
+}
+
+/* tableaux de données (mes demandes, factures, contrats, documents) */
+.dag .data-table-wrap {
+    background: #fff;
+    border: 1px solid var(--dag-border);
+    border-radius: var(--dag-radius-md);
+    box-shadow: var(--dag-shadow-sm);
+    overflow-x: auto;
+}
+.dag .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    white-space: nowrap;
+}
+.dag .data-table th {
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--dag-text-faint);
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--dag-border);
+    background: #fafbfc;
+}
+.dag .data-table td {
+    padding: 16px 20px;
+    font-size: 13.5px;
+    border-bottom: 1px solid var(--dag-border);
+    vertical-align: middle;
+}
+.dag .data-table tbody tr:last-child td {
+    border-bottom: none;
+}
+.dag .data-table tbody tr:hover td {
+    background: #fafbfc;
+}
+.dag .data-table-empty {
+    padding: 48px 20px;
+    text-align: center;
+    color: var(--dag-text-faint);
+    font-size: 13.5px;
+}
+.dag .status-tabs {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+/* en-tête compte (page paramètres) */
+.dag .account-banner {
+    position: relative;
+    border-radius: var(--dag-radius-lg);
+    overflow: hidden;
+    padding: 28px 32px;
+    background: linear-gradient(120deg, var(--dag-navy), var(--dag-blue));
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+}
+.dag .account-banner-identity {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+.dag .account-banner-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #fff;
+    color: var(--dag-blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 20px;
+    flex: none;
+}
+.dag .account-banner h1 {
+    color: #fff;
+    font-size: 20px;
+    margin-top: 6px;
+}
+.dag .account-banner-sub {
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 13px;
+    margin-top: 4px;
+}
+.dag .account-tabs {
+    display: flex;
+    gap: 24px;
+    border-bottom: 1px solid var(--dag-border);
+    margin-bottom: 28px;
+}
+.dag .account-tab {
+    padding: 12px 2px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--dag-text-muted);
+    border-bottom: 2px solid transparent;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    cursor: pointer;
+}
+.dag .account-tab.active {
+    color: var(--dag-blue);
+    border-bottom-color: var(--dag-blue);
+}
+.dag .danger-zone {
+    border-color: rgba(230, 60, 60, 0.3);
+    background: var(--dag-red-bg);
+}
+@media (max-width: 640px) {
+    .dag .account-banner {
+        padding: 22px;
+    }
+    .dag .account-banner-avatar {
+        width: 52px;
+        height: 52px;
+        font-size: 16px;
+    }
+}
