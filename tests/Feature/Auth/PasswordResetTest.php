@@ -79,7 +79,7 @@ test('forgot password requests are rate limited after five attempts', function (
     $response = $this->post(route('password.email'), ['email' => $user->email]);
 
     $response->assertSessionHasErrors([
-        'email' => 'Trop de tentatives. Merci de réessayer dans 15 minutes.',
+        'email' => 'Trop de tentatives. Merci de réessayer dans 1 heure.',
     ]);
     Notification::assertNothingSent();
 });

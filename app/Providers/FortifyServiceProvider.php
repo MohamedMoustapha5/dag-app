@@ -140,9 +140,9 @@ class FortifyServiceProvider extends ServiceProvider
         RateLimiter::for('password-reset', function (Request $request) {
             $throttleKey = Str::transliterate(Str::lower((string) $request->input('email')).'|'.$request->ip());
 
-            return Limit::perMinutes(15, 5)->by($throttleKey)->response(
+            return Limit::perMinutes(60, 5)->by($throttleKey)->response(
                 fn (Request $request, array $headers) => back()->withErrors([
-                    'email' => 'Trop de tentatives. Merci de réessayer dans 15 minutes.',
+                    'email' => 'Trop de tentatives. Merci de réessayer dans 1 heure.',
                 ])->withHeaders($headers)
             );
         });
