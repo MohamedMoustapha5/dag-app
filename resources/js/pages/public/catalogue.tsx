@@ -177,7 +177,7 @@ export default function Catalogue({ services }: CatalogueProps) {
                 </nav>
             </section>
 
-            <section className="section-gap reveal container">
+            <section className="section-gap container">
                 <div className="catalogue-results-head">
                     <h2 style={{ fontSize: 21, color: 'var(--dag-navy)' }}>
                         {activeCategory === ALL_CATEGORIES
@@ -228,10 +228,7 @@ export default function Catalogue({ services }: CatalogueProps) {
                         Aucun service ne correspond à votre recherche.
                     </p>
                 ) : (
-                    <div
-                        className="catalogue-grid reveal-stagger"
-                        style={{ marginTop: 22 }}
-                    >
+                    <div className="catalogue-grid" style={{ marginTop: 22 }}>
                         {sortedServices.map((service) => (
                             <div key={service.id} className="card photo-card">
                                 <div className="photo-card-media">
