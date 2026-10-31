@@ -21,7 +21,7 @@ class MembresEquipeSeeder extends Seeder
             ['name' => 'Fatou M.', 'email' => 'fatou.m@dag.cm', 'role' => MembreEquipeRole::Juriste],
             ['name' => 'Jules K.', 'email' => 'jules.k@dag.cm', 'role' => MembreEquipeRole::CommunicationMarketing],
             ['name' => 'Layana D.', 'email' => 'herve.n@dag.cm', 'role' => MembreEquipeRole::ControleGestion],
-            ['name' => 'Rosine T.', 'email' => 'rosine.t@dag.cm', 'role' => MembreEquipeRole::CreationContenu],
+            ['name' => 'Hussein', 'email' => 'rosine.t@dag.cm', 'role' => MembreEquipeRole::CreationContenu],
         ];
 
         foreach ($membres as $membre) {

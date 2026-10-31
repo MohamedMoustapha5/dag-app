@@ -408,7 +408,7 @@ class DemoWorkflowSeeder extends Seeder
 
         ActivityLog::record($juriste, 'a validé le contrat', $contratAicha, 'Contrat de prestation de service contrôlé avant envoi.');
         ActivityLog::record($communication, 'a transmis une demande à Nova-Tech', null, 'Création de site internet — Atlas Corp.');
-        ActivityLog::record($promotrice, 'a créé un compte apprenant', null, 'Compte de Rosine T. — rôle Création de contenu.');
+        ActivityLog::record($promotrice, 'a créé un compte apprenant', null, 'Compte de Hussein — rôle Création de contenu.');
 
         $aichaUser = Client::whereHas('user', fn ($q) => $q->where('email', 'aicha.n@exemple.com'))->first()->user;
 

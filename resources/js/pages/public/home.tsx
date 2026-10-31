@@ -112,7 +112,7 @@ const TEAM_PHOTOS = [
     '/images/photos/woman-desk-seo.jpg',
     '/images/photos/man-laptop-smile.jpg',
     '/images/photos/layana-d-secretaire.jpg',
-    '/images/photos/man-phone-social.jpg',
+    '/images/photos/hussein-createur-contenu.jpg',
     '/images/photos/mustapha-developpeur.jpg',
 ];
 

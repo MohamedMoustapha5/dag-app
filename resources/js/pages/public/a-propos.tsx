@@ -45,7 +45,7 @@ const EQUIPE_PHOTOS: Record<string, string> = {
     Juriste: '/images/photos/woman-thinking-social.jpg',
     'Communication & marketing digital': '/images/photos/man-phone-social.jpg',
     Secrétaire: '/images/photos/layana-d-secretaire.jpg',
-    'Création de contenu': '/images/photos/man-laptop-smile.jpg',
+    'Création de contenu': '/images/photos/hussein-createur-contenu.jpg',
 };
 
 const DEVELOPPEUR = {
