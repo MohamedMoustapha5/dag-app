@@ -11,13 +11,11 @@ use App\Models\MembreEquipe;
 use App\Models\OffreEmploi;
 use App\Models\Service;
 
-test('the home page renders with published catalogue stats, the active team and published formules', function () {
+test('the home page renders with published catalogue stats and the active team', function () {
     Service::factory()->create(['statut' => 'PUBLIE']);
     Service::factory()->create(['statut' => 'BROUILLON']);
     MembreEquipe::factory()->juriste()->create();
     MembreEquipe::factory()->inactif()->create();
-    Formule::factory()->create(['statut' => 'PUBLIEE']);
-    Formule::factory()->create(['statut' => 'BROUILLON']);
 
     $response = $this->get(route('home'));
 
@@ -25,8 +23,7 @@ test('the home page renders with published catalogue stats, the active team and 
     $response->assertInertia(fn ($page) => $page
         ->component('public/home')
         ->where('stats.services', 1)
-        ->has('equipe', 1)
-        ->has('formules', 1));
+        ->has('equipe', 1));
 });
 
 test('the a propos page renders with published catalogue stats and the active team', function () {

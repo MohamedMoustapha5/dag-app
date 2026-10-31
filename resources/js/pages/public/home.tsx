@@ -20,12 +20,6 @@ type HomeProps = {
         services: number;
     };
     equipe: Array<{ nom: string; role: string }>;
-    formules: Array<{
-        id: string;
-        nom: string;
-        contenu: string | null;
-        populaire: boolean;
-    }>;
 };
 
 const PROCESS_STEPS = [
@@ -175,29 +169,13 @@ const TESTIMONIALS = [
     },
 ];
 
-function reordonnerFormules<T extends { populaire: boolean }>(
-    formules: T[],
-): T[] {
-    const index = formules.findIndex((formule) => formule.populaire);
-
-    if (index === -1 || formules.length < 3) {
-        return formules;
-    }
-
-    const reste = formules.filter((_, i) => i !== index);
-    const milieu = Math.floor(reste.length / 2);
-
-    return [...reste.slice(0, milieu), formules[index], ...reste.slice(milieu)];
-}
-
-export default function Home({ stats, equipe, formules }: HomeProps) {
+export default function Home({ stats, equipe }: HomeProps) {
     const [teamIndex, setTeamIndex] = useState(0);
     const [testimonialIndex, setTestimonialIndex] = useState(0);
     const [auditModalOpen, setAuditModalOpen] = useState(false);
 
     const activeMember = equipe[teamIndex];
     const activeTestimonial = TESTIMONIALS[testimonialIndex];
-    const formulesOrdonnees = reordonnerFormules(formules);
 
     useEffect(() => {
         const timer = window.setInterval(() => {
@@ -975,96 +953,6 @@ export default function Home({ stats, equipe, formules }: HomeProps) {
                             />
                         ))}
                     </div>
-                </div>
-            </section>
-
-            <section className="section-gap reveal container">
-                <span className="badge">Formules mensuelles</span>
-                <h2
-                    style={{
-                        marginTop: 14,
-                        fontSize: 28,
-                        color: 'var(--dag-navy)',
-                    }}
-                >
-                    Choisissez votre accompagnement
-                </h2>
-                <p className="muted" style={{ marginTop: 10, maxWidth: 560 }}>
-                    Prix non affiché publiquement — négocié individuellement une
-                    fois connecté à votre espace.
-                </p>
-
-                <div
-                    className="grid-3 reveal-stagger"
-                    style={{ marginTop: 32 }}
-                >
-                    {formulesOrdonnees.map((formule) => (
-                        <div
-                            key={formule.id}
-                            className="card"
-                            style={{
-                                position: 'relative',
-                                padding: 28,
-                                borderColor: formule.populaire
-                                    ? 'var(--dag-blue)'
-                                    : undefined,
-                                boxShadow: formule.populaire
-                                    ? 'var(--dag-shadow-blue)'
-                                    : undefined,
-                            }}
-                        >
-                            {formule.populaire && (
-                                <span
-                                    className="badge"
-                                    style={{
-                                        position: 'absolute',
-                                        top: -14,
-                                        left: '50%',
-                                        transform: 'translateX(-50%)',
-                                    }}
-                                >
-                                    Populaire
-                                </span>
-                            )}
-                            <h3
-                                style={{
-                                    fontSize: 19,
-                                    color: 'var(--dag-navy)',
-                                }}
-                            >
-                                {formule.nom}
-                            </h3>
-                            {formule.contenu && (
-                                <p
-                                    className="muted"
-                                    style={{ marginTop: 10, fontSize: 13.5 }}
-                                >
-                                    {formule.contenu}
-                                </p>
-                            )}
-                            <p
-                                style={{
-                                    marginTop: 16,
-                                    fontSize: 13,
-                                    fontWeight: 700,
-                                    color: 'var(--dag-blue)',
-                                }}
-                            >
-                                Prix sur devis, négocié après connexion
-                            </p>
-                            <Link
-                                href={contact()}
-                                className={
-                                    formule.populaire
-                                        ? 'btn-primary btn-block'
-                                        : 'btn-outline btn-block'
-                                }
-                                style={{ marginTop: 20 }}
-                            >
-                                Découvrir
-                            </Link>
-                        </div>
-                    ))}
                 </div>
             </section>
 
