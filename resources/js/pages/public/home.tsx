@@ -136,36 +136,42 @@ const TESTIMONIALS = [
         meta: 'Cliente — Douala',
         tag: 'Client',
         avis: 'DAG a transformé notre présence sur les réseaux sociaux. Des résultats visibles dès le premier mois, et une équipe toujours réactive.',
+        note: 5,
     },
     {
         nom: 'Karim B.',
         meta: 'Fondateur — Atlas Corp',
         tag: 'Entreprise',
         avis: "Un vrai partenaire stratégique : de l'audit initial jusqu'au suivi mensuel des performances.",
+        note: 5,
     },
     {
         nom: 'Stéphanie A.',
         meta: 'Apprenante — Community management',
         tag: 'Apprenant',
         avis: "Les formations proposées sont concrètes et directement applicables. L'accompagnement vers le stage a fait toute la différence.",
+        note: 4,
     },
     {
         nom: 'Nadia T.',
         meta: 'Responsable marketing — Kiro Digital Solutions',
         tag: 'Entreprise',
         avis: 'Grâce à DAG, nous recrutons des profils déjà formés et opérationnels dès le premier jour. Un vrai gain de temps pour notre équipe.',
+        note: 5,
     },
     {
         nom: 'Yves M.',
         meta: 'Client — Douala',
         tag: 'Client',
         avis: "La formule d'abonnement m'a permis de garder une présence régulière sur les réseaux sans y passer mes journées. Facturation claire, zéro surprise.",
+        note: 4,
     },
     {
         nom: 'Brice K.',
         meta: 'Apprenant — Développement web',
         tag: 'Apprenant',
         avis: "La convention de stage signée avec Kiro Digital Solutions m'a ouvert les portes du marché du travail directement après la formation.",
+        note: 5,
     },
 ];
 
@@ -885,7 +891,11 @@ export default function Home({ stats, equipe, formules }: HomeProps) {
                             <Star
                                 key={index}
                                 size={17}
-                                fill="var(--dag-orange)"
+                                fill={
+                                    index < activeTestimonial.note
+                                        ? 'var(--dag-orange)'
+                                        : 'none'
+                                }
                                 color="var(--dag-orange)"
                             />
                         ))}
