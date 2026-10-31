@@ -110,7 +110,7 @@ const PAYMENT_METHODS = [
 const TEAM_PHOTOS = [
     '/images/photos/afsa-maira-directrice.jpg',
     '/images/photos/woman-desk-seo.jpg',
-    '/images/photos/man-laptop-smile.jpg',
+    '/images/photos/senghor-responsable-marketing.jpg',
     '/images/photos/layana-d-secretaire.jpg',
     '/images/photos/hussein-createur-contenu.jpg',
     '/images/photos/mustapha-developpeur.jpg',
@@ -119,8 +119,7 @@ const TEAM_PHOTOS = [
 const TEAM_TAGLINES: Record<string, string> = {
     Directrice: 'Pilote chaque dossier du premier message à la livraison.',
     Juriste: 'Sécurise chaque contrat, à la lettre.',
-    'Communication & marketing digital':
-        'Fait rayonner vos marques sur les réseaux.',
+    'Responsable Marketing': 'Fait rayonner vos marques sur les réseaux.',
     Secrétaire: 'Veille sur chaque facture et chaque paiement.',
     'Création de contenu': 'Donne vie à vos idées en visuels et vidéos.',
     Développeur: 'Conçoit et fait évoluer la plateforme DAG, de bout en bout.',

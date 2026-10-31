@@ -17,7 +17,9 @@ enum MembreEquipeRole: string
             // matrix key) — only the public-facing title changed.
             self::Promotrice => 'Directrice',
             self::Juriste => 'Juriste',
-            self::CommunicationMarketing => 'Communication & marketing digital',
+            // Case name kept as CommunicationMarketing (same cahier des
+            // charges key) — only the public-facing title changed.
+            self::CommunicationMarketing => 'Responsable Marketing',
             // Case name kept as ControleGestion (same cahier des charges
             // key) — only the public-facing title changed.
             self::ControleGestion => 'Secrétaire',
