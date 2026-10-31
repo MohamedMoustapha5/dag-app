@@ -6,7 +6,6 @@ import {
     CreditCard,
     FileText,
     ShieldCheck,
-    Star,
     UserCheck,
     Users,
 } from 'lucide-react';
@@ -857,127 +856,62 @@ export default function Home({ stats, equipe, formules }: HomeProps) {
                     textAlign: 'center',
                 }}
             >
-                <span className="badge">Avis vérifiés</span>
                 <h2
                     style={{
-                        marginTop: 14,
-                        fontSize: 28,
+                        fontSize: 38,
+                        fontWeight: 800,
                         color: 'var(--dag-navy)',
                     }}
                 >
-                    Ce que disent nos clients
+                    Témoignages
                 </h2>
-                <p className="muted" style={{ marginTop: 10, maxWidth: 520 }}>
-                    Particuliers et entreprises partenaires partagent leur
-                    expérience avec DAG.
-                </p>
 
                 <div
                     style={{
-                        position: 'relative',
                         maxWidth: 640,
                         width: '100%',
-                        marginTop: 32,
+                        marginTop: 36,
                     }}
                 >
-                    <button
-                        type="button"
-                        className="testimonial-nav prev"
-                        aria-label="Témoignage précédent"
-                        onClick={() =>
-                            setTestimonialIndex(
-                                (index) =>
-                                    (index - 1 + TESTIMONIALS.length) %
-                                    TESTIMONIALS.length,
-                            )
-                        }
+                    <p
+                        style={{
+                            fontSize: 20,
+                            fontStyle: 'italic',
+                            lineHeight: 1.7,
+                            color: 'var(--dag-text-muted)',
+                        }}
                     >
-                        ‹
-                    </button>
+                        « {activeTestimonial.avis} »
+                    </p>
                     <div
-                        className="card testimonial-card"
-                        style={{ textAlign: 'left' }}
+                        style={{
+                            marginTop: 28,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: 14,
+                        }}
                     >
-                        <div
-                            style={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'start',
-                                gap: 12,
-                                flexWrap: 'wrap',
-                            }}
-                        >
-                            <div
+                        <span className="testimonial-avatar">
+                            {activeTestimonial.nom
+                                .split(' ')
+                                .map((part) => part.charAt(0))
+                                .join('')}
+                        </span>
+                        <div style={{ textAlign: 'left' }}>
+                            <p
                                 style={{
-                                    display: 'flex',
-                                    gap: 14,
-                                    alignItems: 'center',
+                                    fontSize: 16,
+                                    color: 'var(--dag-text-muted)',
                                 }}
                             >
-                                <span className="testimonial-avatar">
-                                    {activeTestimonial.nom
-                                        .split(' ')
-                                        .map((part) => part.charAt(0))
-                                        .join('')}
-                                </span>
-                                <div>
-                                    <p
-                                        style={{
-                                            fontWeight: 700,
-                                            color: 'var(--dag-navy)',
-                                            fontSize: 14,
-                                        }}
-                                    >
-                                        {activeTestimonial.nom}
-                                    </p>
-                                    <p
-                                        className="muted"
-                                        style={{ fontSize: 12.5 }}
-                                    >
-                                        {activeTestimonial.meta}
-                                    </p>
-                                </div>
-                            </div>
-                            <span className="badge">
-                                {activeTestimonial.tag}
-                            </span>
+                                {activeTestimonial.nom}
+                            </p>
+                            <p className="muted" style={{ fontSize: 13 }}>
+                                {activeTestimonial.meta}
+                            </p>
                         </div>
-                        <div
-                            className="testimonial-stars"
-                            style={{ marginTop: 14 }}
-                        >
-                            {Array.from({ length: 5 }).map((_, index) => (
-                                <Star
-                                    key={index}
-                                    size={15}
-                                    fill="var(--dag-orange)"
-                                    color="var(--dag-orange)"
-                                />
-                            ))}
-                        </div>
-                        <p
-                            style={{
-                                marginTop: 12,
-                                fontSize: 14.5,
-                                lineHeight: 1.7,
-                                color: 'var(--dag-text)',
-                            }}
-                        >
-                            « {activeTestimonial.avis} »
-                        </p>
                     </div>
-                    <button
-                        type="button"
-                        className="testimonial-nav next"
-                        aria-label="Témoignage suivant"
-                        onClick={() =>
-                            setTestimonialIndex(
-                                (index) => (index + 1) % TESTIMONIALS.length,
-                            )
-                        }
-                    >
-                        ›
-                    </button>
                     <div className="testimonial-dots">
                         {TESTIMONIALS.map((item, index) => (
                             <button

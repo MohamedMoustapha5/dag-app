@@ -2118,16 +2118,6 @@
 }
 
 /* témoignages */
-.dag .testimonial-card {
-    padding: 32px;
-    transition:
-        opacity 0.25s var(--dag-ease),
-        transform 0.25s var(--dag-ease);
-}
-.dag .testimonial-card.switching {
-    opacity: 0;
-    transform: translateY(6px);
-}
 .dag .testimonial-avatar {
     width: 52px;
     height: 52px;
@@ -2140,43 +2130,6 @@
     font-weight: 700;
     font-size: 16px;
     flex: none;
-}
-.dag .testimonial-stars {
-    display: flex;
-    gap: 3px;
-}
-.dag .testimonial-nav {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 42px;
-    height: 42px;
-    border-radius: 999px;
-    flex: none;
-    background: #fff;
-    border: 1px solid var(--dag-border);
-    box-shadow: var(--dag-shadow-sm);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: var(--dag-navy);
-    z-index: 2;
-    transition:
-        background 0.15s var(--dag-ease),
-        border-color 0.15s var(--dag-ease),
-        transform 0.15s var(--dag-ease);
-}
-.dag .testimonial-nav:hover {
-    background: #f7f9fd;
-    border-color: #d4dae8;
-    transform: translateY(-50%) translateY(-1px);
-}
-.dag .testimonial-nav.prev {
-    left: -20px;
-}
-.dag .testimonial-nav.next {
-    right: -20px;
 }
 .dag .testimonial-dots {
     display: flex;
@@ -2602,19 +2555,6 @@
     .dag .contact-fab {
         right: 16px;
         bottom: 16px;
-    }
-    .dag .testimonial-card {
-        padding: 24px;
-    }
-    .dag .testimonial-nav {
-        width: 40px;
-        height: 40px;
-    }
-    .dag .testimonial-nav.prev {
-        left: -6px;
-    }
-    .dag .testimonial-nav.next {
-        right: -6px;
     }
     .dag .contact-fab-panel {
         width: 232px;
