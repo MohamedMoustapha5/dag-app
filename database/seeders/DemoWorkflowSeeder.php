@@ -23,6 +23,7 @@ use App\Models\NotificationLog;
 use App\Models\OffreEmploi;
 use App\Models\Paiement;
 use App\Models\Presence;
+use App\Models\ProfilPropose;
 use App\Models\Service;
 use Illuminate\Database\Seeder;
 
@@ -191,6 +192,12 @@ class DemoWorkflowSeeder extends Seeder
         $modeleAbonnement = ModeleContrat::where('type', 'ABONNEMENT')->first();
         $croissance = Formule::where('nom', 'Croissance')->first();
 
+        // Validated as an official recruitment partner: its self-service
+        // account unlocks the offres/candidatures espace.
+        $kiro->update([
+            'client_id' => Client::whereHas('user', fn ($q) => $q->where('email', 'contact@kirodigital.cm'))->first()->id,
+        ]);
+
         Contrat::create([
             'type' => 'CONTRAT_PARTENAIRE',
             'modele_contrat_id' => $modelePartenaire->id,
@@ -335,6 +342,32 @@ class DemoWorkflowSeeder extends Seeder
             'photo_signature' => 'signatures/demo-brice.png',
             'signataire_nom' => 'Brice K.',
             'date_signature' => '2026-09-15 09:00:00',
+        ]);
+
+        // A second retenue on Kiro's offer, awaiting her own signature —
+        // gives the entreprise espace a "convention à signer" to show.
+        $carine = Apprenant::whereHas('user', fn ($q) => $q->where('email', 'carine.f@mail.com'))->first();
+        $candidatureCarine = Candidature::create(['apprenant_id' => $carine->id, 'offre_id' => $offreKiro->id, 'statut' => 'RETENUE']);
+
+        Contrat::create([
+            'type' => 'CONVENTION_STAGE',
+            'modele_contrat_id' => $modeleConvention->id,
+            'apprenant_id' => $carine->id,
+            'entreprise_id' => $kiro->id,
+            'candidature_id' => $candidatureCarine->id,
+            'statut' => 'ENVOYE',
+            'derniere_relance_at' => now()->subDays(2),
+        ]);
+
+        // A profile DAG suggests directly to Kiro, outside any offre.
+        $junior = Apprenant::whereHas('user', fn ($q) => $q->where('email', 'junior.a@mail.com'))->first();
+
+        ProfilPropose::create([
+            'entreprise_id' => $kiro->id,
+            'apprenant_id' => $junior->id,
+            'membre_equipe_id' => MembreEquipe::first()?->id,
+            'descriptif' => 'Stratégie digitale & campagnes publicitaires',
+            'statut' => 'PROPOSE',
         ]);
 
         // A completed past session, with an attestation delivered.

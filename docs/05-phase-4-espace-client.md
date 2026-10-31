@@ -11,6 +11,15 @@ suivi, documents » du plan (section 6 de `docs/00-analyse-et-plan.md`).
 > exactement ces maquettes. Cette section décrit l'état final, conforme aux
 > maquettes.
 
+> **Mise à jour** : un `Client` n'a pas un mais **trois visages** selon
+> `clients.type` (PARTICULIER, ENTREPRISE, ORGANISATION) — tous les trois
+> partagent le même compte (`UserType::Client`) et le même préfixe de routes
+> `espace-client`, mais une Entreprise validée comme partenaire de
+> recrutement voit un espace radicalement différent (offres, candidatures,
+> conventions). Voir section 8. Organisation reste à construire dès que sa
+> maquette arrive — jusque-là elle utilise le même espace générique que
+> Particulier.
+
 ## 1. Ce qui existait déjà (phase 2)
 
 Le routing (`routes/espaces.php`), le middleware `EnsureUserType`, et un
@@ -39,21 +48,21 @@ fournissent leur propre habillage via
 
 ## 3. Écrans et routes (préfixe `espace-client`, middleware `CLIENT`)
 
-| Route                              | Contrôleur                         | Page Inertia                     |
-| ----------------------------------- | ----------------------------------- | --------------------------------- |
-| `GET /espace-client`               | `ClientDashboardController`        | `espaces/client-dashboard`       |
-| `GET /espace-client/services`      | `ClientServiceController`          | `espaces/client/services-index`  |
-| `GET /espace-client/demandes`      | `ClientDemandeController@index`    | `espaces/client/demandes-index`  |
-| `GET .../demandes/creer`           | `ClientDemandeController@create`   | `espaces/client/demandes-create` |
-| `POST .../demandes`                | `ClientDemandeController@store`    | —                                 |
-| `GET .../demandes/{demande}`       | `ClientDemandeController@show`     | `espaces/client/demandes-show`   |
-| `GET /espace-client/abonnements`   | `ClientAbonnementController`       | `espaces/client/abonnements-index` |
-| `GET /espace-client/factures`      | `ClientFactureController`          | `espaces/client/factures-index`  |
-| `GET /espace-client/contrats`      | `ClientContratController`          | `espaces/client/contrats-index`  |
-| `GET /espace-client/documents`     | `ClientDocumentController`         | `espaces/client/documents`       |
-| `GET /espace-client/parametres`    | `ClientParametreController@edit`   | `espaces/client/parametres`      |
-| `PATCH .../parametres`             | `ClientParametreController@update` | —                                 |
-| `PATCH .../parametres/notifications` | `ClientParametreController@updateNotifications` | — |
+| Route                                | Contrôleur                                      | Page Inertia                       |
+| ------------------------------------ | ----------------------------------------------- | ---------------------------------- |
+| `GET /espace-client`                 | `ClientDashboardController`                     | `espaces/client-dashboard`         |
+| `GET /espace-client/services`        | `ClientServiceController`                       | `espaces/client/services-index`    |
+| `GET /espace-client/demandes`        | `ClientDemandeController@index`                 | `espaces/client/demandes-index`    |
+| `GET .../demandes/creer`             | `ClientDemandeController@create`                | `espaces/client/demandes-create`   |
+| `POST .../demandes`                  | `ClientDemandeController@store`                 | —                                  |
+| `GET .../demandes/{demande}`         | `ClientDemandeController@show`                  | `espaces/client/demandes-show`     |
+| `GET /espace-client/abonnements`     | `ClientAbonnementController`                    | `espaces/client/abonnements-index` |
+| `GET /espace-client/factures`        | `ClientFactureController`                       | `espaces/client/factures-index`    |
+| `GET /espace-client/contrats`        | `ClientContratController`                       | `espaces/client/contrats-index`    |
+| `GET /espace-client/documents`       | `ClientDocumentController`                      | `espaces/client/documents`         |
+| `GET /espace-client/parametres`      | `ClientParametreController@edit`                | `espaces/client/parametres`        |
+| `PATCH .../parametres`               | `ClientParametreController@update`              | —                                  |
+| `PATCH .../parametres/notifications` | `ClientParametreController@updateNotifications` | —                                  |
 
 - **Dashboard** : bannière héro (photo), 4 cartes (demandes en cours,
   factures en attente + montant restant, prochaine échéance, contrats à
@@ -158,7 +167,111 @@ chaîne), et ça satisfait le type que Larastan infère réellement.
 la création de demande (service xor formule, description requise), calcul
 des statistiques du dashboard, accès refusé pour un invité.
 
-## 7. Hors périmètre (volontairement)
+## 7. Espace Entreprise partenaire (recrutement)
+
+Deuxième lot de maquettes reçu après la première passe de cette phase :
+l'espace d'une Entreprise validée comme partenaire de recrutement
+(ex. « Kiro Digital Solutions »). Diffère du dashboard générique par un
+conflit d'architecture résolu avec l'utilisateur avant implémentation : le
+modèle `EntreprisePartenaire` avait été conçu en phase 2 comme géré
+uniquement par l'équipe DAG, sans compte ni connexion — la maquette montrait
+pourtant une entreprise se connectant elle-même. Décision prise :
+**validation DAG d'abord**. Une entreprise s'inscrit normalement (espace
+générique, comme Particulier/Organisation) ; les fonctionnalités de
+recrutement ne s'activent que si DAG la relie ensuite à un
+`EntreprisePartenaire` (`entreprises_partenaires.client_id`, nouvelle
+colonne, nullable + unique) dont le `statut` est `ACTIF` —
+`Client::estPartenaireValide()`. Aucune UI admin pour faire cette validation
+n'existe encore (l'espace admin lui-même n'est pas construit, phase 10) :
+le lien se fait pour l'instant en base, comme `EntreprisePartenaire` et
+`OffreEmploi` l'étaient déjà avant cette phase.
+
+### Garde d'accès
+
+`App\Http\Middleware\EnsurePartenaireValide`, appliqué à un sous-groupe des
+routes `espace-client` (offres, candidatures, profils-proposes) en plus du
+`EnsureUserType::class.':CLIENT'` habituel. Retourne 403 si
+`estPartenaireValide()` est faux. Le menu latéral ne montre le groupe
+« Recrutement » que dans ce cas (`EspaceClientLayout`, nav conditionnée par
+`client.type === 'ENTREPRISE'` et `client.estPartenaireValide`) — évite des
+liens morts plutôt que de les laisser visibles et renvoyer un 403.
+
+### Double facturation : client_id et entreprise_id
+
+`demandes`/`abonnements`/`contrats`/`factures` portent chacun un `client_id`
+**et** un `entreprise_id`, mutuellement exclusifs sur une même ligne (motif
+déjà présent avant cette phase). Un partenaire validé peut avoir des
+enregistrements sous l'une ou l'autre colonne — facturé comme simple client
+avant validation, et/ou via la relation partenaire après.
+`Client::enregistrementsClientOuEntreprise(Model::class)` fusionne les deux
+sources en une requête ; tous les contrôleurs d'espace client déjà construits
+(Factures, Abonnements, Contrats, Documents, le dashboard) l'utilisent
+maintenant au lieu de la relation directe `client->factures()` etc., pour
+que les données de Kiro (facturées via `entreprise_id`, comme avant cette
+phase) restent visibles.
+
+### Écrans et routes ajoutés
+
+| Route                            | Contrôleur                             | Page Inertia                            |
+| -------------------------------- | -------------------------------------- | --------------------------------------- |
+| `GET /espace-client` (si validé) | `ClientDashboardController` (branche)  | `espaces/client/entreprise-dashboard`   |
+| `GET .../offres`                 | `ClientOffreController@index`          | `espaces/client/offres-index`           |
+| `GET .../offres/creer`           | `ClientOffreController@create`         | `espaces/client/offres-create`          |
+| `POST .../offres`                | `ClientOffreController@store`          | —                                       |
+| `GET .../offres/{offre}`         | `ClientOffreController@show`           | `espaces/client/offres-show`            |
+| `GET .../candidatures`           | `ClientCandidatureController@index`    | `espaces/client/candidatures-index`     |
+| `PATCH .../candidatures/{c}`     | `ClientCandidatureController@update`   | —                                       |
+| `GET .../profils-proposes`       | `ClientProfilProposeController@index`  | `espaces/client/profils-proposes-index` |
+| `PATCH .../profils-proposes/{p}` | `ClientProfilProposeController@update` | —                                       |
+| `GET /espace-client/paiements`   | `ClientPaiementController` (tout type) | `espaces/client/paiements-index`        |
+
+- **Dashboard entreprise** : bannière, 4 cartes (offres actives, candidatures
+  reçues, placements réalisés, taux de conversion), actions rapides, « Mes
+  offres » (aperçu des 5 dernières) + donut de répartition des candidatures
+  (`components/espaces/repartition-donut.tsx`, SVG fait main — premier
+  graphique du projet, pas de librairie ajoutée).
+- **Offres** : l'entreprise publie elle-même (`statut` forcé à `PUBLIEE`),
+  liste ses offres avec aperçu des candidatures (3 dernières), page détail
+  avec la liste complète et les actions Sélectionner/Refuser.
+- **Candidatures** : vue transverse de toutes les candidatures reçues (pas
+  liées à une offre précise dans l'URL), même actions.
+- **Profils proposés par DAG** : nouvelle table `profils_proposes`
+  (`entreprise_id`, `apprenant_id`, `membre_equipe_id` nullable,
+  `descriptif`, `statut` PROPOSE/RETENU/REFUSE) — un profil que DAG suggère
+  directement, hors de toute offre publiée. Création réservée à l'équipe
+  DAG (pas construite, même raison que la validation partenaire) ; l'espace
+  client peut seulement consulter et décider.
+- **Mes paiements** : liste en lecture seule des `Paiement` liés aux
+  factures du client (toujours via `enregistrementsClientOuEntreprise`) —
+  disponible pour tous les types de client, mais ajoutée au menu seulement
+  pour Entreprise pour l'instant (pas dans la maquette Particulier).
+
+### Autorisation
+
+`App\Policies\OffreEmploiPolicy`, `CandidaturePolicy`, `ProfilProposePolicy`
+— même style qu'`DemandePolicy` : comparent
+`$user->client?->entreprisePartenaire?->id` au `entreprise_id` de la
+ressource (en passant par l'offre pour une candidature).
+
+### Tests
+
+`tests/Feature/Espaces/Client/EntrepriseTest.php` : 403 pour une entreprise
+non validée ou dont le partenaire est `EN_ATTENTE`/`INACTIF`, bascule
+dashboard générique ↔ entreprise selon la validation, publication d'offre,
+décision sur candidature, isolation entre deux partenaires (un ne peut pas
+agir sur les candidatures/offres de l'autre), factures/contrats facturés via
+`entreprise_id` toujours visibles dans l'espace. Le helper
+`clientPartenaireValide()` vit dans `tests/Pest.php`, comme la convention du
+projet le prévoit déjà pour les fonctions globales réutilisables (voir le
+commentaire « Functions » du fichier) — pas inventé pour cette phase.
+Rappel pour la prochaine fois : `tests/` n'est pas dans les `paths` de
+`phpstan.neon` (seuls `app/`, `bootstrap/app.php`, `config/`, `database/`,
+`routes/` le sont), donc `vendor/bin/phpstan analyse tests/...` en ciblant
+explicitement ce dossier sort du périmètre configuré du projet et déclenche
+de faux positifs (`$this` dans les closures `test()` mal résolu) sans
+rapport avec le code — seule la suite Pest valide ces fichiers.
+
+## 8. Hors périmètre (volontairement)
 
 - Paiement d'une demande ou d'une facture (devis → paiement en ligne) :
   phase 5.
@@ -168,3 +281,9 @@ des statistiques du dashboard, accès refusé pour un invité.
   pour ces deux fonctionnalités au-delà de leur présence visuelle.
 - Un client ne peut pas annuler ou modifier une demande après l'avoir
   soumise — à faire si le besoin est confirmé.
+- Espace Organisation (3ᵉ visage du `Client`) : en attente de ses propres
+  maquettes.
+- UI admin pour valider une entreprise comme partenaire ou créer un
+  `ProfilPropose` : phase 10 (espace administrateur). Le lien
+  `entreprises_partenaires.client_id` et les propositions se font en base
+  en attendant.

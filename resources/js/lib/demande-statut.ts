@@ -16,6 +16,14 @@ export const STATUT_LABEL: Record<string, string> = {
     TERMINE: 'Terminé',
     REFUSE: 'Refusé',
     RESILIE: 'Résilié',
+    DEPOSEE: 'Déposée',
+    RETENUE: 'Retenue',
+    PLACEE: 'Placée',
+    PUBLIEE: 'Active',
+    CLOTUREE: 'Clôturée',
+    PROPOSE: 'Proposé',
+    RETENU: 'Retenu',
+    CONFIRME: 'Confirmé',
 };
 
 export const STATUT_CHIP: Record<string, string> = {
@@ -36,4 +44,12 @@ export const STATUT_CHIP: Record<string, string> = {
     TERMINE: 'chip-blue',
     REFUSE: 'chip-red',
     RESILIE: 'chip-gray',
+    DEPOSEE: 'chip-blue',
+    RETENUE: 'chip-green',
+    PLACEE: 'chip-green',
+    PUBLIEE: 'chip-green',
+    CLOTUREE: 'chip-gray',
+    PROPOSE: 'chip-blue',
+    RETENU: 'chip-green',
+    CONFIRME: 'chip-green',
 };

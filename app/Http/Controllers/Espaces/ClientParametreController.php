@@ -17,7 +17,7 @@ class ClientParametreController extends Controller
         $client = $user->client;
 
         return Inertia::render('espaces/client/parametres', [
-            'client' => ['nom' => $client->nom, 'typeLabel' => $client->typeLabel()],
+            'client' => $client->espaceHeaderProps(),
             'profil' => [
                 'nom' => $client->nom,
                 'telephone' => $client->telephone,

@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\Client;
+use App\Models\EntreprisePartenaire;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -44,7 +46,14 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+/**
+ * An Entreprise client DAG has validated as an official recruitment
+ * partner — the state the EnsurePartenaireValide middleware requires.
+ */
+function clientPartenaireValide(): Client
 {
-    // ..
+    $client = Client::factory()->create(['type' => 'ENTREPRISE']);
+    EntreprisePartenaire::factory()->create(['client_id' => $client->id, 'statut' => 'ACTIF']);
+
+    return $client->fresh();
 }

@@ -3,13 +3,18 @@
 use App\Http\Controllers\Espaces\AdminDashboardController;
 use App\Http\Controllers\Espaces\ApprenantDashboardController;
 use App\Http\Controllers\Espaces\ClientAbonnementController;
+use App\Http\Controllers\Espaces\ClientCandidatureController;
 use App\Http\Controllers\Espaces\ClientContratController;
 use App\Http\Controllers\Espaces\ClientDashboardController;
 use App\Http\Controllers\Espaces\ClientDemandeController;
 use App\Http\Controllers\Espaces\ClientDocumentController;
 use App\Http\Controllers\Espaces\ClientFactureController;
+use App\Http\Controllers\Espaces\ClientOffreController;
+use App\Http\Controllers\Espaces\ClientPaiementController;
 use App\Http\Controllers\Espaces\ClientParametreController;
+use App\Http\Controllers\Espaces\ClientProfilProposeController;
 use App\Http\Controllers\Espaces\ClientServiceController;
+use App\Http\Middleware\EnsurePartenaireValide;
 use App\Http\Middleware\EnsureUserType;
 use Illuminate\Support\Facades\Route;
 
@@ -24,10 +29,12 @@ use Illuminate\Support\Facades\Route;
 | starter kit's {current_team} prefix — DAG accounts do not belong to a
 | team.
 |
-| Entreprise partenaire is a business entity (App\Models\EntreprisePartenaire)
-| managed directly by the admin team — it has no account type and no espace
-| of its own, since a partner company exchanges with DAG through the membre
-| de l'équipe who follows its file, not through self-service.
+| Entreprise partenaire (App\Models\EntreprisePartenaire) is still mostly
+| managed by DAG staff directly, but a self-registered Entreprise client
+| can now be linked to one once validated as an official recruitment
+| partner (Client::estPartenaireValide()) — only then do the recruitment
+| routes below (offres, candidatures, profils-proposes) unlock, guarded by
+| EnsurePartenaireValide on top of the regular CLIENT type check.
 */
 
 Route::middleware(['auth', 'verified', EnsureUserType::class.':CLIENT'])
@@ -46,6 +53,18 @@ Route::middleware(['auth', 'verified', EnsureUserType::class.':CLIENT'])
         Route::get('parametres', [ClientParametreController::class, 'edit'])->name('espace-client.parametres');
         Route::patch('parametres', [ClientParametreController::class, 'update'])->name('espace-client.parametres.update');
         Route::patch('parametres/notifications', [ClientParametreController::class, 'updateNotifications'])->name('espace-client.parametres.notifications');
+        Route::get('paiements', ClientPaiementController::class)->name('espace-client.paiements');
+
+        Route::middleware(EnsurePartenaireValide::class)->group(function () {
+            Route::get('offres', [ClientOffreController::class, 'index'])->name('espace-client.offres.index');
+            Route::get('offres/creer', [ClientOffreController::class, 'create'])->name('espace-client.offres.create');
+            Route::post('offres', [ClientOffreController::class, 'store'])->name('espace-client.offres.store');
+            Route::get('offres/{offre}', [ClientOffreController::class, 'show'])->name('espace-client.offres.show');
+            Route::get('candidatures', [ClientCandidatureController::class, 'index'])->name('espace-client.candidatures.index');
+            Route::patch('candidatures/{candidature}', [ClientCandidatureController::class, 'update'])->name('espace-client.candidatures.update');
+            Route::get('profils-proposes', [ClientProfilProposeController::class, 'index'])->name('espace-client.profils-proposes.index');
+            Route::patch('profils-proposes/{profil}', [ClientProfilProposeController::class, 'update'])->name('espace-client.profils-proposes.update');
+        });
     });
 
 Route::middleware(['auth', 'verified', EnsureUserType::class.':APPRENANT'])

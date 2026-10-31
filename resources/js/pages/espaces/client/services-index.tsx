@@ -1,9 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { ArrowRight, ChevronDown, RotateCcw, Search, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import EspaceClientLayout, {
-    type EspaceClientInfo,
-} from '@/layouts/espace-client-layout';
 import demandes from '@/routes/espace-client/demandes';
 
 type Service = {
@@ -15,7 +12,6 @@ type Service = {
 };
 
 type Props = {
-    client: EspaceClientInfo;
     services: Service[];
 };
 
@@ -23,7 +19,7 @@ type SortOrder = 'catalogue' | 'nom-asc' | 'nom-desc';
 
 const ALL_CATEGORIES = 'Toutes les catégories';
 
-export default function ServicesIndex({ client, services }: Props) {
+export default function ServicesIndex({ services }: Props) {
     const [search, setSearch] = useState('');
     const [activeCategory, setActiveCategory] =
         useState<string>(ALL_CATEGORIES);
@@ -85,7 +81,7 @@ export default function ServicesIndex({ client, services }: Props) {
     }, [categories, sortedServices]);
 
     return (
-        <EspaceClientLayout client={client}>
+        <>
             <Head title="Services" />
 
             <div
@@ -320,6 +316,6 @@ export default function ServicesIndex({ client, services }: Props) {
                     </section>
                 ))
             )}
-        </EspaceClientLayout>
+        </>
     );
 }

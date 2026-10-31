@@ -1,13 +1,9 @@
 import { Head, Link } from '@inertiajs/react';
 import { Download } from 'lucide-react';
-import EspaceClientLayout, {
-    type EspaceClientInfo,
-} from '@/layouts/espace-client-layout';
 import demandes from '@/routes/espace-client/demandes';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
 
 type Props = {
-    client: EspaceClientInfo;
     demande: {
         id: string;
         reference: string;
@@ -35,9 +31,9 @@ type Props = {
     };
 };
 
-export default function DemandesShow({ client, demande, suivi }: Props) {
+export default function DemandesShow({ demande, suivi }: Props) {
     return (
-        <EspaceClientLayout client={client}>
+        <>
             <Head title={`Demande ${demande.reference}`} />
 
             <Link
@@ -191,6 +187,6 @@ export default function DemandesShow({ client, demande, suivi }: Props) {
                     )}
                 </div>
             )}
-        </EspaceClientLayout>
+        </>
     );
 }

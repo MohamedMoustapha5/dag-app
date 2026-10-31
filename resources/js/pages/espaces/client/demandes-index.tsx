@@ -1,9 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import EspaceClientLayout, {
-    type EspaceClientInfo,
-} from '@/layouts/espace-client-layout';
 import demandesRoutes from '@/routes/espace-client/demandes';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
 
@@ -18,7 +15,6 @@ type Demande = {
 };
 
 type Props = {
-    client: EspaceClientInfo;
     demandes: Demande[];
 };
 
@@ -51,7 +47,7 @@ function miseAJourLabel(dateIso: string): string {
     }).format(date);
 }
 
-export default function DemandesIndex({ client, demandes }: Props) {
+export default function DemandesIndex({ demandes }: Props) {
     const [filtre, setFiltre] = useState<Filtre>('toutes');
 
     const demandesFiltrees = useMemo(() => {
@@ -74,7 +70,7 @@ export default function DemandesIndex({ client, demandes }: Props) {
     }, [demandes, filtre]);
 
     return (
-        <EspaceClientLayout client={client}>
+        <>
             <Head title="Mes demandes" />
 
             <div
@@ -181,6 +177,6 @@ export default function DemandesIndex({ client, demandes }: Props) {
                     </table>
                 )}
             </div>
-        </EspaceClientLayout>
+        </>
     );
 }

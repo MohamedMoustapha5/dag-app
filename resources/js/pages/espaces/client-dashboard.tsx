@@ -7,9 +7,7 @@ import {
     Plus,
     Wallet,
 } from 'lucide-react';
-import EspaceClientLayout, {
-    type EspaceClientInfo,
-} from '@/layouts/espace-client-layout';
+import { type EspaceClientInfo } from '@/layouts/espace-client-layout';
 import demandes from '@/routes/espace-client/demandes';
 import espaceClient from '@/routes/espace-client';
 
@@ -92,7 +90,7 @@ export default function ClientDashboard({
     formule,
 }: Props) {
     return (
-        <EspaceClientLayout client={client}>
+        <>
             <Head title="Espace client" />
 
             <div
@@ -109,7 +107,10 @@ export default function ClientDashboard({
                 </div>
             </div>
 
-            <div className="grid-4" style={{ marginBottom: 28 }}>
+            <div
+                className="grid-4 espace-stats-grid"
+                style={{ marginBottom: 28 }}
+            >
                 <div className="card espace-stat-card" style={{ padding: 22 }}>
                     <span
                         className="espace-stat-icon"
@@ -415,6 +416,6 @@ export default function ClientDashboard({
                     )}
                 </div>
             </div>
-        </EspaceClientLayout>
+        </>
     );
 }

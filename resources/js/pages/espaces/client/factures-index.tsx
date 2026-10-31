@@ -1,7 +1,4 @@
 import { Head } from '@inertiajs/react';
-import EspaceClientLayout, {
-    type EspaceClientInfo,
-} from '@/layouts/espace-client-layout';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
 
 type Facture = {
@@ -14,7 +11,6 @@ type Facture = {
 };
 
 type Props = {
-    client: EspaceClientInfo;
     stats: {
         regleCetteAnnee: string;
         enAttente: string;
@@ -23,9 +19,9 @@ type Props = {
     factures: Facture[];
 };
 
-export default function FacturesIndex({ client, stats, factures }: Props) {
+export default function FacturesIndex({ stats, factures }: Props) {
     return (
-        <EspaceClientLayout client={client}>
+        <>
             <Head title="Factures" />
 
             <div
@@ -44,7 +40,10 @@ export default function FacturesIndex({ client, stats, factures }: Props) {
                 </div>
             </div>
 
-            <div className="grid-3" style={{ marginBottom: 24 }}>
+            <div
+                className="grid-3 espace-stats-grid"
+                style={{ marginBottom: 24 }}
+            >
                 <div className="card espace-stat-card" style={{ padding: 22 }}>
                     <p className="muted" style={{ fontSize: 12.5 }}>
                         Réglé cette année
@@ -161,6 +160,6 @@ export default function FacturesIndex({ client, stats, factures }: Props) {
                     </table>
                 )}
             </div>
-        </EspaceClientLayout>
+        </>
     );
 }

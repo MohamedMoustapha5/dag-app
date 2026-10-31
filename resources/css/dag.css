@@ -2793,14 +2793,37 @@
     width: 260px;
     flex: none;
     background: var(--dag-navy);
-    display: flex;
-    flex-direction: column;
-    padding: 24px 16px;
     position: sticky;
     top: 0;
     align-self: flex-start;
     height: 100vh;
+}
+.dag .espace-sidebar-scroll {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 24px 16px;
     overflow-y: auto;
+    /* La barre système est masquée au profit de .espace-sidebar-scroll-thumb,
+       un indicateur maison qui reste visible même à l'arrêt (contrairement
+       aux barres système qui s'estompent), pour signaler clairement qu'il
+       faut scroller quand la navigation dépasse la hauteur de l'écran. */
+    scrollbar-width: none;
+}
+.dag .espace-sidebar-scroll::-webkit-scrollbar {
+    display: none;
+}
+.dag .espace-sidebar-scroll-thumb {
+    /* En dehors de .espace-sidebar-scroll : s'il scrollait avec le
+       contenu, sa position calculée en JS serait aussitôt contredite par
+       le défilement lui-même et le trait semblerait figé/disparaître. */
+    position: absolute;
+    right: 5px;
+    width: 4px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.5);
+    pointer-events: none;
+    transition: top 0.05s linear;
 }
 .dag .espace-sidebar-logo {
     display: flex;
@@ -2816,8 +2839,21 @@
 .dag .espace-nav {
     display: flex;
     flex-direction: column;
+    gap: 20px;
+}
+.dag .espace-nav-group {
+    display: flex;
+    flex-direction: column;
     gap: 4px;
-    flex: 1;
+}
+.dag .espace-nav-group-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.4);
+    padding: 0 14px;
+    margin-bottom: 6px;
 }
 .dag .espace-nav-link {
     display: flex;
@@ -2930,6 +2966,8 @@
 .dag .espace-search svg {
     position: absolute;
     left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
     color: var(--dag-text-faint);
     pointer-events: none;
 }
@@ -3191,11 +3229,46 @@
     }
     .dag .espace-topbar {
         padding: 12px 16px;
-        gap: 12px;
+        gap: 10px;
+    }
+    .dag .espace-topbar-right {
+        gap: 10px;
+    }
+    .dag .espace-notif {
+        width: 34px;
+        height: 34px;
+        flex: none;
+    }
+    .dag .espace-avatar {
+        width: 34px;
+        height: 34px;
+        font-size: 12px;
+    }
+    .dag .espace-user {
+        gap: 8px;
+        min-width: 0;
     }
     .dag .espace-user-name,
     .dag .espace-user-type {
-        display: none;
+        /* Masqués ailleurs sur mobile, mais le nom et le type de compte
+           (Particulier/Entreprise/Organisation) doivent rester visibles
+           ici aussi ; tronqués pour ne jamais pousser le bouton Déconnexion
+           hors de l'écran. */
+        max-width: 92px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .dag .espace-user-name {
+        font-size: 12.5px;
+    }
+    .dag .espace-user-type {
+        font-size: 10.5px;
+    }
+    .dag .espace-topbar .btn-ghost {
+        padding: 9px 12px;
+        font-size: 12.5px;
+        white-space: nowrap;
     }
     .dag .espace-content {
         padding: 20px 16px;
@@ -3206,6 +3279,15 @@
     }
     .dag .espace-hero-content h1 {
         font-size: 20px;
+    }
+}
+@media (max-width: 640px) {
+    /* Les cartes de statistiques (tableaux de bord, factures) restent en
+       2 colonnes sur téléphone au lieu de s'empiler en 1 colonne comme le
+       reste des grilles génériques .grid-3/.grid-4. */
+    .dag .grid-4.espace-stats-grid,
+    .dag .grid-3.espace-stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -3311,6 +3393,12 @@
     gap: 24px;
     border-bottom: 1px solid var(--dag-border);
     margin-bottom: 28px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+.dag .account-tabs::-webkit-scrollbar {
+    display: none;
 }
 .dag .account-tab {
     padding: 12px 2px;
@@ -3323,6 +3411,8 @@
     border-left: none;
     border-right: none;
     cursor: pointer;
+    white-space: nowrap;
+    flex: none;
 }
 .dag .account-tab.active {
     color: var(--dag-blue);

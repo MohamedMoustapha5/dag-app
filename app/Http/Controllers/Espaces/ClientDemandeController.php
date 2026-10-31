@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Espaces;
 
 use App\Http\Controllers\Controller;
-use App\Models\Client;
 use App\Models\Demande;
 use App\Models\Formule;
 use App\Models\Service;
@@ -26,7 +25,7 @@ class ClientDemandeController extends Controller
             ->get();
 
         return Inertia::render('espaces/client/demandes-index', [
-            'client' => $this->clientProp($client),
+            'client' => $client->espaceHeaderProps(),
             'demandes' => $demandes->map(fn (Demande $demande) => [
                 'id' => $demande->id,
                 'reference' => $demande->reference,
@@ -42,7 +41,7 @@ class ClientDemandeController extends Controller
     public function create(Request $request): Response
     {
         return Inertia::render('espaces/client/demandes-create', [
-            'client' => $this->clientProp($request->user()->client),
+            'client' => $request->user()->client->espaceHeaderProps(),
             'services' => Service::publies()->orderBy('nom')->get(['id', 'nom', 'categorie']),
             'formules' => Formule::where('statut', 'PUBLIEE')->orderBy('nom')->get(['id', 'nom', 'prix_affiche']),
             'serviceSelectionne' => $request->query('service'),
@@ -83,7 +82,7 @@ class ClientDemandeController extends Controller
         $etapeActuelle = array_search($demande->statut, Demande::SUIVI_STEPS, true);
 
         return Inertia::render('espaces/client/demandes-show', [
-            'client' => $this->clientProp($request->user()->client),
+            'client' => $request->user()->client->espaceHeaderProps(),
             'demande' => [
                 'id' => $demande->id,
                 'reference' => $demande->reference,
@@ -110,13 +109,5 @@ class ClientDemandeController extends Controller
                 'refusee' => $demande->statut === 'REFUSEE',
             ],
         ]);
-    }
-
-    /**
-     * @return array{nom: string, typeLabel: string}
-     */
-    private function clientProp(Client $client): array
-    {
-        return ['nom' => $client->nom, 'typeLabel' => $client->typeLabel()];
     }
 }

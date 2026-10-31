@@ -1,8 +1,5 @@
 import { Head } from '@inertiajs/react';
 import { FileSignature, Shield } from 'lucide-react';
-import EspaceClientLayout, {
-    type EspaceClientInfo,
-} from '@/layouts/espace-client-layout';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
 
 type Contrat = {
@@ -14,13 +11,12 @@ type Contrat = {
 };
 
 type Props = {
-    client: EspaceClientInfo;
     contrats: Contrat[];
 };
 
-export default function ContratsIndex({ client, contrats }: Props) {
+export default function ContratsIndex({ contrats }: Props) {
     return (
-        <EspaceClientLayout client={client}>
+        <>
             <Head title="Contrats" />
 
             <div
@@ -176,6 +172,6 @@ export default function ContratsIndex({ client, contrats }: Props) {
                     })}
                 </div>
             )}
-        </EspaceClientLayout>
+        </>
     );
 }

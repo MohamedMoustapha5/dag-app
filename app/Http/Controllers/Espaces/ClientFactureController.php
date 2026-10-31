@@ -14,7 +14,7 @@ class ClientFactureController extends Controller
     {
         $client = $request->user()->client;
 
-        $factures = $client->factures()
+        $factures = $client->enregistrementsClientOuEntreprise(Facture::class)
             ->with(['demande.service', 'demande.formule', 'abonnement.formule'])
             ->latest()
             ->get();
@@ -31,7 +31,7 @@ class ClientFactureController extends Controller
         $moyenPlusUtilise = $factures->whereNotNull('moyen_paiement')->countBy('moyen_paiement')->sortDesc()->keys()->first();
 
         return Inertia::render('espaces/client/factures-index', [
-            'client' => ['nom' => $client->nom, 'typeLabel' => $client->typeLabel()],
+            'client' => $client->espaceHeaderProps(),
             'stats' => [
                 'regleCetteAnnee' => (string) $regleCetteAnnee,
                 'enAttente' => (string) $enAttente,

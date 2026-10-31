@@ -19,7 +19,7 @@ class ClientsEtApprenantsSeeder extends Seeder
                 'type' => UserType::Client,
                 'password' => 'password',
             ])->id,
-            'type' => 'ENTREPRISE',
+            'type' => 'PARTICULIER',
             'nom' => 'Aïcha N.',
             'ville' => 'Douala',
             'telephone' => '+237 6 55 00 11 22',
@@ -37,6 +37,23 @@ class ClientsEtApprenantsSeeder extends Seeder
             'nom' => 'Fatou Boutique',
             'ville' => 'Douala',
             'statut' => 'EN_ATTENTE',
+        ]);
+
+        // Linked to the Kiro Digital Solutions EntreprisePartenaire in
+        // DemoWorkflowSeeder, once that record exists — gives the
+        // recruitment espace a validated partner account to sign into.
+        Client::create([
+            'user_id' => User::factory()->create([
+                'name' => 'Kiro Digital Solutions',
+                'email' => 'contact@kirodigital.cm',
+                'type' => UserType::Client,
+                'password' => 'password',
+            ])->id,
+            'type' => 'ENTREPRISE',
+            'nom' => 'Kiro Digital Solutions',
+            'ville' => 'Douala',
+            'telephone' => '+237 6 90 11 22 33',
+            'statut' => 'ACTIF',
         ]);
 
         $apprenants = [

@@ -1,8 +1,5 @@
 import { Head, Link } from '@inertiajs/react';
 import { Check } from 'lucide-react';
-import EspaceClientLayout, {
-    type EspaceClientInfo,
-} from '@/layouts/espace-client-layout';
 import espaceClient from '@/routes/espace-client';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
 
@@ -24,7 +21,6 @@ type FactureHistorique = {
 };
 
 type Props = {
-    client: EspaceClientInfo;
     abonnement: AbonnementActif | null;
     historiqueFactures: FactureHistorique[];
 };
@@ -53,12 +49,11 @@ function formatMoisAnnee(dateIso: string | null): string {
 }
 
 export default function AbonnementsIndex({
-    client,
     abonnement,
     historiqueFactures,
 }: Props) {
     return (
-        <EspaceClientLayout client={client}>
+        <>
             <Head title="Abonnements" />
 
             <div
@@ -210,7 +205,7 @@ export default function AbonnementsIndex({
                             style={{
                                 display: 'grid',
                                 gridTemplateColumns:
-                                    'repeat(2, minmax(0, 1fr))',
+                                    'repeat(auto-fit, minmax(160px, 1fr))',
                                 gap: 4,
                             }}
                         >
@@ -324,6 +319,6 @@ export default function AbonnementsIndex({
                     </div>
                 </div>
             )}
-        </EspaceClientLayout>
+        </>
     );
 }

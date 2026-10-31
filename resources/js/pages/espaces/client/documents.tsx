@@ -1,8 +1,5 @@
 import { Head } from '@inertiajs/react';
 import { Download } from 'lucide-react';
-import EspaceClientLayout, {
-    type EspaceClientInfo,
-} from '@/layouts/espace-client-layout';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
 
 type Contrat = {
@@ -21,14 +18,13 @@ type Facture = {
 };
 
 type Props = {
-    client: EspaceClientInfo;
     contrats: Contrat[];
     factures: Facture[];
 };
 
-export default function Documents({ client, contrats, factures }: Props) {
+export default function Documents({ contrats, factures }: Props) {
     return (
-        <EspaceClientLayout client={client}>
+        <>
             <Head title="Mes documents" />
 
             <div
@@ -151,6 +147,6 @@ export default function Documents({ client, contrats, factures }: Props) {
                     </table>
                 )}
             </div>
-        </EspaceClientLayout>
+        </>
     );
 }

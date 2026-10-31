@@ -1,21 +1,16 @@
 import { Head, useForm } from '@inertiajs/react';
-import EspaceClientLayout, {
-    type EspaceClientInfo,
-} from '@/layouts/espace-client-layout';
 import demandes from '@/routes/espace-client/demandes';
 
 type Service = { id: string; nom: string; categorie: string };
 type Formule = { id: string; nom: string; prix_affiche: string | null };
 
 type Props = {
-    client: EspaceClientInfo;
     services: Service[];
     formules: Formule[];
     serviceSelectionne: string | null;
 };
 
 export default function DemandesCreate({
-    client,
     services,
     formules,
     serviceSelectionne,
@@ -33,7 +28,7 @@ export default function DemandesCreate({
     };
 
     return (
-        <EspaceClientLayout client={client}>
+        <>
             <Head title="Nouvelle demande" />
 
             <h1
@@ -176,6 +171,6 @@ export default function DemandesCreate({
                     </button>
                 </form>
             </div>
-        </EspaceClientLayout>
+        </>
     );
 }

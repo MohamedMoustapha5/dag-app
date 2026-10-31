@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Espaces;
 
 use App\Http\Controllers\Controller;
+use App\Models\Abonnement;
 use App\Models\Facture;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -15,14 +16,14 @@ class ClientAbonnementController extends Controller
     {
         $client = $request->user()->client;
 
-        $abonnement = $client->abonnements()
+        $abonnement = $client->enregistrementsClientOuEntreprise(Abonnement::class)
             ->with('formule')
             ->where('statut', 'ACTIF')
             ->latest('date_souscription')
             ->first();
 
         return Inertia::render('espaces/client/abonnements-index', [
-            'client' => ['nom' => $client->nom, 'typeLabel' => $client->typeLabel()],
+            'client' => $client->espaceHeaderProps(),
             'abonnement' => $abonnement && $abonnement->formule ? [
                 'formuleNom' => $abonnement->formule->nom,
                 'servicesInclus' => $abonnement->formule->services_inclus ?? [],
@@ -32,7 +33,7 @@ class ClientAbonnementController extends Controller
                 'echeance' => $this->formatDate($abonnement->echeance),
                 'progression' => $abonnement->progressionCycle(),
             ] : null,
-            'historiqueFactures' => $client->factures()
+            'historiqueFactures' => $client->enregistrementsClientOuEntreprise(Facture::class)
                 ->where('type', 'ABONNEMENT')
                 ->latest('echeance')
                 ->take(6)

@@ -15,18 +15,18 @@ class ClientDocumentController extends Controller
     {
         $client = $request->user()->client;
 
-        $contrats = $client->contrats()
-            ->with(['demande.service', 'demande.formule', 'abonnement.formule'])
+        $contrats = $client->enregistrementsClientOuEntreprise(Contrat::class)
+            ->with(['demande.service', 'demande.formule', 'abonnement.formule', 'candidature.offre'])
             ->latest()
             ->get();
 
-        $factures = $client->factures()
+        $factures = $client->enregistrementsClientOuEntreprise(Facture::class)
             ->with(['demande.service', 'demande.formule', 'abonnement.formule'])
             ->latest()
             ->get();
 
         return Inertia::render('espaces/client/documents', [
-            'client' => ['nom' => $client->nom, 'typeLabel' => $client->typeLabel()],
+            'client' => $client->espaceHeaderProps(),
             'contrats' => $contrats->map(fn (Contrat $contrat) => [
                 'id' => $contrat->id,
                 'reference' => $contrat->reference,

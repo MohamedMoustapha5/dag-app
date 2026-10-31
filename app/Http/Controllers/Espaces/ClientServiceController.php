@@ -15,7 +15,7 @@ class ClientServiceController extends Controller
         $client = $request->user()->client;
 
         return Inertia::render('espaces/client/services-index', [
-            'client' => ['nom' => $client->nom, 'typeLabel' => $client->typeLabel()],
+            'client' => $client->espaceHeaderProps(),
             'services' => Service::publies()
                 ->orderBy('categorie')
                 ->orderBy('nom')

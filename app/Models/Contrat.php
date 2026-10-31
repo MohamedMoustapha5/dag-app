@@ -111,6 +111,16 @@ class Contrat extends Model
             return 'Abonnement — '.$formuleNom;
         }
 
+        if ($this->type === 'CONTRAT_PARTENAIRE') {
+            return 'Contrat partenaire — '.($this->entreprise_id !== null ? $this->entreprise->nom : $this->reference);
+        }
+
+        if ($this->type === 'CONVENTION_STAGE') {
+            $offreTitre = $this->candidature_id !== null ? $this->candidature->offre->titre : null;
+
+            return 'Convention de stage'.($offreTitre !== null ? ' — '.$offreTitre : '');
+        }
+
         return 'Prestation — '.($this->demande_id !== null ? $this->demande->libelleObjet() : $this->reference);
     }
 }

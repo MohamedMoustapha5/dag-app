@@ -3,9 +3,13 @@
 namespace App\Http\Controllers\Espaces;
 
 use App\Http\Controllers\Controller;
+use App\Models\Abonnement;
+use App\Models\Candidature;
 use App\Models\Client;
+use App\Models\Contrat;
 use App\Models\Demande;
 use App\Models\Facture;
+use App\Models\OffreEmploi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Inertia\Inertia;
@@ -28,14 +32,59 @@ class ClientDashboardController extends Controller
     {
         $client = $request->user()->client;
 
+        if ($client->estPartenaireValide()) {
+            return $this->entrepriseDashboard($client);
+        }
+
         return Inertia::render('espaces/client-dashboard', [
-            'client' => [
-                'nom' => $client->nom,
-                'typeLabel' => $client->typeLabel(),
-            ],
+            'client' => $client->espaceHeaderProps(),
             'stats' => $this->stats($client),
             'activiteRecente' => $this->activiteRecente($client),
             'formule' => $this->formuleActive($client),
+        ]);
+    }
+
+    private function entrepriseDashboard(Client $client): Response
+    {
+        $entreprise = $client->entreprisePartenaire;
+
+        $candidatures = Candidature::query()
+            ->whereHas('offre', fn ($query) => $query->where('entreprise_id', $entreprise->id))
+            ->get();
+
+        $offresActives = $entreprise->offresEmploi()->where('statut', 'PUBLIEE')->count();
+        $placements = $candidatures->where('statut', 'PLACEE')->count();
+        $candidaturesCount = $candidatures->count();
+
+        return Inertia::render('espaces/client/entreprise-dashboard', [
+            'client' => $client->espaceHeaderProps(),
+            'stats' => [
+                'offresActives' => $offresActives,
+                'candidaturesRecues' => $candidaturesCount,
+                'placementsRealises' => $placements,
+                'tauxConversion' => $candidaturesCount > 0
+                    ? (int) round($placements / $candidaturesCount * 100)
+                    : 0,
+            ],
+            'repartition' => [
+                'enEtude' => $candidatures->where('statut', 'EN_ETUDE')->count(),
+                'retenues' => $candidatures->whereIn('statut', ['RETENUE', 'PLACEE'])->count(),
+                'refusees' => $candidatures->where('statut', 'REFUSEE')->count(),
+            ],
+            'offres' => $entreprise->offresEmploi()
+                ->withCount('candidatures')
+                ->latest()
+                ->take(5)
+                ->get()
+                ->map(fn (OffreEmploi $offre) => [
+                    'id' => $offre->id,
+                    'titre' => $offre->titre,
+                    'statut' => $offre->statut,
+                    'dateLimite' => $offre->date_limite?->toDateString(),
+                    'candidaturesCount' => $offre->candidatures_count,
+                ]),
+            'candidaturesASigner' => $client->enregistrementsClientOuEntreprise(Contrat::class)
+                ->where('statut', 'ENVOYE')->count(),
         ]);
     }
 
@@ -44,13 +93,14 @@ class ClientDashboardController extends Controller
      */
     private function stats(Client $client): array
     {
-        $facturesEnAttente = $client->factures()
+        $facturesEnAttente = $client->enregistrementsClientOuEntreprise(Facture::class)
             ->whereIn('statut', ['EN_ATTENTE', 'PARTIELLEMENT_PAYEE'])
             ->get();
 
         $prochaineEcheance = collect([
             $facturesEnAttente->pluck('echeance')->filter()->min(),
-            $client->abonnements()->where('statut', 'ACTIF')->pluck('echeance')->filter()->min(),
+            $client->enregistrementsClientOuEntreprise(Abonnement::class)
+                ->where('statut', 'ACTIF')->pluck('echeance')->filter()->min(),
         ])->filter()->min();
 
         return [
@@ -60,7 +110,8 @@ class ClientDashboardController extends Controller
                 fn (Facture $facture) => $facture->montant - $facture->montant_paye,
             ),
             'prochaineEcheance' => $this->formatDate($prochaineEcheance),
-            'contratsASigner' => $client->contrats()->where('statut', 'ENVOYE')->count(),
+            'contratsASigner' => $client->enregistrementsClientOuEntreprise(Contrat::class)
+                ->where('statut', 'ENVOYE')->count(),
         ];
     }
 
@@ -83,7 +134,7 @@ class ClientDashboardController extends Controller
                 'type' => $this->typeEvenementDemande($demande->statut),
             ]);
 
-        $factureEvents = $client->factures()
+        $factureEvents = $client->enregistrementsClientOuEntreprise(Facture::class)
             ->with(['demande.service', 'demande.formule', 'abonnement.formule'])
             ->where('statut', 'PAYEE')
             ->get()
@@ -116,7 +167,7 @@ class ClientDashboardController extends Controller
      */
     private function formuleActive(Client $client): ?array
     {
-        $abonnement = $client->abonnements()
+        $abonnement = $client->enregistrementsClientOuEntreprise(Abonnement::class)
             ->with('formule')
             ->where('statut', 'ACTIF')
             ->latest('date_souscription')

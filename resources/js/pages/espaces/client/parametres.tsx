@@ -2,9 +2,7 @@ import { Form, Head, useForm } from '@inertiajs/react';
 import { X } from 'lucide-react';
 import { useRef, useState } from 'react';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
-import EspaceClientLayout, {
-    type EspaceClientInfo,
-} from '@/layouts/espace-client-layout';
+import { type EspaceClientInfo } from '@/layouts/espace-client-layout';
 import parametresRoutes from '@/routes/espace-client/parametres';
 import { update as updatePassword } from '@/routes/user-password';
 
@@ -68,7 +66,7 @@ export default function Parametres({ client, profil, notifications }: Props) {
         .join('');
 
     return (
-        <EspaceClientLayout client={client}>
+        <>
             <Head title="Paramètres" />
 
             <div className="account-banner">
@@ -570,6 +568,6 @@ export default function Parametres({ client, profil, notifications }: Props) {
                     </div>
                 </div>
             )}
-        </EspaceClientLayout>
+        </>
     );
 }
