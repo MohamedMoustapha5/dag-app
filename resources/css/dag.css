@@ -3463,6 +3463,19 @@
         min-width: 130px;
         flex: 1;
     }
+    /* Équipe (à propos) : 2 colonnes compactes sur téléphone au lieu
+       d'une seule colonne de cartes pleine largeur. */
+    .dag .grid-3.team-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+    }
+    .dag .team-grid-card {
+        padding: 18px !important;
+    }
+    .dag .team-grid-photo {
+        width: 56px !important;
+        height: 56px !important;
+    }
 }
 @media (prefers-reduced-motion: reduce) {
     .dag .espace-sidebar,

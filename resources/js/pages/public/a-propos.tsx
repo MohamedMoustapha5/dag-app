@@ -307,16 +307,17 @@ export default function APropos({ stats, equipe }: AProposProps) {
                 </p>
 
                 <div
-                    className="grid-3"
+                    className="grid-3 team-grid"
                     style={{ marginTop: 32, width: '100%' }}
                 >
                     {equipeAffichee.map((membre) => (
                         <div
                             key={membre.nom}
-                            className="card"
+                            className="card team-grid-card"
                             style={{ padding: 24, textAlign: 'center' }}
                         >
                             <div
+                                className="team-grid-photo"
                                 style={{
                                     width: 72,
                                     height: 72,
