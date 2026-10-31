@@ -42,7 +42,7 @@ const EQUIPE_TAGLINES: Record<string, string> = {
 
 const EQUIPE_PHOTOS: Record<string, string> = {
     Directrice: '/images/photos/afsa-maira-directrice.jpg',
-    Juriste: '/images/photos/woman-thinking-social.jpg',
+    Juriste: '/images/photos/pascal-juriste.jpg',
     'Responsable Marketing': '/images/photos/senghor-responsable-marketing.jpg',
     Secrétaire: '/images/photos/layana-d-secretaire.jpg',
     'Création de contenu': '/images/photos/hussein-createur-contenu.jpg',

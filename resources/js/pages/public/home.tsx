@@ -109,7 +109,7 @@ const PAYMENT_METHODS = [
 
 const TEAM_PHOTOS = [
     '/images/photos/afsa-maira-directrice.jpg',
-    '/images/photos/woman-desk-seo.jpg',
+    '/images/photos/pascal-juriste.jpg',
     '/images/photos/senghor-responsable-marketing.jpg',
     '/images/photos/layana-d-secretaire.jpg',
     '/images/photos/hussein-createur-contenu.jpg',
