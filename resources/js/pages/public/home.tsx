@@ -6,6 +6,7 @@ import {
     CreditCard,
     FileText,
     ShieldCheck,
+    Star,
     UserCheck,
     Users,
 } from 'lucide-react';
@@ -873,8 +874,25 @@ export default function Home({ stats, equipe, formules }: HomeProps) {
                         marginTop: 36,
                     }}
                 >
+                    <div
+                        style={{
+                            display: 'flex',
+                            justifyContent: 'center',
+                            gap: 4,
+                        }}
+                    >
+                        {Array.from({ length: 5 }).map((_, index) => (
+                            <Star
+                                key={index}
+                                size={17}
+                                fill="var(--dag-orange)"
+                                color="var(--dag-orange)"
+                            />
+                        ))}
+                    </div>
                     <p
                         style={{
+                            marginTop: 18,
                             fontSize: 20,
                             fontStyle: 'italic',
                             lineHeight: 1.7,
