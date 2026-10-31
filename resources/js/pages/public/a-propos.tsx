@@ -269,37 +269,16 @@ export default function APropos({ stats, equipe }: AProposProps) {
                 </p>
 
                 <div
-                    style={{
-                        marginTop: 32,
-                        display: 'flex',
-                        justifyContent: 'center',
-                        gap: 24,
-                        flexWrap: 'wrap',
-                    }}
+                    className="card partner-logo-strip"
+                    style={{ marginTop: 32 }}
                 >
                     {PARTENAIRES.map((partenaire) => (
-                        <div
+                        <img
                             key={partenaire.nom}
-                            className="card"
-                            style={{
-                                padding: 20,
-                                width: 180,
-                                height: 100,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                            }}
-                        >
-                            <img
-                                src={partenaire.logo}
-                                alt={partenaire.nom}
-                                style={{
-                                    maxWidth: '100%',
-                                    maxHeight: '100%',
-                                    objectFit: 'contain',
-                                }}
-                            />
-                        </div>
+                            src={partenaire.logo}
+                            alt={partenaire.nom}
+                            className="partner-logo-strip-item"
+                        />
                     ))}
                 </div>
 

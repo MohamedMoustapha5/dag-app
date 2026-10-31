@@ -252,6 +252,29 @@
     border-color: rgba(255, 255, 255, 0.35);
     backdrop-filter: blur(8px);
 }
+
+/* bandeau de logos partenaires (à propos) — un seul cadre, pensé pour
+   accueillir d'autres logos sans grandir à l'infini : ils s'enchaînent
+   avec un simple séparateur et passent à la ligne si besoin. */
+.dag .partner-logo-strip {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    row-gap: 10px;
+    max-width: 520px;
+    padding: 16px 28px;
+}
+.dag .partner-logo-strip-item {
+    height: 22px;
+    width: auto;
+    object-fit: contain;
+    padding: 0 20px;
+    border-right: 1px solid var(--dag-border);
+}
+.dag .partner-logo-strip-item:last-child {
+    border-right: none;
+}
 .dag .chip {
     font-size: 11px;
     font-weight: 700;
