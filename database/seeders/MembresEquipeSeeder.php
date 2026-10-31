@@ -20,7 +20,7 @@ class MembresEquipeSeeder extends Seeder
             ['name' => 'Afsa Maira', 'email' => 'marie.d@dag.cm', 'role' => MembreEquipeRole::Promotrice],
             ['name' => 'Fatou M.', 'email' => 'fatou.m@dag.cm', 'role' => MembreEquipeRole::Juriste],
             ['name' => 'Jules K.', 'email' => 'jules.k@dag.cm', 'role' => MembreEquipeRole::CommunicationMarketing],
-            ['name' => 'Hervé N.', 'email' => 'herve.n@dag.cm', 'role' => MembreEquipeRole::ControleGestion],
+            ['name' => 'Layana D.', 'email' => 'herve.n@dag.cm', 'role' => MembreEquipeRole::ControleGestion],
             ['name' => 'Rosine T.', 'email' => 'rosine.t@dag.cm', 'role' => MembreEquipeRole::CreationContenu],
         ];
 

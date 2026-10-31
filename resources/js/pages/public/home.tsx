@@ -111,7 +111,7 @@ const TEAM_PHOTOS = [
     '/images/photos/afsa-maira-directrice.jpg',
     '/images/photos/woman-desk-seo.jpg',
     '/images/photos/man-laptop-smile.jpg',
-    '/images/photos/woman-thinking-social.jpg',
+    '/images/photos/layana-d-secretaire.jpg',
     '/images/photos/man-phone-social.jpg',
 ];
 
@@ -120,7 +120,7 @@ const TEAM_TAGLINES: Record<string, string> = {
     Juriste: 'Sécurise chaque contrat, à la lettre.',
     'Communication & marketing digital':
         'Fait rayonner vos marques sur les réseaux.',
-    'Contrôle de gestion': 'Veille sur chaque facture et chaque paiement.',
+    Secrétaire: 'Veille sur chaque facture et chaque paiement.',
     'Création de contenu': 'Donne vie à vos idées en visuels et vidéos.',
 };
 

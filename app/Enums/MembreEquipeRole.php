@@ -18,7 +18,9 @@ enum MembreEquipeRole: string
             self::Promotrice => 'Directrice',
             self::Juriste => 'Juriste',
             self::CommunicationMarketing => 'Communication & marketing digital',
-            self::ControleGestion => 'Contrôle de gestion',
+            // Case name kept as ControleGestion (same cahier des charges
+            // key) — only the public-facing title changed.
+            self::ControleGestion => 'Secrétaire',
             self::CreationContenu => 'Création de contenu',
         };
     }

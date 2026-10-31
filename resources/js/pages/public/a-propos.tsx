@@ -36,8 +36,7 @@ const EQUIPE_TAGLINES: Record<string, string> = {
     Juriste: 'Sécurise chaque contrat, à la lettre.',
     'Communication & marketing digital':
         'Orchestre vos campagnes et votre présence en ligne.',
-    'Contrôle de gestion':
-        'Garde un œil sur chaque facture et chaque échéance.',
+    Secrétaire: 'Garde un œil sur chaque facture et chaque échéance.',
     'Création de contenu': 'Donne vie à vos idées en visuels et en mots.',
 };
 
@@ -45,7 +44,7 @@ const EQUIPE_PHOTOS: Record<string, string> = {
     Directrice: '/images/photos/afsa-maira-directrice.jpg',
     Juriste: '/images/photos/woman-thinking-social.jpg',
     'Communication & marketing digital': '/images/photos/man-phone-social.jpg',
-    'Contrôle de gestion': '/images/photos/man-suit-growth.jpg',
+    Secrétaire: '/images/photos/layana-d-secretaire.jpg',
     'Création de contenu': '/images/photos/man-laptop-smile.jpg',
 };
 
