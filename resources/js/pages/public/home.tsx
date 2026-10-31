@@ -143,14 +143,14 @@ const TESTIMONIALS = [
         meta: 'Fondateur — Atlas Corp',
         tag: 'Entreprise',
         avis: "Un vrai partenaire stratégique : de l'audit initial jusqu'au suivi mensuel des performances.",
-        note: 5,
+        note: 4,
     },
     {
         nom: 'Stéphanie A.',
         meta: 'Apprenante — Community management',
         tag: 'Apprenant',
         avis: "Les formations proposées sont concrètes et directement applicables. L'accompagnement vers le stage a fait toute la différence.",
-        note: 4,
+        note: 3,
     },
     {
         nom: 'Nadia T.',
@@ -164,7 +164,7 @@ const TESTIMONIALS = [
         meta: 'Client — Douala',
         tag: 'Client',
         avis: "La formule d'abonnement m'a permis de garder une présence régulière sur les réseaux sans y passer mes journées. Facturation claire, zéro surprise.",
-        note: 4,
+        note: 2.5,
     },
     {
         nom: 'Brice K.',
@@ -887,18 +887,42 @@ export default function Home({ stats, equipe, formules }: HomeProps) {
                             gap: 4,
                         }}
                     >
-                        {Array.from({ length: 5 }).map((_, index) => (
-                            <Star
-                                key={index}
-                                size={17}
-                                fill={
-                                    index < activeTestimonial.note
-                                        ? 'var(--dag-orange)'
-                                        : 'none'
-                                }
-                                color="var(--dag-orange)"
-                            />
-                        ))}
+                        {Array.from({ length: 5 }).map((_, index) => {
+                            const rempli = Math.max(
+                                0,
+                                Math.min(1, activeTestimonial.note - index),
+                            );
+
+                            return (
+                                <span
+                                    key={index}
+                                    style={{
+                                        position: 'relative',
+                                        width: 17,
+                                        height: 17,
+                                        flex: 'none',
+                                    }}
+                                >
+                                    <Star size={17} color="var(--dag-orange)" />
+                                    {rempli > 0 && (
+                                        <span
+                                            style={{
+                                                position: 'absolute',
+                                                inset: 0,
+                                                overflow: 'hidden',
+                                                width: `${rempli * 100}%`,
+                                            }}
+                                        >
+                                            <Star
+                                                size={17}
+                                                fill="var(--dag-orange)"
+                                                color="var(--dag-orange)"
+                                            />
+                                        </span>
+                                    )}
+                                </span>
+                            );
+                        })}
                     </div>
                     <p
                         style={{
