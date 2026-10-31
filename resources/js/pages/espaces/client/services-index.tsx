@@ -94,7 +94,7 @@ export default function ServicesIndex({ services }: Props) {
                 className="espace-hero"
                 style={{
                     backgroundImage:
-                        "url('/images/photos/phone-social-burst.jpg')",
+                        "url('/images/photos/service-app-mobile.jpg')",
                 }}
             >
                 <div className="espace-hero-overlay" />
