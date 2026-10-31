@@ -1,5 +1,16 @@
 import { Head, Link } from '@inertiajs/react';
-import { ArrowRight, ChevronDown, RotateCcw, Search, X } from 'lucide-react';
+import {
+    ArrowRight,
+    ChevronDown,
+    Code2,
+    LayoutGrid,
+    Megaphone,
+    RotateCcw,
+    Search,
+    Sparkles,
+    X,
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import PublicLayout from '@/layouts/public-layout';
 import { contact } from '@/routes';
@@ -20,6 +31,13 @@ type CatalogueProps = {
 type SortOrder = 'catalogue' | 'nom-asc' | 'nom-desc';
 
 const ALL_CATEGORIES = 'Tous les services';
+
+const CATEGORY_ICONS: Record<string, LucideIcon> = {
+    [ALL_CATEGORIES]: LayoutGrid,
+    'Création & communication': Megaphone,
+    'Technique & digital': Code2,
+};
+const DEFAULT_CATEGORY_ICON = Sparkles;
 
 export default function Catalogue({ services }: CatalogueProps) {
     const [search, setSearch] = useState('');
@@ -72,18 +90,6 @@ export default function Catalogue({ services }: CatalogueProps) {
         setSortOrder('catalogue');
     };
 
-    const groupedServices = useMemo(() => {
-        return categories
-            .filter((category) => category !== ALL_CATEGORIES)
-            .map((category) => ({
-                category,
-                services: sortedServices.filter(
-                    (service) => service.categorie === category,
-                ),
-            }))
-            .filter((group) => group.services.length > 0);
-    }, [categories, sortedServices]);
-
     return (
         <PublicLayout>
             <Head title="Catalogue de services — DAG" />
@@ -107,69 +113,85 @@ export default function Catalogue({ services }: CatalogueProps) {
                             par DAG. Un seul interlocuteur, du devis à la
                             livraison.
                         </p>
+                        <Link
+                            href={contact()}
+                            className="btn-primary catalogue-hero-cta"
+                        >
+                            Demander un devis
+                            <ArrowRight size={16} />
+                        </Link>
                     </div>
                 </div>
             </section>
 
-            <section className="section-gap container">
-                <div className="service-filter-toolbar">
-                    <div className="service-filter-search">
-                        <label htmlFor="search">Rechercher un service</label>
-                        <div className="input-icon-wrap">
-                            <Search size={16} className="input-icon-left" />
-                            <input
-                                id="search"
-                                type="text"
-                                value={search}
-                                onChange={(event) =>
-                                    setSearch(event.target.value)
-                                }
-                                placeholder="Ex. community management..."
-                                style={
-                                    search ? { paddingRight: 36 } : undefined
-                                }
-                            />
-                            {search && (
-                                <button
-                                    type="button"
-                                    className="input-icon-clear"
-                                    onClick={() => setSearch('')}
-                                    aria-label="Effacer la recherche"
-                                >
-                                    <X size={14} />
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                    <div>
-                        <label htmlFor="categorie">Catégorie</label>
-                        <div className="select-icon-wrap">
-                            <select
-                                id="categorie"
-                                value={activeCategory}
-                                onChange={(event) =>
-                                    setActiveCategory(event.target.value)
-                                }
+            <section className="container">
+                <div className="catalogue-search-bar">
+                    <Search size={18} />
+                    <input
+                        type="text"
+                        value={search}
+                        onChange={(event) => setSearch(event.target.value)}
+                        placeholder="Rechercher un service, une catégorie..."
+                        aria-label="Rechercher un service"
+                    />
+                    {search && (
+                        <button
+                            type="button"
+                            className="catalogue-search-clear"
+                            onClick={() => setSearch('')}
+                            aria-label="Effacer la recherche"
+                        >
+                            <X size={14} />
+                        </button>
+                    )}
+                </div>
+            </section>
+
+            <section className="container">
+                <nav
+                    className="catalogue-category-row"
+                    aria-label="Filtrer par catégorie"
+                >
+                    {categories.map((category) => {
+                        const Icon =
+                            CATEGORY_ICONS[category] ?? DEFAULT_CATEGORY_ICON;
+
+                        return (
+                            <button
+                                key={category}
+                                type="button"
+                                className={`catalogue-category-btn${activeCategory === category ? ' active' : ''}`}
+                                onClick={() => setActiveCategory(category)}
                             >
-                                {categories.map((category) => (
-                                    <option key={category} value={category}>
-                                        {category === ALL_CATEGORIES
-                                            ? 'Toutes les catégories'
-                                            : category}
-                                    </option>
-                                ))}
-                            </select>
-                            <ChevronDown
-                                size={16}
-                                className="select-icon-chevron"
-                            />
-                        </div>
-                    </div>
-                    <div>
-                        <label htmlFor="tri">Trier par</label>
+                                <span className="catalogue-category-icon">
+                                    <Icon size={20} />
+                                </span>
+                                <span className="catalogue-category-label">
+                                    {category === ALL_CATEGORIES
+                                        ? 'Tous'
+                                        : category}
+                                </span>
+                            </button>
+                        );
+                    })}
+                </nav>
+            </section>
+
+            <section className="section-gap reveal container">
+                <div className="catalogue-results-head">
+                    <h2 style={{ fontSize: 21, color: 'var(--dag-navy)' }}>
+                        {activeCategory === ALL_CATEGORIES
+                            ? 'Services populaires'
+                            : activeCategory}
+                    </h2>
+                    <div className="catalogue-results-controls">
+                        <span className="muted" style={{ fontSize: 13 }}>
+                            {sortedServices.length} sur {services.length}
+                        </span>
                         <div className="select-icon-wrap">
                             <select
                                 id="tri"
+                                aria-label="Trier par"
                                 value={sortOrder}
                                 onChange={(event) =>
                                     setSortOrder(
@@ -188,12 +210,6 @@ export default function Catalogue({ services }: CatalogueProps) {
                                 className="select-icon-chevron"
                             />
                         </div>
-                    </div>
-                    <div className="service-results-count">
-                        <span>
-                            {sortedServices.length} services affichés sur{' '}
-                            {services.length}
-                        </span>
                         {hasActiveFilters && (
                             <button
                                 type="button"
@@ -206,118 +222,80 @@ export default function Catalogue({ services }: CatalogueProps) {
                         )}
                     </div>
                 </div>
-            </section>
 
-            <section className="cat-nav-sticky container">
-                <nav className="cat-nav">
-                    {categories.map((category) => {
-                        const count =
-                            category === ALL_CATEGORIES
-                                ? services.length
-                                : services.filter(
-                                      (service) =>
-                                          service.categorie === category,
-                                  ).length;
-
-                        return (
-                            <button
-                                key={category}
-                                type="button"
-                                className={`pill${activeCategory === category ? ' active' : ''}`}
-                                onClick={() => setActiveCategory(category)}
-                            >
-                                {category}
-                                <span className="cat-count">{count}</span>
-                            </button>
-                        );
-                    })}
-                </nav>
-            </section>
-
-            {sortedServices.length === 0 ? (
-                <section className="section-gap container">
+                {sortedServices.length === 0 ? (
                     <p className="service-empty-state">
                         Aucun service ne correspond à votre recherche.
                     </p>
-                </section>
-            ) : (
-                groupedServices.map((group) => (
-                    <section
-                        key={group.category}
-                        className="section-gap reveal container"
+                ) : (
+                    <div
+                        className="catalogue-grid reveal-stagger"
+                        style={{ marginTop: 22 }}
                     >
-                        <h2 style={{ fontSize: 21, color: 'var(--dag-navy)' }}>
-                            {group.category}
-                        </h2>
-                        <div
-                            className="grid-3 reveal-stagger"
-                            style={{ marginTop: 22 }}
-                        >
-                            {group.services.map((service) => (
-                                <div
-                                    key={service.id}
-                                    className="card photo-card"
-                                >
-                                    <div className="photo-card-media">
-                                        <div
-                                            className="photo-card-img"
+                        {sortedServices.map((service) => (
+                            <div key={service.id} className="card photo-card">
+                                <div className="photo-card-media">
+                                    <div
+                                        className="photo-card-img"
+                                        style={{
+                                            backgroundImage: service.image
+                                                ? `url('${service.image}')`
+                                                : "url('/images/photos/office-glass-dubai.jpg')",
+                                        }}
+                                    >
+                                        <span
+                                            className="chip photo-card-badge"
                                             style={{
-                                                backgroundImage: service.image
-                                                    ? `url('${service.image}')`
-                                                    : "url('/images/photos/office-glass-dubai.jpg')",
+                                                background: 'var(--dag-navy)',
+                                                color: '#fff',
                                             }}
                                         >
-                                            <span
-                                                className="chip photo-card-badge"
-                                                style={{
-                                                    background:
-                                                        'var(--dag-navy)',
-                                                    color: '#fff',
-                                                }}
-                                            >
-                                                DAG
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div className="photo-card-body">
-                                        <h3
-                                            style={{
-                                                fontSize: 16,
-                                                color: 'var(--dag-navy)',
-                                            }}
-                                        >
-                                            {service.nom}
-                                        </h3>
-                                        {service.description && (
-                                            <p
-                                                className="muted"
-                                                style={{
-                                                    marginTop: 8,
-                                                    fontSize: 13,
-                                                    flex: 1,
-                                                }}
-                                            >
-                                                {service.description}
-                                            </p>
-                                        )}
-                                        <Link
-                                            href={contact()}
-                                            className="btn-primary btn-service-request btn-block"
-                                            style={{ marginTop: 16 }}
-                                        >
-                                            Demander ce service
-                                            <ArrowRight
-                                                size={15}
-                                                className="btn-service-request-icon"
-                                            />
-                                        </Link>
+                                            DAG
+                                        </span>
                                     </div>
                                 </div>
-                            ))}
-                        </div>
-                    </section>
-                ))
-            )}
+                                <div className="photo-card-body">
+                                    <h3
+                                        style={{
+                                            fontSize: 16,
+                                            color: 'var(--dag-navy)',
+                                        }}
+                                    >
+                                        {service.nom}
+                                    </h3>
+                                    <span
+                                        className="muted"
+                                        style={{ fontSize: 12.5 }}
+                                    >
+                                        {service.categorie}
+                                    </span>
+                                    {service.description && (
+                                        <p
+                                            className="muted"
+                                            style={{
+                                                marginTop: 8,
+                                                fontSize: 13,
+                                                flex: 1,
+                                            }}
+                                        >
+                                            {service.description}
+                                        </p>
+                                    )}
+                                    <Link
+                                        href={contact()}
+                                        className="catalogue-card-footer"
+                                    >
+                                        Demander ce service
+                                        <span className="catalogue-card-cta">
+                                            <ArrowRight size={16} />
+                                        </span>
+                                    </Link>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </section>
         </PublicLayout>
     );
 }
