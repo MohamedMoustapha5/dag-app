@@ -108,7 +108,7 @@ const PAYMENT_METHODS = [
 ];
 
 const TEAM_PHOTOS = [
-    '/images/photos/man-suit-growth.jpg',
+    '/images/photos/afsa-maira-directrice.jpg',
     '/images/photos/woman-desk-seo.jpg',
     '/images/photos/man-laptop-smile.jpg',
     '/images/photos/woman-thinking-social.jpg',
@@ -116,7 +116,7 @@ const TEAM_PHOTOS = [
 ];
 
 const TEAM_TAGLINES: Record<string, string> = {
-    Promotrice: 'Pilote chaque dossier du premier message à la livraison.',
+    Directrice: 'Pilote chaque dossier du premier message à la livraison.',
     Juriste: 'Sécurise chaque contrat, à la lettre.',
     'Communication & marketing digital':
         'Fait rayonner vos marques sur les réseaux.',

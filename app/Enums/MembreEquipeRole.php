@@ -13,7 +13,9 @@ enum MembreEquipeRole: string
     public function label(): string
     {
         return match ($this) {
-            self::Promotrice => 'Promotrice',
+            // Case name kept as Promotrice (cahier des charges §3.2, access
+            // matrix key) — only the public-facing title changed.
+            self::Promotrice => 'Directrice',
             self::Juriste => 'Juriste',
             self::CommunicationMarketing => 'Communication & marketing digital',
             self::ControleGestion => 'Contrôle de gestion',

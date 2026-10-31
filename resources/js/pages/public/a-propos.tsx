@@ -32,7 +32,7 @@ const PARTENAIRES = [
 ];
 
 const EQUIPE_TAGLINES: Record<string, string> = {
-    Promotrice: 'Pilote la vision et la relation client.',
+    Directrice: 'Pilote la vision et la relation client.',
     Juriste: 'Sécurise chaque contrat, à la lettre.',
     'Communication & marketing digital':
         'Orchestre vos campagnes et votre présence en ligne.',
@@ -42,7 +42,7 @@ const EQUIPE_TAGLINES: Record<string, string> = {
 };
 
 const EQUIPE_PHOTOS: Record<string, string> = {
-    Promotrice: '/images/photos/woman-desk-seo.jpg',
+    Directrice: '/images/photos/afsa-maira-directrice.jpg',
     Juriste: '/images/photos/woman-thinking-social.jpg',
     'Communication & marketing digital': '/images/photos/man-phone-social.jpg',
     'Contrôle de gestion': '/images/photos/man-suit-growth.jpg',

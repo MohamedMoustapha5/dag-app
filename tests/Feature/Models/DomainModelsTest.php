@@ -29,7 +29,7 @@ test('a membre equipe role casts to the MembreEquipeRole enum and exposes a fren
     $membre = MembreEquipe::factory()->promotrice()->create();
 
     expect($membre->role)->toBe(MembreEquipeRole::Promotrice);
-    expect($membre->role->label())->toBe('Promotrice');
+    expect($membre->role->label())->toBe('Directrice');
     expect($membre->estActif())->toBeTrue();
 });
 
