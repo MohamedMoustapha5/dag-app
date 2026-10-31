@@ -44,7 +44,7 @@ export default function Abonnement({ formules }: AbonnementProps) {
             </section>
 
             <section className="section-gap container">
-                <div className="grid-3 reveal-stagger">
+                <div className="grid-3">
                     {formules.map((formule) => {
                         const Icon =
                             FORMULE_ICONS[formule.nom] ?? DEFAULT_FORMULE_ICON;

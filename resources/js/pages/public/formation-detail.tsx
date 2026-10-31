@@ -70,7 +70,7 @@ export default function FormationDetail({
 
                         {formation.programme && (
                             <div
-                                className="card reveal"
+                                className="card"
                                 style={{ padding: 24, marginTop: 28 }}
                             >
                                 <h2

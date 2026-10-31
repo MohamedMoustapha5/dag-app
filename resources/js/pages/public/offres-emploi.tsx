@@ -50,7 +50,7 @@ export default function OffresEmploi({ offres }: OffresEmploiProps) {
                         Aucune offre ouverte pour le moment.
                     </p>
                 ) : (
-                    <div className="grid-3 reveal-stagger">
+                    <div className="grid-3">
                         {offres.map((offre) => (
                             <div
                                 key={offre.id}
