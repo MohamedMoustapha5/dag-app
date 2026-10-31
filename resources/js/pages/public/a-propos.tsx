@@ -22,28 +22,12 @@ const VALEURS = [
 
 const PARTENAIRES = [
     {
-        nomDark: 'Nova-',
-        nomAccent: 'Tech',
-        accentColor: 'var(--dag-blue)',
-        specialite: 'Sites web & e-commerce',
-        description:
-            'Développement de sites vitrines, boutiques en ligne et portails sur mesure.',
+        nom: 'Nova-Tech',
+        logo: '/images/brand/partners/nova-tech.png',
     },
     {
-        nomDark: 'Kivu',
-        nomAccent: 'Software',
-        accentColor: 'var(--dag-blue)',
-        specialite: 'Logiciels sur mesure',
-        description:
-            'Applications métier, intégrations et solutions logicielles sur mesure.',
-    },
-    {
-        nomDark: 'Secure',
-        nomAccent: 'Net',
-        accentColor: 'var(--dag-orange-ink)',
-        specialite: 'Cybersécurité',
-        description:
-            "Audit, protection et surveillance des systèmes d'information.",
+        nom: 'Nordex Consulting Group',
+        logo: '/images/brand/partners/nordex-consulting-group.jpg',
     },
 ];
 
@@ -285,45 +269,36 @@ export default function APropos({ stats, equipe }: AProposProps) {
                 </p>
 
                 <div
-                    className="grid-3"
-                    style={{ marginTop: 32, width: '100%' }}
+                    style={{
+                        marginTop: 32,
+                        display: 'flex',
+                        justifyContent: 'center',
+                        gap: 24,
+                        flexWrap: 'wrap',
+                    }}
                 >
                     {PARTENAIRES.map((partenaire) => (
                         <div
-                            key={partenaire.nomDark + partenaire.nomAccent}
+                            key={partenaire.nom}
                             className="card"
-                            style={{ padding: 28, textAlign: 'center' }}
+                            style={{
+                                padding: 20,
+                                width: 180,
+                                height: 100,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                            }}
                         >
-                            <p
+                            <img
+                                src={partenaire.logo}
+                                alt={partenaire.nom}
                                 style={{
-                                    fontFamily: "'Sora',sans-serif",
-                                    fontSize: 22,
-                                    fontWeight: 800,
+                                    maxWidth: '100%',
+                                    maxHeight: '100%',
+                                    objectFit: 'contain',
                                 }}
-                            >
-                                <span style={{ color: 'var(--dag-navy)' }}>
-                                    {partenaire.nomDark}
-                                </span>
-                                <span style={{ color: partenaire.accentColor }}>
-                                    {partenaire.nomAccent}
-                                </span>
-                            </p>
-                            <p
-                                style={{
-                                    marginTop: 14,
-                                    fontSize: 14.5,
-                                    fontWeight: 700,
-                                    color: 'var(--dag-navy)',
-                                }}
-                            >
-                                {partenaire.specialite}
-                            </p>
-                            <p
-                                className="muted"
-                                style={{ marginTop: 8, fontSize: 13 }}
-                            >
-                                {partenaire.description}
-                            </p>
+                            />
                         </div>
                     ))}
                 </div>
