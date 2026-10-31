@@ -2,7 +2,7 @@ import { Head, Link } from '@inertiajs/react';
 import { Check, Rocket, Sparkles, TrendingUp } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import PublicLayout from '@/layouts/public-layout';
-import { contact } from '@/routes';
+import { contact, grilleTarifaire } from '@/routes';
 
 type Formule = {
     id: string;
@@ -39,6 +39,13 @@ export default function Abonnement({ formules }: AbonnementProps) {
                             Choisissez la formule qui correspond à votre rythme
                             de croissance, sans engagement caché.
                         </p>
+                        <Link
+                            href={grilleTarifaire()}
+                            className="btn-outline"
+                            style={{ marginTop: 20 }}
+                        >
+                            Voir la grille tarifaire
+                        </Link>
                     </div>
                 </div>
             </section>

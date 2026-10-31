@@ -6,6 +6,7 @@ use App\Http\Controllers\Public\CatalogueController;
 use App\Http\Controllers\Public\ContactController;
 use App\Http\Controllers\Public\FormationController;
 use App\Http\Controllers\Public\FormuleController;
+use App\Http\Controllers\Public\GrilleTarifaireController;
 use App\Http\Controllers\Public\OffreEmploiController;
 use Illuminate\Support\Facades\Route;
 
@@ -25,6 +26,8 @@ Route::get('formations', [FormationController::class, 'index'])->name('formation
 Route::get('formations/{formation}', [FormationController::class, 'show'])->name('formations.show');
 
 Route::get('abonnement', FormuleController::class)->name('abonnement');
+
+Route::get('grille-tarifaire', GrilleTarifaireController::class)->name('grille-tarifaire');
 
 Route::get('offres-emploi', OffreEmploiController::class)->name('offres-emploi');
 

@@ -6,6 +6,7 @@ use App\Models\EntreprisePartenaire;
 use App\Models\Formation;
 use App\Models\FormationSession;
 use App\Models\Formule;
+use App\Models\LigneTarifaire;
 use App\Models\MembreEquipe;
 use App\Models\OffreEmploi;
 use App\Models\Service;
@@ -54,6 +55,32 @@ test('the catalogue page only lists published services', function () {
         ->component('public/catalogue')
         ->has('services', 1)
         ->where('services.0.id', $published->id));
+});
+
+test('the grille tarifaire page groups lignes by category in display order', function () {
+    LigneTarifaire::factory()->create([
+        'categorie' => 'Sites web, e-commerce & maintenance',
+        'categorie_ordre' => 4,
+        'prestation' => 'Site vitrine simple',
+        'tarif' => '150 000–300 000',
+        'ordre' => 0,
+    ]);
+    LigneTarifaire::factory()->create([
+        'categorie' => 'Graphisme & identité visuelle',
+        'categorie_ordre' => 1,
+        'prestation' => 'Logo simple',
+        'tarif' => '25 000–60 000',
+        'ordre' => 0,
+    ]);
+
+    $response = $this->get(route('grille-tarifaire'));
+
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page
+        ->component('public/grille-tarifaire')
+        ->has('categories', 2)
+        ->where('categories.0.categorie', 'Graphisme & identité visuelle')
+        ->where('categories.1.categorie', 'Sites web, e-commerce & maintenance'));
 });
 
 test('the formations page only lists sessions that are open or full', function () {

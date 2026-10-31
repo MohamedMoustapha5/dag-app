@@ -1,6 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import { Fragment } from 'react';
 import { logout } from '@/routes';
+import espaceAdmin from '@/routes/espace-admin';
 
 type Props = {
     membre: {
@@ -48,6 +49,12 @@ export default function AdminDashboard({ membre, droits }: Props) {
                         ))}
                     </dl>
                 </div>
+                <Link
+                    href={espaceAdmin.grilleTarifaire.index()}
+                    className="self-start text-sm font-medium underline"
+                >
+                    Gérer la grille tarifaire →
+                </Link>
                 <Link
                     href={logout()}
                     as="button"

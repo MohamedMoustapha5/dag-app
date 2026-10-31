@@ -13,7 +13,7 @@ import {
 import type { LucideIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import PublicLayout from '@/layouts/public-layout';
-import { contact } from '@/routes';
+import { contact, grilleTarifaire } from '@/routes';
 
 type Service = {
     id: string;
@@ -113,13 +113,21 @@ export default function Catalogue({ services }: CatalogueProps) {
                             par DAG. Un seul interlocuteur, du devis à la
                             livraison.
                         </p>
-                        <Link
-                            href={contact()}
-                            className="btn-primary catalogue-hero-cta"
+                        <div
+                            className="catalogue-hero-cta"
+                            style={{ display: 'flex', gap: 12 }}
                         >
-                            Demander un devis
-                            <ArrowRight size={16} />
-                        </Link>
+                            <Link href={contact()} className="btn-primary">
+                                Demander un devis
+                                <ArrowRight size={16} />
+                            </Link>
+                            <Link
+                                href={grilleTarifaire()}
+                                className="btn-outline"
+                            >
+                                Voir la grille tarifaire
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </section>
