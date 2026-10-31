@@ -109,6 +109,7 @@ export default function Formations({ sessions, stats }: FormationsProps) {
 
             <section className="training-hero-wrap reveal container">
                 <div className="training-hero">
+                    <div className="training-hero-overlay" />
                     <div className="training-hero-content">
                         <span className="badge">Module formation</span>
                         <h1>Formations & placement en entreprise</h1>

@@ -82,6 +82,7 @@ export default function Contact() {
 
             <section className="contact-hero-wrap reveal container">
                 <div className="contact-hero">
+                    <div className="contact-hero-overlay" />
                     <div className="contact-hero-content">
                         <span className="badge">Contact</span>
                         <h1>Parlons de votre projet</h1>

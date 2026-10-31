@@ -95,10 +95,11 @@ export default function APropos({ stats, equipe }: AProposProps) {
                 <div
                     className="contact-hero"
                     style={{
-                        background:
-                            "linear-gradient(100deg, rgba(5,22,46,.9) 0%, rgba(7,31,65,.68) 54%, rgba(7,31,65,.18) 100%), url('/images/photos/office-glass-dubai.jpg') center 48% / cover no-repeat",
+                        backgroundImage:
+                            "url('/images/photos/office-glass-dubai.jpg')",
                     }}
                 >
+                    <div className="contact-hero-overlay" />
                     <div className="contact-hero-content">
                         <span className="badge">À propos de DAG</span>
                         <h1>

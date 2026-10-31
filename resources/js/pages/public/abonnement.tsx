@@ -22,6 +22,7 @@ export default function Abonnement({ formules }: AbonnementProps) {
 
             <section className="subscription-hero-wrap reveal container">
                 <div className="subscription-hero">
+                    <div className="subscription-hero-overlay" />
                     <div className="subscription-hero-content">
                         <span className="badge">Abonnement</span>
                         <h1>Un accompagnement continu, à prix fixe</h1>

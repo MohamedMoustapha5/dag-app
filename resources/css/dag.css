@@ -866,18 +866,28 @@
     min-height: 390px;
     overflow: hidden;
     border-radius: var(--dag-radius-lg);
-    background:
-        linear-gradient(
-            105deg,
-            rgba(5, 22, 46, 0.72) 0%,
-            rgba(7, 31, 65, 0.5) 52%,
-            rgba(7, 31, 65, 0.14) 100%
-        ),
-        url('/images/photos/auditorium-welcome.jpg') center 48% / cover
-            no-repeat;
+    background-image: url('/images/photos/formation-digital-marketing.jpg');
+    background-position: center 22%;
+    background-size: cover;
+    background-repeat: no-repeat;
     box-shadow: var(--dag-shadow-lg);
 }
+.dag .training-hero-overlay {
+    position: absolute;
+    inset: 0;
+    /* Overlay plus marqué que les autres héros : la photo (diapo de
+       formation en arrière-plan) est claire et chargée, et nuit sinon à
+       la lisibilité du titre. */
+    background: linear-gradient(
+        105deg,
+        rgba(5, 22, 46, 0.88) 0%,
+        rgba(7, 31, 65, 0.7) 52%,
+        rgba(7, 31, 65, 0.3) 100%
+    );
+}
 .dag .training-hero-content {
+    position: relative;
+    z-index: 1;
     width: 100%;
     padding: 38px 48px;
     color: #fff;
@@ -950,18 +960,25 @@
     overflow: hidden;
     border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: var(--dag-radius-lg);
-    background:
-        linear-gradient(
-            100deg,
-            rgba(5, 22, 46, 0.9) 0%,
-            rgba(7, 31, 65, 0.68) 54%,
-            rgba(7, 31, 65, 0.18) 100%
-        ),
-        url('/images/photos/team-meeting-laptop.jpg') center 48% / cover
-            no-repeat;
+    background-image: url('/images/photos/phone-call-dashboard.jpg');
+    background-position: center 24%;
+    background-size: cover;
+    background-repeat: no-repeat;
     box-shadow: var(--dag-shadow-lg);
 }
+.dag .contact-hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        100deg,
+        rgba(5, 22, 46, 0.9) 0%,
+        rgba(7, 31, 65, 0.68) 54%,
+        rgba(7, 31, 65, 0.18) 100%
+    );
+}
 .dag .contact-hero-content {
+    position: relative;
+    z-index: 1;
     max-width: 760px;
     padding: 42px 48px;
     color: #fff;
@@ -1102,6 +1119,15 @@
     min-height: 280px;
     overflow: hidden;
     border-radius: var(--dag-radius-lg);
+    background-image: url('/images/photos/glass-charts.jpg');
+    background-position: center 46%;
+    background-size: cover;
+    background-repeat: no-repeat;
+    box-shadow: var(--dag-shadow-lg);
+}
+.dag .subscription-hero-overlay {
+    position: absolute;
+    inset: 0;
     background:
         linear-gradient(
             100deg,
@@ -1109,11 +1135,11 @@
             rgba(7, 31, 65, 0.82) 44%,
             rgba(7, 31, 65, 0.38) 100%
         ),
-        linear-gradient(0deg, rgba(3, 15, 32, 0.32), transparent 60%),
-        url('/images/photos/glass-charts.jpg') center 46% / cover no-repeat;
-    box-shadow: var(--dag-shadow-lg);
+        linear-gradient(0deg, rgba(3, 15, 32, 0.32), transparent 60%);
 }
 .dag .subscription-hero-content {
+    position: relative;
+    z-index: 1;
     max-width: 760px;
     padding: 42px 48px;
     color: #fff;
@@ -2554,20 +2580,21 @@
         padding-top: 24px;
     }
     .dag .training-hero {
+        min-height: 0;
+        background-position: center 22%;
+    }
+    .dag .training-hero-overlay {
         /* Sur desktop, ce dégradé horizontal laisse la photo visible à
            droite car le texte reste dans une colonne étroite. Sur mobile,
            le texte prend toute la largeur : un dégradé horizontal aussi
-           sombre rendait la photo totalement invisible. */
-        min-height: 0;
-        background:
-            linear-gradient(
-                180deg,
-                rgba(5, 22, 46, 0.35) 0%,
-                rgba(5, 22, 46, 0.55) 60%,
-                rgba(5, 22, 46, 0.72) 100%
-            ),
-            url('/images/photos/auditorium-welcome.jpg') 58% center / cover
-                no-repeat;
+           sombre rendait la photo totalement invisible. Valeurs plus
+           sombres que les autres héros pour cette photo chargée. */
+        background: linear-gradient(
+            180deg,
+            rgba(5, 22, 46, 0.55) 0%,
+            rgba(5, 22, 46, 0.72) 60%,
+            rgba(5, 22, 46, 0.85) 100%
+        );
     }
     .dag .training-hero-content {
         padding: 28px 24px;
@@ -2595,15 +2622,15 @@
     }
     .dag .contact-hero {
         min-height: 250px;
-        background:
-            linear-gradient(
-                180deg,
-                rgba(5, 22, 46, 0.5) 0%,
-                rgba(5, 22, 46, 0.75) 60%,
-                rgba(5, 22, 46, 0.88) 100%
-            ),
-            url('/images/photos/team-meeting-laptop.jpg') 58% center / cover
-                no-repeat;
+        background-position: center 24%;
+    }
+    .dag .contact-hero-overlay {
+        background: linear-gradient(
+            180deg,
+            rgba(5, 22, 46, 0.5) 0%,
+            rgba(5, 22, 46, 0.75) 60%,
+            rgba(5, 22, 46, 0.88) 100%
+        );
     }
     .dag .contact-hero-content {
         padding: 28px 24px;
@@ -2648,6 +2675,9 @@
     }
     .dag .subscription-hero {
         min-height: 300px;
+        background-position: 58% center;
+    }
+    .dag .subscription-hero-overlay {
         background:
             linear-gradient(
                 180deg,
@@ -2655,8 +2685,7 @@
                 rgba(5, 22, 46, 0.8) 60%,
                 rgba(5, 22, 46, 0.92) 100%
             ),
-            linear-gradient(0deg, rgba(3, 15, 32, 0.32), transparent 60%),
-            url('/images/photos/glass-charts.jpg') 58% center / cover no-repeat;
+            linear-gradient(0deg, rgba(3, 15, 32, 0.32), transparent 60%);
     }
     .dag .subscription-hero-content {
         padding: 28px 24px;

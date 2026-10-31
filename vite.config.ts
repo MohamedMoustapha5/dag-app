@@ -44,6 +44,15 @@ export default defineConfig({
                 '**/vendor/**',
             ],
         },
+        proxy: {
+            // dag.css references /images/... with an absolute path so it
+            // also resolves correctly from the production build (served
+            // by Laravel). In dev, that same CSS is served by this Vite
+            // server instead, so without this proxy the browser resolves
+            // those url()s against *this* origin — which has no
+            // public/images — instead of the Laravel app's.
+            '/images': 'http://localhost:8000',
+        },
     },
     lint: {
         ignorePatterns: [

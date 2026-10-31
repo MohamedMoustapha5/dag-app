@@ -93,7 +93,7 @@ export default function Catalogue({ services }: CatalogueProps) {
                     className="service-catalogue-hero"
                     style={{
                         backgroundImage:
-                            "url('/images/photos/team-meeting-laptop.jpg')",
+                            "url('/images/photos/service-social-dashboard.jpg')",
                     }}
                 >
                     <div className="service-catalogue-hero-content">
