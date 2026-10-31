@@ -263,9 +263,8 @@ export default function APropos({ stats, equipe }: AProposProps) {
                     Nos partenariats
                 </h2>
                 <p className="muted" style={{ marginTop: 10, maxWidth: 560 }}>
-                    Pour certains besoins techniques spécialisés, DAG s'appuie
-                    sur un réseau de partenaires de confiance — tout en restant
-                    votre unique interlocuteur, de la demande à la facturation.
+                    Des partenaires de confiance, choisis pour leur sérieux et
+                    leur exigence de qualité.
                 </p>
 
                 <div
@@ -283,9 +282,9 @@ export default function APropos({ stats, equipe }: AProposProps) {
                 </div>
 
                 <p className="muted" style={{ marginTop: 20, fontSize: 13 }}>
-                    Intégrées à notre catalogue sous la catégorie « Technique &
-                    digital ».{' '}
-                    <Link href={catalogue()}>Voir le catalogue complet →</Link>
+                    <Link href={catalogue()}>
+                        Découvrir l'ensemble de nos services →
+                    </Link>
                 </p>
             </section>
 
