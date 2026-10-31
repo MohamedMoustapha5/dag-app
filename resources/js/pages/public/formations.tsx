@@ -1,5 +1,16 @@
 import { Head, Link } from '@inertiajs/react';
-import { ArrowRight, ChevronDown } from 'lucide-react';
+import {
+    ArrowRight,
+    ChevronDown,
+    LayoutGrid,
+    PenTool,
+    Search,
+    Sparkles,
+    TrendingUp,
+    Users,
+    X,
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { Fragment, useMemo, useState } from 'react';
 import PublicLayout from '@/layouts/public-layout';
 import formationsRoutes from '@/routes/formations';
@@ -33,6 +44,14 @@ const ALL_CATEGORIES = 'Toutes les catégories';
 const ALL_VILLES = 'Toutes les villes';
 const ALL_PERIODES = 'Toutes les périodes';
 
+const CATEGORY_ICONS: Record<string, LucideIcon> = {
+    [ALL_CATEGORIES]: LayoutGrid,
+    'Community management': Users,
+    'Création de contenu': PenTool,
+    'Stratégie & publicité': TrendingUp,
+};
+const DEFAULT_CATEGORY_ICON = Sparkles;
+
 const PROCESS_STEPS = [
     'Inscription',
     'Paiement',
@@ -52,6 +71,7 @@ function periodeDe(dateIso: string): string {
 }
 
 export default function Formations({ sessions, stats }: FormationsProps) {
+    const [search, setSearch] = useState('');
     const [activeCategory, setActiveCategory] =
         useState<string>(ALL_CATEGORIES);
     const [activeVille, setActiveVille] = useState<string>(ALL_VILLES);
@@ -89,6 +109,12 @@ export default function Formations({ sessions, stats }: FormationsProps) {
     const filteredSessions = useMemo(
         () =>
             sessions.filter((session) => {
+                const matchesSearch =
+                    search.trim() === '' ||
+                    session.nom.toLowerCase().includes(search.toLowerCase()) ||
+                    session.categorie
+                        .toLowerCase()
+                        .includes(search.toLowerCase());
                 const matchesCategory =
                     activeCategory === ALL_CATEGORIES ||
                     session.categorie === activeCategory;
@@ -98,9 +124,14 @@ export default function Formations({ sessions, stats }: FormationsProps) {
                     activePeriode === ALL_PERIODES ||
                     (session.dateDebut &&
                         periodeDe(session.dateDebut) === activePeriode);
-                return matchesCategory && matchesVille && matchesPeriode;
+                return (
+                    matchesSearch &&
+                    matchesCategory &&
+                    matchesVille &&
+                    matchesPeriode
+                );
             }),
-        [sessions, activeCategory, activeVille, activePeriode],
+        [sessions, search, activeCategory, activeVille, activePeriode],
     );
 
     return (
@@ -174,35 +205,75 @@ export default function Formations({ sessions, stats }: FormationsProps) {
                 </div>
             </section>
 
-            <section className="section-gap container">
-                <div className="service-filter-toolbar">
-                    <div>
-                        <label htmlFor="categorie">Catégorie</label>
-                        <div className="select-icon-wrap">
-                            <select
-                                id="categorie"
-                                value={activeCategory}
-                                onChange={(event) =>
-                                    setActiveCategory(event.target.value)
-                                }
+            <section className="container">
+                <div className="catalogue-search-bar">
+                    <Search size={18} />
+                    <input
+                        type="text"
+                        value={search}
+                        onChange={(event) => setSearch(event.target.value)}
+                        placeholder="Rechercher une formation, une catégorie..."
+                        aria-label="Rechercher une formation"
+                    />
+                    {search && (
+                        <button
+                            type="button"
+                            className="catalogue-search-clear"
+                            onClick={() => setSearch('')}
+                            aria-label="Effacer la recherche"
+                        >
+                            <X size={14} />
+                        </button>
+                    )}
+                </div>
+            </section>
+
+            <section className="container">
+                <nav
+                    className="catalogue-category-row"
+                    aria-label="Filtrer par catégorie"
+                >
+                    {categories.map((category) => {
+                        const Icon =
+                            CATEGORY_ICONS[category] ?? DEFAULT_CATEGORY_ICON;
+
+                        return (
+                            <button
+                                key={category}
+                                type="button"
+                                className={`catalogue-category-btn${activeCategory === category ? ' active' : ''}`}
+                                onClick={() => setActiveCategory(category)}
                             >
-                                {categories.map((category) => (
-                                    <option key={category} value={category}>
-                                        {category}
-                                    </option>
-                                ))}
-                            </select>
-                            <ChevronDown
-                                size={16}
-                                className="select-icon-chevron"
-                            />
-                        </div>
-                    </div>
-                    <div>
-                        <label htmlFor="ville">Ville</label>
+                                <span className="catalogue-category-icon">
+                                    <Icon size={20} />
+                                </span>
+                                <span className="catalogue-category-label">
+                                    {category === ALL_CATEGORIES
+                                        ? 'Toutes'
+                                        : category}
+                                </span>
+                            </button>
+                        );
+                    })}
+                </nav>
+            </section>
+
+            <section className="section-gap container">
+                <div className="catalogue-results-head">
+                    <h2
+                        className="training-section-title"
+                        style={{ marginBottom: 0 }}
+                    >
+                        Sessions à venir
+                    </h2>
+                    <div className="catalogue-results-controls">
+                        <span className="muted" style={{ fontSize: 13 }}>
+                            {filteredSessions.length} sur {sessions.length}
+                        </span>
                         <div className="select-icon-wrap">
                             <select
                                 id="ville"
+                                aria-label="Ville"
                                 value={activeVille}
                                 onChange={(event) =>
                                     setActiveVille(event.target.value)
@@ -219,12 +290,10 @@ export default function Formations({ sessions, stats }: FormationsProps) {
                                 className="select-icon-chevron"
                             />
                         </div>
-                    </div>
-                    <div>
-                        <label htmlFor="periode">Date de session</label>
                         <div className="select-icon-wrap">
                             <select
                                 id="periode"
+                                aria-label="Date de session"
                                 value={activePeriode}
                                 onChange={(event) =>
                                     setActivePeriode(event.target.value)
@@ -242,24 +311,17 @@ export default function Formations({ sessions, stats }: FormationsProps) {
                             />
                         </div>
                     </div>
-                    <div className="service-results-count">
-                        <span>
-                            {filteredSessions.length} sessions affichées sur{' '}
-                            {sessions.length}
-                        </span>
-                    </div>
                 </div>
-            </section>
-
-            <section className="section-gap container">
-                <h2 className="training-section-title">Sessions à venir</h2>
 
                 {filteredSessions.length === 0 ? (
                     <p className="service-empty-state">
                         Aucune session ouverte ne correspond à ces filtres.
                     </p>
                 ) : (
-                    <div className="training-session-grid">
+                    <div
+                        className="training-session-grid"
+                        style={{ marginTop: 22 }}
+                    >
                         {filteredSessions.map((session) => (
                             <div
                                 key={session.sessionId}

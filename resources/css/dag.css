@@ -3434,9 +3434,10 @@
     }
     .dag .catalogue-results-controls {
         width: 100%;
+        flex-wrap: wrap;
     }
     .dag .catalogue-results-controls .select-icon-wrap {
-        min-width: 0;
+        min-width: 130px;
         flex: 1;
     }
 }
