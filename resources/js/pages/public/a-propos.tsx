@@ -49,10 +49,10 @@ const EQUIPE_PHOTOS: Record<string, string> = {
 };
 
 const DEVELOPPEUR = {
-    nom: 'Yannick B.',
+    nom: 'Mustapha',
     role: 'Développeur',
     tagline: 'Conçoit et fait évoluer la plateforme DAG, de bout en bout.',
-    photo: '/images/photos/office-admin-laptop.jpg',
+    photo: '/images/photos/mustapha-developpeur.jpg',
 };
 
 export default function APropos({ stats, equipe }: AProposProps) {

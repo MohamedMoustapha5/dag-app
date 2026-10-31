@@ -113,6 +113,7 @@ const TEAM_PHOTOS = [
     '/images/photos/man-laptop-smile.jpg',
     '/images/photos/layana-d-secretaire.jpg',
     '/images/photos/man-phone-social.jpg',
+    '/images/photos/mustapha-developpeur.jpg',
 ];
 
 const TEAM_TAGLINES: Record<string, string> = {
@@ -122,7 +123,10 @@ const TEAM_TAGLINES: Record<string, string> = {
         'Fait rayonner vos marques sur les réseaux.',
     Secrétaire: 'Veille sur chaque facture et chaque paiement.',
     'Création de contenu': 'Donne vie à vos idées en visuels et vidéos.',
+    Développeur: 'Conçoit et fait évoluer la plateforme DAG, de bout en bout.',
 };
+
+const DEVELOPPEUR = { nom: 'Mustapha', role: 'Développeur' };
 
 const TESTIMONIALS = [
     {
@@ -174,7 +178,8 @@ export default function Home({ stats, equipe }: HomeProps) {
     const [testimonialIndex, setTestimonialIndex] = useState(0);
     const [auditModalOpen, setAuditModalOpen] = useState(false);
 
-    const activeMember = equipe[teamIndex];
+    const equipeAffichee = [...equipe, DEVELOPPEUR];
+    const activeMember = equipeAffichee[teamIndex];
     const activeTestimonial = TESTIMONIALS[testimonialIndex];
 
     useEffect(() => {
@@ -186,16 +191,16 @@ export default function Home({ stats, equipe }: HomeProps) {
     }, [testimonialIndex]);
 
     useEffect(() => {
-        if (equipe.length === 0) {
+        if (equipeAffichee.length === 0) {
             return;
         }
 
         const timer = window.setInterval(() => {
-            setTeamIndex((index) => (index + 1) % equipe.length);
+            setTeamIndex((index) => (index + 1) % equipeAffichee.length);
         }, 5000);
 
         return () => window.clearInterval(timer);
-    }, [teamIndex, equipe.length]);
+    }, [teamIndex, equipeAffichee.length]);
 
     return (
         <PublicLayout>
@@ -809,7 +814,7 @@ export default function Home({ stats, equipe }: HomeProps) {
                             </p>
                         </div>
                         <div className="team-thumbs">
-                            {equipe.map((member, index) => (
+                            {equipeAffichee.map((member, index) => (
                                 <button
                                     key={member.nom}
                                     type="button"
