@@ -1,14 +1,7 @@
-import { Head } from '@inertiajs/react';
-import { Receipt } from 'lucide-react';
+import { Head, Link } from '@inertiajs/react';
+import { useMemo, useState } from 'react';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
-
-type Facture = {
-    reference: string;
-    montant: string;
-    montantPaye: string;
-    statut: string;
-    echeance: string | null;
-};
+import espaceApprenant from '@/routes/espace-apprenant';
 
 type Inscription = {
     id: string;
@@ -16,16 +9,48 @@ type Inscription = {
     ville: string | null;
     mode: string | null;
     dateDebut: string | null;
+    dateFin: string | null;
     statut: string;
-    montant: string | null;
-    facture: Facture | null;
+    progression: number;
+    semainesAvantDebut: number | null;
 };
 
 type Props = {
     inscriptions: Inscription[];
 };
 
+type Onglet = 'toutes' | 'en-cours' | 'a-venir' | 'terminees';
+
+const ONGLETS: { value: Onglet; label: string }[] = [
+    { value: 'toutes', label: 'Toutes' },
+    { value: 'en-cours', label: 'En cours' },
+    { value: 'a-venir', label: 'À venir' },
+    { value: 'terminees', label: 'Terminées' },
+];
+
+function classifier(inscription: Inscription): Onglet {
+    if (inscription.statut === 'FORMEE') {
+        return 'terminees';
+    }
+    if (inscription.semainesAvantDebut !== null) {
+        return 'a-venir';
+    }
+    return 'en-cours';
+}
+
 export default function ApprenantInscriptionsIndex({ inscriptions }: Props) {
+    const [onglet, setOnglet] = useState<Onglet>('toutes');
+
+    const filtered = useMemo(
+        () =>
+            onglet === 'toutes'
+                ? inscriptions
+                : inscriptions.filter(
+                      (inscription) => classifier(inscription) === onglet,
+                  ),
+        [inscriptions, onglet],
+    );
+
     return (
         <>
             <Head title="Mes inscriptions" />
@@ -37,15 +62,47 @@ export default function ApprenantInscriptionsIndex({ inscriptions }: Props) {
                 }}
             >
                 <div className="espace-hero-overlay" />
-                <div className="espace-hero-content">
-                    <h1>Mes inscriptions</h1>
-                    <p>Le suivi de vos formations et des factures associées.</p>
+                <div
+                    style={{
+                        position: 'relative',
+                        zIndex: 1,
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        gap: 16,
+                        flexWrap: 'wrap',
+                        width: '100%',
+                    }}
+                >
+                    <div className="espace-hero-content">
+                        <h1>Mes inscriptions</h1>
+                        <p>L'historique de vos sessions de formation DAG.</p>
+                    </div>
+                    <Link
+                        href={espaceApprenant.formations()}
+                        className="btn-primary"
+                    >
+                        + Parcourir les formations
+                    </Link>
                 </div>
             </div>
 
-            {inscriptions.length === 0 ? (
+            <div className="account-tabs" style={{ marginBottom: 24 }}>
+                {ONGLETS.map((item) => (
+                    <button
+                        key={item.value}
+                        type="button"
+                        className={`account-tab${onglet === item.value ? ' active' : ''}`}
+                        onClick={() => setOnglet(item.value)}
+                    >
+                        {item.label}
+                    </button>
+                ))}
+            </div>
+
+            {filtered.length === 0 ? (
                 <p className="data-table-empty">
-                    Aucune inscription pour le moment.{' '}
+                    Aucune inscription dans cette catégorie.
                 </p>
             ) : (
                 <div
@@ -55,148 +112,145 @@ export default function ApprenantInscriptionsIndex({ inscriptions }: Props) {
                         gap: 16,
                     }}
                 >
-                    {inscriptions.map((inscription) => (
-                        <div
-                            key={inscription.id}
-                            className="card"
-                            style={{ padding: 24 }}
-                        >
-                            <div
-                                style={{
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'flex-start',
-                                    gap: 16,
-                                    flexWrap: 'wrap',
-                                }}
-                            >
-                                <div>
-                                    <h3
-                                        style={{
-                                            fontSize: 16,
-                                            color: 'var(--dag-navy)',
-                                        }}
-                                    >
-                                        {inscription.formation}
-                                    </h3>
-                                    <div
-                                        className="training-session-meta"
-                                        style={{ marginTop: 8 }}
-                                    >
-                                        {inscription.ville && (
-                                            <span>📍 {inscription.ville}</span>
-                                        )}
-                                        {inscription.mode && (
-                                            <span>🖥️ {inscription.mode}</span>
-                                        )}
-                                        {inscription.dateDebut && (
-                                            <span>
-                                                🗓️ Du {inscription.dateDebut}
-                                            </span>
-                                        )}
-                                        {inscription.montant && (
-                                            <span>
-                                                💰 {inscription.montant} FCFA
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-                                <span
-                                    className={`chip ${STATUT_CHIP[inscription.statut] ?? 'chip-gray'}`}
-                                >
-                                    {STATUT_LABEL[inscription.statut] ??
-                                        inscription.statut}
-                                </span>
-                            </div>
+                    {filtered.map((inscription) => {
+                        const classe = classifier(inscription);
 
-                            {inscription.facture && (
+                        return (
+                            <div
+                                key={inscription.id}
+                                className="card"
+                                style={{ padding: 24 }}
+                            >
                                 <div
                                     style={{
-                                        marginTop: 18,
-                                        paddingTop: 18,
-                                        borderTop:
-                                            '1px solid var(--dag-border)',
                                         display: 'flex',
-                                        alignItems: 'center',
                                         justifyContent: 'space-between',
+                                        alignItems: 'flex-start',
                                         gap: 16,
                                         flexWrap: 'wrap',
                                     }}
                                 >
-                                    <div
-                                        style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: 12,
-                                        }}
-                                    >
-                                        <span
-                                            className="espace-stat-icon"
+                                    <div>
+                                        <div
                                             style={{
-                                                background:
-                                                    'var(--dag-blue-light)',
-                                                color: 'var(--dag-blue)',
-                                                margin: 0,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: 10,
                                             }}
                                         >
-                                            <Receipt size={16} />
-                                        </span>
-                                        <div>
-                                            <p
+                                            <h3
                                                 style={{
-                                                    fontSize: 13.5,
-                                                    fontWeight: 700,
+                                                    fontSize: 16,
                                                     color: 'var(--dag-navy)',
                                                 }}
                                             >
-                                                Facture{' '}
-                                                {inscription.facture.reference}
-                                            </p>
-                                            <p
-                                                className="muted"
-                                                style={{ fontSize: 12 }}
+                                                {inscription.formation}
+                                            </h3>
+                                            <span
+                                                className={`chip ${STATUT_CHIP[inscription.statut] ?? 'chip-gray'}`}
                                             >
-                                                {
-                                                    inscription.facture
-                                                        .montantPaye
-                                                }{' '}
-                                                / {inscription.facture.montant}{' '}
-                                                FCFA réglés
-                                                {inscription.facture.echeance
-                                                    ? ` — échéance ${inscription.facture.echeance}`
-                                                    : ''}
-                                            </p>
+                                                {STATUT_LABEL[
+                                                    inscription.statut
+                                                ] ?? inscription.statut}
+                                            </span>
                                         </div>
-                                    </div>
-                                    <div
-                                        style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: 12,
-                                        }}
-                                    >
-                                        <span
-                                            className={`chip ${STATUT_CHIP[inscription.facture.statut] ?? 'chip-gray'}`}
+                                        <p
+                                            className="muted"
+                                            style={{
+                                                marginTop: 6,
+                                                fontSize: 12.5,
+                                            }}
                                         >
-                                            {STATUT_LABEL[
-                                                inscription.facture.statut
-                                            ] ?? inscription.facture.statut}
-                                        </span>
+                                            Session du {inscription.dateDebut}
+                                            {inscription.dateFin
+                                                ? ` au ${inscription.dateFin}`
+                                                : ''}
+                                            {inscription.ville
+                                                ? ` · ${inscription.ville}`
+                                                : ''}
+                                            {inscription.mode
+                                                ? ` · ${inscription.mode}`
+                                                : ''}
+                                        </p>
+                                    </div>
+
+                                    {classe === 'terminees' && (
                                         <span
-                                            className="link-action"
+                                            className="btn-outline"
                                             style={{
                                                 opacity: 0.5,
                                                 cursor: 'not-allowed',
                                             }}
-                                            title="Export PDF bientôt disponible"
+                                            title="Aperçu PDF bientôt disponible"
                                         >
-                                            PDF ↓
+                                            Voir l'attestation
                                         </span>
-                                    </div>
+                                    )}
+                                    {classe === 'a-venir' && (
+                                        <span
+                                            className="muted"
+                                            style={{
+                                                fontSize: 13,
+                                                fontWeight: 600,
+                                            }}
+                                        >
+                                            Débute dans{' '}
+                                            {inscription.semainesAvantDebut}{' '}
+                                            semaine
+                                            {(inscription.semainesAvantDebut ??
+                                                0) > 1
+                                                ? 's'
+                                                : ''}
+                                        </span>
+                                    )}
+                                    {classe === 'en-cours' &&
+                                        inscription.statut === 'VALIDEE' && (
+                                            <Link
+                                                href={espaceApprenant.progression()}
+                                                className="btn-outline"
+                                            >
+                                                Voir ma progression
+                                            </Link>
+                                        )}
                                 </div>
-                            )}
-                        </div>
-                    ))}
+
+                                {classe === 'en-cours' &&
+                                    inscription.statut === 'VALIDEE' && (
+                                        <div style={{ marginTop: 16 }}>
+                                            <div className="espace-formule-progress">
+                                                <div
+                                                    className="espace-formule-progress-bar"
+                                                    style={{
+                                                        width: `${inscription.progression}%`,
+                                                    }}
+                                                />
+                                            </div>
+                                            <p
+                                                className="muted"
+                                                style={{
+                                                    marginTop: 6,
+                                                    fontSize: 12,
+                                                    textAlign: 'right',
+                                                }}
+                                            >
+                                                {inscription.progression}%
+                                            </p>
+                                        </div>
+                                    )}
+                                {classe === 'terminees' && (
+                                    <div
+                                        className="espace-formule-progress"
+                                        style={{ marginTop: 16 }}
+                                    >
+                                        <div
+                                            className="espace-formule-progress-bar"
+                                            style={{ width: '100%' }}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
                 </div>
             )}
         </>

@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Espaces;
 
 use App\Http\Controllers\Controller;
 use App\Models\Inscription;
+use App\Models\Presence;
+use App\Models\Seance;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Inertia\Inertia;
@@ -16,7 +19,7 @@ class ApprenantInscriptionController extends Controller
         $apprenant = $request->user()->apprenant;
 
         $inscriptions = $apprenant->inscriptions()
-            ->with(['formation', 'formationSession', 'facture'])
+            ->with(['formation', 'formationSession.seances'])
             ->latest()
             ->get();
 
@@ -31,22 +34,52 @@ class ApprenantInscriptionController extends Controller
      */
     private function mapInscription(Inscription $inscription): array
     {
+        $seances = $inscription->formationSession?->seances;
+        $dateDebut = $inscription->formationSession?->date_debut;
+
         return [
             'id' => $inscription->id,
             'formation' => $inscription->formation->nom,
             'ville' => $inscription->formationSession?->ville,
             'mode' => $inscription->formationSession?->mode,
-            'dateDebut' => $inscription->formationSession?->date_debut?->toDateString(),
+            'dateDebut' => $this->formatDate($dateDebut),
+            'dateFin' => $this->formatDate($inscription->formationSession?->date_fin),
             'statut' => $inscription->statut,
-            'montant' => $inscription->montant_negocie !== null ? (string) $inscription->montant_negocie : null,
-            'facture' => $inscription->facture === null ? null : [
-                'reference' => $inscription->facture->reference,
-                'montant' => (string) $inscription->facture->montant,
-                'montantPaye' => (string) $inscription->facture->montant_paye,
-                'statut' => $inscription->facture->statut,
-                'echeance' => $this->formatDate($inscription->facture->echeance),
-            ],
+            'progression' => $this->progression($inscription, $seances),
+            'semainesAvantDebut' => $this->semainesAvantDebut($dateDebut),
         ];
+    }
+
+    /**
+     * @param  Collection<int, Seance>|null  $seances
+     */
+    private function progression(Inscription $inscription, ?Collection $seances): int
+    {
+        if ($seances === null || $seances->isEmpty()) {
+            return 0;
+        }
+
+        $presentes = Presence::whereIn('seance_id', $seances->pluck('id'))
+            ->where('inscription_id', $inscription->id)
+            ->where('present', true)
+            ->count();
+
+        return (int) round($presentes / $seances->count() * 100);
+    }
+
+    private function semainesAvantDebut(?string $dateDebut): ?int
+    {
+        if ($dateDebut === null) {
+            return null;
+        }
+
+        $debut = Carbon::parse($dateDebut);
+
+        if ($debut->isPast()) {
+            return null;
+        }
+
+        return (int) ceil(now()->diffInDays($debut) / 7);
     }
 
     /**

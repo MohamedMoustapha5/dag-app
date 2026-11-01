@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Apprenant;
+use App\Models\Attestation;
 use App\Models\Candidature;
 use App\Models\Formation;
 use App\Models\FormationSession;
@@ -60,7 +61,29 @@ test('the apprenant dashboard exposes stats computed from the authenticated appr
         ->where('stats.formationEnCours', 'Community Management')
         ->where('stats.progression', 33)
         ->where('stats.candidaturesEnvoyees', 2)
-        ->where('stats.seancesRestantes', 2));
+        ->where('stats.seancesRestantes', 2)
+        ->where('formationDetail.nom', 'Community Management')
+        ->where('attestation', null));
+});
+
+test('the apprenant dashboard exposes the most recently delivered attestation', function () {
+    $apprenant = Apprenant::factory()->create();
+    $formation = Formation::factory()->create(['nom' => 'Initiation aux réseaux sociaux']);
+
+    Attestation::create([
+        'apprenant_id' => $apprenant->id,
+        'formation_id' => $formation->id,
+        'date_emission' => '2026-08-21',
+        'fichier_pdf' => 'attestations/demo.pdf',
+    ]);
+
+    $response = $this->actingAs($apprenant->user)->get(route('espace-apprenant.dashboard'));
+
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page
+        ->component('espaces/apprenant-dashboard')
+        ->where('attestation.formation', 'Initiation aux réseaux sociaux')
+        ->where('attestation.dateEmission', '2026-08-21'));
 });
 
 test('the apprenant dashboard reports no active formation when none is in progress', function () {

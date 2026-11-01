@@ -86,6 +86,7 @@ Route::middleware(['auth', 'verified', EnsureUserType::class.':APPRENANT'])
         Route::get('progression', ApprenantProgressionController::class)->name('espace-apprenant.progression');
         Route::get('profil', [ApprenantProfilController::class, 'edit'])->name('espace-apprenant.profil');
         Route::patch('profil', [ApprenantProfilController::class, 'update'])->name('espace-apprenant.profil.update');
+        Route::patch('profil/notifications', [ApprenantProfilController::class, 'updateNotifications'])->name('espace-apprenant.profil.notifications');
     });
 
 Route::middleware(['auth', 'verified', EnsureUserType::class.':MEMBRE_EQUIPE'])

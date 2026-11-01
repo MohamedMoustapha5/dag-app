@@ -1,7 +1,14 @@
 <?php
 
 use App\Models\Apprenant;
+use App\Models\Candidature;
 use App\Models\Client;
+use App\Models\Formation;
+use App\Models\FormationSession;
+use App\Models\Inscription;
+use App\Models\OffreEmploi;
+use App\Models\Presence;
+use App\Models\Seance;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
@@ -9,7 +16,6 @@ test('the apprenant dossier page exposes the current profile and cv', function (
     $apprenant = Apprenant::factory()->create([
         'ville' => 'Douala',
         'telephone' => '+237699000000',
-        'date_naissance' => '2000-05-14',
         'cv_path' => 'apprenants-cv/mon-cv.pdf',
         'consentement_cv' => true,
     ]);
@@ -20,20 +26,50 @@ test('the apprenant dossier page exposes the current profile and cv', function (
     $response->assertInertia(fn ($page) => $page
         ->component('espaces/apprenant/dossier')
         ->where('dossier.ville', 'Douala')
-        ->where('dossier.dateNaissance', '2000-05-14')
+        ->where('dossier.telephone', '+237699000000')
         ->where('dossier.cvNomFichier', 'mon-cv.pdf')
         ->where('dossier.consentementCv', true));
 });
 
-test('an apprenant can update their dossier and upload a new cv', function () {
+test('the apprenant dossier page exposes the active formation, candidatures and presences', function () {
+    $apprenant = Apprenant::factory()->create();
+    $formation = Formation::factory()->create(['nom' => 'Community Management']);
+    $session = FormationSession::factory()->for($formation)->create();
+
+    $inscription = Inscription::create([
+        'apprenant_id' => $apprenant->id,
+        'formation_id' => $formation->id,
+        'formation_session_id' => $session->id,
+        'statut' => 'VALIDEE',
+    ]);
+
+    $seance = Seance::create(['formation_session_id' => $session->id, 'titre' => 'Introduction', 'date' => '2026-11-01']);
+    Presence::create(['seance_id' => $seance->id, 'inscription_id' => $inscription->id, 'present' => true]);
+
+    $offre = OffreEmploi::factory()->create(['titre' => 'Community Manager junior']);
+    Candidature::create(['apprenant_id' => $apprenant->id, 'offre_id' => $offre->id, 'statut' => 'EN_ETUDE']);
+
+    $response = $this->actingAs($apprenant->user)->get(route('espace-apprenant.dossier'));
+
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page
+        ->component('espaces/apprenant/dossier')
+        ->where('formationSuivie.nom', 'Community Management')
+        ->where('formationSuivie.seancesCompletees', 1)
+        ->where('formationSuivie.seancesTotal', 1)
+        ->has('candidatures', 1)
+        ->where('candidatures.0.titre', 'Community Manager junior')
+        ->where('candidatures.0.statut', 'EN_ETUDE')
+        ->has('presences', 1)
+        ->where('presences.0.present', true));
+});
+
+test('an apprenant can replace their cv and toggle sharing consent', function () {
     Storage::fake('local');
 
-    $apprenant = Apprenant::factory()->create(['ville' => 'Douala']);
+    $apprenant = Apprenant::factory()->create(['consentement_cv' => false]);
 
     $response = $this->actingAs($apprenant->user)->patch(route('espace-apprenant.dossier.update'), [
-        'ville' => 'Yaoundé',
-        'telephone' => '+237698000000',
-        'date_naissance' => '1999-01-01',
         'consentement_cv' => true,
         'cv' => UploadedFile::fake()->create('cv.pdf', 200, 'application/pdf'),
     ]);
@@ -41,7 +77,6 @@ test('an apprenant can update their dossier and upload a new cv', function () {
     $response->assertRedirect(route('espace-apprenant.dossier'));
 
     $apprenant->refresh();
-    expect($apprenant->ville)->toBe('Yaoundé');
     expect($apprenant->consentement_cv)->toBeTrue();
     Storage::disk('local')->assertExists($apprenant->cv_path);
 });

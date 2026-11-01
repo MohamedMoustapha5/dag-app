@@ -41,7 +41,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property-read Apprenant|null $apprenant
  * @property-read MembreEquipe|null $membreEquipe
  */
-#[Fillable(['name', 'email', 'password', 'current_team_id', 'type', 'locale', 'notif_devis', 'notif_facture', 'notif_offres'])]
+#[Fillable(['name', 'email', 'password', 'current_team_id', 'type', 'locale', 'notif_devis', 'notif_facture', 'notif_offres', 'notif_seances', 'notif_candidatures', 'notif_newsletter'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
 {
@@ -63,6 +63,9 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
             'notif_devis' => 'boolean',
             'notif_facture' => 'boolean',
             'notif_offres' => 'boolean',
+            'notif_seances' => 'boolean',
+            'notif_candidatures' => 'boolean',
+            'notif_newsletter' => 'boolean',
         ];
     }
 

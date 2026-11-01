@@ -32,6 +32,42 @@ test('an apprenant can update their name and email', function () {
     expect($apprenant->user->email_verified_at)->toBeNull();
 });
 
+test('an apprenant can update their telephone, ville and date de naissance', function () {
+    $apprenant = Apprenant::factory()->create();
+
+    $response = $this->actingAs($apprenant->user)->patch(route('espace-apprenant.profil.update'), [
+        'nom' => $apprenant->user->name,
+        'email' => $apprenant->user->email,
+        'telephone' => '+237698000000',
+        'ville' => 'Yaoundé',
+        'date_naissance' => '1999-01-01',
+    ]);
+
+    $response->assertRedirect(route('espace-apprenant.profil'));
+
+    $apprenant->refresh();
+    expect($apprenant->telephone)->toBe('+237698000000');
+    expect($apprenant->ville)->toBe('Yaoundé');
+    expect($apprenant->date_naissance->toDateString())->toBe('1999-01-01');
+});
+
+test('an apprenant can update their notification preferences', function () {
+    $apprenant = Apprenant::factory()->create();
+
+    $response = $this->actingAs($apprenant->user)->patch(route('espace-apprenant.profil.notifications'), [
+        'notif_seances' => false,
+        'notif_candidatures' => true,
+        'notif_newsletter' => true,
+    ]);
+
+    $response->assertRedirect(route('espace-apprenant.profil'));
+
+    $apprenant->user->refresh();
+    expect($apprenant->user->notif_seances)->toBeFalse();
+    expect($apprenant->user->notif_candidatures)->toBeTrue();
+    expect($apprenant->user->notif_newsletter)->toBeTrue();
+});
+
 test('the profil update rejects an email already used by another account', function () {
     $apprenant = Apprenant::factory()->create();
     $autre = Apprenant::factory()->create();

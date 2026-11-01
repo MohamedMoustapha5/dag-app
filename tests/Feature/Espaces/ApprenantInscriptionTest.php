@@ -2,12 +2,13 @@
 
 use App\Models\Apprenant;
 use App\Models\Client;
-use App\Models\Facture;
 use App\Models\Formation;
 use App\Models\FormationSession;
 use App\Models\Inscription;
+use App\Models\Presence;
+use App\Models\Seance;
 
-test('the apprenant inscriptions page lists own inscriptions with their facture', function () {
+test('an in-progress inscription exposes its attendance progression', function () {
     $apprenant = Apprenant::factory()->create();
     $formation = Formation::factory()->create(['nom' => 'Community Management']);
     $session = FormationSession::factory()->for($formation)->create(['ville' => 'Douala']);
@@ -16,19 +17,14 @@ test('the apprenant inscriptions page lists own inscriptions with their facture'
         'apprenant_id' => $apprenant->id,
         'formation_id' => $formation->id,
         'formation_session_id' => $session->id,
-        'montant_negocie' => 75000,
         'statut' => 'VALIDEE',
     ]);
 
-    $facture = Facture::factory()->create([
-        'type' => 'FORMATION',
-        'client_id' => null,
-        'apprenant_id' => $apprenant->id,
-        'inscription_id' => $inscription->id,
-        'montant' => 75000,
-        'montant_paye' => 75000,
-        'statut' => 'PAYEE',
-    ]);
+    $seance1 = Seance::create(['formation_session_id' => $session->id, 'titre' => 'Introduction', 'date' => now()->subDays(5)]);
+    $seance2 = Seance::create(['formation_session_id' => $session->id, 'titre' => 'Pratique', 'date' => now()->subDays(2)]);
+
+    Presence::create(['seance_id' => $seance1->id, 'inscription_id' => $inscription->id, 'present' => true]);
+    Presence::create(['seance_id' => $seance2->id, 'inscription_id' => $inscription->id, 'present' => false]);
 
     $response = $this->actingAs($apprenant->user)->get(route('espace-apprenant.inscriptions'));
 
@@ -38,18 +34,22 @@ test('the apprenant inscriptions page lists own inscriptions with their facture'
         ->has('inscriptions', 1)
         ->where('inscriptions.0.formation', 'Community Management')
         ->where('inscriptions.0.statut', 'VALIDEE')
-        ->where('inscriptions.0.facture.reference', $facture->reference)
-        ->where('inscriptions.0.facture.statut', 'PAYEE'));
+        ->where('inscriptions.0.progression', 50)
+        ->where('inscriptions.0.semainesAvantDebut', null));
 });
 
-test('an inscription without a facture yet omits it', function () {
+test('an inscription for a future session reports the weeks remaining before it starts', function () {
     $apprenant = Apprenant::factory()->create();
     $formation = Formation::factory()->create();
+    $session = FormationSession::factory()->for($formation)->create([
+        'date_debut' => now()->addWeeks(3)->toDateString(),
+    ]);
 
     Inscription::create([
         'apprenant_id' => $apprenant->id,
         'formation_id' => $formation->id,
-        'statut' => 'EN_ATTENTE_PAIEMENT',
+        'formation_session_id' => $session->id,
+        'statut' => 'VALIDEE',
     ]);
 
     $response = $this->actingAs($apprenant->user)->get(route('espace-apprenant.inscriptions'));
@@ -57,7 +57,7 @@ test('an inscription without a facture yet omits it', function () {
     $response->assertOk();
     $response->assertInertia(fn ($page) => $page
         ->component('espaces/apprenant/inscriptions-index')
-        ->where('inscriptions.0.facture', null));
+        ->where('inscriptions.0.semainesAvantDebut', 3));
 });
 
 test('a client cannot reach the apprenant inscriptions page', function () {
