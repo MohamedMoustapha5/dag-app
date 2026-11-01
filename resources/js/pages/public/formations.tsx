@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Fragment, useMemo, useState } from 'react';
+import CandidatureSpontaneeModal from '@/components/public/candidature-spontanee-modal';
 import PublicLayout from '@/layouts/public-layout';
 import formationsRoutes from '@/routes/formations';
 
@@ -76,6 +77,7 @@ export default function Formations({ sessions, stats }: FormationsProps) {
         useState<string>(ALL_CATEGORIES);
     const [activeVille, setActiveVille] = useState<string>(ALL_VILLES);
     const [activePeriode, setActivePeriode] = useState<string>(ALL_PERIODES);
+    const [candidatureModalOpen, setCandidatureModalOpen] = useState(false);
 
     const categories = useMemo(() => {
         const unique = Array.from(
@@ -202,6 +204,49 @@ export default function Formations({ sessions, stats }: FormationsProps) {
                             </Fragment>
                         );
                     })}
+                </div>
+            </section>
+
+            <section className="section-gap reveal container">
+                <div
+                    className="card"
+                    style={{
+                        padding: 28,
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        gap: 24,
+                        flexWrap: 'wrap',
+                    }}
+                >
+                    <div style={{ maxWidth: 480 }}>
+                        <span className="badge">Déjà formé ?</span>
+                        <h2
+                            style={{
+                                marginTop: 10,
+                                fontSize: 19,
+                                color: 'var(--dag-navy)',
+                            }}
+                        >
+                            Envoyez votre dossier pour nos opportunités d'emploi
+                        </h2>
+                        <p
+                            className="muted"
+                            style={{ marginTop: 8, fontSize: 13.5 }}
+                        >
+                            Vous êtes déjà formé, quel que soit votre domaine —
+                            même ailleurs qu'à DAG ? Partagez votre CV à notre
+                            équipe, nous vous recontactons dès qu'une
+                            opportunité correspond à votre profil.
+                        </p>
+                    </div>
+                    <button
+                        type="button"
+                        className="btn-primary"
+                        onClick={() => setCandidatureModalOpen(true)}
+                    >
+                        Envoyer mon dossier
+                    </button>
                 </div>
             </section>
 
@@ -396,6 +441,11 @@ export default function Formations({ sessions, stats }: FormationsProps) {
                     </div>
                 )}
             </section>
+
+            <CandidatureSpontaneeModal
+                open={candidatureModalOpen}
+                onClose={() => setCandidatureModalOpen(false)}
+            />
         </PublicLayout>
     );
 }

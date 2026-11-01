@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\AuditRequest;
+use App\Models\CandidatureSpontanee;
 use App\Models\ContactMessage;
 use App\Models\EntreprisePartenaire;
 use App\Models\Formation;
@@ -10,6 +11,8 @@ use App\Models\LigneTarifaire;
 use App\Models\MembreEquipe;
 use App\Models\OffreEmploi;
 use App\Models\Service;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 test('the home page renders with published catalogue stats and the active team', function () {
     Service::factory()->create(['statut' => 'PUBLIE']);
@@ -181,6 +184,83 @@ test('the free audit form rejects invalid input', function () {
 
     $response->assertSessionHasErrors(['page_url', 'email']);
     expect(AuditRequest::count())->toBe(0);
+});
+
+test('submitting the spontaneous application form stores the dossier and the cv file', function () {
+    Storage::fake('local');
+
+    $response = $this->post(route('candidatures-spontanees.store'), [
+        'nom' => 'Brice Kamga',
+        'email' => 'brice@example.com',
+        'telephone' => '+237699000000',
+        'portfolio' => 'https://brice-kamga.example.com',
+        'message' => 'Développement web',
+        'cv' => UploadedFile::fake()->create('cv.pdf', 200, 'application/pdf'),
+    ]);
+
+    $response->assertRedirect();
+
+    $candidature = CandidatureSpontanee::where('email', 'brice@example.com')->first();
+    expect($candidature)->not->toBeNull();
+    expect($candidature->portfolio)->toBe('https://brice-kamga.example.com');
+    Storage::disk('local')->assertExists($candidature->cv_path);
+});
+
+test('submitting the spontaneous application form without a portfolio still succeeds', function () {
+    Storage::fake('local');
+
+    $response = $this->post(route('candidatures-spontanees.store'), [
+        'nom' => 'Brice Kamga',
+        'email' => 'brice@example.com',
+        'telephone' => '+237699000000',
+        'portfolio' => '',
+        'cv' => UploadedFile::fake()->create('cv.pdf', 200, 'application/pdf'),
+    ]);
+
+    $response->assertRedirect()->assertSessionDoesntHaveErrors();
+
+    $candidature = CandidatureSpontanee::where('email', 'brice@example.com')->first();
+    expect($candidature)->not->toBeNull();
+    expect($candidature->portfolio)->toBeNull();
+});
+
+test('the spontaneous application form rejects an invalid portfolio url', function () {
+    $response = $this->post(route('candidatures-spontanees.store'), [
+        'nom' => 'Brice Kamga',
+        'email' => 'brice@example.com',
+        'telephone' => '+237699000000',
+        'portfolio' => 'not-a-url',
+        'cv' => UploadedFile::fake()->create('cv.pdf', 200, 'application/pdf'),
+    ]);
+
+    $response->assertSessionHasErrors(['portfolio']);
+    expect(CandidatureSpontanee::count())->toBe(0);
+});
+
+test('the spontaneous application form rejects invalid input', function () {
+    $response = $this->post(route('candidatures-spontanees.store'), [
+        'nom' => '',
+        'email' => 'not-an-email',
+        'telephone' => '',
+        'cv' => '',
+    ]);
+
+    $response->assertSessionHasErrors(['nom', 'email', 'telephone', 'cv']);
+    expect(CandidatureSpontanee::count())->toBe(0);
+});
+
+test('the spontaneous application form rejects a cv file that is not a pdf or word document', function () {
+    Storage::fake('local');
+
+    $response = $this->post(route('candidatures-spontanees.store'), [
+        'nom' => 'Brice Kamga',
+        'email' => 'brice@example.com',
+        'telephone' => '+237699000000',
+        'cv' => UploadedFile::fake()->create('cv.exe', 200, 'application/octet-stream'),
+    ]);
+
+    $response->assertSessionHasErrors(['cv']);
+    expect(CandidatureSpontanee::count())->toBe(0);
 });
 
 test('the offres emploi page only lists published, non-expired offers', function () {

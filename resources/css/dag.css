@@ -2811,13 +2811,21 @@
     align-items: center;
     justify-content: center;
     padding: 20px;
+    overflow: hidden;
     animation: dagFadeIn 0.18s var(--dag-ease);
 }
 .dag .modal-panel {
     position: relative;
     background: #fff;
     width: 100%;
+    /* Sans min-width: 0, ce flex-item refuse de rétrécir sous la largeur
+       intrinsèque de son contenu non segmentable (le widget natif
+       <input type="file">, notamment), ce qui le fait déborder du cadre
+       sur petit écran malgré le max-width ci-dessous. */
+    min-width: 0;
     max-width: 440px;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
     border-radius: var(--dag-radius-lg);
     box-shadow: var(--dag-shadow-lg);
     padding: 32px;
