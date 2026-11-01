@@ -72,7 +72,9 @@ export default function OffresShow({
                 >
                     {offre.statut === 'PUBLIEE'
                         ? 'Active'
-                        : (STATUT_LABEL[offre.statut] ?? offre.statut)}
+                        : offre.statut === 'BROUILLON'
+                          ? 'Envoyée à DAG'
+                          : (STATUT_LABEL[offre.statut] ?? offre.statut)}
                 </span>
             </div>
 

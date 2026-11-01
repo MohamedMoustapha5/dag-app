@@ -63,13 +63,13 @@ export default function OffresIndex({ offres: offresList }: Props) {
                     <div className="espace-hero-content">
                         <h1>Mes offres</h1>
                         <p>
-                            Gérez vos offres de stage et d'emploi, et suivez les
-                            candidatures.
+                            Envoyez vos offres de stage et d'emploi à DAG, et
+                            suivez les candidatures proposées.
                         </p>
                     </div>
                     <Link href={offres.create()} className="btn-primary">
                         <Plus size={16} />
-                        Publier une offre
+                        Envoyer une offre
                     </Link>
                 </div>
             </div>
@@ -83,10 +83,10 @@ export default function OffresIndex({ offres: offresList }: Props) {
                         className="muted"
                         style={{ fontSize: 13.5, marginBottom: 16 }}
                     >
-                        Vous n'avez pas encore publié d'offre.
+                        Vous n'avez pas encore envoyé d'offre à DAG.
                     </p>
                     <Link href={offres.create()} className="btn-primary">
-                        Publier ma première offre
+                        Envoyer ma première offre
                     </Link>
                 </div>
             ) : (
@@ -133,8 +133,10 @@ export default function OffresIndex({ offres: offresList }: Props) {
                                     >
                                         {offre.statut === 'PUBLIEE'
                                             ? 'Active'
-                                            : (STATUT_LABEL[offre.statut] ??
-                                              offre.statut)}
+                                            : offre.statut === 'BROUILLON'
+                                              ? 'Envoyée à DAG'
+                                              : (STATUT_LABEL[offre.statut] ??
+                                                offre.statut)}
                                     </span>
                                 </div>
                                 <Link

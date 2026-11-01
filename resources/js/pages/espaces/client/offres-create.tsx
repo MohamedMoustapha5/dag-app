@@ -19,17 +19,24 @@ export default function OffresCreate() {
 
     return (
         <>
-            <Head title="Publier une offre" />
+            <Head title="Envoyer une offre à DAG" />
 
             <h1
                 style={{
                     fontSize: 22,
                     color: 'var(--dag-navy)',
-                    marginBottom: 24,
+                    marginBottom: 8,
                 }}
             >
-                Publier une offre
+                Envoyer une offre à DAG
             </h1>
+            <p
+                className="muted"
+                style={{ fontSize: 13.5, marginBottom: 24, maxWidth: 640 }}
+            >
+                Votre offre est transmise à notre équipe, qui la publie après
+                validation et vous propose des profils correspondants.
+            </p>
 
             <div className="card" style={{ padding: 32, maxWidth: 640 }}>
                 <form
@@ -175,7 +182,7 @@ export default function OffresCreate() {
                         className="btn-primary btn-block"
                         disabled={processing}
                     >
-                        {processing ? 'Publication…' : "Publier l'offre"}
+                        {processing ? 'Envoi…' : 'Envoyer à DAG'}
                     </button>
                 </form>
             </div>

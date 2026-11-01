@@ -35,7 +35,7 @@ test('a validated entreprise partner sees the recruitment dashboard, others see 
         ->assertInertia(fn ($page) => $page->component('espaces/client-dashboard'));
 });
 
-test('a validated entreprise partner can publish an offre and see it listed', function () {
+test('a validated entreprise partner can send an offre to DAG and see it listed', function () {
     $client = clientPartenaireValide();
 
     $this->actingAs($client->user)->post(route('espace-client.offres.store'), [
@@ -47,7 +47,9 @@ test('a validated entreprise partner can publish an offre and see it listed', fu
     $offre = OffreEmploi::where('entreprise_id', $client->entreprisePartenaire->id)->first();
 
     expect($offre)->not->toBeNull();
-    expect($offre->statut)->toBe('PUBLIEE');
+    // L'offre est envoyée à DAG pour validation — seul un membre de
+    // l'équipe DAG peut la faire passer à PUBLIEE.
+    expect($offre->statut)->toBe('BROUILLON');
 
     $this->actingAs($client->user)->get(route('espace-client.offres.index'))
         ->assertOk()

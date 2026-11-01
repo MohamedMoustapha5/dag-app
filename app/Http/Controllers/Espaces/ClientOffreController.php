@@ -60,9 +60,11 @@ class ClientOffreController extends Controller
             'date_limite' => ['nullable', 'date'],
         ]);
 
+        // L'entreprise envoie l'offre à DAG pour validation — seul un
+        // membre de l'équipe DAG la publie ensuite (Donnee::EntreprisesOffres).
         $offre = $request->user()->client->entreprisePartenaire->offresEmploi()->create([
             ...$data,
-            'statut' => 'PUBLIEE',
+            'statut' => 'BROUILLON',
         ]);
 
         return to_route('espace-client.offres.show', $offre);
