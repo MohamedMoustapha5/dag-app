@@ -289,7 +289,7 @@ export default function Home({ stats, equipe }: HomeProps) {
             </section>
 
             <section className="section-gap reveal container">
-                <span className="badge">Le parcours DAG</span>
+                <span className="badge">Nos services</span>
                 <h2
                     style={{
                         marginTop: 14,
@@ -297,11 +297,11 @@ export default function Home({ stats, equipe }: HomeProps) {
                         color: 'var(--dag-navy)',
                     }}
                 >
-                    Comment ça marche
+                    Comment demander un service
                 </h2>
                 <p className="muted" style={{ marginTop: 10, maxWidth: 560 }}>
-                    Du premier message à la livraison, quatre étapes simples et
-                    suivies de bout en bout.
+                    Du premier message à la livraison de votre service, quatre
+                    étapes simples et suivies de bout en bout.
                 </p>
                 <div
                     className="grid-4 reveal-stagger"
