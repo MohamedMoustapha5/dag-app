@@ -100,6 +100,10 @@ class Facture extends Model
             return 'Abonnement — '.$formuleNom;
         }
 
+        if ($this->inscription_id !== null) {
+            return 'Formation — '.$this->inscription->formation->nom;
+        }
+
         return $this->reference;
     }
 }

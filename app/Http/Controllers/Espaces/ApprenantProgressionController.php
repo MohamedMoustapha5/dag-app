@@ -29,6 +29,7 @@ class ApprenantProgressionController extends Controller
                 'apprenant' => $apprenant->espaceHeaderProps(),
                 'formation' => null,
                 'progression' => 0,
+                'stats' => ['suivies' => 0, 'manquees' => 0, 'aVenir' => 0],
                 'seances' => [],
             ]);
         }
@@ -53,6 +54,11 @@ class ApprenantProgressionController extends Controller
             'apprenant' => $apprenant->espaceHeaderProps(),
             'formation' => $inscription->formation->nom,
             'progression' => $this->progression($seances, $presences),
+            'stats' => [
+                'suivies' => $seances->filter(fn (Seance $seance) => $presences->get($seance->id)?->present === true)->count(),
+                'manquees' => $seances->filter(fn (Seance $seance) => $presences->get($seance->id)?->present === false)->count(),
+                'aVenir' => $seances->filter(fn (Seance $seance) => ! $presences->has($seance->id))->count(),
+            ],
             'seances' => $seancesMappees,
         ]);
     }

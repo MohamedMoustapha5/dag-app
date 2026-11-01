@@ -4,6 +4,7 @@ use App\Http\Controllers\Espaces\AdminDashboardController;
 use App\Http\Controllers\Espaces\AdminGrilleTarifaireController;
 use App\Http\Controllers\Espaces\ApprenantDashboardController;
 use App\Http\Controllers\Espaces\ApprenantDossierController;
+use App\Http\Controllers\Espaces\ApprenantFactureController;
 use App\Http\Controllers\Espaces\ApprenantFormationController;
 use App\Http\Controllers\Espaces\ApprenantInscriptionController;
 use App\Http\Controllers\Espaces\ApprenantProfilController;
@@ -79,6 +80,7 @@ Route::middleware(['auth', 'verified', EnsureUserType::class.':APPRENANT'])
         Route::get('/', ApprenantDashboardController::class)->name('espace-apprenant.dashboard');
         Route::get('formations', ApprenantFormationController::class)->name('espace-apprenant.formations');
         Route::get('inscriptions', ApprenantInscriptionController::class)->name('espace-apprenant.inscriptions');
+        Route::get('factures', ApprenantFactureController::class)->name('espace-apprenant.factures');
         Route::get('dossier', [ApprenantDossierController::class, 'edit'])->name('espace-apprenant.dossier');
         Route::patch('dossier', [ApprenantDossierController::class, 'update'])->name('espace-apprenant.dossier.update');
         Route::get('progression', ApprenantProgressionController::class)->name('espace-apprenant.progression');

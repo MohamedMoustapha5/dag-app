@@ -66,4 +66,10 @@ class Apprenant extends Model
     {
         return $this->hasMany(Contrat::class);
     }
+
+    /** @return HasMany<Facture, $this> */
+    public function factures(): HasMany
+    {
+        return $this->hasMany(Facture::class);
+    }
 }

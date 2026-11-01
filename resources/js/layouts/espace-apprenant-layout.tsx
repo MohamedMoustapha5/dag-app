@@ -7,6 +7,7 @@ import {
     Headphones,
     LayoutDashboard,
     Menu,
+    Receipt,
     TrendingUp,
     User,
     X,
@@ -37,6 +38,11 @@ const NAV_ITEMS: NavItem[] = [
         label: 'Mes inscriptions',
         icon: FileText,
         href: espaceApprenant.inscriptions(),
+    },
+    {
+        label: 'Factures',
+        icon: Receipt,
+        href: espaceApprenant.factures(),
     },
     {
         label: 'Mon dossier',
