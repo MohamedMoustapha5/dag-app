@@ -1,7 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import { FileText, Mic, TrendingUp, User } from 'lucide-react';
 import { type EspaceApprenantInfo } from '@/layouts/espace-apprenant-layout';
-import { formations } from '@/routes';
+import espaceApprenant from '@/routes/espace-apprenant';
 
 type Props = {
     apprenant: EspaceApprenantInfo;
@@ -30,7 +30,7 @@ export default function ApprenantDashboard({ apprenant, stats }: Props) {
                     <h1>Bonjour {apprenant.nom.split(' ')[0]} 👋</h1>
                     <p>Voici où en est votre formation DAG.</p>
                     <Link
-                        href={formations()}
+                        href={espaceApprenant.formations()}
                         className="btn-primary"
                         style={{ marginTop: 16 }}
                     >

@@ -28,7 +28,11 @@ const NAV_ITEMS: NavItem[] = [
         icon: LayoutDashboard,
         href: espaceApprenant.dashboard(),
     },
-    { label: 'Formations', icon: BookOpen, href: null },
+    {
+        label: 'Formations',
+        icon: BookOpen,
+        href: espaceApprenant.formations(),
+    },
     { label: 'Mes inscriptions', icon: FileText, href: null },
     { label: 'Mon dossier', icon: Folder, href: null },
     { label: 'Progression', icon: TrendingUp, href: null },

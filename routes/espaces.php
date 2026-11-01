@@ -3,6 +3,7 @@
 use App\Http\Controllers\Espaces\AdminDashboardController;
 use App\Http\Controllers\Espaces\AdminGrilleTarifaireController;
 use App\Http\Controllers\Espaces\ApprenantDashboardController;
+use App\Http\Controllers\Espaces\ApprenantFormationController;
 use App\Http\Controllers\Espaces\ClientAbonnementController;
 use App\Http\Controllers\Espaces\ClientCandidatureController;
 use App\Http\Controllers\Espaces\ClientContratController;
@@ -72,6 +73,7 @@ Route::middleware(['auth', 'verified', EnsureUserType::class.':APPRENANT'])
     ->prefix('espace-apprenant')
     ->group(function () {
         Route::get('/', ApprenantDashboardController::class)->name('espace-apprenant.dashboard');
+        Route::get('formations', ApprenantFormationController::class)->name('espace-apprenant.formations');
     });
 
 Route::middleware(['auth', 'verified', EnsureUserType::class.':MEMBRE_EQUIPE'])
