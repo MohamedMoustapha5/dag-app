@@ -18,7 +18,7 @@ void createInertiaApp({
             case name.startsWith('public/'):
             case name.startsWith('espaces/admin-'):
                 return null;
-            case name.startsWith('espaces/apprenant-'):
+            case name.startsWith('espaces/apprenant'):
                 // Kept mounted across navigations within the espace (no
                 // remount, no sidebar scroll reset) — see EspaceClientLayout.
                 return EspaceApprenantLayout;
