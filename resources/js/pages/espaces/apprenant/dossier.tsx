@@ -169,6 +169,8 @@ export default function ApprenantDossier({
                         >
                             <span
                                 style={{
+                                    flex: 1,
+                                    minWidth: 0,
                                     fontSize: 12.5,
                                     overflow: 'hidden',
                                     textOverflow: 'ellipsis',
