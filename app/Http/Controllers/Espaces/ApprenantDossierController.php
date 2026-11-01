@@ -3,11 +3,14 @@
 namespace App\Http\Controllers\Espaces;
 
 use App\Http\Controllers\Controller;
+use App\Models\Inscription;
 use App\Models\Presence;
 use App\Models\Seance;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection as BaseCollection;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -17,17 +20,11 @@ class ApprenantDossierController extends Controller
     {
         $apprenant = $request->user()->apprenant;
 
-        $inscription = $apprenant->inscriptions()
+        $inscriptions = $apprenant->inscriptions()
             ->whereIn('statut', ['VALIDEE', 'FORMEE'])
             ->with(['formation', 'formationSession.seances'])
             ->latest()
-            ->first();
-
-        $seances = $inscription?->formationSession?->seances;
-        $presences = $seances === null ? collect() : Presence::whereIn('seance_id', $seances->pluck('id'))
-            ->where('inscription_id', $inscription->id)
-            ->get()
-            ->keyBy('seance_id');
+            ->get();
 
         return Inertia::render('espaces/apprenant/dossier', [
             'apprenant' => $apprenant->espaceHeaderProps(),
@@ -39,27 +36,54 @@ class ApprenantDossierController extends Controller
                 'cvNomFichier' => $apprenant->cv_path !== null ? basename($apprenant->cv_path) : null,
                 'consentementCv' => $apprenant->consentement_cv,
             ],
-            'formationSuivie' => $inscription === null ? null : [
-                'nom' => $inscription->formation->nom,
-                'ville' => $inscription->formationSession?->ville,
-                'dateDebut' => $this->formatDate($inscription->formationSession?->date_debut),
-                'dateFin' => $this->formatDate($inscription->formationSession?->date_fin),
-                'seancesCompletees' => $seances?->filter(fn (Seance $seance) => $presences->get($seance->id)?->present === true)->count() ?? 0,
-                'seancesTotal' => $seances?->count() ?? 0,
-            ],
+            'formations' => $inscriptions->map(function (Inscription $inscription) {
+                $seances = $inscription->formationSession->seances ?? new Collection;
+                $presences = $this->presences($seances, $inscription);
+
+                return [
+                    'inscriptionId' => $inscription->id,
+                    'nom' => $inscription->formation->nom,
+                    'ville' => $inscription->formationSession?->ville,
+                    'dateDebut' => $this->formatDate($inscription->formationSession?->date_debut),
+                    'dateFin' => $this->formatDate($inscription->formationSession?->date_fin),
+                    'statut' => $inscription->statut,
+                    'progression' => $this->progression($seances, $presences),
+                    'seancesTotal' => $seances->count(),
+                ];
+            }),
             'attestation' => [
-                'seancesRestantes' => $seances?->where('date', '>=', now()->toDateString())->count() ?? 0,
+                'seancesRestantes' => $inscriptions->sum(fn (Inscription $inscription) => ($inscription->formationSession->seances ?? new Collection)
+                    ->where('date', '>=', now()->toDateString())
+                    ->count()),
             ],
-            'presences' => $seances === null ? [] : $seances
-                ->sortBy('date')
-                ->map(fn (Seance $seance) => [
-                    'id' => $seance->id,
-                    'titre' => $seance->titre,
-                    'date' => $this->formatDate($seance->date),
-                    'present' => $presences->get($seance->id)?->present,
-                ])
-                ->values(),
         ]);
+    }
+
+    /**
+     * @param  Collection<int, Seance>  $seances
+     * @return BaseCollection<string, Presence>
+     */
+    private function presences(Collection $seances, Inscription $inscription): BaseCollection
+    {
+        return Presence::whereIn('seance_id', $seances->pluck('id'))
+            ->where('inscription_id', $inscription->id)
+            ->get()
+            ->keyBy('seance_id');
+    }
+
+    /**
+     * @param  Collection<int, Seance>  $seances
+     * @param  BaseCollection<string, Presence>  $presences
+     */
+    private function progression(Collection $seances, BaseCollection $presences): int
+    {
+        if ($seances->isEmpty()) {
+            return 0;
+        }
+
+        $presentes = $seances->filter(fn (Seance $seance) => $presences->get($seance->id)?->present === true)->count();
+
+        return (int) round($presentes / $seances->count() * 100);
     }
 
     public function update(Request $request): RedirectResponse

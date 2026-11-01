@@ -29,7 +29,7 @@ test('the apprenant dossier page exposes the current profile and cv', function (
         ->where('dossier.consentementCv', true));
 });
 
-test('the apprenant dossier page exposes the active formation and presences', function () {
+test('the apprenant dossier page exposes the active formation with its progression', function () {
     $apprenant = Apprenant::factory()->create();
     $formation = Formation::factory()->create(['nom' => 'Community Management']);
     $session = FormationSession::factory()->for($formation)->create();
@@ -49,12 +49,46 @@ test('the apprenant dossier page exposes the active formation and presences', fu
     $response->assertOk();
     $response->assertInertia(fn ($page) => $page
         ->component('espaces/apprenant/dossier')
-        ->where('formationSuivie.nom', 'Community Management')
-        ->where('formationSuivie.seancesCompletees', 1)
-        ->where('formationSuivie.seancesTotal', 1)
         ->missing('candidatures')
-        ->has('presences', 1)
-        ->where('presences.0.present', true));
+        ->has('formations', 1)
+        ->where('formations.0.inscriptionId', $inscription->id)
+        ->where('formations.0.nom', 'Community Management')
+        ->where('formations.0.progression', 100)
+        ->where('formations.0.seancesTotal', 1));
+});
+
+test('an apprenant following several formations sees each one listed in their dossier', function () {
+    $apprenant = Apprenant::factory()->create();
+
+    $formationUne = Formation::factory()->create(['nom' => 'Community Management']);
+    $sessionUne = FormationSession::factory()->for($formationUne)->create();
+    $inscriptionUne = Inscription::create([
+        'apprenant_id' => $apprenant->id,
+        'formation_id' => $formationUne->id,
+        'formation_session_id' => $sessionUne->id,
+        'statut' => 'VALIDEE',
+    ]);
+
+    $formationDeux = Formation::factory()->create(['nom' => 'Création de contenu digital']);
+    $sessionDeux = FormationSession::factory()->for($formationDeux)->create();
+    $inscriptionDeux = Inscription::create([
+        'apprenant_id' => $apprenant->id,
+        'formation_id' => $formationDeux->id,
+        'formation_session_id' => $sessionDeux->id,
+        'statut' => 'VALIDEE',
+    ]);
+
+    $response = $this->actingAs($apprenant->user)->get(route('espace-apprenant.dossier'));
+
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page
+        ->component('espaces/apprenant/dossier')
+        ->has('formations', 2)
+        ->where('formations', function ($formations) use ($inscriptionUne, $inscriptionDeux) {
+            $ids = collect($formations)->pluck('inscriptionId')->all();
+
+            return in_array($inscriptionUne->id, $ids, true) && in_array($inscriptionDeux->id, $ids, true);
+        }));
 });
 
 test('an apprenant can replace their cv and toggle sharing consent', function () {

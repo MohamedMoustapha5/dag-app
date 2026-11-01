@@ -1,23 +1,20 @@
-import { Head, useForm } from '@inertiajs/react';
-import { Award, Check, X } from 'lucide-react';
+import { Head, Link, useForm } from '@inertiajs/react';
+import { Award } from 'lucide-react';
 import { useRef } from 'react';
 import { type EspaceApprenantInfo } from '@/layouts/espace-apprenant-layout';
+import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
+import espaceApprenant from '@/routes/espace-apprenant';
 import dossierRoutes from '@/routes/espace-apprenant/dossier';
 
 type FormationSuivie = {
+    inscriptionId: string;
     nom: string;
     ville: string | null;
     dateDebut: string | null;
     dateFin: string | null;
-    seancesCompletees: number;
+    statut: string;
+    progression: number;
     seancesTotal: number;
-};
-
-type Presence = {
-    id: string;
-    titre: string;
-    date: string | null;
-    present: boolean | null;
 };
 
 type Props = {
@@ -29,19 +26,17 @@ type Props = {
         cvNomFichier: string | null;
         consentementCv: boolean;
     };
-    formationSuivie: FormationSuivie | null;
+    formations: FormationSuivie[];
     attestation: {
         seancesRestantes: number;
     };
-    presences: Presence[];
 };
 
 export default function ApprenantDossier({
     apprenant,
     dossier,
-    formationSuivie,
+    formations,
     attestation,
-    presences,
 }: Props) {
     const cvInputRef = useRef<HTMLInputElement>(null);
 
@@ -239,70 +234,6 @@ export default function ApprenantDossier({
                             partenaires.
                         </label>
                     </div>
-
-                    {formationSuivie && (
-                        <div className="card" style={{ padding: 24 }}>
-                            <span className="badge">Formation suivie</span>
-                            <h3
-                                style={{
-                                    marginTop: 10,
-                                    fontSize: 15,
-                                    color: 'var(--dag-navy)',
-                                }}
-                            >
-                                {formationSuivie.nom}
-                            </h3>
-                            <p
-                                className="muted"
-                                style={{ marginTop: 4, fontSize: 12 }}
-                            >
-                                Session du {formationSuivie.dateDebut}
-                                {formationSuivie.dateFin
-                                    ? ` au ${formationSuivie.dateFin}`
-                                    : ''}
-                                {formationSuivie.ville
-                                    ? ` · ${formationSuivie.ville}`
-                                    : ''}
-                            </p>
-                            <div style={{ marginTop: 16 }}>
-                                <div
-                                    style={{
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        fontSize: 12,
-                                    }}
-                                >
-                                    <span className="muted">Progression</span>
-                                    <strong>
-                                        {formationSuivie.seancesTotal > 0
-                                            ? Math.round(
-                                                  (formationSuivie.seancesCompletees /
-                                                      formationSuivie.seancesTotal) *
-                                                      100,
-                                              )
-                                            : 0}
-                                        %
-                                    </strong>
-                                </div>
-                                <div className="espace-formule-progress">
-                                    <div
-                                        className="espace-formule-progress-bar"
-                                        style={{
-                                            width: `${formationSuivie.seancesTotal > 0 ? (formationSuivie.seancesCompletees / formationSuivie.seancesTotal) * 100 : 0}%`,
-                                        }}
-                                    />
-                                </div>
-                                <p
-                                    className="muted"
-                                    style={{ marginTop: 8, fontSize: 12 }}
-                                >
-                                    {formationSuivie.seancesCompletees} séances
-                                    sur {formationSuivie.seancesTotal}{' '}
-                                    complétées
-                                </p>
-                            </div>
-                        </div>
-                    )}
                 </div>
 
                 <div
@@ -312,6 +243,130 @@ export default function ApprenantDossier({
                         gap: 24,
                     }}
                 >
+                    <div className="card" style={{ padding: 24 }}>
+                        <p
+                            style={{
+                                fontSize: 15,
+                                fontWeight: 700,
+                                marginBottom: 16,
+                            }}
+                        >
+                            Mes formations
+                        </p>
+                        {formations.length === 0 ? (
+                            <p className="muted" style={{ fontSize: 13 }}>
+                                Aucune formation en cours pour le moment.
+                            </p>
+                        ) : (
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: 16,
+                                }}
+                            >
+                                {formations.map((formation) => (
+                                    <div
+                                        key={formation.inscriptionId}
+                                        style={{
+                                            padding: 16,
+                                            borderRadius:
+                                                'var(--dag-radius-sm)',
+                                            border: '1px solid var(--dag-border)',
+                                        }}
+                                    >
+                                        <div
+                                            style={{
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'center',
+                                                gap: 16,
+                                                flexWrap: 'wrap',
+                                            }}
+                                        >
+                                            <div
+                                                style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: 10,
+                                                }}
+                                            >
+                                                <h3
+                                                    style={{
+                                                        fontSize: 14.5,
+                                                        color: 'var(--dag-navy)',
+                                                    }}
+                                                >
+                                                    {formation.nom}
+                                                </h3>
+                                                <span
+                                                    className={`chip ${STATUT_CHIP[formation.statut] ?? 'chip-gray'}`}
+                                                >
+                                                    {STATUT_LABEL[
+                                                        formation.statut
+                                                    ] ?? formation.statut}
+                                                </span>
+                                            </div>
+                                            <Link
+                                                href={espaceApprenant.progression.show(
+                                                    formation.inscriptionId,
+                                                )}
+                                                className="btn-outline"
+                                                style={{
+                                                    padding: '6px 14px',
+                                                    fontSize: 12.5,
+                                                }}
+                                            >
+                                                Suivre ma présence
+                                            </Link>
+                                        </div>
+                                        <p
+                                            className="muted"
+                                            style={{
+                                                marginTop: 6,
+                                                fontSize: 12,
+                                            }}
+                                        >
+                                            Session du {formation.dateDebut}
+                                            {formation.dateFin
+                                                ? ` au ${formation.dateFin}`
+                                                : ''}
+                                            {formation.ville
+                                                ? ` · ${formation.ville}`
+                                                : ''}
+                                        </p>
+                                        <div style={{ marginTop: 12 }}>
+                                            <div
+                                                style={{
+                                                    display: 'flex',
+                                                    justifyContent:
+                                                        'space-between',
+                                                    fontSize: 11.5,
+                                                }}
+                                            >
+                                                <span className="muted">
+                                                    {formation.seancesTotal}{' '}
+                                                    séance(s) au total
+                                                </span>
+                                                <strong>
+                                                    {formation.progression}%
+                                                </strong>
+                                            </div>
+                                            <div className="espace-formule-progress">
+                                                <div
+                                                    className="espace-formule-progress-bar"
+                                                    style={{
+                                                        width: `${formation.progression}%`,
+                                                    }}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
                     <div
                         className="card"
                         style={{
@@ -373,84 +428,6 @@ export default function ApprenantDossier({
                         >
                             Aperçu de l'attestation
                         </span>
-                    </div>
-
-                    <div className="card" style={{ padding: 24 }}>
-                        <p
-                            style={{
-                                fontSize: 15,
-                                fontWeight: 700,
-                                marginBottom: 16,
-                            }}
-                        >
-                            Présence
-                        </p>
-                        {presences.length === 0 ? (
-                            <p className="muted" style={{ fontSize: 13 }}>
-                                Aucune séance programmée pour le moment.
-                            </p>
-                        ) : (
-                            <div className="data-table-wrap">
-                                <table className="data-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Séance</th>
-                                            <th>Date</th>
-                                            <th>Présence</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {presences.map((presence) => (
-                                            <tr key={presence.id}>
-                                                <td
-                                                    style={{
-                                                        fontWeight: 600,
-                                                    }}
-                                                >
-                                                    {presence.titre}
-                                                </td>
-                                                <td className="muted">
-                                                    {presence.date}
-                                                </td>
-                                                <td>
-                                                    {presence.present ===
-                                                    true ? (
-                                                        <span className="chip chip-green">
-                                                            <Check
-                                                                size={11}
-                                                                style={{
-                                                                    marginRight: 4,
-                                                                    verticalAlign:
-                                                                        -1,
-                                                                }}
-                                                            />
-                                                            Présente
-                                                        </span>
-                                                    ) : presence.present ===
-                                                      false ? (
-                                                        <span className="chip chip-red">
-                                                            <X
-                                                                size={11}
-                                                                style={{
-                                                                    marginRight: 4,
-                                                                    verticalAlign:
-                                                                        -1,
-                                                                }}
-                                                            />
-                                                            Absente
-                                                        </span>
-                                                    ) : (
-                                                        <span className="chip chip-gray">
-                                                            À venir
-                                                        </span>
-                                                    )}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        )}
                     </div>
                 </div>
             </div>
