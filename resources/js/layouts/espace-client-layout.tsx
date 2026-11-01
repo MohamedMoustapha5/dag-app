@@ -13,7 +13,6 @@ import {
     Search,
     Settings,
     Shield,
-    UserCheck,
     Users,
     Wallet,
     X,
@@ -25,7 +24,6 @@ import espaceClient from '@/routes/espace-client';
 import candidatures from '@/routes/espace-client/candidatures';
 import demandes from '@/routes/espace-client/demandes';
 import offres from '@/routes/espace-client/offres';
-import profilsProposes from '@/routes/espace-client/profils-proposes';
 
 type NavItem = {
     label: string;
@@ -94,11 +92,6 @@ function navEntreprise(estPartenaireValide: boolean): NavGroup[] {
                     label: 'Candidatures',
                     icon: Users,
                     href: candidatures.index(),
-                },
-                {
-                    label: 'Profils proposés par DAG',
-                    icon: UserCheck,
-                    href: profilsProposes.index(),
                 },
             ],
         });

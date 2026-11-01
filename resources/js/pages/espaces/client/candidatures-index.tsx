@@ -1,4 +1,4 @@
-import { Head, router } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import candidatures from '@/routes/espace-client/candidatures';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
 import RepartitionDonut from '@/components/espaces/repartition-donut';
@@ -87,61 +87,72 @@ export default function CandidaturesIndex({
                                                 </span>
                                             </td>
                                             <td style={{ textAlign: 'right' }}>
-                                                {candidature.statut ===
-                                                    'EN_ETUDE' ||
-                                                candidature.statut ===
-                                                    'DEPOSEE' ? (
-                                                    <div
-                                                        style={{
-                                                            display: 'flex',
-                                                            gap: 10,
-                                                            justifyContent:
-                                                                'flex-end',
-                                                        }}
+                                                <div
+                                                    style={{
+                                                        display: 'flex',
+                                                        gap: 10,
+                                                        justifyContent:
+                                                            'flex-end',
+                                                        alignItems: 'center',
+                                                    }}
+                                                >
+                                                    <Link
+                                                        href={candidatures.show(
+                                                            candidature.id,
+                                                        )}
+                                                        className="link-action"
                                                     >
-                                                        <button
-                                                            type="button"
-                                                            className="link-action"
+                                                        Voir le dossier
+                                                    </Link>
+                                                    {candidature.statut ===
+                                                        'EN_ETUDE' ||
+                                                    candidature.statut ===
+                                                        'DEPOSEE' ? (
+                                                        <>
+                                                            <button
+                                                                type="button"
+                                                                className="link-action"
+                                                                style={{
+                                                                    color: 'var(--dag-red)',
+                                                                }}
+                                                                onClick={() =>
+                                                                    decider(
+                                                                        candidature.id,
+                                                                        'REFUSEE',
+                                                                    )
+                                                                }
+                                                            >
+                                                                Refuser
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                className="btn-primary"
+                                                                style={{
+                                                                    padding:
+                                                                        '6px 14px',
+                                                                    fontSize: 12.5,
+                                                                }}
+                                                                onClick={() =>
+                                                                    decider(
+                                                                        candidature.id,
+                                                                        'RETENUE',
+                                                                    )
+                                                                }
+                                                            >
+                                                                Sélectionner
+                                                            </button>
+                                                        </>
+                                                    ) : (
+                                                        <span
+                                                            className="muted"
                                                             style={{
-                                                                color: 'var(--dag-red)',
-                                                            }}
-                                                            onClick={() =>
-                                                                decider(
-                                                                    candidature.id,
-                                                                    'REFUSEE',
-                                                                )
-                                                            }
-                                                        >
-                                                            Refuser
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            className="btn-primary"
-                                                            style={{
-                                                                padding:
-                                                                    '6px 14px',
                                                                 fontSize: 12.5,
                                                             }}
-                                                            onClick={() =>
-                                                                decider(
-                                                                    candidature.id,
-                                                                    'RETENUE',
-                                                                )
-                                                            }
                                                         >
-                                                            Sélectionner
-                                                        </button>
-                                                    </div>
-                                                ) : (
-                                                    <span
-                                                        className="muted"
-                                                        style={{
-                                                            fontSize: 12.5,
-                                                        }}
-                                                    >
-                                                        Décision prise
-                                                    </span>
-                                                )}
+                                                            Décision prise
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}

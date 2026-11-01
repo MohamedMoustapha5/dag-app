@@ -52,7 +52,10 @@ export default function ApprenantProgressionShow({
                 </div>
             </div>
 
-            <div className="grid-3 espace-stats-grid" style={{ marginBottom: 24 }}>
+            <div
+                className="grid-3 espace-stats-grid"
+                style={{ marginBottom: 24 }}
+            >
                 <div className="card espace-stat-card" style={{ padding: 22 }}>
                     <span
                         className="espace-stat-icon"
@@ -170,7 +173,10 @@ export default function ApprenantProgressionShow({
                 ) : (
                     <div>
                         {seances.map((seance) => (
-                            <div key={seance.id} className="espace-timeline-item">
+                            <div
+                                key={seance.id}
+                                className="espace-timeline-item"
+                            >
                                 <span
                                     className="espace-timeline-icon"
                                     style={{

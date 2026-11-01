@@ -1,18 +1,19 @@
 <?php
 
+use App\Models\Apprenant;
 use App\Models\Candidature;
 use App\Models\Client;
 use App\Models\Contrat;
 use App\Models\EntreprisePartenaire;
 use App\Models\Facture;
 use App\Models\OffreEmploi;
+use Illuminate\Support\Facades\Storage;
 
 test('an entreprise client without a validated partner link cannot reach the recruitment routes', function () {
     $client = Client::factory()->create(['type' => 'ENTREPRISE']);
 
     $this->actingAs($client->user)->get(route('espace-client.offres.index'))->assertForbidden();
     $this->actingAs($client->user)->get(route('espace-client.candidatures.index'))->assertForbidden();
-    $this->actingAs($client->user)->get(route('espace-client.profils-proposes.index'))->assertForbidden();
 });
 
 test('an entreprise client with an inactive partner link cannot reach the recruitment routes', function () {
@@ -86,7 +87,63 @@ test('an entreprise partner cannot act on another partner candidature', function
         ->get(route('espace-client.offres.show', $offreAutre))
         ->assertForbidden();
 
+    $this->actingAs($mine->user)
+        ->get(route('espace-client.candidatures.show', $candidature))
+        ->assertForbidden();
+
+    $this->actingAs($mine->user)
+        ->get(route('espace-client.candidatures.cv', $candidature))
+        ->assertForbidden();
+
     expect($candidature->fresh()->statut)->toBe('EN_ETUDE');
+});
+
+test('a validated entreprise partner can view a candidate dossier before deciding', function () {
+    $client = clientPartenaireValide();
+    $offre = OffreEmploi::factory()->create(['entreprise_id' => $client->entreprisePartenaire->id]);
+    $apprenant = Apprenant::factory()->create(['consentement_cv' => true, 'cv_path' => 'apprenants-cv/cv-test.pdf']);
+    $candidature = Candidature::factory()->create([
+        'offre_id' => $offre->id,
+        'apprenant_id' => $apprenant->id,
+        'statut' => 'EN_ETUDE',
+    ]);
+
+    $this->actingAs($client->user)
+        ->get(route('espace-client.candidatures.show', $candidature))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('espaces/client/candidatures-show')
+            ->where('candidature.id', $candidature->id)
+            ->where('apprenant.nom', $apprenant->user->name)
+            ->where('cv.disponible', true));
+});
+
+test('an entreprise cannot download a candidate cv without the candidate consent', function () {
+    Storage::fake('local');
+
+    $client = clientPartenaireValide();
+    $offre = OffreEmploi::factory()->create(['entreprise_id' => $client->entreprisePartenaire->id]);
+    $apprenant = Apprenant::factory()->create(['consentement_cv' => false, 'cv_path' => 'apprenants-cv/cv-test.pdf']);
+    Storage::disk('local')->put($apprenant->cv_path, 'contenu-du-cv');
+    $candidature = Candidature::factory()->create(['offre_id' => $offre->id, 'apprenant_id' => $apprenant->id]);
+
+    $this->actingAs($client->user)
+        ->get(route('espace-client.candidatures.cv', $candidature))
+        ->assertNotFound();
+});
+
+test('an entreprise can download a candidate cv once the candidate has consented', function () {
+    Storage::fake('local');
+
+    $client = clientPartenaireValide();
+    $offre = OffreEmploi::factory()->create(['entreprise_id' => $client->entreprisePartenaire->id]);
+    $apprenant = Apprenant::factory()->create(['consentement_cv' => true, 'cv_path' => 'apprenants-cv/cv-test.pdf']);
+    Storage::disk('local')->put($apprenant->cv_path, 'contenu-du-cv');
+    $candidature = Candidature::factory()->create(['offre_id' => $offre->id, 'apprenant_id' => $apprenant->id]);
+
+    $this->actingAs($client->user)
+        ->get(route('espace-client.candidatures.cv', $candidature))
+        ->assertOk();
 });
 
 test('factures billed to the linked entreprise, not the client, still show in the espace', function () {

@@ -19,7 +19,6 @@ use App\Http\Controllers\Espaces\ClientFactureController;
 use App\Http\Controllers\Espaces\ClientOffreController;
 use App\Http\Controllers\Espaces\ClientPaiementController;
 use App\Http\Controllers\Espaces\ClientParametreController;
-use App\Http\Controllers\Espaces\ClientProfilProposeController;
 use App\Http\Controllers\Espaces\ClientServiceController;
 use App\Http\Middleware\EnsurePartenaireValide;
 use App\Http\Middleware\EnsureUserType;
@@ -40,7 +39,7 @@ use Illuminate\Support\Facades\Route;
 | managed by DAG staff directly, but a self-registered Entreprise client
 | can now be linked to one once validated as an official recruitment
 | partner (Client::estPartenaireValide()) — only then do the recruitment
-| routes below (offres, candidatures, profils-proposes) unlock, guarded by
+| routes below (offres, candidatures) unlock, guarded by
 | EnsurePartenaireValide on top of the regular CLIENT type check.
 */
 
@@ -68,9 +67,9 @@ Route::middleware(['auth', 'verified', EnsureUserType::class.':CLIENT'])
             Route::post('offres', [ClientOffreController::class, 'store'])->name('espace-client.offres.store');
             Route::get('offres/{offre}', [ClientOffreController::class, 'show'])->name('espace-client.offres.show');
             Route::get('candidatures', [ClientCandidatureController::class, 'index'])->name('espace-client.candidatures.index');
+            Route::get('candidatures/{candidature}', [ClientCandidatureController::class, 'show'])->name('espace-client.candidatures.show');
+            Route::get('candidatures/{candidature}/cv', [ClientCandidatureController::class, 'cv'])->name('espace-client.candidatures.cv');
             Route::patch('candidatures/{candidature}', [ClientCandidatureController::class, 'update'])->name('espace-client.candidatures.update');
-            Route::get('profils-proposes', [ClientProfilProposeController::class, 'index'])->name('espace-client.profils-proposes.index');
-            Route::patch('profils-proposes/{profil}', [ClientProfilProposeController::class, 'update'])->name('espace-client.profils-proposes.update');
         });
     });
 
