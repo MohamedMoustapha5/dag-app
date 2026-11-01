@@ -30,6 +30,19 @@ class Apprenant extends Model
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * Header/sidebar props shared by every espace-apprenant Inertia page.
+     *
+     * @return array{nom: string, typeLabel: string}
+     */
+    public function espaceHeaderProps(): array
+    {
+        return [
+            'nom' => $this->user->name,
+            'typeLabel' => 'Apprenant',
+        ];
+    }
+
     /** @return HasMany<Inscription, $this> */
     public function inscriptions(): HasMany
     {

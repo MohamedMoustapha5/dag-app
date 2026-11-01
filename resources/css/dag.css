@@ -3058,6 +3058,14 @@
 .dag .espace-sidebar-toggle {
     display: none;
 }
+.dag .espace-topbar-logo {
+    /* Visible seulement sur mobile (règle ci-dessous), quand la barre
+       latérale — et son propre logo — est repliée par défaut. */
+    display: none;
+    height: 28px;
+    width: auto;
+    border-radius: 6px;
+}
 .dag .espace-search {
     flex: 1;
     max-width: 420px;
@@ -3336,6 +3344,10 @@
     }
     .dag .espace-search {
         display: none;
+    }
+    .dag .espace-topbar-logo {
+        display: block;
+        margin-right: auto;
     }
     .dag .espace-topbar {
         padding: 12px 16px;
