@@ -3313,7 +3313,11 @@
 
 @media (max-width: 960px) {
     .dag .espace-dossier-grid {
-        grid-template-columns: 1fr;
+        /* minmax(0, 1fr), not a bare 1fr: a bare 1fr track still sizes to
+           the widest unbreakable content in it (eg. the CV's generated
+           filename), ballooning the single mobile column past the
+           viewport and dragging every sibling card along with it. */
+        grid-template-columns: minmax(0, 1fr);
     }
     .dag .espace-sidebar {
         position: fixed;
@@ -3368,10 +3372,9 @@
         gap: 10px;
     }
     .dag .espace-notif {
-        /* Purement décoratif pour l'instant (pas de contenu réel derrière) —
-           masqué sur mobile pour laisser la place à l'identité du compte et
-           au bouton Déconnexion, qui ne doivent jamais sortir de l'écran. */
-        display: none;
+        width: 34px;
+        height: 34px;
+        flex: none;
     }
     .dag .espace-avatar {
         width: 34px;
