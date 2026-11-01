@@ -96,7 +96,7 @@ export default function ApprenantFormationsIndex({ sessions }: Props) {
                 className="espace-hero"
                 style={{
                     backgroundImage:
-                        "url('/images/photos/auditorium-welcome.jpg')",
+                        "url('/images/photos/formation-digital-marketing.jpg')",
                 }}
             >
                 <div className="espace-hero-overlay" />

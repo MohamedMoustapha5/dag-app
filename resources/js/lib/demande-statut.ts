@@ -24,6 +24,11 @@ export const STATUT_LABEL: Record<string, string> = {
     PROPOSE: 'Proposé',
     RETENU: 'Retenu',
     CONFIRME: 'Confirmé',
+    LISTE_ATTENTE: "Liste d'attente",
+    EN_ATTENTE_PAIEMENT: 'En attente de paiement',
+    VALIDEE: 'Validée',
+    FORMEE: 'Formée',
+    ABANDONNEE: 'Abandonnée',
 };
 
 export const STATUT_CHIP: Record<string, string> = {
@@ -52,4 +57,9 @@ export const STATUT_CHIP: Record<string, string> = {
     PROPOSE: 'chip-blue',
     RETENU: 'chip-green',
     CONFIRME: 'chip-green',
+    LISTE_ATTENTE: 'chip-gray',
+    EN_ATTENTE_PAIEMENT: 'chip-orange',
+    VALIDEE: 'chip-green',
+    FORMEE: 'chip-blue',
+    ABANDONNEE: 'chip-red',
 };
