@@ -38,6 +38,45 @@ test('an in-progress inscription exposes its attendance progression', function (
         ->where('inscriptions.0.semainesAvantDebut', null));
 });
 
+test('an apprenant following two formations at once gets a distinct progression per inscription', function () {
+    $apprenant = Apprenant::factory()->create();
+
+    $formationA = Formation::factory()->create(['nom' => 'Community Management']);
+    $sessionA = FormationSession::factory()->for($formationA)->create();
+    $inscriptionA = Inscription::create([
+        'apprenant_id' => $apprenant->id,
+        'formation_id' => $formationA->id,
+        'formation_session_id' => $sessionA->id,
+        'statut' => 'VALIDEE',
+    ]);
+    $seanceA = Seance::create(['formation_session_id' => $sessionA->id, 'titre' => 'Introduction', 'date' => now()->subDay()]);
+    Presence::create(['seance_id' => $seanceA->id, 'inscription_id' => $inscriptionA->id, 'present' => true]);
+
+    $formationB = Formation::factory()->create(['nom' => 'Création de contenu']);
+    $sessionB = FormationSession::factory()->for($formationB)->create();
+    $inscriptionB = Inscription::create([
+        'apprenant_id' => $apprenant->id,
+        'formation_id' => $formationB->id,
+        'formation_session_id' => $sessionB->id,
+        'statut' => 'VALIDEE',
+    ]);
+    $seanceB = Seance::create(['formation_session_id' => $sessionB->id, 'titre' => 'Introduction', 'date' => now()->subDay()]);
+    Presence::create(['seance_id' => $seanceB->id, 'inscription_id' => $inscriptionB->id, 'present' => false]);
+
+    $response = $this->actingAs($apprenant->user)->get(route('espace-apprenant.inscriptions'));
+
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page
+        ->component('espaces/apprenant/inscriptions-index')
+        ->has('inscriptions', 2)
+        ->where('inscriptions', function ($inscriptions) use ($inscriptionA, $inscriptionB) {
+            $byId = collect($inscriptions)->keyBy('id');
+
+            return $byId[$inscriptionA->id]['progression'] === 100
+                && $byId[$inscriptionB->id]['progression'] === 0;
+        }));
+});
+
 test('an inscription for a future session reports the weeks remaining before it starts', function () {
     $apprenant = Apprenant::factory()->create();
     $formation = Formation::factory()->create();

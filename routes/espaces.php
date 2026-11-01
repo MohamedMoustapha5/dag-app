@@ -83,7 +83,8 @@ Route::middleware(['auth', 'verified', EnsureUserType::class.':APPRENANT'])
         Route::get('factures', ApprenantFactureController::class)->name('espace-apprenant.factures');
         Route::get('dossier', [ApprenantDossierController::class, 'edit'])->name('espace-apprenant.dossier');
         Route::patch('dossier', [ApprenantDossierController::class, 'update'])->name('espace-apprenant.dossier.update');
-        Route::get('progression', ApprenantProgressionController::class)->name('espace-apprenant.progression');
+        Route::get('progression', [ApprenantProgressionController::class, 'index'])->name('espace-apprenant.progression');
+        Route::get('progression/{inscription}', [ApprenantProgressionController::class, 'show'])->name('espace-apprenant.progression.show');
         Route::get('profil', [ApprenantProfilController::class, 'edit'])->name('espace-apprenant.profil');
         Route::patch('profil', [ApprenantProfilController::class, 'update'])->name('espace-apprenant.profil.update');
         Route::patch('profil/notifications', [ApprenantProfilController::class, 'updateNotifications'])->name('espace-apprenant.profil.notifications');

@@ -3,42 +3,55 @@
 namespace App\Http\Controllers\Espaces;
 
 use App\Http\Controllers\Controller;
+use App\Models\Inscription;
 use App\Models\Presence;
 use App\Models\Seance;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection as BaseCollection;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class ApprenantProgressionController extends Controller
 {
-    public function __invoke(Request $request): Response
+    public function index(Request $request): Response
     {
         $apprenant = $request->user()->apprenant;
 
-        $inscription = $apprenant->inscriptions()
+        $inscriptions = $apprenant->inscriptions()
             ->whereIn('statut', ['VALIDEE', 'FORMEE'])
             ->with(['formation', 'formationSession.seances'])
             ->latest()
-            ->first();
+            ->get();
 
-        if ($inscription === null) {
-            return Inertia::render('espaces/apprenant/progression', [
-                'apprenant' => $apprenant->espaceHeaderProps(),
-                'formation' => null,
-                'progression' => 0,
-                'stats' => ['suivies' => 0, 'manquees' => 0, 'aVenir' => 0],
-                'seances' => [],
-            ]);
-        }
+        return Inertia::render('espaces/apprenant/progression-index', [
+            'apprenant' => $apprenant->espaceHeaderProps(),
+            'formations' => $inscriptions->map(function (Inscription $inscription) {
+                $seances = $inscription->formationSession->seances ?? new Collection;
+                $presences = $this->presences($seances, $inscription);
+
+                return [
+                    'inscriptionId' => $inscription->id,
+                    'formation' => $inscription->formation->nom,
+                    'statut' => $inscription->statut,
+                    'progression' => $this->progression($seances, $presences),
+                    'seancesTotal' => $seances->count(),
+                ];
+            }),
+        ]);
+    }
+
+    public function show(Request $request, Inscription $inscription): Response
+    {
+        Gate::authorize('view', $inscription);
+
+        $apprenant = $request->user()->apprenant;
+        $inscription->load(['formation', 'formationSession.seances']);
 
         $seances = $inscription->formationSession->seances ?? new Collection;
-        $presences = Presence::whereIn('seance_id', $seances->pluck('id'))
-            ->where('inscription_id', $inscription->id)
-            ->get()
-            ->keyBy('seance_id');
+        $presences = $this->presences($seances, $inscription);
 
         $seancesMappees = $seances
             ->sortBy('date')
@@ -50,7 +63,7 @@ class ApprenantProgressionController extends Controller
             ])
             ->values();
 
-        return Inertia::render('espaces/apprenant/progression', [
+        return Inertia::render('espaces/apprenant/progression-show', [
             'apprenant' => $apprenant->espaceHeaderProps(),
             'formation' => $inscription->formation->nom,
             'progression' => $this->progression($seances, $presences),
@@ -61,6 +74,18 @@ class ApprenantProgressionController extends Controller
             ],
             'seances' => $seancesMappees,
         ]);
+    }
+
+    /**
+     * @param  Collection<int, Seance>  $seances
+     * @return BaseCollection<string, Presence>
+     */
+    private function presences(Collection $seances, Inscription $inscription): BaseCollection
+    {
+        return Presence::whereIn('seance_id', $seances->pluck('id'))
+            ->where('inscription_id', $inscription->id)
+            ->get()
+            ->keyBy('seance_id');
     }
 
     /**

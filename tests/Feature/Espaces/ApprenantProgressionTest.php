@@ -8,7 +8,57 @@ use App\Models\Inscription;
 use App\Models\Presence;
 use App\Models\Seance;
 
-test('the progression page reports seances and attendance for the active formation', function () {
+test('the progression overview lists every formation the apprenant is following', function () {
+    $apprenant = Apprenant::factory()->create();
+
+    $formationA = Formation::factory()->create(['nom' => 'Community Management']);
+    $sessionA = FormationSession::factory()->for($formationA)->create();
+    $inscriptionA = Inscription::create([
+        'apprenant_id' => $apprenant->id,
+        'formation_id' => $formationA->id,
+        'formation_session_id' => $sessionA->id,
+        'statut' => 'VALIDEE',
+    ]);
+    $seanceA = Seance::create(['formation_session_id' => $sessionA->id, 'titre' => 'Introduction', 'date' => '2026-11-01']);
+    Presence::create(['seance_id' => $seanceA->id, 'inscription_id' => $inscriptionA->id, 'present' => true]);
+
+    $formationB = Formation::factory()->create(['nom' => 'Création de contenu']);
+    $sessionB = FormationSession::factory()->for($formationB)->create();
+    $inscriptionB = Inscription::create([
+        'apprenant_id' => $apprenant->id,
+        'formation_id' => $formationB->id,
+        'formation_session_id' => $sessionB->id,
+        'statut' => 'VALIDEE',
+    ]);
+
+    $response = $this->actingAs($apprenant->user)->get(route('espace-apprenant.progression'));
+
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page
+        ->component('espaces/apprenant/progression-index')
+        ->has('formations', 2)
+        ->where('formations', function ($formations) use ($inscriptionA, $inscriptionB) {
+            $byId = collect($formations)->keyBy('inscriptionId');
+
+            return $byId->has($inscriptionA->id)
+                && $byId->has($inscriptionB->id)
+                && $byId[$inscriptionA->id]['progression'] === 100
+                && $byId[$inscriptionB->id]['progression'] === 0;
+        }));
+});
+
+test('the progression overview reports no formations when none is active', function () {
+    $apprenant = Apprenant::factory()->create();
+
+    $response = $this->actingAs($apprenant->user)->get(route('espace-apprenant.progression'));
+
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page
+        ->component('espaces/apprenant/progression-index')
+        ->has('formations', 0));
+});
+
+test('the progression detail page reports seances and attendance for the given inscription', function () {
     $apprenant = Apprenant::factory()->create();
     $formation = Formation::factory()->create(['nom' => 'Community Management']);
     $session = FormationSession::factory()->for($formation)->create();
@@ -27,11 +77,11 @@ test('the progression page reports seances and attendance for the active formati
     Presence::create(['seance_id' => $seance1->id, 'inscription_id' => $inscription->id, 'present' => true]);
     Presence::create(['seance_id' => $seance2->id, 'inscription_id' => $inscription->id, 'present' => false]);
 
-    $response = $this->actingAs($apprenant->user)->get(route('espace-apprenant.progression'));
+    $response = $this->actingAs($apprenant->user)->get(route('espace-apprenant.progression.show', $inscription));
 
     $response->assertOk();
     $response->assertInertia(fn ($page) => $page
-        ->component('espaces/apprenant/progression')
+        ->component('espaces/apprenant/progression-show')
         ->where('formation', 'Community Management')
         ->where('progression', 33)
         ->where('stats.suivies', 1)
@@ -43,24 +93,31 @@ test('the progression page reports seances and attendance for the active formati
         ->where('seances.2.present', null));
 });
 
-test('the progression page reports no formation when none is active', function () {
+test('an apprenant cannot view the progression detail of another apprenant inscription', function () {
     $apprenant = Apprenant::factory()->create();
+    $autre = Apprenant::factory()->create();
+    $formation = Formation::factory()->create();
 
-    $response = $this->actingAs($apprenant->user)->get(route('espace-apprenant.progression'));
+    $inscription = Inscription::create([
+        'apprenant_id' => $autre->id,
+        'formation_id' => $formation->id,
+        'statut' => 'VALIDEE',
+    ]);
 
-    $response->assertOk();
-    $response->assertInertia(fn ($page) => $page
-        ->component('espaces/apprenant/progression')
-        ->where('formation', null)
-        ->where('progression', 0)
-        ->where('stats.suivies', 0)
-        ->where('stats.manquees', 0)
-        ->where('stats.aVenir', 0)
-        ->has('seances', 0));
+    $this->actingAs($apprenant->user)
+        ->get(route('espace-apprenant.progression.show', $inscription))
+        ->assertForbidden();
 });
 
-test('a client cannot reach the apprenant progression page', function () {
+test('a client cannot reach the apprenant progression pages', function () {
     $client = Client::factory()->create();
+    $formation = Formation::factory()->create();
+    $inscription = Inscription::create([
+        'apprenant_id' => Apprenant::factory()->create()->id,
+        'formation_id' => $formation->id,
+        'statut' => 'VALIDEE',
+    ]);
 
     $this->actingAs($client->user)->get(route('espace-apprenant.progression'))->assertForbidden();
+    $this->actingAs($client->user)->get(route('espace-apprenant.progression.show', $inscription))->assertForbidden();
 });

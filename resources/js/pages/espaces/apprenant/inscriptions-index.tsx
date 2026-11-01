@@ -206,7 +206,9 @@ export default function ApprenantInscriptionsIndex({ inscriptions }: Props) {
                                     {classe === 'en-cours' &&
                                         inscription.statut === 'VALIDEE' && (
                                             <Link
-                                                href={espaceApprenant.progression()}
+                                                href={espaceApprenant.progression.show(
+                                                    inscription.id,
+                                                )}
                                                 className="btn-outline"
                                             >
                                                 Voir ma progression
