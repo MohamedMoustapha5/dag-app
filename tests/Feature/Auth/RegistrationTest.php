@@ -43,6 +43,7 @@ test('a particulier registers as a client and lands on the espace client', funct
         'email' => 'test@example.com',
         'password' => 'password',
         'password_confirmation' => 'password',
+        'terms' => 'on',
     ]);
 
     $this->assertAuthenticated();
@@ -61,6 +62,7 @@ test('an entreprise registers as an entreprise-type client', function () {
         'email' => 'fatou@example.com',
         'password' => 'password',
         'password_confirmation' => 'password',
+        'terms' => 'on',
     ]);
 
     $client = Client::whereHas('user', fn ($q) => $q->where('email', 'fatou@example.com'))->first();
@@ -77,6 +79,7 @@ test('an apprenant registers with an apprenant profile and lands on the espace a
         'email' => 'stephanie@example.com',
         'password' => 'password',
         'password_confirmation' => 'password',
+        'terms' => 'on',
     ]);
 
     $user = User::where('email', 'stephanie@example.com')->first();
@@ -94,8 +97,22 @@ test('registration requires a known compte_type', function () {
         'email' => 'test@example.com',
         'password' => 'password',
         'password_confirmation' => 'password',
+        'terms' => 'on',
     ]);
 
     $response->assertSessionHasErrors('compte_type');
+    $this->assertGuest();
+});
+
+test('registration requires accepting the terms and privacy policy', function () {
+    $response = $this->post(route('register.store'), [
+        'compte_type' => 'particulier',
+        'name' => 'Test User',
+        'email' => 'test@example.com',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+    ]);
+
+    $response->assertSessionHasErrors('terms');
     $this->assertGuest();
 });

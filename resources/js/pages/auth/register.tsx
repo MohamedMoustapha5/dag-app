@@ -1,7 +1,7 @@
 import { Form, Head, Link } from '@inertiajs/react';
 import AuthPasswordField from '@/components/public/auth-password-field';
 import TeamInvitationAlert from '@/components/team-invitation-alert';
-import { login } from '@/routes';
+import { contact, login } from '@/routes';
 import { store } from '@/routes/register';
 import type { TeamInvitationContext } from '@/types';
 
@@ -158,10 +158,54 @@ export default function Register({ passwordRules, teamInvitation }: Props) {
                             )}
                         </div>
 
+                        <label
+                            htmlFor="terms"
+                            style={{
+                                display: 'flex',
+                                alignItems: 'flex-start',
+                                gap: 10,
+                                fontSize: 13,
+                                lineHeight: 1.6,
+                                color: 'var(--dag-text)',
+                                cursor: 'pointer',
+                            }}
+                        >
+                            <input
+                                type="checkbox"
+                                id="terms"
+                                name="terms"
+                                required
+                                tabIndex={6}
+                                style={{ marginTop: 3 }}
+                            />
+                            <span>
+                                J'accepte les{' '}
+                                <Link href={contact()} target="_blank">
+                                    conditions générales d'utilisation
+                                </Link>{' '}
+                                et reconnais avoir pris connaissance de la{' '}
+                                <Link href={contact()} target="_blank">
+                                    politique de confidentialité
+                                </Link>{' '}
+                                de DAG.
+                            </span>
+                        </label>
+                        {errors.terms && (
+                            <p
+                                style={{
+                                    color: 'var(--dag-red)',
+                                    fontSize: 12,
+                                    marginTop: -10,
+                                }}
+                            >
+                                {errors.terms}
+                            </p>
+                        )}
+
                         <button
                             type="submit"
                             className="btn-primary btn-block"
-                            tabIndex={6}
+                            tabIndex={7}
                             disabled={processing}
                             data-test="register-user-button"
                         >
@@ -188,7 +232,7 @@ export default function Register({ passwordRules, teamInvitation }: Props) {
                                         : login()
                                 }
                                 data-test="team-invitation-login-link"
-                                tabIndex={7}
+                                tabIndex={8}
                             >
                                 Se connecter
                             </Link>

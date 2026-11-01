@@ -44,6 +44,7 @@ class CreateNewUser implements CreatesNewUsers
             ...$this->profileRules(),
             'password' => $this->passwordRules(),
             'compte_type' => ['required', 'string', Rule::in(self::COMPTE_TYPES)],
+            'terms' => ['accepted'],
         ])->validate();
 
         return DB::transaction(function () use ($input) {

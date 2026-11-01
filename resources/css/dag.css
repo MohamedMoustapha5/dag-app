@@ -1640,13 +1640,28 @@
         var(--dag-bg);
 }
 .dag .auth-card {
+    position: relative;
     width: 100%;
+    /* Sans min-width: 0, ce flex-item refuse de rétrécir sous la largeur
+       intrinsèque de son contenu (un <select>, notamment), ce qui le fait
+       déborder du cadre sur petit écran malgré le max-width ci-dessous. */
+    min-width: 0;
     max-width: 420px;
     background: #fff;
     border: 1px solid var(--dag-border);
     border-radius: var(--dag-radius-lg);
     padding: 40px;
     box-shadow: var(--dag-shadow-lg);
+    overflow: hidden;
+}
+.dag .auth-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--dag-blue), var(--dag-orange));
 }
 .dag .auth-shell-photo {
     background-color: var(--dag-navy);
@@ -2572,6 +2587,9 @@
     }
     .dag .hero-stats > div:nth-child(3)::before {
         display: none;
+    }
+    .dag .auth-shell {
+        padding: 20px;
     }
     .dag .auth-card {
         padding: 26px;
