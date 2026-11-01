@@ -16,8 +16,8 @@ const CONTACT_INFO = [
     {
         key: 'whatsapp',
         titre: 'WhatsApp',
-        valeur: '+237 6 99 00 00 00',
-        href: 'https://wa.me/237699000000',
+        valeur: '+237 6 98 57 28 93',
+        href: 'https://wa.me/237698572893',
         icon: MessageCircle,
         iconBg: 'var(--dag-green-bg)',
         iconColor: 'var(--dag-green)',
@@ -25,8 +25,8 @@ const CONTACT_INFO = [
     {
         key: 'telephone',
         titre: 'Téléphone',
-        valeur: '+237 6 99 00 00 00',
-        href: 'tel:+237699000000',
+        valeur: '+237 6 98 57 28 93',
+        href: 'tel:+237698572893',
         icon: Phone,
         iconBg: 'var(--dag-blue-light)',
         iconColor: 'var(--dag-blue)',

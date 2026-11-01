@@ -5,15 +5,15 @@ const CONTACT_CHANNELS = [
     {
         key: 'whatsapp',
         label: 'WhatsApp',
-        href: 'https://wa.me/237699000000',
+        href: 'https://wa.me/237698572893',
         icon: MessageCircle,
         iconBg: 'var(--dag-green-bg)',
         iconColor: 'var(--dag-green)',
     },
     {
         key: 'phone',
-        label: '+237 6 99 00 00 00',
-        href: 'tel:+237699000000',
+        label: '+237 6 98 57 28 93',
+        href: 'tel:+237698572893',
         icon: Phone,
         iconBg: 'var(--dag-blue-light)',
         iconColor: 'var(--dag-blue)',

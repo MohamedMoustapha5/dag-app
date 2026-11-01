@@ -1001,7 +1001,7 @@ export default function Home({ stats, equipe }: HomeProps) {
                             Audit gratuit
                         </button>
                         <a
-                            href="https://wa.me/237699000000"
+                            href="https://wa.me/237698572893"
                             target="_blank"
                             rel="noreferrer"
                             className="btn-ghost btn-ghost-dark"
@@ -1009,7 +1009,7 @@ export default function Home({ stats, equipe }: HomeProps) {
                             WhatsApp
                         </a>
                         <a
-                            href="tel:+237699000000"
+                            href="tel:+237698572893"
                             className="btn-ghost btn-ghost-dark"
                         >
                             Téléphone

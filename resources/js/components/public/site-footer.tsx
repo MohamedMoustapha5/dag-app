@@ -147,7 +147,7 @@ export default function SiteFooter() {
                                 À propos
                             </Link>
                             <a
-                                href="https://wa.me/237699000000"
+                                href="https://wa.me/237698572893"
                                 target="_blank"
                                 rel="noreferrer"
                                 className="navlink"
