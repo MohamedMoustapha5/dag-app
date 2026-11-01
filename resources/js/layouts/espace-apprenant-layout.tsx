@@ -38,9 +38,21 @@ const NAV_ITEMS: NavItem[] = [
         icon: FileText,
         href: espaceApprenant.inscriptions(),
     },
-    { label: 'Mon dossier', icon: Folder, href: null },
-    { label: 'Progression', icon: TrendingUp, href: null },
-    { label: 'Profil', icon: User, href: null },
+    {
+        label: 'Mon dossier',
+        icon: Folder,
+        href: espaceApprenant.dossier(),
+    },
+    {
+        label: 'Progression',
+        icon: TrendingUp,
+        href: espaceApprenant.progression(),
+    },
+    {
+        label: 'Profil',
+        icon: User,
+        href: espaceApprenant.profil(),
+    },
 ];
 
 export type EspaceApprenantInfo = {

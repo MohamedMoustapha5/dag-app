@@ -3,8 +3,11 @@
 use App\Http\Controllers\Espaces\AdminDashboardController;
 use App\Http\Controllers\Espaces\AdminGrilleTarifaireController;
 use App\Http\Controllers\Espaces\ApprenantDashboardController;
+use App\Http\Controllers\Espaces\ApprenantDossierController;
 use App\Http\Controllers\Espaces\ApprenantFormationController;
 use App\Http\Controllers\Espaces\ApprenantInscriptionController;
+use App\Http\Controllers\Espaces\ApprenantProfilController;
+use App\Http\Controllers\Espaces\ApprenantProgressionController;
 use App\Http\Controllers\Espaces\ClientAbonnementController;
 use App\Http\Controllers\Espaces\ClientCandidatureController;
 use App\Http\Controllers\Espaces\ClientContratController;
@@ -76,6 +79,11 @@ Route::middleware(['auth', 'verified', EnsureUserType::class.':APPRENANT'])
         Route::get('/', ApprenantDashboardController::class)->name('espace-apprenant.dashboard');
         Route::get('formations', ApprenantFormationController::class)->name('espace-apprenant.formations');
         Route::get('inscriptions', ApprenantInscriptionController::class)->name('espace-apprenant.inscriptions');
+        Route::get('dossier', [ApprenantDossierController::class, 'edit'])->name('espace-apprenant.dossier');
+        Route::patch('dossier', [ApprenantDossierController::class, 'update'])->name('espace-apprenant.dossier.update');
+        Route::get('progression', ApprenantProgressionController::class)->name('espace-apprenant.progression');
+        Route::get('profil', [ApprenantProfilController::class, 'edit'])->name('espace-apprenant.profil');
+        Route::patch('profil', [ApprenantProfilController::class, 'update'])->name('espace-apprenant.profil.update');
     });
 
 Route::middleware(['auth', 'verified', EnsureUserType::class.':MEMBRE_EQUIPE'])
