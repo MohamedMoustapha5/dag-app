@@ -3368,9 +3368,10 @@
         gap: 10px;
     }
     .dag .espace-notif {
-        width: 34px;
-        height: 34px;
-        flex: none;
+        /* Purement décoratif pour l'instant (pas de contenu réel derrière) —
+           masqué sur mobile pour laisser la place à l'identité du compte et
+           au bouton Déconnexion, qui ne doivent jamais sortir de l'écran. */
+        display: none;
     }
     .dag .espace-avatar {
         width: 34px;
@@ -3399,9 +3400,16 @@
         font-size: 10.5px;
     }
     .dag .espace-topbar .btn-ghost {
-        padding: 9px 12px;
+        padding: 9px;
         font-size: 12.5px;
         white-space: nowrap;
+        flex: none;
+    }
+    .dag .espace-topbar .btn-ghost .btn-label-full {
+        display: none;
+    }
+    .dag .espace-topbar .btn-ghost .btn-label-short {
+        display: inline-flex;
     }
     .dag .espace-content {
         padding: 20px 16px;

@@ -6,6 +6,7 @@ import {
     Folder,
     Headphones,
     LayoutDashboard,
+    LogOut,
     Menu,
     Receipt,
     TrendingUp,
@@ -229,8 +230,14 @@ export default function EspaceApprenantLayout({ children }: PropsWithChildren) {
                                 method="post"
                                 as="button"
                                 className="btn-ghost"
+                                aria-label="Déconnexion"
                             >
-                                Déconnexion
+                                <span className="btn-label-full">
+                                    Déconnexion
+                                </span>
+                                <span className="btn-label-short">
+                                    <LogOut size={16} />
+                                </span>
                             </Link>
                         </div>
                     </header>

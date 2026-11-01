@@ -116,7 +116,7 @@ export default function ApprenantDossier({
                             {apprenant.nom}
                         </h2>
                         <p className="muted" style={{ fontSize: 13 }}>
-                            {dossier.ville ?? 'Ville non renseignée'}, Cameroun
+                            {dossier.ville ?? 'Ville non renseignée'}
                         </p>
 
                         <div
