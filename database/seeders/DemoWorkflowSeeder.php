@@ -307,11 +307,13 @@ class DemoWorkflowSeeder extends Seeder
                     'moyen_paiement' => 'OM',
                 ]);
 
-                foreach ($seances->take(9) as $seance) {
+                foreach ($seances->take(9) as $index => $seance) {
                     Presence::create([
                         'seance_id' => $seance->id,
                         'inscription_id' => $inscription->id,
-                        'present' => true,
+                        // Séance 2 marquée absente pour illustrer les deux
+                        // états de présence dans l'espace apprenant.
+                        'present' => $index !== 1,
                     ]);
                 }
             }

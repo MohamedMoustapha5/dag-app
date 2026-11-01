@@ -269,11 +269,11 @@ export default function ApprenantDashboard({
                             className="muted"
                             style={{ fontSize: 12.5, lineHeight: 1.6 }}
                         >
-                            Générée automatiquement en PDF à la fin de la
-                            session
-                            {formationDetail
-                                ? ` — ${stats.seancesRestantes} séance(s) restante(s).`
-                                : '.'}
+                            {formationDetail === null
+                                ? "Disponible une fois inscrit à une formation, terminée puis validée par l'équipe DAG."
+                                : stats.seancesRestantes === 0
+                                  ? "Formation terminée — en attente de validation par l'équipe DAG."
+                                  : `Disponible une fois votre formation terminée et validée par l'équipe DAG — ${stats.seancesRestantes} séance(s) restante(s).`}
                         </p>
                     ) : (
                         <p

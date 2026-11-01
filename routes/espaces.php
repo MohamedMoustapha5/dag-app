@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Espaces\AdminAttestationController;
 use App\Http\Controllers\Espaces\AdminDashboardController;
 use App\Http\Controllers\Espaces\AdminGrilleTarifaireController;
 use App\Http\Controllers\Espaces\ApprenantDashboardController;
@@ -97,4 +98,6 @@ Route::middleware(['auth', 'verified', EnsureUserType::class.':MEMBRE_EQUIPE'])
         Route::post('grille-tarifaire', [AdminGrilleTarifaireController::class, 'store'])->name('espace-admin.grille-tarifaire.store');
         Route::patch('grille-tarifaire/{ligneTarifaire}', [AdminGrilleTarifaireController::class, 'update'])->name('espace-admin.grille-tarifaire.update');
         Route::delete('grille-tarifaire/{ligneTarifaire}', [AdminGrilleTarifaireController::class, 'destroy'])->name('espace-admin.grille-tarifaire.destroy');
+        Route::get('attestations', [AdminAttestationController::class, 'index'])->name('espace-admin.attestations.index');
+        Route::post('attestations', [AdminAttestationController::class, 'store'])->name('espace-admin.attestations.store');
     });

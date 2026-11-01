@@ -15,6 +15,11 @@ type FormationSuivie = {
     statut: string;
     progression: number;
     seancesTotal: number;
+    seancesRestantes: number;
+    attestation: {
+        validee: boolean;
+        dateEmission: string | null;
+    };
 };
 
 type Props = {
@@ -27,16 +32,12 @@ type Props = {
         consentementCv: boolean;
     };
     formations: FormationSuivie[];
-    attestation: {
-        seancesRestantes: number;
-    };
 };
 
 export default function ApprenantDossier({
     apprenant,
     dossier,
     formations,
-    attestation,
 }: Props) {
     const cvInputRef = useRef<HTMLInputElement>(null);
 
@@ -361,73 +362,65 @@ export default function ApprenantDossier({
                                                 />
                                             </div>
                                         </div>
+
+                                        <div
+                                            style={{
+                                                marginTop: 14,
+                                                paddingTop: 14,
+                                                borderTop:
+                                                    '1px solid var(--dag-border)',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'space-between',
+                                                gap: 12,
+                                                flexWrap: 'wrap',
+                                            }}
+                                        >
+                                            <div
+                                                style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: 8,
+                                                }}
+                                            >
+                                                <Award
+                                                    size={14}
+                                                    style={{
+                                                        color: 'var(--dag-text-muted)',
+                                                    }}
+                                                />
+                                                <span
+                                                    className="muted"
+                                                    style={{ fontSize: 11.5 }}
+                                                >
+                                                    {formation.attestation
+                                                        .validee
+                                                        ? `Attestation validée le ${formation.attestation.dateEmission}`
+                                                        : formation.seancesRestantes ===
+                                                            0
+                                                          ? "Formation terminée — en attente de validation par l'équipe DAG"
+                                                          : 'Attestation disponible une fois la formation terminée et validée par DAG'}
+                                                </span>
+                                            </div>
+                                            {formation.attestation.validee ? (
+                                                <span className="chip chip-green">
+                                                    Validée
+                                                </span>
+                                            ) : formation.seancesRestantes ===
+                                              0 ? (
+                                                <span className="chip chip-orange">
+                                                    En attente de validation
+                                                </span>
+                                            ) : (
+                                                <span className="chip chip-gray">
+                                                    En cours
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
                                 ))}
                             </div>
                         )}
-                    </div>
-
-                    <div
-                        className="card"
-                        style={{
-                            padding: 24,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            gap: 16,
-                            flexWrap: 'wrap',
-                        }}
-                    >
-                        <div
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 12,
-                            }}
-                        >
-                            <span
-                                className="espace-stat-icon"
-                                style={{
-                                    background: 'var(--dag-blue-light)',
-                                    color: 'var(--dag-blue)',
-                                    margin: 0,
-                                }}
-                            >
-                                <Award size={18} />
-                            </span>
-                            <div>
-                                <span
-                                    className="muted"
-                                    style={{
-                                        fontSize: 11,
-                                        textTransform: 'uppercase',
-                                        letterSpacing: '0.04em',
-                                        fontWeight: 700,
-                                    }}
-                                >
-                                    Attestation de formation
-                                </span>
-                                <p
-                                    className="muted"
-                                    style={{ fontSize: 13, marginTop: 4 }}
-                                >
-                                    Générée automatiquement en PDF à la fin de
-                                    la session — {attestation.seancesRestantes}{' '}
-                                    séance(s) restante(s).
-                                </p>
-                            </div>
-                        </div>
-                        <span
-                            className="btn-outline"
-                            style={{
-                                opacity: 0.5,
-                                cursor: 'not-allowed',
-                                flexShrink: 0,
-                            }}
-                            title="Disponible une fois la formation terminée"
-                        >
-                            Aperçu de l'attestation
-                        </span>
                     </div>
                 </div>
             </div>

@@ -26,6 +26,8 @@ class ApprenantDossierController extends Controller
             ->latest()
             ->get();
 
+        $attestationsParFormation = $apprenant->attestations()->get()->keyBy('formation_id');
+
         return Inertia::render('espaces/apprenant/dossier', [
             'apprenant' => $apprenant->espaceHeaderProps(),
             'dossier' => [
@@ -36,9 +38,10 @@ class ApprenantDossierController extends Controller
                 'cvNomFichier' => $apprenant->cv_path !== null ? basename($apprenant->cv_path) : null,
                 'consentementCv' => $apprenant->consentement_cv,
             ],
-            'formations' => $inscriptions->map(function (Inscription $inscription) {
+            'formations' => $inscriptions->map(function (Inscription $inscription) use ($attestationsParFormation) {
                 $seances = $inscription->formationSession->seances ?? new Collection;
                 $presences = $this->presences($seances, $inscription);
+                $attestation = $attestationsParFormation->get($inscription->formation_id);
 
                 return [
                     'inscriptionId' => $inscription->id,
@@ -49,13 +52,17 @@ class ApprenantDossierController extends Controller
                     'statut' => $inscription->statut,
                     'progression' => $this->progression($seances, $presences),
                     'seancesTotal' => $seances->count(),
+                    'seancesRestantes' => $seances->where('date', '>=', now()->toDateString())->count(),
+                    'attestation' => [
+                        // L'attestation n'est jamais générée automatiquement :
+                        // seule son existence, créée par un membre DAG
+                        // habilité (espace-admin/attestations), vaut
+                        // validation (Donnee::DossiersApprenants, Action::Valider).
+                        'validee' => $attestation !== null,
+                        'dateEmission' => $attestation === null ? null : $this->formatDate($attestation->date_emission),
+                    ],
                 ];
             }),
-            'attestation' => [
-                'seancesRestantes' => $inscriptions->sum(fn (Inscription $inscription) => ($inscription->formationSession->seances ?? new Collection)
-                    ->where('date', '>=', now()->toDateString())
-                    ->count()),
-            ],
         ]);
     }
 

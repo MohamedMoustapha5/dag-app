@@ -56,6 +56,12 @@ export default function AdminDashboard({ membre, droits }: Props) {
                     Gérer la grille tarifaire →
                 </Link>
                 <Link
+                    href={espaceAdmin.attestations.index()}
+                    className="self-start text-sm font-medium underline"
+                >
+                    Valider les attestations →
+                </Link>
+                <Link
                     href={logout()}
                     as="button"
                     className="self-start text-sm text-muted-foreground underline"

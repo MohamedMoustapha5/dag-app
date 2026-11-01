@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Apprenant;
+use App\Models\Attestation;
 use App\Models\Client;
 use App\Models\Formation;
 use App\Models\FormationSession;
@@ -89,6 +90,38 @@ test('an apprenant following several formations sees each one listed in their do
 
             return in_array($inscriptionUne->id, $ids, true) && in_array($inscriptionDeux->id, $ids, true);
         }));
+});
+
+test('a formation only shows its attestation as validated once a member of DAG has issued it', function () {
+    $apprenant = Apprenant::factory()->create();
+    $formation = Formation::factory()->create(['nom' => 'Community Management']);
+    $session = FormationSession::factory()->for($formation)->create();
+
+    Inscription::create([
+        'apprenant_id' => $apprenant->id,
+        'formation_id' => $formation->id,
+        'formation_session_id' => $session->id,
+        'statut' => 'FORMEE',
+    ]);
+
+    $response = $this->actingAs($apprenant->user)->get(route('espace-apprenant.dossier'));
+
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page
+        ->where('formations.0.attestation.validee', false)
+        ->where('formations.0.attestation.dateEmission', null));
+
+    Attestation::create([
+        'apprenant_id' => $apprenant->id,
+        'formation_id' => $formation->id,
+        'date_emission' => '2026-11-01',
+        'fichier_pdf' => 'attestations/demo.pdf',
+    ]);
+
+    $this->actingAs($apprenant->user)->get(route('espace-apprenant.dossier'))
+        ->assertInertia(fn ($page) => $page
+            ->where('formations.0.attestation.validee', true)
+            ->where('formations.0.attestation.dateEmission', '2026-11-01'));
 });
 
 test('an apprenant can replace their cv and toggle sharing consent', function () {
