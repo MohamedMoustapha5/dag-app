@@ -24,6 +24,10 @@ class EnsureUserType
 
         abort_if(! $user, 403);
         abort_if($user->type !== UserType::from($type), 403);
+        // A deactivated membre d'équipe loses access immediately, not only
+        // on their next login attempt — an already-open session must not
+        // keep working after revocation (section 6.9 du cahier des charges).
+        abort_if(! $user->peutSeConnecter(), 403);
 
         return $next($request);
     }

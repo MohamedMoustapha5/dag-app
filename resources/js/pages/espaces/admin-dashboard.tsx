@@ -61,6 +61,14 @@ export default function AdminDashboard({ membre, droits }: Props) {
                 >
                     Valider les attestations →
                 </Link>
+                {membre.role === 'PROMOTRICE' && (
+                    <Link
+                        href={espaceAdmin.equipe.index()}
+                        className="self-start text-sm font-medium underline"
+                    >
+                        Gérer l'équipe DAG →
+                    </Link>
+                )}
                 <Link
                     href={logout()}
                     as="button"
