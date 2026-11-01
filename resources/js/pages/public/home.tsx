@@ -747,6 +747,44 @@ export default function Home({ stats, equipe }: HomeProps) {
                 </div>
             </section>
 
+            <section className="section-gap reveal container">
+                <div
+                    className="card"
+                    style={{
+                        padding: 28,
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        gap: 24,
+                        flexWrap: 'wrap',
+                    }}
+                >
+                    <div style={{ maxWidth: 480 }}>
+                        <span className="badge">Abonnement</span>
+                        <h2
+                            style={{
+                                marginTop: 10,
+                                fontSize: 19,
+                                color: 'var(--dag-navy)',
+                            }}
+                        >
+                            Comment demander un abonnement
+                        </h2>
+                        <p
+                            className="muted"
+                            style={{ marginTop: 8, fontSize: 13.5 }}
+                        >
+                            Choisissez une formule adaptée à votre rythme de
+                            publication, payez en ligne et activez votre
+                            accompagnement mensuel en quelques minutes.
+                        </p>
+                    </div>
+                    <Link href={abonnement()} className="btn-primary">
+                        Voir les formules →
+                    </Link>
+                </div>
+            </section>
+
             {activeMember && (
                 <section
                     id="equipe"
