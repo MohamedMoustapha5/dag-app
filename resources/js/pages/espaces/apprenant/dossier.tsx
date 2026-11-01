@@ -1,9 +1,7 @@
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import { Award, Check, X } from 'lucide-react';
 import { useRef } from 'react';
 import { type EspaceApprenantInfo } from '@/layouts/espace-apprenant-layout';
-import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
-import { offresEmploi } from '@/routes';
 import dossierRoutes from '@/routes/espace-apprenant/dossier';
 
 type FormationSuivie = {
@@ -13,16 +11,6 @@ type FormationSuivie = {
     dateFin: string | null;
     seancesCompletees: number;
     seancesTotal: number;
-};
-
-type Candidature = {
-    id: string;
-    titre: string;
-    entreprise: string;
-    typeContrat: string;
-    duree: string | null;
-    dateDepot: string | null;
-    statut: string;
 };
 
 type Presence = {
@@ -45,7 +33,6 @@ type Props = {
     attestation: {
         seancesRestantes: number;
     };
-    candidatures: Candidature[];
     presences: Presence[];
 };
 
@@ -54,7 +41,6 @@ export default function ApprenantDossier({
     dossier,
     formationSuivie,
     attestation,
-    candidatures,
     presences,
 }: Props) {
     const cvInputRef = useRef<HTMLInputElement>(null);
@@ -97,18 +83,11 @@ export default function ApprenantDossier({
                 <div className="espace-hero-overlay" />
                 <div className="espace-hero-content">
                     <h1>Mon dossier</h1>
-                    <p>Profil, formation suivie et candidatures.</p>
+                    <p>Profil, formation suivie et présence.</p>
                 </div>
             </div>
 
-            <div
-                style={{
-                    display: 'grid',
-                    gridTemplateColumns: '320px 1fr',
-                    gap: 24,
-                    alignItems: 'start',
-                }}
-            >
+            <div className="espace-dossier-grid">
                 <div
                     style={{
                         display: 'flex',
@@ -394,88 +373,6 @@ export default function ApprenantDossier({
                         >
                             Aperçu de l'attestation
                         </span>
-                    </div>
-
-                    <div className="card" style={{ padding: 24 }}>
-                        <p
-                            style={{
-                                fontSize: 15,
-                                fontWeight: 700,
-                                marginBottom: 16,
-                            }}
-                        >
-                            Mes candidatures
-                        </p>
-                        {candidatures.length === 0 ? (
-                            <p className="muted" style={{ fontSize: 13 }}>
-                                Aucune candidature envoyée pour le moment.
-                            </p>
-                        ) : (
-                            <div
-                                style={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: 12,
-                                }}
-                            >
-                                {candidatures.map((candidature) => (
-                                    <div
-                                        key={candidature.id}
-                                        style={{
-                                            padding: '14px 16px',
-                                            borderRadius:
-                                                'var(--dag-radius-sm)',
-                                            border: '1px solid var(--dag-border)',
-                                            display: 'flex',
-                                            justifyContent: 'space-between',
-                                            alignItems: 'center',
-                                            gap: 12,
-                                            flexWrap: 'wrap',
-                                        }}
-                                    >
-                                        <div>
-                                            <p
-                                                style={{
-                                                    fontSize: 14,
-                                                    fontWeight: 700,
-                                                    color: 'var(--dag-navy)',
-                                                }}
-                                            >
-                                                {candidature.titre} —{' '}
-                                                {candidature.entreprise}
-                                            </p>
-                                            <p
-                                                className="muted"
-                                                style={{
-                                                    fontSize: 12,
-                                                    marginTop: 4,
-                                                }}
-                                            >
-                                                {candidature.typeContrat}
-                                                {candidature.duree
-                                                    ? ` ${candidature.duree}`
-                                                    : ''}{' '}
-                                                · déposée le{' '}
-                                                {candidature.dateDepot}
-                                            </p>
-                                        </div>
-                                        <span
-                                            className={`chip ${STATUT_CHIP[candidature.statut] ?? 'chip-gray'}`}
-                                        >
-                                            {STATUT_LABEL[candidature.statut] ??
-                                                candidature.statut}
-                                        </span>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                        <Link
-                            href={offresEmploi()}
-                            className="link-action"
-                            style={{ marginTop: 16, display: 'inline-block' }}
-                        >
-                            Voir toutes les offres disponibles →
-                        </Link>
                     </div>
 
                     <div className="card" style={{ padding: 24 }}>

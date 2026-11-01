@@ -3281,6 +3281,14 @@
     margin-top: 2px;
 }
 
+/* mon dossier */
+.dag .espace-dossier-grid {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 24px;
+    align-items: start;
+}
+
 /* carte formule */
 .dag .espace-formule-progress {
     height: 6px;
@@ -3304,6 +3312,9 @@
 }
 
 @media (max-width: 960px) {
+    .dag .espace-dossier-grid {
+        grid-template-columns: 1fr;
+    }
     .dag .espace-sidebar {
         position: fixed;
         left: 0;

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Espaces;
 
 use App\Http\Controllers\Controller;
-use App\Models\Candidature;
 use App\Models\Presence;
 use App\Models\Seance;
 use Illuminate\Http\RedirectResponse;
@@ -51,19 +50,6 @@ class ApprenantDossierController extends Controller
             'attestation' => [
                 'seancesRestantes' => $seances?->where('date', '>=', now()->toDateString())->count() ?? 0,
             ],
-            'candidatures' => $apprenant->candidatures()
-                ->with(['offre.entreprise'])
-                ->latest()
-                ->get()
-                ->map(fn (Candidature $candidature) => [
-                    'id' => $candidature->id,
-                    'titre' => $candidature->offre->titre,
-                    'entreprise' => $candidature->offre->entreprise->nom,
-                    'typeContrat' => $candidature->offre->type_contrat,
-                    'duree' => $candidature->offre->duree,
-                    'dateDepot' => $this->formatDate($candidature->created_at?->toDateString()),
-                    'statut' => $candidature->statut,
-                ]),
             'presences' => $seances === null ? [] : $seances
                 ->sortBy('date')
                 ->map(fn (Seance $seance) => [
