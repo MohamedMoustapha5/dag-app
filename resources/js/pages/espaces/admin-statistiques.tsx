@@ -53,7 +53,10 @@ export default function AdminStatistiques({
                 </div>
             </div>
 
-            <div className="grid-4" style={{ marginBottom: 28 }}>
+            <div
+                className="grid-4 espace-stats-grid"
+                style={{ marginBottom: 28 }}
+            >
                 <div className="card espace-stat-card" style={{ padding: 22 }}>
                     <span
                         className="espace-stat-icon"

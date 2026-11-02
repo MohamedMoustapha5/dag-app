@@ -50,7 +50,10 @@ export default function AdminApprenantShow({
                 {apprenant.nom}
             </h1>
 
-            <div className="grid-3" style={{ marginBottom: 28 }}>
+            <div
+                className="grid-3 espace-stats-grid"
+                style={{ marginBottom: 28 }}
+            >
                 <div className="card" style={{ padding: 20 }}>
                     <p className="muted" style={{ fontSize: 12.5 }}>
                         E-mail

@@ -223,7 +223,7 @@ export default function AdminDashboard({
                 <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 16 }}>
                     Actions rapides
                 </p>
-                <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                <div className="espace-quick-actions">
                     {peutVoir('DEMANDES_CLIENTS') && (
                         <Link
                             href={demandesAdmin.index()}

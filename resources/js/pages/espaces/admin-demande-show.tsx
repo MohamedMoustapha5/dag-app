@@ -124,7 +124,10 @@ export default function AdminDemandeShow({
             </div>
 
             {(demande.contrat || demande.facture) && (
-                <div className="grid-3" style={{ marginBottom: 24 }}>
+                <div
+                    className="grid-3 espace-stats-grid"
+                    style={{ marginBottom: 24 }}
+                >
                     {demande.contrat && (
                         <div className="card" style={{ padding: 20 }}>
                             <p className="muted" style={{ fontSize: 12.5 }}>

@@ -3238,6 +3238,23 @@
     padding: 1px 7px;
     margin-left: auto;
 }
+/* variante grille compacte : pour les listes de plusieurs actions
+   (espace admin), évite l'empilement d'un bouton par ligne sur mobile
+   que produirait un simple flex-wrap. */
+.dag .espace-quick-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+}
+.dag .espace-quick-actions .espace-action-btn {
+    padding: 10px 12px;
+    font-size: 13px;
+}
+@media (max-width: 640px) {
+    .dag .espace-quick-actions {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
 
 /* activité récente */
 .dag .espace-timeline-item {
