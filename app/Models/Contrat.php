@@ -10,8 +10,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
+/**
+ * @property Carbon|null $date_signature
+ */
 #[Fillable([
     'reference', 'type', 'modele_contrat_id', 'client_id', 'apprenant_id', 'entreprise_id',
     'demande_id', 'abonnement_id', 'candidature_id', 'contenu', 'montant', 'code_verification',

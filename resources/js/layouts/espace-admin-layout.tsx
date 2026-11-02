@@ -5,6 +5,7 @@ import {
     Briefcase,
     BookOpen,
     FileText,
+    FileSignature,
     LayoutDashboard,
     LogOut,
     Menu,
@@ -19,6 +20,7 @@ import { logout } from '@/routes';
 import LanguageSwitcher from '@/components/public/language-switcher';
 import espaceAdmin from '@/routes/espace-admin';
 import attestationsAdmin from '@/routes/espace-admin/attestations';
+import contratsAdmin from '@/routes/espace-admin/contrats';
 import demandesAdmin from '@/routes/espace-admin/demandes';
 import entreprisesAdmin from '@/routes/espace-admin/entreprises';
 import equipeAdmin from '@/routes/espace-admin/equipe';
@@ -83,6 +85,12 @@ const NAV_GROUPS: NavGroup[] = [
                 icon: Receipt,
                 href: facturesAdmin.index(),
                 visibleIf: 'FACTURES_PAIEMENTS',
+            },
+            {
+                label: 'Contrats & clauses',
+                icon: FileSignature,
+                href: contratsAdmin.index(),
+                visibleIf: 'CONTRATS_CLAUSES',
             },
         ],
     },

@@ -1,0 +1,191 @@
+<?php
+
+namespace App\Http\Controllers\Espaces;
+
+use App\Concerns\SharesAdminEspaceProps;
+use App\Enums\Action;
+use App\Enums\Donnee;
+use App\Http\Controllers\Controller;
+use App\Models\Clause;
+use App\Models\Contrat;
+use App\Models\Demande;
+use App\Models\ModeleContrat;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Inertia\Inertia;
+use Inertia\Response;
+
+class AdminContratController extends Controller
+{
+    use SharesAdminEspaceProps;
+
+    public function index(Request $request): Response
+    {
+        $membre = $request->user()->membreEquipe;
+        abort_unless($membre->peut(Donnee::ContratsClauses, Action::Voir), 403);
+
+        $contrats = Contrat::query()
+            ->with(['client', 'entreprise', 'demande', 'abonnement.formule', 'candidature.offre'])
+            ->latest()
+            ->get();
+
+        $demandesAContractualiser = Demande::query()
+            ->whereNotIn('statut', ['BROUILLON', 'REFUSEE'])
+            ->whereDoesntHave('contrat')
+            ->get();
+
+        return Inertia::render('espaces/admin-contrats', [
+            ...$this->adminEspaceProps($membre),
+            'peutCreer' => $membre->peut(Donnee::ContratsClauses, Action::Creer),
+            'peutModifier' => $membre->peut(Donnee::ContratsClauses, Action::Modifier),
+            'peutSupprimer' => $membre->peut(Donnee::ContratsClauses, Action::Supprimer),
+            'modeles' => ModeleContrat::query()->orderBy('nom')->get(['id', 'nom', 'type', 'statut']),
+            'clauses' => Clause::query()->orderBy('ordre')->get(['id', 'titre', 'ordre']),
+            'contrats' => $contrats->map(fn (Contrat $contrat) => [
+                'id' => $contrat->id,
+                'reference' => $contrat->reference,
+                'objet' => $contrat->libelleObjet(),
+                'type' => $contrat->type,
+                'statut' => $contrat->statut,
+            ]),
+            'demandesAContractualiser' => $demandesAContractualiser->map(fn (Demande $demande) => [
+                'id' => $demande->id,
+                'reference' => $demande->reference,
+                'objet' => $demande->libelleObjet(),
+            ]),
+        ]);
+    }
+
+    public function storeModele(Request $request): RedirectResponse
+    {
+        $membre = $request->user()->membreEquipe;
+        abort_unless($membre->peut(Donnee::ContratsClauses, Action::Creer), 403);
+
+        $data = $request->validate([
+            'nom' => ['required', 'string', 'max:191'],
+            'type' => ['required', Rule::in(['PRESTATION_SERVICE', 'ABONNEMENT', 'CONVENTION_STAGE', 'CONTRAT_PARTENAIRE'])],
+            'contenu' => ['required', 'string'],
+        ]);
+
+        ModeleContrat::create([...$data, 'statut' => 'BROUILLON']);
+
+        return back();
+    }
+
+    public function updateModele(Request $request, ModeleContrat $modeleContrat): RedirectResponse
+    {
+        $membre = $request->user()->membreEquipe;
+        abort_unless($membre->peut(Donnee::ContratsClauses, Action::Modifier), 403);
+
+        $data = $request->validate([
+            'statut' => ['required', Rule::in(['BROUILLON', 'ACTIF'])],
+        ]);
+
+        $modeleContrat->update($data);
+
+        return back();
+    }
+
+    public function storeClause(Request $request): RedirectResponse
+    {
+        $membre = $request->user()->membreEquipe;
+        abort_unless($membre->peut(Donnee::ContratsClauses, Action::Creer), 403);
+
+        $data = $request->validate([
+            'titre' => ['required', 'string', 'max:191'],
+            'contenu' => ['required', 'string'],
+            'ordre' => ['nullable', 'integer', 'min:0'],
+        ]);
+
+        Clause::create([...$data, 'ordre' => $data['ordre'] ?? 0]);
+
+        return back();
+    }
+
+    public function destroyClause(Request $request, Clause $clause): RedirectResponse
+    {
+        $membre = $request->user()->membreEquipe;
+        abort_unless($membre->peut(Donnee::ContratsClauses, Action::Supprimer), 403);
+
+        $clause->delete();
+
+        return back();
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $membre = $request->user()->membreEquipe;
+        abort_unless($membre->peut(Donnee::ContratsClauses, Action::Creer), 403);
+
+        $data = $request->validate([
+            'demande_id' => ['required', 'uuid', 'exists:demandes,id'],
+            'modele_contrat_id' => ['nullable', 'uuid', 'exists:modeles_contrat,id'],
+        ]);
+
+        $demande = Demande::where('id', $data['demande_id'])->firstOrFail();
+
+        abort_if($demande->contrat()->exists(), 409, 'Cette demande a déjà un contrat.');
+
+        $modele = $data['modele_contrat_id'] !== null
+            ? ModeleContrat::where('id', $data['modele_contrat_id'])->first()
+            : null;
+
+        $contrat = Contrat::create([
+            'type' => 'PRESTATION_SERVICE',
+            'modele_contrat_id' => $modele?->id,
+            'client_id' => $demande->client_id,
+            'entreprise_id' => $demande->entreprise_id,
+            'demande_id' => $demande->id,
+            'contenu' => $modele?->contenu,
+            'montant' => $demande->montant_negocie,
+            'statut' => 'BROUILLON',
+        ]);
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => "Contrat {$contrat->reference} créé."]);
+
+        return to_route('espace-admin.contrats.show', $contrat);
+    }
+
+    public function show(Request $request, Contrat $contrat): Response
+    {
+        $membre = $request->user()->membreEquipe;
+        abort_unless($membre->peut(Donnee::ContratsClauses, Action::Voir), 403);
+
+        $contrat->load(['client', 'entreprise', 'modeleContrat', 'demande', 'abonnement.formule', 'candidature.offre']);
+
+        return Inertia::render('espaces/admin-contrat-show', [
+            ...$this->adminEspaceProps($membre),
+            'peutModifier' => $membre->peut(Donnee::ContratsClauses, Action::Modifier),
+            'contrat' => [
+                'id' => $contrat->id,
+                'reference' => $contrat->reference,
+                'objet' => $contrat->libelleObjet(),
+                'type' => $contrat->type,
+                'statut' => $contrat->statut,
+                'montant' => $contrat->montant,
+                'contenu' => $contrat->contenu,
+                'codeVerification' => $contrat->code_verification,
+                'signataireNom' => $contrat->signataire_nom,
+                'dateSignature' => $contrat->date_signature?->toDateString(),
+                'signatureContestee' => $contrat->signature_contestee,
+            ],
+        ]);
+    }
+
+    public function update(Request $request, Contrat $contrat): RedirectResponse
+    {
+        $membre = $request->user()->membreEquipe;
+        abort_unless($membre->peut(Donnee::ContratsClauses, Action::Modifier), 403);
+
+        $data = $request->validate([
+            'statut' => ['required', Rule::in(['BROUILLON', 'ENVOYE', 'SIGNE', 'ACTIF', 'TERMINE', 'REFUSE', 'RESILIE'])],
+        ]);
+
+        $contrat->update($data);
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Contrat mis à jour.']);
+
+        return back();
+    }
+}

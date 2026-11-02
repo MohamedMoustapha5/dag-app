@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Espaces\AdminAttestationController;
+use App\Http\Controllers\Espaces\AdminContratController;
 use App\Http\Controllers\Espaces\AdminDashboardController;
 use App\Http\Controllers\Espaces\AdminDemandeController;
 use App\Http\Controllers\Espaces\AdminEntrepriseController;
@@ -128,4 +129,12 @@ Route::middleware(['auth', 'verified', EnsureUserType::class.':MEMBRE_EQUIPE'])
         Route::post('factures', [AdminFactureController::class, 'store'])->name('espace-admin.factures.store');
         Route::get('factures/{facture}', [AdminFactureController::class, 'show'])->name('espace-admin.factures.show');
         Route::post('factures/{facture}/paiements', [AdminFactureController::class, 'storePaiement'])->name('espace-admin.factures.paiements.store');
+        Route::get('contrats', [AdminContratController::class, 'index'])->name('espace-admin.contrats.index');
+        Route::post('contrats', [AdminContratController::class, 'store'])->name('espace-admin.contrats.store');
+        Route::get('contrats/{contrat}', [AdminContratController::class, 'show'])->name('espace-admin.contrats.show');
+        Route::patch('contrats/{contrat}', [AdminContratController::class, 'update'])->name('espace-admin.contrats.update');
+        Route::post('modeles-contrat', [AdminContratController::class, 'storeModele'])->name('espace-admin.modeles-contrat.store');
+        Route::patch('modeles-contrat/{modeleContrat}', [AdminContratController::class, 'updateModele'])->name('espace-admin.modeles-contrat.update');
+        Route::post('clauses', [AdminContratController::class, 'storeClause'])->name('espace-admin.clauses.store');
+        Route::delete('clauses/{clause}', [AdminContratController::class, 'destroyClause'])->name('espace-admin.clauses.destroy');
     });
