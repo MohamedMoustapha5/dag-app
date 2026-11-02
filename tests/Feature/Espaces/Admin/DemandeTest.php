@@ -77,3 +77,51 @@ test('a role without any access to demandes clients cannot reach the page', func
         ->get(route('espace-admin.demandes.index'))
         ->assertForbidden();
 });
+
+test('envoyer un devis records the amount and message and moves the demande to DEVIS_ENVOYE', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $demande = Demande::factory()->create(['statut' => 'EN_ETUDE', 'montant_negocie' => null]);
+
+    $this->actingAs($promotrice, 'admin')
+        ->post(route('espace-admin.demandes.devis', $demande), [
+            'montant' => 120000,
+            'message' => 'Livraison sous deux semaines.',
+        ])
+        ->assertRedirect();
+
+    $demande->refresh();
+    expect($demande->statut)->toBe('DEVIS_ENVOYE');
+    expect((float) $demande->montant_negocie)->toBe(120000.0);
+    expect($demande->message_devis)->toBe('Livraison sous deux semaines.');
+});
+
+test('envoyer un devis requires a positive amount', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $demande = Demande::factory()->create(['statut' => 'EN_ETUDE']);
+
+    $this->actingAs($promotrice, 'admin')
+        ->post(route('espace-admin.demandes.devis', $demande), ['montant' => 0])
+        ->assertSessionHasErrors('montant');
+
+    expect($demande->fresh()->statut)->toBe('EN_ETUDE');
+});
+
+test('envoyer un devis is refused once the demande is paid', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $demande = Demande::factory()->create(['statut' => 'PAYEE']);
+
+    $this->actingAs($promotrice, 'admin')
+        ->post(route('espace-admin.demandes.devis', $demande), ['montant' => 5000])
+        ->assertStatus(409);
+});
+
+test('a role with only lecture cannot send a devis', function () {
+    $juriste = MembreEquipe::factory()->juriste()->create();
+    $demande = Demande::factory()->create(['statut' => 'EN_ETUDE']);
+
+    $this->actingAs($juriste, 'admin')
+        ->post(route('espace-admin.demandes.devis', $demande), ['montant' => 5000])
+        ->assertForbidden();
+
+    expect($demande->fresh()->statut)->toBe('EN_ETUDE');
+});

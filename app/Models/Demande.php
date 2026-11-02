@@ -11,9 +11,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
+/**
+ * @property-read bool|null $contrat_exists Present when loaded with withExists('contrat').
+ */
 #[Fillable([
     'reference', 'client_id', 'entreprise_id', 'service_id', 'formule_id', 'description',
-    'montant_negocie', 'statut', 'est_partenaire_nova_tech', 'avancement_partenaire', 'derniere_relance_at',
+    'montant_negocie', 'message_devis', 'statut', 'est_partenaire_nova_tech', 'avancement_partenaire', 'derniere_relance_at',
 ])]
 class Demande extends Model
 {

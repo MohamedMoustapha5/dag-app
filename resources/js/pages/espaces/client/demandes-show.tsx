@@ -11,6 +11,7 @@ type Props = {
         description: string;
         statut: string;
         montantNegocie: string | null;
+        messageDevis: string | null;
         createdAt: string;
         contrat: {
             reference: string;
@@ -129,6 +130,11 @@ export default function DemandesShow({ demande, suivi }: Props) {
                     <p style={{ marginTop: 12, fontSize: 13.5 }}>
                         Montant négocié :{' '}
                         <strong>{demande.montantNegocie} FCFA</strong>
+                    </p>
+                )}
+                {demande.messageDevis && (
+                    <p className="muted" style={{ marginTop: 8, fontSize: 13.5 }}>
+                        Message de l'équipe : {demande.messageDevis}
                     </p>
                 )}
             </div>

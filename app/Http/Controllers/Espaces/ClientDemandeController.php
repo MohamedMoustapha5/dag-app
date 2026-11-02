@@ -90,6 +90,7 @@ class ClientDemandeController extends Controller
                 'description' => $demande->description,
                 'statut' => $demande->statut,
                 'montantNegocie' => $demande->montant_negocie,
+                'messageDevis' => $demande->message_devis,
                 'createdAt' => $demande->created_at,
                 'contrat' => $demande->contrat ? [
                     'reference' => $demande->contrat->reference,

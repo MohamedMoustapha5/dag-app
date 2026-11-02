@@ -24,12 +24,14 @@ class AdminDemandeController extends Controller
 
         $demandes = Demande::query()
             ->with(['client', 'entreprise', 'service', 'formule'])
+            ->withExists('contrat')
             ->latest('updated_at')
             ->get();
 
         return Inertia::render('espaces/admin-demandes', [
             ...$this->adminEspaceProps($membre),
             'peutModifier' => $membre->peut(Donnee::DemandesClients, Action::Modifier),
+            'peutGenererContrat' => $membre->peut(Donnee::ContratsClauses, Action::Creer),
             'demandes' => $demandes->map(fn (Demande $demande) => [
                 'id' => $demande->id,
                 'reference' => $demande->reference,
@@ -37,6 +39,7 @@ class AdminDemandeController extends Controller
                 'objet' => $demande->libelleObjet(),
                 'statut' => $demande->statut,
                 'montantNegocie' => $demande->montant_negocie,
+                'aContrat' => $demande->contrat_exists,
                 'updatedAt' => $demande->updated_at?->toDateString(),
             ]),
         ]);
@@ -94,6 +97,32 @@ class AdminDemandeController extends Controller
         $demande->update($data);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Demande mise à jour.']);
+
+        return back();
+    }
+
+    public function envoyerDevis(Request $request, Demande $demande): RedirectResponse
+    {
+        $membre = $this->membre($request);
+        abort_unless($membre->peut(Donnee::DemandesClients, Action::Modifier), 403);
+        abort_unless(
+            in_array($demande->statut, ['BROUILLON', 'EN_ETUDE', 'DEVIS_ENVOYE'], true),
+            409,
+            'Un devis ne peut plus être envoyé pour cette demande.'
+        );
+
+        $data = $request->validate([
+            'montant' => ['required', 'numeric', 'min:1'],
+            'message' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $demande->update([
+            'montant_negocie' => $data['montant'],
+            'message_devis' => $data['message'] ?? null,
+            'statut' => 'DEVIS_ENVOYE',
+        ]);
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => "Devis envoyé pour {$demande->reference}."]);
 
         return back();
     }
