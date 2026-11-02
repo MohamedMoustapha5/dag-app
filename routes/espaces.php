@@ -11,6 +11,7 @@ use App\Http\Controllers\Espaces\AdminEntrepriseController;
 use App\Http\Controllers\Espaces\AdminEquipeController;
 use App\Http\Controllers\Espaces\AdminFactureController;
 use App\Http\Controllers\Espaces\AdminFormationController;
+use App\Http\Controllers\Espaces\AdminFormuleController;
 use App\Http\Controllers\Espaces\AdminGrilleTarifaireController;
 use App\Http\Controllers\Espaces\AdminSeanceController;
 use App\Http\Controllers\Espaces\AdminServiceController;
@@ -151,6 +152,10 @@ Route::middleware(['auth', 'verified', EnsureUserType::class.':MEMBRE_EQUIPE'])
         Route::get('abonnements', [AdminAbonnementController::class, 'index'])->name('espace-admin.abonnements.index');
         Route::post('abonnements', [AdminAbonnementController::class, 'store'])->name('espace-admin.abonnements.store');
         Route::patch('abonnements/{abonnement}', [AdminAbonnementController::class, 'update'])->name('espace-admin.abonnements.update');
+        Route::get('formules', [AdminFormuleController::class, 'index'])->name('espace-admin.formules.index');
+        Route::post('formules', [AdminFormuleController::class, 'store'])->name('espace-admin.formules.store');
+        Route::patch('formules/{formule}', [AdminFormuleController::class, 'update'])->name('espace-admin.formules.update');
+        Route::delete('formules/{formule}', [AdminFormuleController::class, 'destroy'])->name('espace-admin.formules.destroy');
         Route::get('apprenants', [AdminApprenantController::class, 'index'])->name('espace-admin.apprenants.index');
         Route::get('apprenants/{apprenant}', [AdminApprenantController::class, 'show'])->name('espace-admin.apprenants.show');
         Route::get('apprenants/{apprenant}/cv', [AdminApprenantController::class, 'cv'])->name('espace-admin.apprenants.cv');

@@ -36,7 +36,7 @@ class AdminAbonnementController extends Controller
             'abonnements' => $abonnements->map(fn (Abonnement $abonnement) => [
                 'id' => $abonnement->id,
                 'client' => $this->nomSouscripteur($abonnement),
-                'formule' => $abonnement->formule->nom,
+                'formule' => $abonnement->formule_id !== null ? $abonnement->formule->nom : '—',
                 'montant' => $abonnement->montant_negocie,
                 'echeance' => $abonnement->echeance?->toDateString(),
                 'statut' => $abonnement->statut,
