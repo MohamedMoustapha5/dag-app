@@ -3,6 +3,7 @@
 use App\Http\Controllers\Espaces\AdminAbonnementController;
 use App\Http\Controllers\Espaces\AdminApprenantController;
 use App\Http\Controllers\Espaces\AdminAttestationController;
+use App\Http\Controllers\Espaces\AdminClientController;
 use App\Http\Controllers\Espaces\AdminContratController;
 use App\Http\Controllers\Espaces\AdminDashboardController;
 use App\Http\Controllers\Espaces\AdminDemandeController;
@@ -124,6 +125,8 @@ Route::middleware(['auth', 'verified', EnsureUserType::class.':MEMBRE_EQUIPE'])
         Route::get('demandes', [AdminDemandeController::class, 'index'])->name('espace-admin.demandes.index');
         Route::get('demandes/{demande}', [AdminDemandeController::class, 'show'])->name('espace-admin.demandes.show');
         Route::patch('demandes/{demande}', [AdminDemandeController::class, 'update'])->name('espace-admin.demandes.update');
+        Route::get('clients', [AdminClientController::class, 'index'])->name('espace-admin.clients.index');
+        Route::delete('clients/{client}', [AdminClientController::class, 'destroy'])->name('espace-admin.clients.destroy');
         Route::get('formations', [AdminFormationController::class, 'index'])->name('espace-admin.formations.index');
         Route::post('formations', [AdminFormationController::class, 'store'])->name('espace-admin.formations.store');
         Route::get('formations/{formation}', [AdminFormationController::class, 'show'])->name('espace-admin.formations.show');

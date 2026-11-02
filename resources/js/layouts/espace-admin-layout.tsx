@@ -16,6 +16,7 @@ import {
     Tag,
     UserRound,
     Users,
+    UsersRound,
     X,
 } from 'lucide-react';
 import type { PropsWithChildren } from 'react';
@@ -26,6 +27,7 @@ import espaceAdmin from '@/routes/espace-admin';
 import abonnementsAdmin from '@/routes/espace-admin/abonnements';
 import apprenantsAdmin from '@/routes/espace-admin/apprenants';
 import attestationsAdmin from '@/routes/espace-admin/attestations';
+import clientsAdmin from '@/routes/espace-admin/clients';
 import contratsAdmin from '@/routes/espace-admin/contrats';
 import demandesAdmin from '@/routes/espace-admin/demandes';
 import entreprisesAdmin from '@/routes/espace-admin/entreprises';
@@ -91,6 +93,12 @@ const NAV_GROUPS: NavGroup[] = [
                 label: 'Demandes clients',
                 icon: FileText,
                 href: demandesAdmin.index(),
+                visibleIf: 'DEMANDES_CLIENTS',
+            },
+            {
+                label: 'Comptes clients',
+                icon: UsersRound,
+                href: clientsAdmin.index(),
                 visibleIf: 'DEMANDES_CLIENTS',
             },
             {

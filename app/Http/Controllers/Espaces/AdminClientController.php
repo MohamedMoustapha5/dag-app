@@ -1,0 +1,59 @@
+<?php
+
+namespace App\Http\Controllers\Espaces;
+
+use App\Concerns\SharesAdminEspaceProps;
+use App\Enums\Action;
+use App\Enums\Donnee;
+use App\Http\Controllers\Controller;
+use App\Models\Client;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
+
+class AdminClientController extends Controller
+{
+    use SharesAdminEspaceProps;
+
+    public function index(Request $request): Response
+    {
+        $membre = $request->user()->membreEquipe;
+        abort_unless($membre->peut(Donnee::DemandesClients, Action::Voir), 403);
+
+        $clients = Client::query()
+            ->with('user')
+            ->withCount('demandes')
+            ->orderByDesc('created_at')
+            ->get();
+
+        return Inertia::render('espaces/admin-clients', [
+            ...$this->adminEspaceProps($membre),
+            'clients' => $clients->map(fn (Client $client) => [
+                'id' => $client->id,
+                'nom' => $client->nom,
+                'email' => $client->user->email,
+                'type' => $client->type,
+                'typeLabel' => $client->typeLabel(),
+                'ville' => $client->ville,
+                'telephone' => $client->telephone,
+                'statut' => $client->statut,
+                'demandesCount' => $client->demandes_count,
+                'inscritLe' => $client->created_at?->format('d/m/Y'),
+            ]),
+            'actions' => [
+                'supprimer' => $membre->peut(Donnee::DemandesClients, Action::Supprimer),
+            ],
+        ]);
+    }
+
+    public function destroy(Request $request, Client $client): RedirectResponse
+    {
+        $membre = $request->user()->membreEquipe;
+        abort_unless($membre->peut(Donnee::DemandesClients, Action::Supprimer), 403);
+
+        $client->user->delete();
+
+        return back();
+    }
+}
