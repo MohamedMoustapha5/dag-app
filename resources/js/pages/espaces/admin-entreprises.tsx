@@ -30,6 +30,8 @@ type Offre = {
 
 type ApprenantPostulable = {
     id: string;
+    source: 'apprenant' | 'externe';
+    externe: boolean;
     nom: string;
     ville: string | null;
     estForme: boolean;
@@ -363,15 +365,19 @@ function PostulerModal({
     onClose: () => void;
 }) {
     const [recherche, setRecherche] = useState('');
-    const [filtre, setFiltre] = useState<'tous' | 'formes'>('tous');
-    const form = useForm({ apprenant_id: '' });
+    const [filtre, setFiltre] = useState<'tous' | 'formes' | 'externes'>(
+        'tous',
+    );
+    const form = useForm({ apprenant_id: '', candidature_spontanee_id: '' });
 
     const liste = useMemo(() => {
         const terme = recherche.trim().toLowerCase();
 
         return apprenants.filter(
             (apprenant) =>
-                (filtre === 'tous' || apprenant.estForme) &&
+                (filtre === 'tous' ||
+                    (filtre === 'formes' && apprenant.estForme) ||
+                    (filtre === 'externes' && apprenant.externe)) &&
                 (terme === '' ||
                     apprenant.nom.toLowerCase().includes(terme) ||
                     (apprenant.ville ?? '').toLowerCase().includes(terme)),
@@ -433,7 +439,7 @@ function PostulerModal({
                     }}
                 >
                     {offre.titre} — {offre.entrepriseNom}. Choisissez un dossier
-                    parmi les apprenants, y compris ceux déjà formés.
+                    parmi tous les candidats : apprenants DAG, anciens apprenants et dossiers reçus de candidats externes.
                 </p>
 
                 <form
@@ -458,11 +464,17 @@ function PostulerModal({
                             aria-label="Filtrer les apprenants"
                             value={filtre}
                             onChange={(event) =>
-                                setFiltre(event.target.value as 'tous' | 'formes')
+                                setFiltre(
+                                    event.target.value as
+                                        | 'tous'
+                                        | 'formes'
+                                        | 'externes',
+                                )
                             }
                         >
                             <option value="tous">Tous</option>
-                            <option value="formes">Déjà formés</option>
+                            <option value="formes">Formés par DAG</option>
+                            <option value="externes">Dossiers externes</option>
                         </select>
                     </div>
 
@@ -485,7 +497,7 @@ function PostulerModal({
 
                             return (
                                 <label
-                                    key={apprenant.id}
+                                    key={`${apprenant.source}-${apprenant.id}`}
                                     style={{
                                         display: 'flex',
                                         gap: 10,
@@ -505,13 +517,26 @@ function PostulerModal({
                                         value={apprenant.id}
                                         disabled={blocage !== null}
                                         checked={
-                                            form.data.apprenant_id ===
+                                            (apprenant.source === 'apprenant'
+                                                ? form.data.apprenant_id
+                                                : form.data
+                                                      .candidature_spontanee_id) ===
                                             apprenant.id
                                         }
                                         onChange={() =>
                                             form.setData(
-                                                'apprenant_id',
-                                                apprenant.id,
+                                                apprenant.source === 'apprenant'
+                                                    ? {
+                                                          apprenant_id:
+                                                              apprenant.id,
+                                                          candidature_spontanee_id:
+                                                              '',
+                                                      }
+                                                    : {
+                                                          apprenant_id: '',
+                                                          candidature_spontanee_id:
+                                                              apprenant.id,
+                                                      },
                                             )
                                         }
                                     />
@@ -537,19 +562,27 @@ function PostulerModal({
                                             </span>
                                         )}
                                     </span>
-                                    {apprenant.estForme && (
-                                        <span className="chip chip-green">
-                                            Formé
+                                    {apprenant.externe ? (
+                                        <span className="chip chip-gray">
+                                            Dossier externe
                                         </span>
+                                    ) : (
+                                        apprenant.estForme && (
+                                            <span className="chip chip-green">
+                                                Formé
+                                            </span>
+                                        )
                                     )}
                                 </label>
                             );
                         })}
                     </div>
 
-                    {form.errors.apprenant_id && (
+                    {(form.errors.apprenant_id ||
+                        form.errors.candidature_spontanee_id) && (
                         <p style={{ color: 'var(--dag-red)', fontSize: 12.5 }}>
-                            {form.errors.apprenant_id}
+                            {form.errors.apprenant_id ??
+                                form.errors.candidature_spontanee_id}
                         </p>
                     )}
 
@@ -571,7 +604,9 @@ function PostulerModal({
                             type="submit"
                             className="btn-primary"
                             disabled={
-                                form.processing || form.data.apprenant_id === ''
+                                form.processing ||
+                                (form.data.apprenant_id === '' &&
+                                    form.data.candidature_spontanee_id === '')
                             }
                         >
                             Déposer la candidature

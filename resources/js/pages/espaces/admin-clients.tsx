@@ -33,6 +33,7 @@ type Props = {
     apprenants: ApprenantCompte[] | null;
     actions: {
         supprimer: boolean;
+        supprimerApprenant: boolean;
     };
 };
 
@@ -42,6 +43,19 @@ export default function AdminClients({
     actions,
 }: Props) {
     const [onglet, setOnglet] = useState<'clients' | 'apprenants'>('clients');
+
+    const supprimerApprenant = (apprenant: ApprenantCompte) => {
+        if (
+            !confirm(
+                `Supprimer le compte de « ${apprenant.nom} » ? Son dossier, ses inscriptions, candidatures et attestations seront supprimés définitivement. Ses factures et contrats existants sont conservés.`,
+            )
+        ) {
+            return;
+        }
+        router.delete(apprenantsAdmin.destroy(apprenant.id).url, {
+            preserveScroll: true,
+        });
+    };
 
     const supprimer = (client: Client) => {
         if (
@@ -122,6 +136,7 @@ export default function AdminClients({
                                         <th>Profil</th>
                                         <th>Inscriptions</th>
                                         <th>Inscrit le</th>
+                                        <th />
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -163,6 +178,24 @@ export default function AdminClients({
                                             </td>
                                             <td className="muted">
                                                 {apprenant.inscritLe ?? '—'}
+                                            </td>
+                                            <td style={{ textAlign: 'right' }}>
+                                                {actions.supprimerApprenant && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            supprimerApprenant(
+                                                                apprenant,
+                                                            )
+                                                        }
+                                                        className="link-action"
+                                                        style={{
+                                                            color: 'var(--dag-red)',
+                                                        }}
+                                                    >
+                                                        Supprimer
+                                                    </button>
+                                                )}
                                             </td>
                                         </tr>
                                     ))}

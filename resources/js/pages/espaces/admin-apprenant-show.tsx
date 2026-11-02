@@ -15,6 +15,11 @@ type Props = {
         cvNomFichier: string | null;
         consentementCv: boolean;
         estForme: boolean;
+        externe: {
+            portfolio: string | null;
+            message: string | null;
+            recuLe: string | null;
+        } | null;
     };
     peutPostuler: boolean;
     offresDisponibles: { id: string; titre: string; entrepriseNom: string }[];
@@ -105,6 +110,43 @@ export default function AdminApprenantShow({
                     <p style={{ fontWeight: 600 }}>{apprenant.ville ?? '—'}</p>
                 </div>
             </div>
+
+            {apprenant.externe && (
+                <div className="card" style={{ padding: 24, marginBottom: 28 }}>
+                    <p
+                        style={{
+                            fontSize: 14.5,
+                            fontWeight: 700,
+                            marginBottom: 12,
+                        }}
+                    >
+                        Dossier reçu par DAG
+                        {apprenant.externe.recuLe &&
+                            ` le ${apprenant.externe.recuLe}`}
+                    </p>
+                    {apprenant.externe.portfolio && (
+                        <p style={{ fontSize: 13.5, marginBottom: 8 }}>
+                            Portfolio :{' '}
+                            <a
+                                href={apprenant.externe.portfolio}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="link-action"
+                            >
+                                {apprenant.externe.portfolio}
+                            </a>
+                        </p>
+                    )}
+                    {apprenant.externe.message && (
+                        <p
+                            className="muted"
+                            style={{ fontSize: 13.5, lineHeight: 1.6 }}
+                        >
+                            {apprenant.externe.message}
+                        </p>
+                    )}
+                </div>
+            )}
 
             <div className="card" style={{ padding: 24, marginBottom: 28 }}>
                 <p

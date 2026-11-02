@@ -284,17 +284,42 @@
     display: inline-block;
     letter-spacing: 0.01em;
 }
+/* Pending / paid-style statuses: pill with a leading icon (ring, verified badge). */
+.dag .chip-orange,
+.dag .chip-green {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 14px 6px 10px;
+    font-size: 12.5px;
+}
+.dag .chip-orange::before,
+.dag .chip-green::before {
+    content: '';
+    flex: none;
+    width: 17px;
+    height: 17px;
+    background: currentColor;
+    -webkit-mask: var(--chip-icon) center / contain no-repeat;
+    mask: var(--chip-icon) center / contain no-repeat;
+}
+.dag .chip-orange {
+    --chip-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3.2'%3E%3Ccircle cx='12' cy='12' r='8.5'/%3E%3C/svg%3E");
+}
+.dag .chip-green {
+    --chip-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z'/%3E%3Cpath d='m9 12 2 2 4-4'/%3E%3C/svg%3E");
+}
 .dag .chip-blue {
     color: var(--dag-blue);
     background: var(--dag-blue-light);
 }
 .dag .chip-orange {
-    color: var(--dag-orange-ink);
-    background: var(--dag-orange-bg);
+    color: #8a5a06;
+    background: #fdf3b3;
 }
 .dag .chip-green {
-    color: var(--dag-green);
-    background: var(--dag-green-bg);
+    color: #14693f;
+    background: #c8f4d3;
 }
 .dag .chip-red {
     color: var(--dag-red);

@@ -30,6 +30,7 @@ class AdminClientController extends Controller
 
         $apprenants = $membre->peut(Donnee::DossiersApprenants, Action::Voir)
             ? Apprenant::query()
+                ->whereDoesntHave('candidatureSpontanee')
                 ->with(['user', 'inscriptions', 'attestations'])
                 ->get()
                 ->sortByDesc(fn (Apprenant $apprenant) => $apprenant->user->created_at)
@@ -63,6 +64,7 @@ class AdminClientController extends Controller
             ]),
             'actions' => [
                 'supprimer' => $membre->peut(Donnee::DemandesClients, Action::Supprimer),
+                'supprimerApprenant' => $membre->peut(Donnee::DossiersApprenants, Action::Supprimer),
             ],
         ]);
     }

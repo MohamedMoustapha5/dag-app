@@ -4,6 +4,7 @@ use App\Http\Controllers\Espaces\AdminAbonnementController;
 use App\Http\Controllers\Espaces\AdminApprenantController;
 use App\Http\Controllers\Espaces\AdminAttestationController;
 use App\Http\Controllers\Espaces\AdminAuthController;
+use App\Http\Controllers\Espaces\AdminCandidatExterneController;
 use App\Http\Controllers\Espaces\AdminClientController;
 use App\Http\Controllers\Espaces\AdminContratController;
 use App\Http\Controllers\Espaces\AdminDashboardController;
@@ -184,5 +185,8 @@ Route::middleware(['auth:admin', EnsureMembreActif::class])
         Route::get('apprenants', [AdminApprenantController::class, 'index'])->name('espace-admin.apprenants.index');
         Route::get('apprenants/{apprenant}', [AdminApprenantController::class, 'show'])->name('espace-admin.apprenants.show');
         Route::get('apprenants/{apprenant}/cv', [AdminApprenantController::class, 'cv'])->name('espace-admin.apprenants.cv');
+        Route::delete('apprenants/{apprenant}', [AdminApprenantController::class, 'destroy'])->name('espace-admin.apprenants.destroy');
+        Route::get('candidats-externes/{candidatureSpontanee}/cv', [AdminCandidatExterneController::class, 'cv'])->name('espace-admin.candidats-externes.cv');
+        Route::delete('candidats-externes/{candidatureSpontanee}', [AdminCandidatExterneController::class, 'destroy'])->name('espace-admin.candidats-externes.destroy');
         Route::get('statistiques', AdminStatistiqueController::class)->name('espace-admin.statistiques');
     });

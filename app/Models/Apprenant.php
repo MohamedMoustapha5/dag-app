@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable(['user_id', 'date_naissance', 'telephone', 'ville', 'cv_path', 'consentement_cv'])]
 class Apprenant extends Model
@@ -41,6 +42,21 @@ class Apprenant extends Model
             'nom' => $this->user->name,
             'typeLabel' => 'Apprenant',
         ];
+    }
+
+    /** @return HasOne<CandidatureSpontanee, $this> */
+    public function candidatureSpontanee(): HasOne
+    {
+        return $this->hasOne(CandidatureSpontanee::class);
+    }
+
+    /**
+     * Whether this dossier was created by DAG from an unsolicited
+     * application (the candidate never registered themselves).
+     */
+    public function estExterne(): bool
+    {
+        return $this->candidatureSpontanee !== null;
     }
 
     /** @return HasMany<Inscription, $this> */

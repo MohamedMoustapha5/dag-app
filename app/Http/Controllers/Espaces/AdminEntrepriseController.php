@@ -7,13 +7,14 @@ use App\Enums\Action;
 use App\Enums\Donnee;
 use App\Http\Controllers\Controller;
 use App\Models\Apprenant;
+use App\Models\CandidatureSpontanee;
 use App\Models\EntreprisePartenaire;
 use App\Models\Inscription;
 use App\Models\MembreEquipe;
 use App\Models\OffreEmploi;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -80,33 +81,39 @@ class AdminEntrepriseController extends Controller
      */
     public function postuler(Request $request, OffreEmploi $offreEmploi): RedirectResponse
     {
-        abort_unless($this->peutPostuler($this->membre($request)), 403);
+        $membre = $this->membre($request);
+        abort_unless($this->peutPostuler($membre), 403);
 
         $data = $request->validate([
-            'apprenant_id' => ['required', 'uuid', 'exists:apprenants,id'],
+            'apprenant_id' => ['nullable', 'uuid', 'exists:apprenants,id', 'required_without:candidature_spontanee_id'],
+            'candidature_spontanee_id' => ['nullable', 'uuid', 'exists:candidatures_spontanees,id', 'required_without:apprenant_id'],
         ]);
 
         abort_unless($this->estPostulable($offreEmploi), 409, "Cette offre n'accepte plus de candidatures.");
 
-        $apprenant = Apprenant::with('user')->where('id', $data['apprenant_id'])->firstOrFail();
+        $apprenant = DB::transaction(function () use ($data, $membre, $offreEmploi): Apprenant {
+            $apprenant = $this->resoudreApprenant($data, $membre);
 
-        if (! $apprenant->consentement_cv) {
-            throw ValidationException::withMessages([
-                'apprenant_id' => "{$apprenant->user->name} n'a pas autorisé le partage de son dossier avec les entreprises.",
+            if (! $apprenant->consentement_cv) {
+                throw ValidationException::withMessages([
+                    'apprenant_id' => "{$apprenant->user->name} n'a pas autorisé le partage de son dossier avec les entreprises.",
+                ]);
+            }
+
+            if ($offreEmploi->candidatures()->where('apprenant_id', $apprenant->id)->exists()) {
+                throw ValidationException::withMessages([
+                    'apprenant_id' => "{$apprenant->user->name} a déjà postulé à cette offre.",
+                ]);
+            }
+
+            $offreEmploi->candidatures()->create([
+                'apprenant_id' => $apprenant->id,
+                'statut' => 'DEPOSEE',
+                'deposee_par_id' => $membre->id,
             ]);
-        }
 
-        if ($offreEmploi->candidatures()->where('apprenant_id', $apprenant->id)->exists()) {
-            throw ValidationException::withMessages([
-                'apprenant_id' => "{$apprenant->user->name} a déjà postulé à cette offre.",
-            ]);
-        }
-
-        $offreEmploi->candidatures()->create([
-            'apprenant_id' => $apprenant->id,
-            'statut' => 'DEPOSEE',
-            'deposee_par_id' => $this->membre($request)->id,
-        ]);
+            return $apprenant;
+        });
 
         Inertia::flash('toast', [
             'type' => 'success',
@@ -114,6 +121,26 @@ class AdminEntrepriseController extends Controller
         ]);
 
         return back();
+    }
+
+    /**
+     * Soit un dossier apprenant existant, soit un dossier reçu par DAG
+     * (candidature spontanée) que l'on transforme en dossier externe —
+     * ce qui demande le droit de créer des dossiers apprenants.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    private function resoudreApprenant(array $data, MembreEquipe $membre): Apprenant
+    {
+        if (! empty($data['candidature_spontanee_id'])) {
+            abort_unless($membre->peut(Donnee::DossiersApprenants, Action::Creer), 403);
+
+            $recue = CandidatureSpontanee::where('id', $data['candidature_spontanee_id'])->firstOrFail();
+
+            return $recue->versApprenant()->load('user');
+        }
+
+        return Apprenant::with('user')->where('id', $data['apprenant_id'])->firstOrFail();
     }
 
     private function peutPostuler(MembreEquipe $membre): bool
@@ -129,30 +156,50 @@ class AdminEntrepriseController extends Controller
     }
 
     /**
-     * Tous les dossiers apprenants, anciens apprenants déjà formés inclus.
+     * Tous les dossiers dont DAG dispose : apprenants (formés par DAG ou
+     * non) et dossiers reçus par DAG pas encore transformés en dossier.
      *
-     * @return Collection<int, array{id: string, nom: string, ville: string|null, estForme: bool, formations: Collection<int, string>, aUnCv: bool, consentement: bool}>
+     * @return array<int, array{id: string, source: string, nom: string, ville: string|null, estForme: bool, externe: bool, formations: array<int, string>, aUnCv: bool, consentement: bool}>
      */
-    private function apprenantsPostulables(): Collection
+    private function apprenantsPostulables(): array
     {
-        return Apprenant::query()
-            ->with(['user', 'inscriptions.formation', 'attestations'])
+        $apprenants = Apprenant::query()
+            ->with(['user', 'inscriptions.formation', 'attestations', 'candidatureSpontanee'])
             ->get()
-            ->sortBy(fn (Apprenant $apprenant) => $apprenant->user->name)
-            ->values()
             ->map(fn (Apprenant $apprenant) => [
                 'id' => $apprenant->id,
+                'source' => 'apprenant',
                 'nom' => $apprenant->user->name,
                 'ville' => $apprenant->ville,
                 'estForme' => $apprenant->estForme(),
+                'externe' => $apprenant->estExterne(),
                 'formations' => $apprenant->inscriptions
                     ->whereIn('statut', ['VALIDEE', 'FORMEE'])
                     ->map(fn (Inscription $inscription) => $inscription->formation->nom)
                     ->unique()
-                    ->values(),
+                    ->values()
+                    ->all(),
                 'aUnCv' => $apprenant->cv_path !== null,
                 'consentement' => $apprenant->consentement_cv,
             ]);
+
+        $recus = CandidatureSpontanee::query()
+            ->whereNull('apprenant_id')
+            ->where('statut', 'NOUVELLE')
+            ->get()
+            ->map(fn (CandidatureSpontanee $recue) => [
+                'id' => $recue->id,
+                'source' => 'externe',
+                'nom' => $recue->nom,
+                'ville' => null,
+                'estForme' => false,
+                'externe' => true,
+                'formations' => [],
+                'aUnCv' => true,
+                'consentement' => true,
+            ]);
+
+        return $apprenants->concat($recus)->sortBy('nom')->values()->all();
     }
 
     public function updateEntreprise(Request $request, EntreprisePartenaire $entreprisePartenaire): RedirectResponse
