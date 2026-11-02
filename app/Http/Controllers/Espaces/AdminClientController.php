@@ -18,7 +18,7 @@ class AdminClientController extends Controller
 
     public function index(Request $request): Response
     {
-        $membre = $request->user()->membreEquipe;
+        $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::DemandesClients, Action::Voir), 403);
 
         $clients = Client::query()
@@ -49,7 +49,7 @@ class AdminClientController extends Controller
 
     public function destroy(Request $request, Client $client): RedirectResponse
     {
-        $membre = $request->user()->membreEquipe;
+        $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::DemandesClients, Action::Supprimer), 403);
 
         $client->user->delete();

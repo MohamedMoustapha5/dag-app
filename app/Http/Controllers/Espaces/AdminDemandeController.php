@@ -19,7 +19,7 @@ class AdminDemandeController extends Controller
 
     public function index(Request $request): Response
     {
-        $membre = $request->user()->membreEquipe;
+        $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::DemandesClients, Action::Voir), 403);
 
         $demandes = Demande::query()
@@ -44,7 +44,7 @@ class AdminDemandeController extends Controller
 
     public function show(Request $request, Demande $demande): Response
     {
-        $membre = $request->user()->membreEquipe;
+        $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::DemandesClients, Action::Voir), 403);
 
         $demande->load(['client', 'entreprise', 'service', 'formule', 'contrat', 'facture']);
@@ -83,7 +83,7 @@ class AdminDemandeController extends Controller
 
     public function update(Request $request, Demande $demande): RedirectResponse
     {
-        $membre = $request->user()->membreEquipe;
+        $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::DemandesClients, Action::Modifier), 403);
 
         $data = $request->validate([

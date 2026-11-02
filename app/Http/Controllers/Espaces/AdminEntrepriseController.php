@@ -21,7 +21,7 @@ class AdminEntrepriseController extends Controller
 
     public function index(Request $request): Response
     {
-        $membre = $request->user()->membreEquipe;
+        $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::EntreprisesOffres, Action::Voir), 403);
 
         $entreprises = EntreprisePartenaire::query()
@@ -64,7 +64,7 @@ class AdminEntrepriseController extends Controller
 
     public function updateEntreprise(Request $request, EntreprisePartenaire $entreprisePartenaire): RedirectResponse
     {
-        $membre = $request->user()->membreEquipe;
+        $membre = $this->membre($request);
 
         $data = $request->validate([
             'statut' => ['required', Rule::in(['ACTIF', 'INACTIF'])],
@@ -86,7 +86,7 @@ class AdminEntrepriseController extends Controller
 
     public function updateOffre(Request $request, OffreEmploi $offreEmploi): RedirectResponse
     {
-        $membre = $request->user()->membreEquipe;
+        $membre = $this->membre($request);
 
         $data = $request->validate([
             'statut' => ['required', Rule::in(['PUBLIEE', 'CLOTUREE'])],

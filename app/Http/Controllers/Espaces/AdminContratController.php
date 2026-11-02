@@ -22,7 +22,7 @@ class AdminContratController extends Controller
 
     public function index(Request $request): Response
     {
-        $membre = $request->user()->membreEquipe;
+        $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::ContratsClauses, Action::Voir), 403);
 
         $contrats = Contrat::query()
@@ -59,7 +59,7 @@ class AdminContratController extends Controller
 
     public function storeModele(Request $request): RedirectResponse
     {
-        $membre = $request->user()->membreEquipe;
+        $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::ContratsClauses, Action::Creer), 403);
 
         $data = $request->validate([
@@ -75,7 +75,7 @@ class AdminContratController extends Controller
 
     public function updateModele(Request $request, ModeleContrat $modeleContrat): RedirectResponse
     {
-        $membre = $request->user()->membreEquipe;
+        $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::ContratsClauses, Action::Modifier), 403);
 
         $data = $request->validate([
@@ -89,7 +89,7 @@ class AdminContratController extends Controller
 
     public function storeClause(Request $request): RedirectResponse
     {
-        $membre = $request->user()->membreEquipe;
+        $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::ContratsClauses, Action::Creer), 403);
 
         $data = $request->validate([
@@ -105,7 +105,7 @@ class AdminContratController extends Controller
 
     public function destroyClause(Request $request, Clause $clause): RedirectResponse
     {
-        $membre = $request->user()->membreEquipe;
+        $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::ContratsClauses, Action::Supprimer), 403);
 
         $clause->delete();
@@ -115,7 +115,7 @@ class AdminContratController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $membre = $request->user()->membreEquipe;
+        $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::ContratsClauses, Action::Creer), 403);
 
         $data = $request->validate([
@@ -149,7 +149,7 @@ class AdminContratController extends Controller
 
     public function show(Request $request, Contrat $contrat): Response
     {
-        $membre = $request->user()->membreEquipe;
+        $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::ContratsClauses, Action::Voir), 403);
 
         $contrat->load(['client', 'entreprise', 'modeleContrat', 'demande', 'abonnement.formule', 'candidature.offre']);
@@ -175,7 +175,7 @@ class AdminContratController extends Controller
 
     public function update(Request $request, Contrat $contrat): RedirectResponse
     {
-        $membre = $request->user()->membreEquipe;
+        $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::ContratsClauses, Action::Modifier), 403);
 
         $data = $request->validate([

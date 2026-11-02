@@ -77,7 +77,7 @@ class FortifyServiceProvider extends ServiceProvider
                 return null;
             }
 
-            return $user->peutSeConnecter() ? $user : null;
+            return $user;
         });
     }
 

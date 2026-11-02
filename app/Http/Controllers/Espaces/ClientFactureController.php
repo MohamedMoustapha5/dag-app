@@ -12,7 +12,7 @@ class ClientFactureController extends Controller
 {
     public function __invoke(Request $request): Response
     {
-        $client = $request->user()->client;
+        $client = $request->user('web')->client;
 
         $factures = $client->enregistrementsClientOuEntreprise(Facture::class)
             ->with(['demande.service', 'demande.formule', 'abonnement.formule'])

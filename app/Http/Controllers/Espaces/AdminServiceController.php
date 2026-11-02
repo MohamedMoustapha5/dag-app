@@ -20,7 +20,7 @@ class AdminServiceController extends Controller
 
     public function index(Request $request): Response
     {
-        $membre = $request->user()->membreEquipe;
+        $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::Catalogue, Action::Voir), 403);
 
         $services = Service::query()
@@ -59,7 +59,7 @@ class AdminServiceController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        abort_unless($request->user()->membreEquipe->peut(Donnee::Catalogue, Action::Creer), 403);
+        abort_unless($this->membre($request)->peut(Donnee::Catalogue, Action::Creer), 403);
 
         $data = $this->validated($request);
 
@@ -75,7 +75,7 @@ class AdminServiceController extends Controller
 
     public function update(Request $request, Service $service): RedirectResponse
     {
-        abort_unless($request->user()->membreEquipe->peut(Donnee::Catalogue, Action::Modifier), 403);
+        abort_unless($this->membre($request)->peut(Donnee::Catalogue, Action::Modifier), 403);
 
         $data = $this->validated($request, sometimes: true);
 
@@ -94,7 +94,7 @@ class AdminServiceController extends Controller
 
     public function destroy(Request $request, Service $service): RedirectResponse
     {
-        abort_unless($request->user()->membreEquipe->peut(Donnee::Catalogue, Action::Supprimer), 403);
+        abort_unless($this->membre($request)->peut(Donnee::Catalogue, Action::Supprimer), 403);
 
         $service->delete();
 

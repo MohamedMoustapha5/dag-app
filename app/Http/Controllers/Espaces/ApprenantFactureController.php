@@ -12,7 +12,7 @@ class ApprenantFactureController extends Controller
 {
     public function __invoke(Request $request): Response
     {
-        $apprenant = $request->user()->apprenant;
+        $apprenant = $request->user('web')->apprenant;
 
         $factures = $apprenant->factures()
             ->with(['inscription.formation'])

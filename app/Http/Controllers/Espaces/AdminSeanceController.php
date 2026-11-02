@@ -20,7 +20,7 @@ class AdminSeanceController extends Controller
 
     public function show(Request $request, FormationSession $formationSession): Response
     {
-        $membre = $request->user()->membreEquipe;
+        $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::Formations, Action::Voir), 403);
 
         $formationSession->load(['formation', 'seances' => fn ($query) => $query->orderBy('date')]);
@@ -53,7 +53,7 @@ class AdminSeanceController extends Controller
 
     public function store(Request $request, FormationSession $formationSession): RedirectResponse
     {
-        $membre = $request->user()->membreEquipe;
+        $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::Formations, Action::Creer), 403);
 
         $data = $request->validate([
@@ -68,7 +68,7 @@ class AdminSeanceController extends Controller
 
     public function destroy(Request $request, Seance $seance): RedirectResponse
     {
-        $membre = $request->user()->membreEquipe;
+        $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::Formations, Action::Supprimer), 403);
 
         $seance->delete();

@@ -16,7 +16,7 @@ class ApprenantInscriptionController extends Controller
 {
     public function __invoke(Request $request): Response
     {
-        $apprenant = $request->user()->apprenant;
+        $apprenant = $request->user('web')->apprenant;
 
         $inscriptions = $apprenant->inscriptions()
             ->with(['formation', 'formationSession.seances'])

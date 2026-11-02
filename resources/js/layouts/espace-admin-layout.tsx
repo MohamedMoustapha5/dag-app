@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import type { PropsWithChildren } from 'react';
 import { useEffect, useRef, useState } from 'react';
-import { logout } from '@/routes';
+import { deconnexion } from '@/routes/admin';
 import LanguageSwitcher from '@/components/public/language-switcher';
 import espaceAdmin from '@/routes/espace-admin';
 import abonnementsAdmin from '@/routes/espace-admin/abonnements';
@@ -347,7 +347,7 @@ export default function EspaceAdminLayout({ children }: PropsWithChildren) {
                                 </div>
                             </div>
                             <Link
-                                href={logout()}
+                                href={deconnexion()}
                                 method="post"
                                 as="button"
                                 className="btn-ghost"

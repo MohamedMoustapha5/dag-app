@@ -13,7 +13,7 @@ class ApprenantFormationController extends Controller
 {
     public function __invoke(Request $request): Response
     {
-        $apprenant = $request->user()->apprenant;
+        $apprenant = $request->user('web')->apprenant;
 
         $formations = Formation::where('statut', 'PUBLIEE')
             ->with(['sessions' => fn ($query) => $query->whereIn('statut', ['OUVERTE', 'COMPLETE'])->orderBy('date_debut')])

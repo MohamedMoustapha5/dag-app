@@ -10,7 +10,7 @@ test('a membre with voir can list the client accounts', function () {
     $client = Client::factory()->create(['nom' => 'Entreprise ACME']);
     Demande::factory()->create(['client_id' => $client->id]);
 
-    $response = $this->actingAs($membre->user)->get(route('espace-admin.clients.index'));
+    $response = $this->actingAs($membre, 'admin')->get(route('espace-admin.clients.index'));
 
     $response->assertOk();
     $response->assertInertia(fn ($page) => $page
@@ -26,7 +26,7 @@ test('a promotrice can delete a client account, which preserves its historical d
     $demande = Demande::factory()->create(['client_id' => $client->id]);
     $userId = $client->user_id;
 
-    $this->actingAs($promotrice->user)
+    $this->actingAs($promotrice, 'admin')
         ->delete(route('espace-admin.clients.destroy', $client))
         ->assertRedirect();
 
@@ -39,7 +39,7 @@ test('a role without supprimer cannot delete a client account', function () {
     $membre = MembreEquipe::factory()->create(['role' => MembreEquipeRole::CommunicationMarketing]);
     $client = Client::factory()->create();
 
-    $this->actingAs($membre->user)
+    $this->actingAs($membre, 'admin')
         ->delete(route('espace-admin.clients.destroy', $client))
         ->assertForbidden();
 
@@ -49,7 +49,7 @@ test('a role without supprimer cannot delete a client account', function () {
 test('a role without access to demandes clients cannot reach the page', function () {
     $membre = MembreEquipe::factory()->create(['role' => MembreEquipeRole::CreationContenu]);
 
-    $this->actingAs($membre->user)
+    $this->actingAs($membre, 'admin')
         ->get(route('espace-admin.clients.index'))
         ->assertForbidden();
 });

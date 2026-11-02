@@ -14,7 +14,7 @@ class ApprenantProfilController extends Controller
 {
     public function edit(Request $request): Response
     {
-        $user = $request->user();
+        $user = $request->user('web');
         $apprenant = $user->apprenant;
 
         return Inertia::render('espaces/apprenant/profil', [
@@ -36,7 +36,7 @@ class ApprenantProfilController extends Controller
 
     public function update(Request $request): RedirectResponse
     {
-        $user = $request->user();
+        $user = $request->user('web');
         $apprenant = $user->apprenant;
 
         $data = $request->validate([
@@ -74,7 +74,7 @@ class ApprenantProfilController extends Controller
             'notif_newsletter' => ['boolean'],
         ]);
 
-        $request->user()->update($data);
+        $request->user('web')->update($data);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Préférences de notification mises à jour.']);
 

@@ -21,13 +21,13 @@ test('a membre can see the dashboard with its kpis', function () {
         'date_paiement' => now(),
     ]);
 
-    $response = $this->actingAs($membre->user)->get(route('espace-admin.dashboard'));
+    $response = $this->actingAs($membre, 'admin')->get(route('espace-admin.dashboard'));
 
     $response->assertOk();
     $response->assertInertia(fn ($page) => $page
         ->component('espaces/admin-dashboard')
-        ->where('kpis.chiffreAffairesMois', 100000)
-        ->where('kpis.demandesEnAttente', 1)
+        ->where('kpis.chiffreAffaires.montant', 100000)
+        ->where('kpis.demandes.enAttente', 1)
         ->where('repartitionCa.total', 100000)
         ->has('paiements.7j')
         ->has('paiements.30j')
@@ -47,10 +47,39 @@ test('an unconfirmed paiement is excluded from the chiffre affaires', function (
         'date_paiement' => now(),
     ]);
 
-    $response = $this->actingAs($membre->user)->get(route('espace-admin.dashboard'));
+    $response = $this->actingAs($membre, 'admin')->get(route('espace-admin.dashboard'));
 
     $response->assertOk();
     $response->assertInertia(fn ($page) => $page
         ->component('espaces/admin-dashboard')
-        ->where('kpis.chiffreAffairesMois', 0));
+        ->where('kpis.chiffreAffaires.montant', 0));
+});
+
+test('a juriste sees no financial widget at all, only the data of the domains they may see', function () {
+    $juriste = MembreEquipe::factory()->juriste()->create();
+
+    $this->actingAs($juriste, 'admin')
+        ->get(route('espace-admin.dashboard'))
+        ->assertInertia(fn ($page) => $page
+            ->where('kpis.chiffreAffaires', null)
+            ->where('paiements', null)
+            ->where('repartitionCa', null)
+            ->has('kpis.contrats')
+            ->has('kpis.demandes')
+            ->has('servicesPlusDemandes'));
+});
+
+test('a role without access to any statistic domain gets an empty dashboard payload', function () {
+    $membre = MembreEquipe::factory()->create(['role' => MembreEquipeRole::CreationContenu]);
+
+    $this->actingAs($membre, 'admin')
+        ->get(route('espace-admin.dashboard'))
+        ->assertInertia(fn ($page) => $page
+            ->where('kpis.chiffreAffaires', null)
+            ->where('kpis.demandes', null)
+            ->where('kpis.contrats', null)
+            ->where('kpis.placement', null)
+            ->where('paiements', null)
+            ->where('repartitionCa', null)
+            ->where('servicesPlusDemandes', null));
 });

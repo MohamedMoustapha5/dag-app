@@ -39,7 +39,6 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property-read Collection<int, Team> $teams
  * @property-read Client|null $client
  * @property-read Apprenant|null $apprenant
- * @property-read MembreEquipe|null $membreEquipe
  */
 #[Fillable(['name', 'email', 'password', 'current_team_id', 'type', 'locale', 'notif_devis', 'notif_facture', 'notif_offres', 'notif_seances', 'notif_candidatures', 'notif_newsletter'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
@@ -81,17 +80,6 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         return $this->hasOne(Apprenant::class);
     }
 
-    /** @return HasOne<MembreEquipe, $this> */
-    public function membreEquipe(): HasOne
-    {
-        return $this->hasOne(MembreEquipe::class);
-    }
-
-    public function estMembreEquipe(): bool
-    {
-        return $this->type === UserType::MembreEquipe;
-    }
-
     public function estClient(): bool
     {
         return $this->type === UserType::Client;
@@ -100,17 +88,5 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     public function estApprenant(): bool
     {
         return $this->type === UserType::Apprenant;
-    }
-
-    /**
-     * Whether this account is allowed to authenticate. A deactivated team
-     * member is rejected at login (section 6.9 of the cahier des charges).
-     */
-    public function peutSeConnecter(): bool
-    {
-        return match ($this->type) {
-            UserType::MembreEquipe => $this->membreEquipe?->estActif() ?? false,
-            default => true,
-        };
     }
 }

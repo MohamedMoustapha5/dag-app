@@ -14,7 +14,7 @@ class ClientAbonnementController extends Controller
 {
     public function __invoke(Request $request): Response
     {
-        $client = $request->user()->client;
+        $client = $request->user('web')->client;
 
         $abonnement = $client->enregistrementsClientOuEntreprise(Abonnement::class)
             ->with('formule')

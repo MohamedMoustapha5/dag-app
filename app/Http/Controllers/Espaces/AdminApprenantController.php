@@ -22,7 +22,7 @@ class AdminApprenantController extends Controller
 
     public function index(Request $request): Response
     {
-        $membre = $request->user()->membreEquipe;
+        $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::DossiersApprenants, Action::Voir), 403);
 
         $apprenants = Apprenant::query()
@@ -46,7 +46,7 @@ class AdminApprenantController extends Controller
 
     public function show(Request $request, Apprenant $apprenant): Response
     {
-        $membre = $request->user()->membreEquipe;
+        $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::DossiersApprenants, Action::Voir), 403);
 
         $apprenant->load(['user', 'inscriptions.formation', 'candidatures.offre.entreprise', 'attestations.formation']);
@@ -83,7 +83,7 @@ class AdminApprenantController extends Controller
 
     public function cv(Request $request, Apprenant $apprenant): StreamedResponse
     {
-        $membre = $request->user()->membreEquipe;
+        $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::DossiersApprenants, Action::Telecharger), 403);
 
         abort_if($apprenant->cv_path === null, 404);

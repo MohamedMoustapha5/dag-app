@@ -18,7 +18,7 @@ class ApprenantDossierController extends Controller
 {
     public function edit(Request $request): Response
     {
-        $apprenant = $request->user()->apprenant;
+        $apprenant = $request->user('web')->apprenant;
 
         $inscriptions = $apprenant->inscriptions()
             ->whereIn('statut', ['VALIDEE', 'FORMEE'])
@@ -95,7 +95,7 @@ class ApprenantDossierController extends Controller
 
     public function update(Request $request): RedirectResponse
     {
-        $apprenant = $request->user()->apprenant;
+        $apprenant = $request->user('web')->apprenant;
 
         $data = $request->validate([
             'cv' => ['nullable', 'file', 'mimes:pdf,doc,docx', 'max:5120'],

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Espaces\AdminAbonnementController;
 use App\Http\Controllers\Espaces\AdminApprenantController;
 use App\Http\Controllers\Espaces\AdminAttestationController;
+use App\Http\Controllers\Espaces\AdminAuthController;
 use App\Http\Controllers\Espaces\AdminClientController;
 use App\Http\Controllers\Espaces\AdminContratController;
 use App\Http\Controllers\Espaces\AdminDashboardController;
@@ -34,6 +35,7 @@ use App\Http\Controllers\Espaces\ClientOffreController;
 use App\Http\Controllers\Espaces\ClientPaiementController;
 use App\Http\Controllers\Espaces\ClientParametreController;
 use App\Http\Controllers\Espaces\ClientServiceController;
+use App\Http\Middleware\EnsureMembreActif;
 use App\Http\Middleware\EnsurePartenaireValide;
 use App\Http\Middleware\EnsureUserType;
 use Illuminate\Support\Facades\Route;
@@ -103,7 +105,17 @@ Route::middleware(['auth', 'verified', EnsureUserType::class.':APPRENANT'])
         Route::patch('profil/notifications', [ApprenantProfilController::class, 'updateNotifications'])->name('espace-apprenant.profil.notifications');
     });
 
-Route::middleware(['auth', 'verified', EnsureUserType::class.':MEMBRE_EQUIPE'])
+/*
+| Staff accounts sign in on their own guard (`admin`, table
+| membres_equipe), apart from the public login.
+*/
+Route::prefix('espace-admin')->group(function () {
+    Route::get('connexion', [AdminAuthController::class, 'create'])->name('admin.connexion');
+    Route::post('connexion', [AdminAuthController::class, 'store'])->name('admin.connexion.store');
+    Route::post('deconnexion', [AdminAuthController::class, 'destroy'])->middleware('auth:admin')->name('admin.deconnexion');
+});
+
+Route::middleware(['auth:admin', EnsureMembreActif::class])
     ->prefix('espace-admin')
     ->group(function () {
         Route::get('/', AdminDashboardController::class)->name('espace-admin.dashboard');
@@ -120,6 +132,8 @@ Route::middleware(['auth', 'verified', EnsureUserType::class.':MEMBRE_EQUIPE'])
         Route::get('equipe', [AdminEquipeController::class, 'index'])->name('espace-admin.equipe.index');
         Route::post('equipe', [AdminEquipeController::class, 'store'])->name('espace-admin.equipe.store');
         Route::patch('equipe/{membreEquipe}', [AdminEquipeController::class, 'update'])->name('espace-admin.equipe.update');
+        Route::put('equipe-droits', [AdminEquipeController::class, 'updateDroit'])->name('espace-admin.equipe.droits.update');
+        Route::delete('equipe-droits/{role}', [AdminEquipeController::class, 'reinitialiserDroits'])->name('espace-admin.equipe.droits.reset');
         Route::get('entreprises', [AdminEntrepriseController::class, 'index'])->name('espace-admin.entreprises.index');
         Route::patch('entreprises/{entreprisePartenaire}', [AdminEntrepriseController::class, 'updateEntreprise'])->name('espace-admin.entreprises.update');
         Route::patch('offres/{offreEmploi}', [AdminEntrepriseController::class, 'updateOffre'])->name('espace-admin.offres.update');

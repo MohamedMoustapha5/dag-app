@@ -17,7 +17,6 @@ class EspaceRedirect
         return match ($user->type) {
             UserType::Client => route('espace-client.dashboard', absolute: false),
             UserType::Apprenant => route('espace-apprenant.dashboard', absolute: false),
-            UserType::MembreEquipe => route('espace-admin.dashboard', absolute: false),
             default => route('home', absolute: false),
         };
     }

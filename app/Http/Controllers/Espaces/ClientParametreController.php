@@ -13,7 +13,7 @@ class ClientParametreController extends Controller
 {
     public function edit(Request $request): Response
     {
-        $user = $request->user();
+        $user = $request->user('web');
         $client = $user->client;
 
         return Inertia::render('espaces/client/parametres', [
@@ -35,7 +35,7 @@ class ClientParametreController extends Controller
 
     public function update(Request $request): RedirectResponse
     {
-        $user = $request->user();
+        $user = $request->user('web');
         $client = $user->client;
 
         $data = $request->validate([
@@ -67,7 +67,7 @@ class ClientParametreController extends Controller
             'notif_offres' => ['boolean'],
         ]);
 
-        $request->user()->update($data);
+        $request->user('web')->update($data);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Préférences de notification mises à jour.']);
 

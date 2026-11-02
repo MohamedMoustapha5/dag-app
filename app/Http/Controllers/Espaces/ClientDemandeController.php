@@ -17,7 +17,7 @@ class ClientDemandeController extends Controller
 {
     public function index(Request $request): Response
     {
-        $client = $request->user()->client;
+        $client = $request->user('web')->client;
 
         $demandes = $client->demandes()
             ->with(['service', 'formule'])
@@ -41,7 +41,7 @@ class ClientDemandeController extends Controller
     public function create(Request $request): Response
     {
         return Inertia::render('espaces/client/demandes-create', [
-            'client' => $request->user()->client->espaceHeaderProps(),
+            'client' => $request->user('web')->client->espaceHeaderProps(),
             'services' => Service::publies()->orderBy('nom')->get(['id', 'nom', 'categorie']),
             'formules' => Formule::where('statut', 'PUBLIEE')->orderBy('nom')->get(['id', 'nom', 'prix_affiche']),
             'serviceSelectionne' => $request->query('service'),
@@ -63,7 +63,7 @@ class ClientDemandeController extends Controller
             'description' => ['required', 'string', 'max:2000'],
         ]);
 
-        $demande = $request->user()->client->demandes()->create([
+        $demande = $request->user('web')->client->demandes()->create([
             'service_id' => $data['type'] === 'service' ? $data['service_id'] : null,
             'formule_id' => $data['type'] === 'formule' ? $data['formule_id'] : null,
             'description' => $data['description'],
@@ -82,7 +82,7 @@ class ClientDemandeController extends Controller
         $etapeActuelle = array_search($demande->statut, Demande::SUIVI_STEPS, true);
 
         return Inertia::render('espaces/client/demandes-show', [
-            'client' => $request->user()->client->espaceHeaderProps(),
+            'client' => $request->user('web')->client->espaceHeaderProps(),
             'demande' => [
                 'id' => $demande->id,
                 'reference' => $demande->reference,

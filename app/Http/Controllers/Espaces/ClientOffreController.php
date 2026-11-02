@@ -15,7 +15,7 @@ class ClientOffreController extends Controller
 {
     public function index(Request $request): Response
     {
-        $entreprise = $request->user()->client->entreprisePartenaire;
+        $entreprise = $request->user('web')->client->entreprisePartenaire;
 
         $offres = $entreprise->offresEmploi()
             ->withCount('candidatures')
@@ -24,7 +24,7 @@ class ClientOffreController extends Controller
             ->get();
 
         return Inertia::render('espaces/client/offres-index', [
-            'client' => $request->user()->client->espaceHeaderProps(),
+            'client' => $request->user('web')->client->espaceHeaderProps(),
             'offres' => $offres->map(fn (OffreEmploi $offre) => [
                 'id' => $offre->id,
                 'titre' => $offre->titre,
@@ -44,7 +44,7 @@ class ClientOffreController extends Controller
     public function create(Request $request): Response
     {
         return Inertia::render('espaces/client/offres-create', [
-            'client' => $request->user()->client->espaceHeaderProps(),
+            'client' => $request->user('web')->client->espaceHeaderProps(),
         ]);
     }
 
@@ -62,7 +62,7 @@ class ClientOffreController extends Controller
 
         // L'entreprise envoie l'offre à DAG pour validation — seul un
         // membre de l'équipe DAG la publie ensuite (Donnee::EntreprisesOffres).
-        $offre = $request->user()->client->entreprisePartenaire->offresEmploi()->create([
+        $offre = $request->user('web')->client->entreprisePartenaire->offresEmploi()->create([
             ...$data,
             'statut' => 'BROUILLON',
         ]);
@@ -77,7 +77,7 @@ class ClientOffreController extends Controller
         $offre->load(['candidatures.apprenant.user', 'candidatures.apprenant.inscriptions.formation']);
 
         return Inertia::render('espaces/client/offres-show', [
-            'client' => $request->user()->client->espaceHeaderProps(),
+            'client' => $request->user('web')->client->espaceHeaderProps(),
             'offre' => [
                 'id' => $offre->id,
                 'titre' => $offre->titre,

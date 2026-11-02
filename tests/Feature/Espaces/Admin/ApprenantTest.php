@@ -9,7 +9,7 @@ test('a promotrice can list and view an apprenant dossier', function () {
     $promotrice = MembreEquipe::factory()->promotrice()->create();
     $apprenant = Apprenant::factory()->create(['ville' => 'Douala']);
 
-    $this->actingAs($promotrice->user)
+    $this->actingAs($promotrice, 'admin')
         ->get(route('espace-admin.apprenants.index'))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
@@ -17,7 +17,7 @@ test('a promotrice can list and view an apprenant dossier', function () {
             ->has('apprenants', 1)
             ->where('apprenants.0.id', $apprenant->id));
 
-    $this->actingAs($promotrice->user)
+    $this->actingAs($promotrice, 'admin')
         ->get(route('espace-admin.apprenants.show', $apprenant))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
@@ -35,7 +35,7 @@ test('a promotrice can download an apprenant cv regardless of their sharing cons
     ]);
     Storage::disk('local')->put($apprenant->cv_path, 'contenu-du-cv');
 
-    $this->actingAs($promotrice->user)
+    $this->actingAs($promotrice, 'admin')
         ->get(route('espace-admin.apprenants.cv', $apprenant))
         ->assertOk();
 });
@@ -44,7 +44,7 @@ test('downloading a cv that was never imported returns a 404', function () {
     $promotrice = MembreEquipe::factory()->promotrice()->create();
     $apprenant = Apprenant::factory()->create(['cv_path' => null]);
 
-    $this->actingAs($promotrice->user)
+    $this->actingAs($promotrice, 'admin')
         ->get(route('espace-admin.apprenants.cv', $apprenant))
         ->assertNotFound();
 });
@@ -52,7 +52,7 @@ test('downloading a cv that was never imported returns a 404', function () {
 test('a role without access to dossiers apprenants cannot reach the page', function () {
     $membre = MembreEquipe::factory()->create(['role' => MembreEquipeRole::ControleGestion]);
 
-    $this->actingAs($membre->user)
+    $this->actingAs($membre, 'admin')
         ->get(route('espace-admin.apprenants.index'))
         ->assertForbidden();
 });

@@ -4,6 +4,7 @@ use App\Enums\Action;
 use App\Enums\Donnee;
 use App\Enums\MembreEquipeRole;
 use App\Enums\NiveauDroit;
+use App\Models\DroitRole;
 use App\Models\MembreEquipe;
 use App\Support\DroitsMatrix;
 
@@ -60,4 +61,26 @@ test('resume groups roles by access level, highest first, and skips roles with n
 
     expect(DroitsMatrix::resume(Donnee::DossiersApprenants))
         ->toBe('Visible par : Directrice (total), Responsable Marketing (gestion), Juriste (lecture).');
+});
+
+test('an override replaces the default level, and resetting restores it', function () {
+    expect(DroitsMatrix::niveau(MembreEquipeRole::Juriste, Donnee::FacturesPaiements))->toBe(NiveauDroit::Aucun);
+
+    DroitsMatrix::definir(MembreEquipeRole::Juriste, Donnee::FacturesPaiements, NiveauDroit::Lecture);
+
+    expect(DroitsMatrix::niveau(MembreEquipeRole::Juriste, Donnee::FacturesPaiements))->toBe(NiveauDroit::Lecture);
+    expect(DroitsMatrix::estPersonnalise(MembreEquipeRole::Juriste, Donnee::FacturesPaiements))->toBeTrue();
+
+    DroitsMatrix::reinitialiser(MembreEquipeRole::Juriste);
+
+    expect(DroitsMatrix::niveau(MembreEquipeRole::Juriste, Donnee::FacturesPaiements))->toBe(NiveauDroit::Aucun);
+});
+
+test('setting a level back to its default removes the override and the directrice cannot be edited', function () {
+    DroitsMatrix::definir(MembreEquipeRole::Juriste, Donnee::Catalogue, NiveauDroit::Gestion);
+    DroitsMatrix::definir(MembreEquipeRole::Juriste, Donnee::Catalogue, NiveauDroit::Lecture);
+
+    expect(DroitRole::count())->toBe(0);
+    expect(fn () => DroitsMatrix::definir(MembreEquipeRole::Promotrice, Donnee::Catalogue, NiveauDroit::Aucun))
+        ->toThrow(InvalidArgumentException::class);
 });

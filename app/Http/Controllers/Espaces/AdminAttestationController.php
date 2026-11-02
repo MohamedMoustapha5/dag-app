@@ -22,7 +22,7 @@ class AdminAttestationController extends Controller
 
     public function index(Request $request): Response
     {
-        $membre = $request->user()->membreEquipe;
+        $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::DossiersApprenants, Action::Valider), 403);
 
         $paires = Attestation::query()
@@ -63,7 +63,7 @@ class AdminAttestationController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        abort_unless($request->user()->membreEquipe->peut(Donnee::DossiersApprenants, Action::Valider), 403);
+        abort_unless($this->membre($request)->peut(Donnee::DossiersApprenants, Action::Valider), 403);
 
         $data = $request->validate([
             'inscription_id' => ['required', 'uuid', 'exists:inscriptions,id'],

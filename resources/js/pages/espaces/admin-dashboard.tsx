@@ -24,25 +24,23 @@ type Point = { label: string; montant: number };
 type Props = {
     droits: Record<string, string>;
     kpis: {
-        chiffreAffairesMois: number;
-        chiffreAffairesEvolution: number;
-        demandesEnAttente: number;
-        aTransmettreNovaTech: number;
-        contratsASigner: number;
-        relancesEnvoyees: number;
-        tauxPlacement: number;
-        apprenantsPlaces: number;
+        chiffreAffaires: { montant: number; evolution: number } | null;
+        demandes: { enAttente: number; aTransmettreNovaTech: number } | null;
+        contrats: { aSigner: number; relances: number } | null;
+        placement: { taux: number; apprenantsPlaces: number } | null;
     };
     paiements: {
         '7j': Point[];
         '30j': Point[];
         '3mois': Point[];
-    };
+    } | null;
     repartitionCa: {
         total: number;
         segments: { label: string; montant: number }[];
-    };
-    servicesPlusDemandes: { label: string; total: number; novaTech: boolean }[];
+    } | null;
+    servicesPlusDemandes:
+        | { label: string; total: number; novaTech: boolean }[]
+        | null;
 };
 
 const PERIODES = [
@@ -76,13 +74,21 @@ export default function AdminDashboard({
     repartitionCa,
     servicesPlusDemandes,
 }: Props) {
-    const [periode, setPeriode] = useState<keyof typeof paiements>('7j');
+    const [periode, setPeriode] = useState<'7j' | '30j' | '3mois'>('7j');
     const periodeActive =
         PERIODES.find((item) => item.key === periode) ?? PERIODES[0];
-    const totalPeriode = paiements[periode].reduce(
+    const totalPeriode = (paiements?.[periode] ?? []).reduce(
         (somme, point) => somme + point.montant,
         0,
     );
+    const aucunWidget =
+        !kpis.chiffreAffaires &&
+        !kpis.demandes &&
+        !kpis.contrats &&
+        !kpis.placement &&
+        !paiements &&
+        !repartitionCa &&
+        !servicesPlusDemandes;
 
     const formatMontant = (montant: number) =>
         new Intl.NumberFormat('fr-FR').format(montant);
@@ -128,96 +134,126 @@ export default function AdminDashboard({
                 </div>
             </div>
 
-            <div
-                className="grid-4 espace-stats-grid"
-                style={{ marginBottom: 24 }}
-            >
+            {(kpis.chiffreAffaires ||
+                kpis.demandes ||
+                kpis.contrats ||
+                kpis.placement) && (
                 <div
-                    className="card espace-stat-card"
-                    style={{ padding: 22, borderTopColor: 'var(--dag-blue)' }}
+                    className="grid-4 espace-stats-grid"
+                    style={{ marginBottom: 24 }}
                 >
-                    <span className="muted" style={{ fontSize: 12.5 }}>
-                        Chiffre d'affaires (mois)
-                    </span>
-                    <strong
-                        style={{
-                            display: 'block',
-                            fontSize: 24,
-                            fontWeight: 800,
-                            margin: '6px 0',
-                        }}
-                    >
-                        {formatMontant(kpis.chiffreAffairesMois)} FCFA
-                    </strong>
-                    <Evolution valeur={kpis.chiffreAffairesEvolution} />
-                </div>
+                    {kpis.chiffreAffaires && (
+                        <div
+                            className="card espace-stat-card"
+                            style={{
+                                padding: 22,
+                                borderTopColor: 'var(--dag-blue)',
+                            }}
+                        >
+                            <span className="muted" style={{ fontSize: 12.5 }}>
+                                Chiffre d'affaires (mois)
+                            </span>
+                            <strong
+                                style={{
+                                    display: 'block',
+                                    fontSize: 24,
+                                    fontWeight: 800,
+                                    margin: '6px 0',
+                                }}
+                            >
+                                {formatMontant(kpis.chiffreAffaires.montant)}{' '}
+                                FCFA
+                            </strong>
+                            <Evolution
+                                valeur={kpis.chiffreAffaires.evolution}
+                            />
+                        </div>
+                    )}
 
-                <div
-                    className="card espace-stat-card"
-                    style={{ padding: 22, borderTopColor: 'var(--dag-orange)' }}
-                >
-                    <span className="muted" style={{ fontSize: 12.5 }}>
-                        Demandes en attente
-                    </span>
-                    <strong
-                        style={{
-                            display: 'block',
-                            fontSize: 24,
-                            fontWeight: 800,
-                            margin: '6px 0',
-                        }}
-                    >
-                        {kpis.demandesEnAttente}
-                    </strong>
-                    <span className="muted" style={{ fontSize: 12.5 }}>
-                        {kpis.aTransmettreNovaTech} à transmettre à Nova-Tech
-                    </span>
-                </div>
+                    {kpis.demandes && (
+                        <div
+                            className="card espace-stat-card"
+                            style={{
+                                padding: 22,
+                                borderTopColor: 'var(--dag-orange)',
+                            }}
+                        >
+                            <span className="muted" style={{ fontSize: 12.5 }}>
+                                Demandes en attente
+                            </span>
+                            <strong
+                                style={{
+                                    display: 'block',
+                                    fontSize: 24,
+                                    fontWeight: 800,
+                                    margin: '6px 0',
+                                }}
+                            >
+                                {kpis.demandes.enAttente}
+                            </strong>
+                            <span className="muted" style={{ fontSize: 12.5 }}>
+                                {kpis.demandes.aTransmettreNovaTech} à
+                                transmettre à Nova-Tech
+                            </span>
+                        </div>
+                    )}
 
-                <div
-                    className="card espace-stat-card"
-                    style={{ padding: 22, borderTopColor: 'var(--dag-red)' }}
-                >
-                    <span className="muted" style={{ fontSize: 12.5 }}>
-                        Contrats à signer
-                    </span>
-                    <strong
-                        style={{
-                            display: 'block',
-                            fontSize: 24,
-                            fontWeight: 800,
-                            margin: '6px 0',
-                        }}
-                    >
-                        {kpis.contratsASigner}
-                    </strong>
-                    <span className="muted" style={{ fontSize: 12.5 }}>
-                        {kpis.relancesEnvoyees} relances envoyées
-                    </span>
-                </div>
+                    {kpis.contrats && (
+                        <div
+                            className="card espace-stat-card"
+                            style={{
+                                padding: 22,
+                                borderTopColor: 'var(--dag-red)',
+                            }}
+                        >
+                            <span className="muted" style={{ fontSize: 12.5 }}>
+                                Contrats à signer
+                            </span>
+                            <strong
+                                style={{
+                                    display: 'block',
+                                    fontSize: 24,
+                                    fontWeight: 800,
+                                    margin: '6px 0',
+                                }}
+                            >
+                                {kpis.contrats.aSigner}
+                            </strong>
+                            <span className="muted" style={{ fontSize: 12.5 }}>
+                                {kpis.contrats.relances} relances envoyées
+                            </span>
+                        </div>
+                    )}
 
-                <div
-                    className="card espace-stat-card"
-                    style={{ padding: 22, borderTopColor: 'var(--dag-green)' }}
-                >
-                    <span className="muted" style={{ fontSize: 12.5 }}>
-                        Taux de placement formation
-                    </span>
-                    <strong
-                        style={{
-                            display: 'block',
-                            fontSize: 24,
-                            fontWeight: 800,
-                            margin: '6px 0',
-                        }}
-                    >
-                        {kpis.tauxPlacement}%
-                    </strong>
-                    <span className="muted" style={{ fontSize: 12.5 }}>
-                        +{kpis.apprenantsPlaces} apprenants placés
-                    </span>
+                    {kpis.placement && (
+                        <div
+                            className="card espace-stat-card"
+                            style={{
+                                padding: 22,
+                                borderTopColor: 'var(--dag-green)',
+                            }}
+                        >
+                            <span className="muted" style={{ fontSize: 12.5 }}>
+                                Taux de placement formation
+                            </span>
+                            <strong
+                                style={{
+                                    display: 'block',
+                                    fontSize: 24,
+                                    fontWeight: 800,
+                                    margin: '6px 0',
+                                }}
+                            >
+                                {kpis.placement.taux}%
+                            </strong>
+                            <span className="muted" style={{ fontSize: 12.5 }}>
+                                +{kpis.placement.apprenantsPlaces} apprenants
+                                placés
+                            </span>
+                        </div>
+                    )}
                 </div>
-            </div>
+            )}
 
             <div className="card" style={{ padding: 24, marginBottom: 24 }}>
                 <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 16 }}>
@@ -231,9 +267,9 @@ export default function AdminDashboard({
                         >
                             <FileText size={16} />
                             Demandes clients
-                            {kpis.demandesEnAttente > 0 && (
+                            {(kpis.demandes?.enAttente ?? 0) > 0 && (
                                 <span className="espace-action-badge">
-                                    {kpis.demandesEnAttente}
+                                    {kpis.demandes?.enAttente}
                                 </span>
                             )}
                         </Link>
@@ -254,9 +290,9 @@ export default function AdminDashboard({
                         >
                             <FileSignature size={16} />
                             Contrats & clauses
-                            {kpis.contratsASigner > 0 && (
+                            {(kpis.contrats?.aSigner ?? 0) > 0 && (
                                 <span className="espace-action-badge">
-                                    {kpis.contratsASigner}
+                                    {kpis.contrats?.aSigner}
                                 </span>
                             )}
                         </Link>
@@ -291,84 +327,128 @@ export default function AdminDashboard({
                 </div>
             </div>
 
-            <div
-                className="split-layout-wide"
-                style={{ marginBottom: 24, gap: 24 }}
-            >
-                <div className="card" style={{ padding: 24 }}>
-                    <div
-                        style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'flex-start',
-                            marginBottom: 20,
-                            flexWrap: 'wrap',
-                            gap: 14,
-                        }}
-                    >
-                        <div>
-                            <p className="muted" style={{ fontSize: 13 }}>
-                                Paiements encaissés
-                            </p>
-                            <strong
+            {(paiements || repartitionCa) && (
+                <div
+                    className={
+                        paiements && repartitionCa
+                            ? 'split-layout-wide'
+                            : undefined
+                    }
+                    style={{ marginBottom: 24, gap: 24 }}
+                >
+                    {paiements && (
+                        <div className="card" style={{ padding: 24 }}>
+                            <div
                                 style={{
-                                    display: 'block',
-                                    fontSize: 28,
-                                    fontWeight: 800,
-                                    color: 'var(--dag-navy)',
-                                    margin: '4px 0 2px',
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'flex-start',
+                                    marginBottom: 20,
+                                    flexWrap: 'wrap',
+                                    gap: 14,
                                 }}
                             >
-                                {formatMontant(totalPeriode)} FCFA
-                            </strong>
-                            <span className="muted" style={{ fontSize: 12.5 }}>
-                                {periodeActive.soustitre}
-                            </span>
-                        </div>
-                        <div
-                            style={{
-                                display: 'flex',
-                                gap: 2,
-                                padding: 4,
-                                background: '#f1f2f6',
-                                borderRadius: 999,
-                            }}
-                        >
-                            {PERIODES.map((item) => (
-                                <button
-                                    key={item.key}
-                                    type="button"
-                                    onClick={() => setPeriode(item.key)}
+                                <div>
+                                    <p
+                                        className="muted"
+                                        style={{ fontSize: 13 }}
+                                    >
+                                        Paiements encaissés
+                                    </p>
+                                    <strong
+                                        style={{
+                                            display: 'block',
+                                            fontSize: 28,
+                                            fontWeight: 800,
+                                            color: 'var(--dag-navy)',
+                                            margin: '4px 0 2px',
+                                        }}
+                                    >
+                                        {formatMontant(totalPeriode)} FCFA
+                                    </strong>
+                                    <span
+                                        className="muted"
+                                        style={{ fontSize: 12.5 }}
+                                    >
+                                        {periodeActive.soustitre}
+                                    </span>
+                                </div>
+                                <div
                                     style={{
-                                        border: 'none',
+                                        display: 'flex',
+                                        gap: 2,
+                                        padding: 4,
+                                        background: '#f1f2f6',
                                         borderRadius: 999,
-                                        padding: '7px 16px',
-                                        fontSize: 12.5,
-                                        fontWeight: 700,
-                                        cursor: 'pointer',
-                                        background:
-                                            periode === item.key
-                                                ? '#fff'
-                                                : 'transparent',
-                                        color:
-                                            periode === item.key
-                                                ? 'var(--dag-blue)'
-                                                : 'var(--dag-text-muted)',
-                                        boxShadow:
-                                            periode === item.key
-                                                ? '0 2px 6px rgba(7, 31, 65, 0.1)'
-                                                : 'none',
-                                        transition: 'all 0.15s ease',
                                     }}
                                 >
-                                    {item.label}
-                                </button>
-                            ))}
+                                    {PERIODES.map((item) => (
+                                        <button
+                                            key={item.key}
+                                            type="button"
+                                            onClick={() => setPeriode(item.key)}
+                                            style={{
+                                                border: 'none',
+                                                borderRadius: 999,
+                                                padding: '7px 16px',
+                                                fontSize: 12.5,
+                                                fontWeight: 700,
+                                                cursor: 'pointer',
+                                                background:
+                                                    periode === item.key
+                                                        ? '#fff'
+                                                        : 'transparent',
+                                                color:
+                                                    periode === item.key
+                                                        ? 'var(--dag-blue)'
+                                                        : 'var(--dag-text-muted)',
+                                                boxShadow:
+                                                    periode === item.key
+                                                        ? '0 2px 6px rgba(7, 31, 65, 0.1)'
+                                                        : 'none',
+                                                transition: 'all 0.15s ease',
+                                            }}
+                                        >
+                                            {item.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                            <PaiementsChart series={paiements[periode]} />
                         </div>
-                    </div>
-                    <PaiementsChart series={paiements[periode]} />
-                </div>
+                    )}
 
+                    {repartitionCa && (
+                        <div className="card" style={{ padding: 24 }}>
+                            <p
+                                style={{
+                                    fontSize: 14,
+                                    fontWeight: 700,
+                                    marginBottom: 16,
+                                }}
+                            >
+                                Répartition du chiffre d'affaires
+                            </p>
+                            <RepartitionDonut
+                                segments={repartitionCa.segments.map(
+                                    (segment, index) => ({
+                                        label: segment.label,
+                                        value: segment.montant,
+                                        color: DONUT_COLORS[
+                                            index % DONUT_COLORS.length
+                                        ],
+                                    }),
+                                )}
+                                centerValue={`${formatMontant(repartitionCa.total)}`}
+                                centerLabel="FCFA ce mois"
+                                legendAsPercentage
+                            />
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {servicesPlusDemandes && (
                 <div className="card" style={{ padding: 24 }}>
                     <p
                         style={{
@@ -377,31 +457,18 @@ export default function AdminDashboard({
                             marginBottom: 16,
                         }}
                     >
-                        Répartition du chiffre d'affaires
+                        Services les plus demandés
                     </p>
-                    <RepartitionDonut
-                        segments={repartitionCa.segments.map(
-                            (segment, index) => ({
-                                label: segment.label,
-                                value: segment.montant,
-                                color: DONUT_COLORS[
-                                    index % DONUT_COLORS.length
-                                ],
-                            }),
-                        )}
-                        centerValue={`${formatMontant(repartitionCa.total)}`}
-                        centerLabel="FCFA ce mois"
-                        legendAsPercentage
-                    />
+                    <ServicesRanking services={servicesPlusDemandes} />
                 </div>
-            </div>
+            )}
 
-            <div className="card" style={{ padding: 24 }}>
-                <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 16 }}>
-                    Services les plus demandés
+            {aucunWidget && (
+                <p className="muted" style={{ fontSize: 13 }}>
+                    Aucune statistique n'est affichée pour votre rôle : seuls
+                    les raccourcis ci-dessus vous sont ouverts.
                 </p>
-                <ServicesRanking services={servicesPlusDemandes} />
-            </div>
+            )}
         </>
     );
 }

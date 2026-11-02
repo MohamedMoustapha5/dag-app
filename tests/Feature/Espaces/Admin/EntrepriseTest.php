@@ -9,7 +9,7 @@ test('a promotrice can validate a pending entreprise partner', function () {
     $promotrice = MembreEquipe::factory()->promotrice()->create();
     $entreprise = EntreprisePartenaire::factory()->create(['statut' => 'EN_ATTENTE']);
 
-    $this->actingAs($promotrice->user)
+    $this->actingAs($promotrice, 'admin')
         ->get(route('espace-admin.entreprises.index'))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
@@ -18,7 +18,7 @@ test('a promotrice can validate a pending entreprise partner', function () {
             ->where('entreprises.0.statut', 'EN_ATTENTE')
             ->where('peutValider', true));
 
-    $this->actingAs($promotrice->user)
+    $this->actingAs($promotrice, 'admin')
         ->patch(route('espace-admin.entreprises.update', $entreprise), ['statut' => 'ACTIF'])
         ->assertRedirect();
 
@@ -29,7 +29,7 @@ test('a promotrice can publish a draft offre and the entreprise client can then 
     $promotrice = MembreEquipe::factory()->promotrice()->create();
     $offre = OffreEmploi::factory()->create(['statut' => 'BROUILLON']);
 
-    $this->actingAs($promotrice->user)
+    $this->actingAs($promotrice, 'admin')
         ->patch(route('espace-admin.offres.update', $offre), ['statut' => 'PUBLIEE'])
         ->assertRedirect();
 
@@ -40,7 +40,7 @@ test('a promotrice can close a published offre', function () {
     $promotrice = MembreEquipe::factory()->promotrice()->create();
     $offre = OffreEmploi::factory()->create(['statut' => 'PUBLIEE']);
 
-    $this->actingAs($promotrice->user)
+    $this->actingAs($promotrice, 'admin')
         ->patch(route('espace-admin.offres.update', $offre), ['statut' => 'CLOTUREE'])
         ->assertRedirect();
 
@@ -52,18 +52,18 @@ test('a role with gestion but not validation can see but not publish or validate
     $entreprise = EntreprisePartenaire::factory()->create(['statut' => 'EN_ATTENTE']);
     $offre = OffreEmploi::factory()->create(['statut' => 'BROUILLON']);
 
-    $this->actingAs($membre->user)
+    $this->actingAs($membre, 'admin')
         ->get(route('espace-admin.entreprises.index'))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->where('peutValider', false)
             ->where('peutModifier', true));
 
-    $this->actingAs($membre->user)
+    $this->actingAs($membre, 'admin')
         ->patch(route('espace-admin.entreprises.update', $entreprise), ['statut' => 'ACTIF'])
         ->assertForbidden();
 
-    $this->actingAs($membre->user)
+    $this->actingAs($membre, 'admin')
         ->patch(route('espace-admin.offres.update', $offre), ['statut' => 'PUBLIEE'])
         ->assertForbidden();
 
@@ -74,7 +74,7 @@ test('a role with gestion but not validation can see but not publish or validate
 test('a role without any access to entreprises offres cannot reach the page', function () {
     $membre = MembreEquipe::factory()->create(['role' => MembreEquipeRole::ControleGestion]);
 
-    $this->actingAs($membre->user)
+    $this->actingAs($membre, 'admin')
         ->get(route('espace-admin.entreprises.index'))
         ->assertForbidden();
 });

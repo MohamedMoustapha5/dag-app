@@ -18,7 +18,7 @@ class ApprenantProgressionController extends Controller
 {
     public function index(Request $request): Response
     {
-        $apprenant = $request->user()->apprenant;
+        $apprenant = $request->user('web')->apprenant;
 
         $inscriptions = $apprenant->inscriptions()
             ->whereIn('statut', ['VALIDEE', 'FORMEE'])
@@ -47,7 +47,7 @@ class ApprenantProgressionController extends Controller
     {
         Gate::authorize('view', $inscription);
 
-        $apprenant = $request->user()->apprenant;
+        $apprenant = $request->user('web')->apprenant;
         $inscription->load(['formation', 'formationSession.seances']);
 
         $seances = $inscription->formationSession->seances ?? new Collection;

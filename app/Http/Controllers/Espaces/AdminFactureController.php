@@ -21,7 +21,7 @@ class AdminFactureController extends Controller
 
     public function index(Request $request): Response
     {
-        $membre = $request->user()->membreEquipe;
+        $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::FacturesPaiements, Action::Voir), 403);
 
         $factures = Facture::query()
@@ -58,7 +58,7 @@ class AdminFactureController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $membre = $request->user()->membreEquipe;
+        $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::FacturesPaiements, Action::Creer), 403);
 
         $data = $request->validate([
@@ -87,7 +87,7 @@ class AdminFactureController extends Controller
 
     public function show(Request $request, Facture $facture): Response
     {
-        $membre = $request->user()->membreEquipe;
+        $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::FacturesPaiements, Action::Voir), 403);
 
         $facture->load(['client', 'entreprise', 'demande', 'abonnement.formule', 'inscription.formation', 'paiements']);
@@ -117,7 +117,7 @@ class AdminFactureController extends Controller
 
     public function storePaiement(Request $request, Facture $facture): RedirectResponse
     {
-        $membre = $request->user()->membreEquipe;
+        $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::FacturesPaiements, Action::Creer), 403);
 
         $data = $request->validate([

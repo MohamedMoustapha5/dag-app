@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Espaces;
 
+use App\Concerns\SharesAdminEspaceProps;
 use App\Enums\Action;
 use App\Enums\Donnee;
 use App\Http\Controllers\Controller;
@@ -13,9 +14,11 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AdminInscriptionController extends Controller
 {
+    use SharesAdminEspaceProps;
+
     public function index(Request $request, FormationSession $formationSession): JsonResponse
     {
-        $membre = $request->user()->membreEquipe;
+        $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::Formations, Action::Voir), 403);
 
         $formationSession->load(['formation', 'inscriptions.apprenant.user', 'seances']);
@@ -40,7 +43,7 @@ class AdminInscriptionController extends Controller
 
     public function export(Request $request, FormationSession $formationSession): StreamedResponse
     {
-        $membre = $request->user()->membreEquipe;
+        $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::Formations, Action::Telecharger), 403);
 
         $formationSession->load(['formation', 'inscriptions.apprenant.user']);
@@ -67,7 +70,7 @@ class AdminInscriptionController extends Controller
 
     public function valider(Request $request, Inscription $inscription): JsonResponse
     {
-        $membre = $request->user()->membreEquipe;
+        $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::Formations, Action::Valider), 403);
         abort_unless($inscription->statut === 'EN_ATTENTE_PAIEMENT', 409);
 
@@ -78,7 +81,7 @@ class AdminInscriptionController extends Controller
 
     public function refuser(Request $request, Inscription $inscription): JsonResponse
     {
-        $membre = $request->user()->membreEquipe;
+        $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::Formations, Action::Valider), 403);
         abort_unless($inscription->statut === 'EN_ATTENTE_PAIEMENT', 409);
 

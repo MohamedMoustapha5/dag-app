@@ -4,6 +4,7 @@ namespace App\Concerns;
 
 use App\Models\MembreEquipe;
 use App\Support\DroitsMatrix;
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 
 /**
@@ -13,6 +14,18 @@ use Illuminate\Support\Collection;
  */
 trait SharesAdminEspaceProps
 {
+    /**
+     * The staff member signed in on the `admin` guard.
+     */
+    protected function membre(Request $request): MembreEquipe
+    {
+        $membre = $request->user('admin');
+
+        abort_unless($membre instanceof MembreEquipe, 403);
+
+        return $membre;
+    }
+
     /**
      * @return array{membre: array{role: string, roleLabel: string}, droits: Collection<string, string>}
      */

@@ -17,7 +17,7 @@ class ClientCandidatureController extends Controller
 {
     public function index(Request $request): Response
     {
-        $entreprise = $request->user()->client->entreprisePartenaire;
+        $entreprise = $request->user('web')->client->entreprisePartenaire;
 
         $candidatures = Candidature::query()
             ->whereHas('offre', fn ($query) => $query->where('entreprise_id', $entreprise->id))
@@ -26,7 +26,7 @@ class ClientCandidatureController extends Controller
             ->get();
 
         return Inertia::render('espaces/client/candidatures-index', [
-            'client' => $request->user()->client->espaceHeaderProps(),
+            'client' => $request->user('web')->client->espaceHeaderProps(),
             'candidatures' => $candidatures->map(fn (Candidature $candidature) => [
                 'id' => $candidature->id,
                 'apprenantNom' => $candidature->apprenant->user->name,
@@ -67,7 +67,7 @@ class ClientCandidatureController extends Controller
         $apprenant = $candidature->apprenant;
 
         return Inertia::render('espaces/client/candidatures-show', [
-            'client' => $request->user()->client->espaceHeaderProps(),
+            'client' => $request->user('web')->client->espaceHeaderProps(),
             'candidature' => [
                 'id' => $candidature->id,
                 'statut' => $candidature->statut,

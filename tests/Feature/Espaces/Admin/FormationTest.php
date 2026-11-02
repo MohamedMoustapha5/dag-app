@@ -9,14 +9,14 @@ use App\Models\Seance;
 test('a promotrice can quick-create a session, which creates its formation on first use', function () {
     $promotrice = MembreEquipe::factory()->promotrice()->create();
 
-    $this->actingAs($promotrice->user)
+    $this->actingAs($promotrice, 'admin')
         ->get(route('espace-admin.formations.index'))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->component('espaces/admin-formations')
             ->has('sessions', 0));
 
-    $this->actingAs($promotrice->user)->post(route('espace-admin.sessions.store-rapide'), [
+    $this->actingAs($promotrice, 'admin')->post(route('espace-admin.sessions.store-rapide'), [
         'formation_nom' => 'Montage vidéo — Initiation',
         'ville' => 'Douala',
         'mode' => 'PRESENTIEL',
@@ -31,7 +31,7 @@ test('a promotrice can quick-create a session, which creates its formation on fi
 
     // Submitting the same title again reuses the formation instead of
     // creating a duplicate catalog entry.
-    $this->actingAs($promotrice->user)->post(route('espace-admin.sessions.store-rapide'), [
+    $this->actingAs($promotrice, 'admin')->post(route('espace-admin.sessions.store-rapide'), [
         'formation_nom' => 'Montage vidéo — Initiation',
         'ville' => 'Yaoundé',
         'mode' => 'EN_LIGNE',
@@ -42,7 +42,7 @@ test('a promotrice can quick-create a session, which creates its formation on fi
     expect(Formation::where('nom', 'Montage vidéo — Initiation')->count())->toBe(1);
     expect(FormationSession::where('formation_id', $formation->id)->count())->toBe(2);
 
-    $this->actingAs($promotrice->user)
+    $this->actingAs($promotrice, 'admin')
         ->get(route('espace-admin.formations.index'))
         ->assertInertia(fn ($page) => $page->has('sessions', 2));
 });
@@ -51,14 +51,14 @@ test('a promotrice can add a session to an existing formation and manage its sea
     $promotrice = MembreEquipe::factory()->promotrice()->create();
     $formation = Formation::factory()->create();
 
-    $this->actingAs($promotrice->user)
+    $this->actingAs($promotrice, 'admin')
         ->get(route('espace-admin.formations.show', $formation))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->component('espaces/admin-formation-show')
             ->has('sessions', 0));
 
-    $this->actingAs($promotrice->user)->post(route('espace-admin.formations.sessions.store', $formation), [
+    $this->actingAs($promotrice, 'admin')->post(route('espace-admin.formations.sessions.store', $formation), [
         'ville' => 'Douala',
         'mode' => 'PRESENTIEL',
         'places' => 20,
@@ -67,14 +67,14 @@ test('a promotrice can add a session to an existing formation and manage its sea
     $session = FormationSession::where('formation_id', $formation->id)->firstOrFail();
     expect($session->statut)->toBe('BROUILLON');
 
-    $this->actingAs($promotrice->user)
+    $this->actingAs($promotrice, 'admin')
         ->get(route('espace-admin.sessions.show', $session))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->component('espaces/admin-session-show')
             ->where('session.ville', 'Douala'));
 
-    $this->actingAs($promotrice->user)->post(route('espace-admin.sessions.seances.store', $session), [
+    $this->actingAs($promotrice, 'admin')->post(route('espace-admin.sessions.seances.store', $session), [
         'titre' => 'Séance 1',
         'date' => '2027-01-10',
     ])->assertRedirect();
@@ -87,14 +87,14 @@ test('a promotrice can publish a formation and open a session', function () {
     $formation = Formation::factory()->create(['statut' => 'BROUILLON']);
     $session = FormationSession::factory()->for($formation)->create(['statut' => 'BROUILLON']);
 
-    $this->actingAs($promotrice->user)->patch(route('espace-admin.formations.update', $formation), [
+    $this->actingAs($promotrice, 'admin')->patch(route('espace-admin.formations.update', $formation), [
         'nom' => $formation->nom,
         'description' => $formation->description,
         'statut' => 'PUBLIEE',
     ])->assertRedirect();
     expect($formation->fresh()->statut)->toBe('PUBLIEE');
 
-    $this->actingAs($promotrice->user)->patch(route('espace-admin.sessions.update', $session), [
+    $this->actingAs($promotrice, 'admin')->patch(route('espace-admin.sessions.update', $session), [
         'ville' => $session->ville,
         'mode' => $session->mode,
         'places' => $session->places,
@@ -108,7 +108,7 @@ test('a promotrice can delete a session, which also removes its seances', functi
     $session = FormationSession::factory()->create();
     Seance::create(['formation_session_id' => $session->id, 'titre' => 'Séance 1', 'date' => '2027-01-10']);
 
-    $this->actingAs($promotrice->user)
+    $this->actingAs($promotrice, 'admin')
         ->delete(route('espace-admin.sessions.destroy', $session))
         ->assertRedirect();
 
@@ -121,7 +121,7 @@ test('a promotrice can delete a seance', function () {
     $session = FormationSession::factory()->create();
     $seance = Seance::create(['formation_session_id' => $session->id, 'titre' => 'Séance 1', 'date' => '2027-01-10']);
 
-    $this->actingAs($promotrice->user)
+    $this->actingAs($promotrice, 'admin')
         ->delete(route('espace-admin.seances.destroy', $seance))
         ->assertRedirect();
 
@@ -132,11 +132,11 @@ test('a role without creer access cannot quick-create a session or delete one', 
     $membre = MembreEquipe::factory()->create(['role' => MembreEquipeRole::ControleGestion]);
     $session = FormationSession::factory()->create();
 
-    $this->actingAs($membre->user)
+    $this->actingAs($membre, 'admin')
         ->get(route('espace-admin.formations.index'))
         ->assertOk();
 
-    $this->actingAs($membre->user)->post(route('espace-admin.sessions.store-rapide'), [
+    $this->actingAs($membre, 'admin')->post(route('espace-admin.sessions.store-rapide'), [
         'formation_nom' => 'Test',
         'ville' => 'Douala',
         'mode' => 'PRESENTIEL',
@@ -144,7 +144,7 @@ test('a role without creer access cannot quick-create a session or delete one', 
         'statut' => 'OUVERTE',
     ])->assertForbidden();
 
-    $this->actingAs($membre->user)
+    $this->actingAs($membre, 'admin')
         ->delete(route('espace-admin.sessions.destroy', $session))
         ->assertForbidden();
 });

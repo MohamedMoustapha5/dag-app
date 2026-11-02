@@ -5,19 +5,24 @@ namespace App\Support;
 use App\Enums\Donnee;
 use App\Enums\MembreEquipeRole;
 use App\Enums\NiveauDroit;
+use App\Models\DroitRole;
+use Illuminate\Support\Facades\Cache;
+use InvalidArgumentException;
 
 /**
- * The DAG team access matrix, transcribed verbatim from section 3.2 of the
- * cahier des charges. This is the single source of truth: every policy or
- * middleware that gates a `membre_equipe` action reads it from here instead
- * of re-declaring the rule.
+ * The DAG team access matrix. The defaults are transcribed verbatim from
+ * section 3.2 of the cahier des charges; the Promotrice can override any
+ * role/domain pair from the admin (stored in `droits_roles`), so the rights
+ * of a role evolve without a code change. This is the single source of
+ * truth: every policy or middleware that gates a `membre_equipe` action
+ * reads it from here instead of re-declaring the rule.
  */
 class DroitsMatrix
 {
     /**
      * @var array<string, array<string, NiveauDroit>>
      */
-    private static array $matrice = [
+    private static array $defauts = [
         MembreEquipeRole::Promotrice->value => [
             Donnee::Catalogue->value => NiveauDroit::Total,
             Donnee::Formations->value => NiveauDroit::Total,
@@ -75,9 +80,20 @@ class DroitsMatrix
         ],
     ];
 
+    private const CACHE_KEY = 'droits_roles';
+
     public static function niveau(MembreEquipeRole $role, Donnee $donnee): NiveauDroit
     {
-        return self::$matrice[$role->value][$donnee->value];
+        $surcharge = self::surcharges()[$role->value][$donnee->value] ?? null;
+
+        return $surcharge !== null
+            ? NiveauDroit::from($surcharge)
+            : self::defaut($role, $donnee);
+    }
+
+    public static function defaut(MembreEquipeRole $role, Donnee $donnee): NiveauDroit
+    {
+        return self::$defauts[$role->value][$donnee->value];
     }
 
     /**
@@ -85,7 +101,59 @@ class DroitsMatrix
      */
     public static function pourRole(MembreEquipeRole $role): array
     {
-        return self::$matrice[$role->value];
+        $niveaux = [];
+
+        foreach (Donnee::cases() as $donnee) {
+            $niveaux[$donnee->value] = self::niveau($role, $donnee);
+        }
+
+        return $niveaux;
+    }
+
+    public static function estPersonnalise(MembreEquipeRole $role, Donnee $donnee): bool
+    {
+        return self::niveau($role, $donnee) !== self::defaut($role, $donnee);
+    }
+
+    public static function definir(MembreEquipeRole $role, Donnee $donnee, NiveauDroit $niveau): void
+    {
+        if ($role === MembreEquipeRole::Promotrice) {
+            throw new InvalidArgumentException('Les droits de la Directrice ne sont pas modifiables.');
+        }
+
+        if ($niveau === self::defaut($role, $donnee)) {
+            DroitRole::where('role', $role->value)->where('donnee', $donnee->value)->delete();
+        } else {
+            DroitRole::updateOrCreate(
+                ['role' => $role->value, 'donnee' => $donnee->value],
+                ['niveau' => $niveau->value],
+            );
+        }
+
+        Cache::forget(self::CACHE_KEY);
+    }
+
+    public static function reinitialiser(MembreEquipeRole $role): void
+    {
+        DroitRole::where('role', $role->value)->delete();
+
+        Cache::forget(self::CACHE_KEY);
+    }
+
+    /**
+     * @return array<string, array<string, string>>
+     */
+    private static function surcharges(): array
+    {
+        return Cache::remember(self::CACHE_KEY, 3600, function (): array {
+            $surcharges = [];
+
+            foreach (DroitRole::all() as $droit) {
+                $surcharges[$droit->role][$droit->donnee] = $droit->niveau;
+            }
+
+            return $surcharges;
+        });
     }
 
     /**

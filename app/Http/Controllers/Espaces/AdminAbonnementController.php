@@ -22,7 +22,7 @@ class AdminAbonnementController extends Controller
 
     public function index(Request $request): Response
     {
-        $membre = $request->user()->membreEquipe;
+        $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::Abonnements, Action::Voir), 403);
 
         $abonnements = Abonnement::query()
@@ -70,7 +70,7 @@ class AdminAbonnementController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $membre = $request->user()->membreEquipe;
+        $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::Abonnements, Action::Creer), 403);
 
         $data = $request->validate([
@@ -91,7 +91,7 @@ class AdminAbonnementController extends Controller
 
     public function update(Request $request, Abonnement $abonnement): RedirectResponse
     {
-        $membre = $request->user()->membreEquipe;
+        $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::Abonnements, Action::Modifier), 403);
 
         $data = $request->validate([
@@ -109,7 +109,7 @@ class AdminAbonnementController extends Controller
 
     public function storeFormule(Request $request): RedirectResponse
     {
-        abort_unless($request->user()->membreEquipe->peut(Donnee::Abonnements, Action::Creer), 403);
+        abort_unless($this->membre($request)->peut(Donnee::Abonnements, Action::Creer), 403);
 
         Formule::create($this->validatedFormule($request));
 
@@ -118,7 +118,7 @@ class AdminAbonnementController extends Controller
 
     public function updateFormule(Request $request, Formule $formule): RedirectResponse
     {
-        abort_unless($request->user()->membreEquipe->peut(Donnee::Abonnements, Action::Modifier), 403);
+        abort_unless($this->membre($request)->peut(Donnee::Abonnements, Action::Modifier), 403);
 
         $formule->update($this->validatedFormule($request, sometimes: true));
 
@@ -127,7 +127,7 @@ class AdminAbonnementController extends Controller
 
     public function destroyFormule(Request $request, Formule $formule): RedirectResponse
     {
-        abort_unless($request->user()->membreEquipe->peut(Donnee::Abonnements, Action::Supprimer), 403);
+        abort_unless($this->membre($request)->peut(Donnee::Abonnements, Action::Supprimer), 403);
 
         $formule->delete();
 

@@ -18,7 +18,7 @@ trait RedirectsToCurrentTeam
      */
     protected function redirectPathForCurrentTeam(Request $request, string $redirect): string
     {
-        $user = $request->user();
+        $user = $request->user('web');
 
         if ($user?->type !== null) {
             return EspaceRedirect::pathFor($user);
@@ -33,7 +33,7 @@ trait RedirectsToCurrentTeam
 
     protected function currentTeam(Request $request): Team
     {
-        $user = $request->user();
+        $user = $request->user('web');
 
         abort_if(! $user, 403);
 

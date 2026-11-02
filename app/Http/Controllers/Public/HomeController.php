@@ -13,10 +13,10 @@ class HomeController extends Controller
     public function __invoke(): Response
     {
         $equipe = MembreEquipe::where('statut', 'ACTIF')
-            ->with('user')
+
             ->get()
             ->map(fn (MembreEquipe $membre) => [
-                'nom' => $membre->user->name,
+                'nom' => $membre->name,
                 'role' => $membre->role->label(),
             ]);
 

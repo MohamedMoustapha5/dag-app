@@ -11,7 +11,7 @@ class DashboardController extends Controller
 {
     public function __invoke(Request $request): Response
     {
-        $email = strtolower($request->user()->email);
+        $email = strtolower($request->user('web')->email);
 
         $pendingInvitations = TeamInvitation::query()
             ->with(['inviter', 'team'])

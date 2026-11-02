@@ -6,14 +6,12 @@ use App\Concerns\PasswordValidationRules;
 use App\Concerns\SharesAdminEspaceProps;
 use App\Enums\Donnee;
 use App\Enums\MembreEquipeRole;
-use App\Enums\UserType;
+use App\Enums\NiveauDroit;
 use App\Http\Controllers\Controller;
 use App\Models\MembreEquipe;
-use App\Models\User;
 use App\Support\DroitsMatrix;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -27,20 +25,19 @@ class AdminEquipeController extends Controller
         $this->authorizePromotrice($request);
 
         $membres = MembreEquipe::query()
-            ->with('user')
-            ->get()
-            ->sortBy(fn (MembreEquipe $membre) => $membre->user->name);
+            ->orderBy('name')
+            ->get();
 
         return Inertia::render('espaces/admin-equipe', [
-            ...$this->adminEspaceProps($request->user()->membreEquipe),
+            ...$this->adminEspaceProps($this->membre($request)),
             'membres' => $membres->map(fn (MembreEquipe $membre) => [
                 'id' => $membre->id,
-                'nom' => $membre->user->name,
-                'email' => $membre->user->email,
+                'nom' => $membre->name,
+                'email' => $membre->email,
                 'role' => $membre->role->value,
                 'roleLabel' => $membre->role->label(),
                 'statut' => $membre->statut,
-                'soiMeme' => $membre->user_id === $request->user()->id,
+                'soiMeme' => $membre->id === $this->membre($request)->id,
             ])->values(),
             'roles' => collect(MembreEquipeRole::cases())->map(fn (MembreEquipeRole $role) => [
                 'value' => $role->value,
@@ -50,10 +47,19 @@ class AdminEquipeController extends Controller
                 'value' => $donnee->value,
                 'label' => $donnee->label(),
             ]),
+            'niveaux' => collect(NiveauDroit::cases())->map(fn (NiveauDroit $niveau) => [
+                'value' => $niveau->value,
+                'label' => $niveau->label(),
+            ]),
             'matriceRoles' => collect(MembreEquipeRole::cases())->map(fn (MembreEquipeRole $role) => [
                 'role' => $role->value,
                 'roleLabel' => $role->label(),
+                'modifiable' => $role !== MembreEquipeRole::Promotrice,
                 'droits' => collect(DroitsMatrix::pourRole($role))->map(fn ($niveau) => $niveau->value),
+                'personnalises' => collect(Donnee::cases())
+                    ->filter(fn (Donnee $donnee) => DroitsMatrix::estPersonnalise($role, $donnee))
+                    ->map(fn (Donnee $donnee) => $donnee->value)
+                    ->values(),
             ]),
         ]);
     }
@@ -64,26 +70,18 @@ class AdminEquipeController extends Controller
 
         $data = $request->validate([
             'name' => ['required', 'string', 'max:191'],
-            'email' => ['required', 'string', 'email', 'max:191', 'unique:users,email'],
+            'email' => ['required', 'string', 'email', 'max:191', 'unique:membres_equipe,email'],
             'password' => $this->passwordRules(),
             'role' => ['required', Rule::enum(MembreEquipeRole::class)],
         ]);
 
-        DB::transaction(function () use ($data) {
-            $user = User::create([
-                'name' => $data['name'],
-                'email' => $data['email'],
-                'password' => $data['password'],
-                'type' => UserType::MembreEquipe,
-                'email_verified_at' => now(),
-            ]);
-
-            MembreEquipe::create([
-                'user_id' => $user->id,
-                'role' => $data['role'],
-                'statut' => 'ACTIF',
-            ]);
-        });
+        MembreEquipe::create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => $data['password'],
+            'role' => $data['role'],
+            'statut' => 'ACTIF',
+        ]);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => "Compte créé pour {$data['name']}."]);
 
@@ -100,12 +98,52 @@ class AdminEquipeController extends Controller
         ]);
 
         abort_if(
-            ($data['statut'] ?? null) === 'INACTIF' && $membreEquipe->user_id === $request->user()->id,
+            ($data['statut'] ?? null) === 'INACTIF' && $membreEquipe->id === $this->membre($request)->id,
             403,
             'Vous ne pouvez pas désactiver votre propre compte.'
         );
 
+        abort_if(
+            isset($data['role']) && $membreEquipe->id === $this->membre($request)->id,
+            403,
+            'Vous ne pouvez pas changer votre propre rôle.'
+        );
+
         $membreEquipe->update($data);
+
+        return back();
+    }
+
+    public function updateDroit(Request $request): RedirectResponse
+    {
+        $this->authorizePromotrice($request);
+
+        $data = $request->validate([
+            'role' => ['required', Rule::enum(MembreEquipeRole::class), Rule::notIn([MembreEquipeRole::Promotrice->value])],
+            'donnee' => ['required', Rule::enum(Donnee::class)],
+            'niveau' => ['required', Rule::enum(NiveauDroit::class)],
+        ]);
+
+        DroitsMatrix::definir(
+            MembreEquipeRole::from($data['role']),
+            Donnee::from($data['donnee']),
+            NiveauDroit::from($data['niveau']),
+        );
+
+        return back();
+    }
+
+    public function reinitialiserDroits(Request $request, string $role): RedirectResponse
+    {
+        $this->authorizePromotrice($request);
+
+        $roleEnum = MembreEquipeRole::tryFrom($role);
+
+        abort_if($roleEnum === null || $roleEnum === MembreEquipeRole::Promotrice, 404);
+
+        DroitsMatrix::reinitialiser($roleEnum);
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => "Droits de « {$roleEnum->label()} » réinitialisés."]);
 
         return back();
     }
@@ -116,6 +154,6 @@ class AdminEquipeController extends Controller
         // créer ou gérer les comptes de l'équipe DAG — ce n'est pas une
         // donnée de la matrice d'accès (App\Enums\Donnee), c'est une
         // habilitation à part, réservée au rôle à accès total.
-        abort_unless($request->user()->membreEquipe->role === MembreEquipeRole::Promotrice, 403);
+        abort_unless($this->membre($request)->role === MembreEquipeRole::Promotrice, 403);
     }
 }

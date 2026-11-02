@@ -14,7 +14,7 @@ class ClientPaiementController extends Controller
 {
     public function __invoke(Request $request): Response
     {
-        $client = $request->user()->client;
+        $client = $request->user('web')->client;
 
         $factureIds = $client->enregistrementsClientOuEntreprise(Facture::class)->pluck('id');
 

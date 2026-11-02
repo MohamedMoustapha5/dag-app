@@ -18,7 +18,7 @@ class AdminGrilleTarifaireController extends Controller
 
     public function index(Request $request): Response
     {
-        $membre = $request->user()->membreEquipe;
+        $membre = $this->membre($request);
 
         $lignes = LigneTarifaire::query()
             ->orderBy('categorie_ordre')
@@ -53,7 +53,7 @@ class AdminGrilleTarifaireController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        abort_unless($request->user()->membreEquipe->peut(Donnee::Catalogue, Action::Creer), 403);
+        abort_unless($this->membre($request)->peut(Donnee::Catalogue, Action::Creer), 403);
 
         $data = $request->validate([
             'categorie' => ['required', 'string', 'max:191'],
@@ -73,7 +73,7 @@ class AdminGrilleTarifaireController extends Controller
 
     public function update(Request $request, LigneTarifaire $ligneTarifaire): RedirectResponse
     {
-        abort_unless($request->user()->membreEquipe->peut(Donnee::Catalogue, Action::Modifier), 403);
+        abort_unless($this->membre($request)->peut(Donnee::Catalogue, Action::Modifier), 403);
 
         $data = $request->validate([
             'prestation' => ['required', 'string', 'max:191'],
@@ -87,7 +87,7 @@ class AdminGrilleTarifaireController extends Controller
 
     public function destroy(Request $request, LigneTarifaire $ligneTarifaire): RedirectResponse
     {
-        abort_unless($request->user()->membreEquipe->peut(Donnee::Catalogue, Action::Supprimer), 403);
+        abort_unless($this->membre($request)->peut(Donnee::Catalogue, Action::Supprimer), 403);
 
         $ligneTarifaire->delete();
 

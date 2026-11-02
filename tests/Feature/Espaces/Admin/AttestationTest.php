@@ -23,7 +23,7 @@ test('a promotrice sees formations awaiting attestation validation', function ()
     ]);
     Seance::create(['formation_session_id' => $session->id, 'titre' => 'Séance 1', 'date' => '2026-01-10']);
 
-    $response = $this->actingAs($promotrice->user)->get(route('espace-admin.attestations.index'));
+    $response = $this->actingAs($promotrice, 'admin')->get(route('espace-admin.attestations.index'));
 
     $response->assertOk();
     $response->assertInertia(fn ($page) => $page
@@ -47,7 +47,7 @@ test('a formation still in progress does not appear as awaiting attestation vali
     ]);
     Seance::create(['formation_session_id' => $session->id, 'titre' => 'Séance 1', 'date' => now()->addWeek()->toDateString()]);
 
-    $response = $this->actingAs($promotrice->user)->get(route('espace-admin.attestations.index'));
+    $response = $this->actingAs($promotrice, 'admin')->get(route('espace-admin.attestations.index'));
 
     $response->assertOk();
     $response->assertInertia(fn ($page) => $page->has('enAttente', 0));
@@ -67,7 +67,7 @@ test('a promotrice can validate an attestation, which then moves out of the pend
     ]);
     Seance::create(['formation_session_id' => $session->id, 'titre' => 'Séance 1', 'date' => '2026-01-10']);
 
-    $this->actingAs($promotrice->user)
+    $this->actingAs($promotrice, 'admin')
         ->post(route('espace-admin.attestations.store'), ['inscription_id' => $inscription->id])
         ->assertRedirect();
 
@@ -76,7 +76,7 @@ test('a promotrice can validate an attestation, which then moves out of the pend
         'formation_id' => $formation->id,
     ]);
 
-    $response = $this->actingAs($promotrice->user)->get(route('espace-admin.attestations.index'));
+    $response = $this->actingAs($promotrice, 'admin')->get(route('espace-admin.attestations.index'));
     $response->assertInertia(fn ($page) => $page
         ->has('enAttente', 0)
         ->has('validees', 1));
@@ -103,7 +103,7 @@ test('validating the same formation twice is rejected', function () {
         'fichier_pdf' => 'attestations/deja-la.pdf',
     ]);
 
-    $this->actingAs($promotrice->user)
+    $this->actingAs($promotrice, 'admin')
         ->post(route('espace-admin.attestations.store'), ['inscription_id' => $inscription->id])
         ->assertStatus(409);
 
@@ -124,9 +124,9 @@ test('a role without the validation right cannot see or validate attestations', 
     ]);
     Seance::create(['formation_session_id' => $session->id, 'titre' => 'Séance 1', 'date' => '2026-01-10']);
 
-    $this->actingAs($membre->user)->get(route('espace-admin.attestations.index'))->assertForbidden();
+    $this->actingAs($membre, 'admin')->get(route('espace-admin.attestations.index'))->assertForbidden();
 
-    $this->actingAs($membre->user)
+    $this->actingAs($membre, 'admin')
         ->post(route('espace-admin.attestations.store'), ['inscription_id' => $inscription->id])
         ->assertForbidden();
 

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Espaces;
 
 use App\Concerns\SharesAdminEspaceProps;
+use App\Enums\Action;
+use App\Enums\Donnee;
 use App\Http\Controllers\Controller;
 use App\Models\Candidature;
 use App\Models\Contrat;
@@ -21,48 +23,92 @@ class AdminDashboardController extends Controller
 
     public function __invoke(Request $request): Response
     {
-        $membre = $request->user()->membreEquipe;
+        $membre = $this->membre($request);
+
+        $peutVoir = fn (Donnee $donnee): bool => $membre->peut($donnee, Action::Voir);
 
         $debutMois = now()->startOfMonth();
-        $debutMoisDernier = now()->subMonthNoOverflow()->startOfMonth();
-        $finMoisDernier = now()->subMonthNoOverflow()->endOfMonth();
 
-        $chiffreAffairesMois = $this->sommePaiements($debutMois, now());
-        $chiffreAffairesMoisDernier = $this->sommePaiements($debutMoisDernier, $finMoisDernier);
-
-        $demandesEnAttente = Demande::query()->whereIn('statut', ['BROUILLON', 'EN_ETUDE'])->count();
-        $aTransmettreNovaTech = Demande::query()
-            ->where('est_partenaire_nova_tech', true)
-            ->where('avancement_partenaire', 'A_TRANSMETTRE')
-            ->count();
-
-        $contratsASigner = Contrat::query()->where('statut', 'ENVOYE')->count();
-        $relancesEnvoyees = Contrat::query()->where('statut', 'ENVOYE')->whereNotNull('derniere_relance_at')->count();
-
-        $apprenantsFormes = Inscription::query()->where('statut', 'FORMEE')->distinct('apprenant_id')->count('apprenant_id');
-        $apprenantsPlaces = Candidature::query()->where('statut', 'PLACEE')->count();
-        $tauxPlacement = $apprenantsFormes > 0 ? (int) round($apprenantsPlaces / $apprenantsFormes * 100) : 0;
+        // Every widget is built only when the viewer may see its data
+        // domain: a role without access gets neither the numbers nor the
+        // chart, not just a hidden section in the page.
+        $finances = $peutVoir(Donnee::FacturesPaiements);
+        $demandes = $peutVoir(Donnee::DemandesClients);
+        $contrats = $peutVoir(Donnee::ContratsClauses);
+        $apprenants = $peutVoir(Donnee::DossiersApprenants);
 
         return Inertia::render('espaces/admin-dashboard', [
             ...$this->adminEspaceProps($membre),
             'kpis' => [
-                'chiffreAffairesMois' => $chiffreAffairesMois,
-                'chiffreAffairesEvolution' => $this->variationPourcent($chiffreAffairesMoisDernier, $chiffreAffairesMois),
-                'demandesEnAttente' => $demandesEnAttente,
-                'aTransmettreNovaTech' => $aTransmettreNovaTech,
-                'contratsASigner' => $contratsASigner,
-                'relancesEnvoyees' => $relancesEnvoyees,
-                'tauxPlacement' => $tauxPlacement,
-                'apprenantsPlaces' => $apprenantsPlaces,
+                'chiffreAffaires' => $finances ? $this->kpiChiffreAffaires($debutMois) : null,
+                'demandes' => $demandes ? $this->kpiDemandes() : null,
+                'contrats' => $contrats ? $this->kpiContrats() : null,
+                'placement' => $apprenants ? $this->kpiPlacement() : null,
             ],
-            'paiements' => [
+            'paiements' => $finances ? [
                 '7j' => $this->serieQuotidienne(7),
                 '30j' => $this->serieHebdomadaire(30),
                 '3mois' => $this->serieMensuelle(3),
-            ],
-            'repartitionCa' => $this->repartitionChiffreAffaires($debutMois),
-            'servicesPlusDemandes' => $this->servicesPlusDemandes($debutMois),
+            ] : null,
+            'repartitionCa' => $finances ? $this->repartitionChiffreAffaires($debutMois) : null,
+            'servicesPlusDemandes' => $demandes ? $this->servicesPlusDemandes($debutMois) : null,
         ]);
+    }
+
+    /**
+     * @return array{montant: float, evolution: int}
+     */
+    private function kpiChiffreAffaires(Carbon $debutMois): array
+    {
+        $moisDernier = now()->subMonthNoOverflow();
+        $montant = $this->sommePaiements($debutMois, now());
+
+        return [
+            'montant' => $montant,
+            'evolution' => $this->variationPourcent(
+                $this->sommePaiements($moisDernier->copy()->startOfMonth(), $moisDernier->copy()->endOfMonth()),
+                $montant,
+            ),
+        ];
+    }
+
+    /**
+     * @return array{enAttente: int, aTransmettreNovaTech: int}
+     */
+    private function kpiDemandes(): array
+    {
+        return [
+            'enAttente' => Demande::query()->whereIn('statut', ['BROUILLON', 'EN_ETUDE'])->count(),
+            'aTransmettreNovaTech' => Demande::query()
+                ->where('est_partenaire_nova_tech', true)
+                ->where('avancement_partenaire', 'A_TRANSMETTRE')
+                ->count(),
+        ];
+    }
+
+    /**
+     * @return array{aSigner: int, relances: int}
+     */
+    private function kpiContrats(): array
+    {
+        return [
+            'aSigner' => Contrat::query()->where('statut', 'ENVOYE')->count(),
+            'relances' => Contrat::query()->where('statut', 'ENVOYE')->whereNotNull('derniere_relance_at')->count(),
+        ];
+    }
+
+    /**
+     * @return array{taux: int, apprenantsPlaces: int}
+     */
+    private function kpiPlacement(): array
+    {
+        $formes = Inscription::query()->where('statut', 'FORMEE')->distinct('apprenant_id')->count('apprenant_id');
+        $places = Candidature::query()->where('statut', 'PLACEE')->count();
+
+        return [
+            'taux' => $formes > 0 ? (int) round($places / $formes * 100) : 0,
+            'apprenantsPlaces' => $places,
+        ];
     }
 
     private function sommePaiements(Carbon $debut, Carbon $fin): float

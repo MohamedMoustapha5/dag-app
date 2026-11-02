@@ -30,7 +30,7 @@ class ClientDashboardController extends Controller
 
     public function __invoke(Request $request): Response
     {
-        $client = $request->user()->client;
+        $client = $request->user('web')->client;
 
         if ($client->estPartenaireValide()) {
             return $this->entrepriseDashboard($client);

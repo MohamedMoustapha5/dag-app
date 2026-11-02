@@ -3,9 +3,7 @@
 namespace Database\Factories;
 
 use App\Enums\MembreEquipeRole;
-use App\Enums\UserType;
 use App\Models\MembreEquipe;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -16,7 +14,9 @@ class MembreEquipeFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => User::factory()->state(['type' => UserType::MembreEquipe]),
+            'name' => fake()->name(),
+            'email' => fake()->unique()->safeEmail(),
+            'password' => 'password',
             'role' => fake()->randomElement(MembreEquipeRole::cases()),
             'statut' => 'ACTIF',
         ];

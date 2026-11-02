@@ -14,7 +14,10 @@ type Membre = {
 
 type Role = { value: string; label: string };
 type Domaine = { value: string; label: string };
+type Niveau = { value: string; label: string };
 type MatriceRole = {
+    modifiable: boolean;
+    personnalises: string[];
     role: string;
     roleLabel: string;
     droits: Record<string, string>;
@@ -24,6 +27,7 @@ type Props = {
     membres: Membre[];
     roles: Role[];
     domaines: Domaine[];
+    niveaux: Niveau[];
     matriceRoles: MatriceRole[];
 };
 
@@ -31,8 +35,30 @@ export default function AdminEquipe({
     membres,
     roles,
     domaines,
+    niveaux,
     matriceRoles,
 }: Props) {
+    const changerDroit = (role: string, donnee: string, niveau: string) => {
+        router.put(
+            equipeAdmin.droits.update().url,
+            { role, donnee, niveau },
+            { preserveScroll: true },
+        );
+    };
+
+    const reinitialiserDroits = (matrice: MatriceRole) => {
+        if (
+            !confirm(
+                `Remettre les droits de « ${matrice.roleLabel} » à leurs valeurs par défaut ?`,
+            )
+        ) {
+            return;
+        }
+        router.delete(equipeAdmin.droits.reset(matrice.role).url, {
+            preserveScroll: true,
+        });
+    };
+
     const createForm = useForm({
         name: '',
         email: '',
@@ -366,55 +392,108 @@ export default function AdminEquipe({
                     className="muted"
                     style={{ fontSize: 12.5, marginTop: 4, marginBottom: 18 }}
                 >
-                    Le rôle attribué à un membre détermine automatiquement ce
-                    qu'il peut voir et gérer dans l'espace admin. Par exemple,
-                    attribuer le rôle Juriste donne un accès Total à « Contrats
-                    & clauses ».
+                    Le rôle d'un membre détermine ce qu'il peut voir et gérer :
+                    changer son rôle change ses droits immédiatement. Ajustez
+                    ici ce que chaque rôle autorise, domaine par domaine ; les
+                    cellules orange s'écartent des valeurs par défaut du cahier
+                    des charges. Les droits de la Directrice sont fixes.
                 </p>
-                <div
-                    style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 18,
-                    }}
-                >
-                    {matriceRoles.map((matrice) => (
-                        <div
-                            key={matrice.role}
-                            style={{
-                                paddingTop: 14,
-                                borderTop: '1px solid var(--dag-border)',
-                            }}
-                        >
-                            <p style={{ fontWeight: 700, marginBottom: 10 }}>
-                                {matrice.roleLabel}
-                            </p>
-                            <div
-                                style={{
-                                    display: 'flex',
-                                    flexWrap: 'wrap',
-                                    gap: 8,
-                                }}
-                            >
-                                {domaines.map((domaine) => {
-                                    const niveau =
-                                        matrice.droits[domaine.value] ??
-                                        'AUCUN';
+                <div className="data-table-wrap">
+                    <table className="data-table">
+                        <thead>
+                            <tr>
+                                <th>Domaine</th>
+                                {matriceRoles.map((matrice) => (
+                                    <th key={matrice.role}>
+                                        {matrice.roleLabel}
+                                    </th>
+                                ))}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {domaines.map((domaine) => (
+                                <tr key={domaine.value}>
+                                    <td style={{ fontWeight: 600 }}>
+                                        {domaine.label}
+                                    </td>
+                                    {matriceRoles.map((matrice) => {
+                                        const niveau =
+                                            matrice.droits[domaine.value] ??
+                                            'AUCUN';
+                                        const personnalise =
+                                            matrice.personnalises.includes(
+                                                domaine.value,
+                                            );
 
-                                    return (
-                                        <span
-                                            key={domaine.value}
-                                            className={`chip ${NIVEAU_CHIP[niveau] ?? 'chip-gray'}`}
-                                            style={{ fontSize: 11.5 }}
-                                        >
-                                            {domaine.label} ·{' '}
-                                            {NIVEAU_LABEL[niveau] ?? niveau}
-                                        </span>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    ))}
+                                        return (
+                                            <td key={matrice.role}>
+                                                {matrice.modifiable ? (
+                                                    <select
+                                                        value={niveau}
+                                                        aria-label={`${matrice.roleLabel} — ${domaine.label}`}
+                                                        style={{
+                                                            padding: '6px 10px',
+                                                            fontSize: 12.5,
+                                                            borderColor:
+                                                                personnalise
+                                                                    ? 'var(--dag-orange)'
+                                                                    : undefined,
+                                                        }}
+                                                        onChange={(event) =>
+                                                            changerDroit(
+                                                                matrice.role,
+                                                                domaine.value,
+                                                                event.target
+                                                                    .value,
+                                                            )
+                                                        }
+                                                    >
+                                                        {niveaux.map((n) => (
+                                                            <option
+                                                                key={n.value}
+                                                                value={n.value}
+                                                            >
+                                                                {n.label}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                ) : (
+                                                    <span
+                                                        className={`chip ${NIVEAU_CHIP[niveau] ?? 'chip-gray'}`}
+                                                    >
+                                                        {NIVEAU_LABEL[niveau] ??
+                                                            niveau}
+                                                    </span>
+                                                )}
+                                            </td>
+                                        );
+                                    })}
+                                </tr>
+                            ))}
+                            <tr>
+                                <td />
+                                {matriceRoles.map((matrice) => (
+                                    <td key={matrice.role}>
+                                        {matrice.modifiable &&
+                                            matrice.personnalises.length >
+                                                0 && (
+                                                <button
+                                                    type="button"
+                                                    className="link-action"
+                                                    onClick={() =>
+                                                        reinitialiserDroits(
+                                                            matrice,
+                                                        )
+                                                    }
+                                                >
+                                                    Réinitialiser
+                                                </button>
+                                            )}
+                                    </td>
+                                ))}
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </>

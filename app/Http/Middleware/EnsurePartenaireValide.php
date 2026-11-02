@@ -20,7 +20,7 @@ class EnsurePartenaireValide
      */
     public function handle(Request $request, Closure $next): Response
     {
-        abort_unless($request->user()?->client?->estPartenaireValide(), 403);
+        abort_unless($request->user('web')?->client?->estPartenaireValide(), 403);
 
         return $next($request);
     }

@@ -21,7 +21,7 @@ class AdminFormationController extends Controller
 
     public function index(Request $request): Response
     {
-        $membre = $request->user()->membreEquipe;
+        $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::Formations, Action::Voir), 403);
 
         $sessions = FormationSession::query()
@@ -61,7 +61,7 @@ class AdminFormationController extends Controller
      */
     public function storeRapide(Request $request): RedirectResponse
     {
-        $membre = $request->user()->membreEquipe;
+        $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::Formations, Action::Creer), 403);
 
         $data = $request->validate([
@@ -107,7 +107,7 @@ class AdminFormationController extends Controller
 
     public function show(Request $request, Formation $formation): Response
     {
-        $membre = $request->user()->membreEquipe;
+        $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::Formations, Action::Voir), 403);
 
         $formation->load(['sessions' => fn ($query) => $query->withCount('seances')->orderByDesc('date_debut')]);
@@ -142,7 +142,7 @@ class AdminFormationController extends Controller
 
     public function update(Request $request, Formation $formation): RedirectResponse
     {
-        $membre = $request->user()->membreEquipe;
+        $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::Formations, Action::Modifier), 403);
 
         $data = $request->validate([
@@ -163,7 +163,7 @@ class AdminFormationController extends Controller
 
     public function storeSession(Request $request, Formation $formation): RedirectResponse
     {
-        $membre = $request->user()->membreEquipe;
+        $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::Formations, Action::Creer), 403);
 
         $data = $request->validate([
@@ -192,7 +192,7 @@ class AdminFormationController extends Controller
 
     public function updateSession(Request $request, FormationSession $formationSession): RedirectResponse
     {
-        $membre = $request->user()->membreEquipe;
+        $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::Formations, Action::Modifier), 403);
 
         $data = $request->validate([
@@ -224,7 +224,7 @@ class AdminFormationController extends Controller
 
     public function destroySession(Request $request, FormationSession $formationSession): RedirectResponse
     {
-        $membre = $request->user()->membreEquipe;
+        $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::Formations, Action::Supprimer), 403);
 
         $formationSession->delete();

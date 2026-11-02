@@ -15,7 +15,7 @@ class ApprenantDashboardController extends Controller
 {
     public function __invoke(Request $request): Response
     {
-        $apprenant = $request->user()->apprenant;
+        $apprenant = $request->user('web')->apprenant;
 
         $inscriptionActive = $apprenant->inscriptions()
             ->whereIn('statut', ['VALIDEE', 'FORMEE'])

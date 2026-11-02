@@ -23,7 +23,7 @@ test('the roster endpoint lists a session inscriptions with their presence count
     Presence::create(['seance_id' => $seance1->id, 'inscription_id' => $inscription->id, 'present' => true]);
     Presence::create(['seance_id' => $seance2->id, 'inscription_id' => $inscription->id, 'present' => false]);
 
-    $response = $this->actingAs($promotrice->user)->getJson(route('espace-admin.sessions.inscrits', $session));
+    $response = $this->actingAs($promotrice, 'admin')->getJson(route('espace-admin.sessions.inscrits', $session));
 
     $response->assertOk();
     $response->assertJson([
@@ -52,14 +52,14 @@ test('a promotrice can validate a pending payment, which the refuse action canno
         'statut' => 'EN_ATTENTE_PAIEMENT',
     ]);
 
-    $this->actingAs($promotrice->user)
+    $this->actingAs($promotrice, 'admin')
         ->patchJson(route('espace-admin.inscriptions.valider', $inscription))
         ->assertOk()
         ->assertJson(['statut' => 'VALIDEE']);
 
     expect($inscription->fresh()->statut)->toBe('VALIDEE');
 
-    $this->actingAs($promotrice->user)
+    $this->actingAs($promotrice, 'admin')
         ->patchJson(route('espace-admin.inscriptions.refuser', $inscription))
         ->assertStatus(409);
 });
@@ -75,7 +75,7 @@ test('a promotrice can refuse a pending payment', function () {
         'statut' => 'EN_ATTENTE_PAIEMENT',
     ]);
 
-    $this->actingAs($promotrice->user)
+    $this->actingAs($promotrice, 'admin')
         ->patchJson(route('espace-admin.inscriptions.refuser', $inscription))
         ->assertOk()
         ->assertJson(['statut' => 'ABANDONNEE']);
@@ -94,11 +94,11 @@ test('a role without the validation level cannot validate or refuse a payment', 
         'statut' => 'EN_ATTENTE_PAIEMENT',
     ]);
 
-    $this->actingAs($membre->user)
+    $this->actingAs($membre, 'admin')
         ->patchJson(route('espace-admin.inscriptions.valider', $inscription))
         ->assertForbidden();
 
-    $this->actingAs($membre->user)
+    $this->actingAs($membre, 'admin')
         ->getJson(route('espace-admin.sessions.inscrits', $session))
         ->assertOk()
         ->assertJson(['peutValider' => false]);
@@ -115,7 +115,7 @@ test('exporting the roster streams a csv file', function () {
         'statut' => 'VALIDEE',
     ]);
 
-    $response = $this->actingAs($promotrice->user)->get(route('espace-admin.sessions.export', $session));
+    $response = $this->actingAs($promotrice, 'admin')->get(route('espace-admin.sessions.export', $session));
 
     $response->assertOk();
     $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
