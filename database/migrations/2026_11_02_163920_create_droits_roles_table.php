@@ -15,9 +15,9 @@ return new class extends Migration
     {
         Schema::create('droits_roles', function (Blueprint $table) {
             $table->id();
-            $table->string('role');
-            $table->string('donnee');
-            $table->string('niveau');
+            $table->string('role', 40);
+            $table->string('donnee', 60);
+            $table->string('niveau', 20);
             $table->timestamps();
             $table->unique(['role', 'donnee']);
         });
