@@ -23,6 +23,7 @@ type Session = {
     placesRestantes: number;
     statut: string;
     seancesCount: number;
+    image: string | null;
 };
 
 type Props = {
@@ -55,6 +56,7 @@ export default function AdminFormationShow({
         date_debut: '',
         date_fin: '',
         places: 15,
+        image: '',
     });
 
     const submitEdit = (event: React.FormEvent) => {
@@ -442,6 +444,22 @@ export default function AdminFormationShow({
                                     sessionForm.setData(
                                         'places',
                                         Number(event.target.value),
+                                    )
+                                }
+                            />
+                        </div>
+                        <div style={{ gridColumn: '1 / -1' }}>
+                            <label htmlFor="session-image">
+                                Image (chemin ou URL, optionnel)
+                            </label>
+                            <input
+                                id="session-image"
+                                placeholder="/images/photos/auditorium-welcome.jpg"
+                                value={sessionForm.data.image}
+                                onChange={(event) =>
+                                    sessionForm.setData(
+                                        'image',
+                                        event.target.value,
                                     )
                                 }
                             />

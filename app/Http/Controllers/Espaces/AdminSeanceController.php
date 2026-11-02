@@ -41,6 +41,7 @@ class AdminSeanceController extends Controller
                 'dateFin' => $formationSession->date_fin?->toDateString(),
                 'places' => $formationSession->places,
                 'statut' => $formationSession->statut,
+                'image' => $formationSession->image,
             ],
             'seances' => $formationSession->seances->map(fn (Seance $seance) => [
                 'id' => $seance->id,

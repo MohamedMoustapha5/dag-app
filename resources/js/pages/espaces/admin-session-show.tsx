@@ -16,6 +16,7 @@ type Session = {
     dateFin: string | null;
     places: number;
     statut: string;
+    image: string | null;
 };
 
 type Seance = {
@@ -46,6 +47,7 @@ export default function AdminSessionShow({
         date_fin: session.dateFin ?? '',
         places: session.places,
         statut: session.statut,
+        image: session.image ?? '',
     });
 
     const seanceForm = useForm({
@@ -243,6 +245,22 @@ export default function AdminSessionShow({
                                 <option value="COMPLETE">Complète</option>
                                 <option value="TERMINEE">Terminée</option>
                             </select>
+                        </div>
+                        <div style={{ gridColumn: '1 / -1' }}>
+                            <label htmlFor="image">
+                                Image (chemin ou URL, optionnel)
+                            </label>
+                            <input
+                                id="image"
+                                placeholder="/images/photos/auditorium-welcome.jpg"
+                                value={editForm.data.image}
+                                onChange={(event) =>
+                                    editForm.setData(
+                                        'image',
+                                        event.target.value,
+                                    )
+                                }
+                            />
                         </div>
                     </div>
                     <button

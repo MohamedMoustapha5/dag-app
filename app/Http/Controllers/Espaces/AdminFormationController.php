@@ -92,6 +92,7 @@ class AdminFormationController extends Controller
                 'placesRestantes' => $session->placesRestantes(),
                 'statut' => $session->statut,
                 'seancesCount' => $session->seances_count,
+                'image' => $session->image,
             ]),
         ]);
     }
@@ -130,6 +131,7 @@ class AdminFormationController extends Controller
             'date_debut' => ['nullable', 'date'],
             'date_fin' => ['nullable', 'date', 'after_or_equal:date_debut'],
             'places' => ['required', 'integer', 'min:1'],
+            'image' => ['nullable', 'string', 'max:255'],
         ]);
 
         $formation->sessions()->create([
@@ -156,6 +158,7 @@ class AdminFormationController extends Controller
             'date_fin' => ['nullable', 'date', 'after_or_equal:date_debut'],
             'places' => ['required', 'integer', 'min:1'],
             'statut' => ['required', Rule::in(['BROUILLON', 'OUVERTE', 'COMPLETE', 'TERMINEE'])],
+            'image' => ['nullable', 'string', 'max:255'],
         ]);
 
         $formationSession->update($data);
