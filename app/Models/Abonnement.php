@@ -10,6 +10,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 
+/**
+ * @property Carbon|null $date_souscription
+ * @property Carbon|null $cycle_debut
+ * @property Carbon|null $echeance
+ */
 #[Fillable(['client_id', 'entreprise_id', 'formule_id', 'montant_negocie', 'date_souscription', 'cycle_debut', 'echeance', 'statut'])]
 class Abonnement extends Model
 {
@@ -66,11 +71,8 @@ class Abonnement extends Model
             return 0;
         }
 
-        // Normalized explicitly: Larastan's schema-derived column type for
-        // a `date`-cast attribute (as opposed to `datetime`) loses the
-        // Carbon type here, so these are statically `string`.
-        $debut = Carbon::parse($this->cycle_debut);
-        $fin = Carbon::parse($this->echeance);
+        $debut = $this->cycle_debut;
+        $fin = $this->echeance;
 
         $dureeCycle = $debut->diffInDays($fin);
 

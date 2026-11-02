@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Espaces\AdminAbonnementController;
 use App\Http\Controllers\Espaces\AdminAttestationController;
 use App\Http\Controllers\Espaces\AdminContratController;
 use App\Http\Controllers\Espaces\AdminDashboardController;
@@ -137,4 +138,7 @@ Route::middleware(['auth', 'verified', EnsureUserType::class.':MEMBRE_EQUIPE'])
         Route::patch('modeles-contrat/{modeleContrat}', [AdminContratController::class, 'updateModele'])->name('espace-admin.modeles-contrat.update');
         Route::post('clauses', [AdminContratController::class, 'storeClause'])->name('espace-admin.clauses.store');
         Route::delete('clauses/{clause}', [AdminContratController::class, 'destroyClause'])->name('espace-admin.clauses.destroy');
+        Route::get('abonnements', [AdminAbonnementController::class, 'index'])->name('espace-admin.abonnements.index');
+        Route::post('abonnements', [AdminAbonnementController::class, 'store'])->name('espace-admin.abonnements.store');
+        Route::patch('abonnements/{abonnement}', [AdminAbonnementController::class, 'update'])->name('espace-admin.abonnements.update');
     });

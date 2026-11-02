@@ -10,6 +10,7 @@ import {
     LogOut,
     Menu,
     Receipt,
+    Shield,
     Tag,
     Users,
     X,
@@ -19,6 +20,7 @@ import { useEffect, useRef, useState } from 'react';
 import { logout } from '@/routes';
 import LanguageSwitcher from '@/components/public/language-switcher';
 import espaceAdmin from '@/routes/espace-admin';
+import abonnementsAdmin from '@/routes/espace-admin/abonnements';
 import attestationsAdmin from '@/routes/espace-admin/attestations';
 import contratsAdmin from '@/routes/espace-admin/contrats';
 import demandesAdmin from '@/routes/espace-admin/demandes';
@@ -91,6 +93,12 @@ const NAV_GROUPS: NavGroup[] = [
                 icon: FileSignature,
                 href: contratsAdmin.index(),
                 visibleIf: 'CONTRATS_CLAUSES',
+            },
+            {
+                label: 'Abonnements',
+                icon: Shield,
+                href: abonnementsAdmin.index(),
+                visibleIf: 'ABONNEMENTS',
             },
         ],
     },
