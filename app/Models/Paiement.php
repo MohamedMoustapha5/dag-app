@@ -6,7 +6,11 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property Carbon|null $date_paiement
+ */
 #[Fillable(['facture_id', 'montant', 'reference_transaction', 'moyen', 'statut', 'justificatif_path', 'valide_par_id', 'date_paiement'])]
 class Paiement extends Model
 {

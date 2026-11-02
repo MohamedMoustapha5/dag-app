@@ -8,6 +8,7 @@ import {
     LayoutDashboard,
     LogOut,
     Menu,
+    Receipt,
     Tag,
     Users,
     X,
@@ -21,6 +22,7 @@ import attestationsAdmin from '@/routes/espace-admin/attestations';
 import demandesAdmin from '@/routes/espace-admin/demandes';
 import entreprisesAdmin from '@/routes/espace-admin/entreprises';
 import equipeAdmin from '@/routes/espace-admin/equipe';
+import facturesAdmin from '@/routes/espace-admin/factures';
 import formationsAdmin from '@/routes/espace-admin/formations';
 import grilleTarifaireAdmin from '@/routes/espace-admin/grille-tarifaire';
 
@@ -75,6 +77,12 @@ const NAV_GROUPS: NavGroup[] = [
                 icon: FileText,
                 href: demandesAdmin.index(),
                 visibleIf: 'DEMANDES_CLIENTS',
+            },
+            {
+                label: 'Factures & paiements',
+                icon: Receipt,
+                href: facturesAdmin.index(),
+                visibleIf: 'FACTURES_PAIEMENTS',
             },
         ],
     },
