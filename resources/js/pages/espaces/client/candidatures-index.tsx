@@ -9,6 +9,7 @@ type Candidature = {
     formationSuivie: string | null;
     offreTitre: string;
     statut: string;
+    deposeeParDag: boolean;
 };
 
 type Props = {
@@ -69,6 +70,18 @@ export default function CandidaturesIndex({
                                         <tr key={candidature.id}>
                                             <td style={{ fontWeight: 600 }}>
                                                 {candidature.apprenantNom}
+                                                {candidature.deposeeParDag && (
+                                                    <span
+                                                        className="muted"
+                                                        style={{
+                                                            display: 'block',
+                                                            fontSize: 11.5,
+                                                            fontWeight: 500,
+                                                        }}
+                                                    >
+                                                        Dossier transmis par DAG
+                                                    </span>
+                                                )}
                                             </td>
                                             <td className="muted">
                                                 {candidature.offreTitre}

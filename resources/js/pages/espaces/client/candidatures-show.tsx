@@ -9,6 +9,7 @@ type Props = {
         statut: string;
         offreId: string;
         offreTitre: string;
+        deposeeParDag: boolean;
     };
     apprenant: {
         nom: string;
@@ -73,6 +74,11 @@ export default function CandidaturesShow({
                     >
                         Candidature pour « {candidature.offreTitre} »
                     </Link>
+                    {candidature.deposeeParDag && (
+                        <p className="muted" style={{ fontSize: 12.5 }}>
+                            Dossier transmis par DAG
+                        </p>
+                    )}
                 </div>
                 <span
                     className={`chip ${STATUT_CHIP[candidature.statut] ?? 'chip-gray'}`}

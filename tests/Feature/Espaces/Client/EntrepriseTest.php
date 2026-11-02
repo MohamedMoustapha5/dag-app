@@ -6,6 +6,7 @@ use App\Models\Client;
 use App\Models\Contrat;
 use App\Models\EntreprisePartenaire;
 use App\Models\Facture;
+use App\Models\MembreEquipe;
 use App\Models\OffreEmploi;
 use Illuminate\Support\Facades\Storage;
 
@@ -176,4 +177,29 @@ test('a convention de stage sent to the entreprise counts toward contrats à sig
     $this->actingAs($client->user)->get(route('espace-client.dashboard'))
         ->assertOk()
         ->assertInertia(fn ($page) => $page->where('candidaturesASigner', 1));
+});
+
+test('an entreprise partner sees which candidatures DAG submitted and can reject them', function () {
+    $client = clientPartenaireValide();
+    $offre = OffreEmploi::factory()->create(['entreprise_id' => $client->entreprisePartenaire->id]);
+    $membre = MembreEquipe::factory()->promotrice()->create();
+    $candidature = Candidature::factory()->create([
+        'offre_id' => $offre->id,
+        'statut' => 'DEPOSEE',
+        'deposee_par_id' => $membre->id,
+    ]);
+
+    $this->actingAs($client->user)
+        ->get(route('espace-client.candidatures.index'))
+        ->assertInertia(fn ($page) => $page->where('candidatures.0.deposeeParDag', true));
+
+    $this->actingAs($client->user)
+        ->get(route('espace-client.candidatures.show', $candidature))
+        ->assertInertia(fn ($page) => $page->where('candidature.deposeeParDag', true));
+
+    $this->actingAs($client->user)
+        ->patch(route('espace-client.candidatures.update', $candidature), ['statut' => 'REFUSEE'])
+        ->assertRedirect();
+
+    expect($candidature->fresh()->statut)->toBe('REFUSEE');
 });

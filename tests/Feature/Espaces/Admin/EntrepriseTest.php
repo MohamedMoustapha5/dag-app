@@ -151,3 +151,35 @@ test('a lecture-only role cannot apply to offres', function () {
         ->post(route('espace-admin.offres.postuler', $offre), ['apprenant_id' => $apprenant->id])
         ->assertForbidden();
 });
+
+test('a published offre past its date limite is flagged expired and can be prolonged', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $offre = OffreEmploi::factory()->create(['statut' => 'PUBLIEE', 'date_limite' => now()->subDays(10)->toDateString()]);
+
+    $this->actingAs($promotrice, 'admin')
+        ->get(route('espace-admin.entreprises.index'))
+        ->assertInertia(fn ($page) => $page
+            ->where('offres.0.postulable', false)
+            ->where('offres.0.expiree', true));
+
+    $nouvelle = now()->addMonth()->toDateString();
+
+    $this->actingAs($promotrice, 'admin')
+        ->patch(route('espace-admin.offres.update', $offre), ['statut' => 'PUBLIEE', 'date_limite' => $nouvelle])
+        ->assertRedirect();
+
+    expect($offre->fresh()->date_limite->toDateString())->toBe($nouvelle);
+
+    $this->actingAs($promotrice, 'admin')
+        ->get(route('espace-admin.entreprises.index'))
+        ->assertInertia(fn ($page) => $page->where('offres.0.postulable', true));
+});
+
+test('a past date limite is refused when prolonging an offre', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $offre = OffreEmploi::factory()->create(['statut' => 'PUBLIEE']);
+
+    $this->actingAs($promotrice, 'admin')
+        ->patch(route('espace-admin.offres.update', $offre), ['statut' => 'PUBLIEE', 'date_limite' => now()->subDay()->toDateString()])
+        ->assertSessionHasErrors('date_limite');
+});

@@ -25,6 +25,8 @@ type Offre = {
     statut: string;
     candidaturesCount: number;
     postulable: boolean;
+    dateLimite: string | null;
+    expiree: boolean;
     apprenantIdsCandidats: string[];
 };
 
@@ -60,6 +62,8 @@ export default function AdminEntreprises({
     const [offrePourPostuler, setOffrePourPostuler] = useState<Offre | null>(
         null,
     );
+    const [offrePourProlonger, setOffrePourProlonger] =
+        useState<Offre | null>(null);
 
     const changerStatutEntreprise = (id: string, statut: string) => {
         router.patch(
@@ -261,6 +265,8 @@ export default function AdminEntreprises({
                                                 style={{ fontSize: 12 }}
                                             >
                                                 {offre.ville ?? '—'}
+                                                {offre.dateLimite &&
+                                                    ` · limite ${offre.dateLimite}`}
                                             </p>
                                         </td>
                                         <td className="muted">
@@ -274,9 +280,11 @@ export default function AdminEntreprises({
                                         </td>
                                         <td>
                                             <span
-                                                className={`chip ${offre.statut === 'PUBLIEE' ? 'chip-green' : (STATUT_CHIP[offre.statut] ?? 'chip-gray')}`}
+                                                className={`chip ${offre.expiree ? 'chip-gray' : offre.statut === 'PUBLIEE' ? 'chip-green' : (STATUT_CHIP[offre.statut] ?? 'chip-gray')}`}
                                             >
-                                                {offre.statut === 'PUBLIEE'
+                                                {offre.expiree
+                                                    ? 'Expirée'
+                                                    : offre.statut === 'PUBLIEE'
                                                     ? 'Publiée'
                                                     : offre.statut ===
                                                         'BROUILLON'
@@ -287,18 +295,55 @@ export default function AdminEntreprises({
                                             </span>
                                         </td>
                                         <td style={{ textAlign: 'right' }}>
-                                            {peutPostuler && offre.postulable && (
+                                            {peutPostuler && (
                                                 <button
                                                     type="button"
-                                                    className="link-action"
-                                                    style={{ marginRight: 14 }}
+                                                    className={
+                                                        offre.postulable
+                                                            ? 'btn-primary'
+                                                            : 'btn-outline'
+                                                    }
+                                                    style={{
+                                                        padding: '6px 14px',
+                                                        fontSize: 12.5,
+                                                        marginRight: 12,
+                                                        opacity:
+                                                            offre.postulable
+                                                                ? 1
+                                                                : 0.55,
+                                                        cursor: offre.postulable
+                                                            ? 'pointer'
+                                                            : 'not-allowed',
+                                                    }}
+                                                    disabled={!offre.postulable}
+                                                    title={
+                                                        offre.postulable
+                                                            ? undefined
+                                                            : offre.expiree
+                                                              ? 'Date limite dépassée : prolongez l\'offre pour postuler'
+                                                              : 'Seule une offre publiée accepte des candidatures'
+                                                    }
                                                     onClick={() =>
                                                         setOffrePourPostuler(
                                                             offre,
                                                         )
                                                     }
                                                 >
-                                                    Postuler pour un apprenant
+                                                    Postuler
+                                                </button>
+                                            )}
+                                            {offre.expiree && peutValider && (
+                                                <button
+                                                    type="button"
+                                                    className="link-action"
+                                                    style={{ marginRight: 12 }}
+                                                    onClick={() =>
+                                                        setOffrePourProlonger(
+                                                            offre,
+                                                        )
+                                                    }
+                                                >
+                                                    Prolonger
                                                 </button>
                                             )}
                                             {offre.statut === 'BROUILLON' &&
@@ -344,6 +389,13 @@ export default function AdminEntreprises({
                 )}
             </div>
 
+            {offrePourProlonger && (
+                <ProlongerModal
+                    offre={offrePourProlonger}
+                    onClose={() => setOffrePourProlonger(null)}
+                />
+            )}
+
             {offrePourPostuler && (
                 <PostulerModal
                     offre={offrePourPostuler}
@@ -352,6 +404,116 @@ export default function AdminEntreprises({
                 />
             )}
         </>
+    );
+}
+
+function ProlongerModal({
+    offre,
+    onClose,
+}: {
+    offre: Offre;
+    onClose: () => void;
+}) {
+    const form = useForm({ statut: 'PUBLIEE', date_limite: '' });
+
+    const submit = (event: React.FormEvent) => {
+        event.preventDefault();
+        form.patch(offresAdmin.update(offre.id).url, {
+            preserveScroll: true,
+            onSuccess: onClose,
+        });
+    };
+
+    return (
+        <div
+            className="modal-backdrop"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Prolonger l'offre"
+            onClick={(event) => {
+                if (event.target === event.currentTarget) {
+                    onClose();
+                }
+            }}
+        >
+            <div className="modal-panel">
+                <button
+                    type="button"
+                    className="modal-close"
+                    onClick={onClose}
+                    aria-label="Fermer"
+                >
+                    <X size={16} />
+                </button>
+                <h2 style={{ fontSize: 19, color: 'var(--dag-navy)' }}>
+                    Prolonger l'offre
+                </h2>
+                <p
+                    style={{
+                        marginTop: 8,
+                        marginBottom: 20,
+                        fontSize: 13.5,
+                        lineHeight: 1.6,
+                        color: 'var(--dag-text-muted)',
+                    }}
+                >
+                    « {offre.titre} » — {offre.entrepriseNom}. La date limite
+                    ({offre.dateLimite}) est dépassée : choisissez-en une
+                    nouvelle pour rouvrir les candidatures.
+                </p>
+                <form
+                    onSubmit={submit}
+                    style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
+                >
+                    <div>
+                        <label htmlFor="date-limite">Nouvelle date limite</label>
+                        <input
+                            id="date-limite"
+                            type="date"
+                            value={form.data.date_limite}
+                            min={new Date().toISOString().slice(0, 10)}
+                            onChange={(event) =>
+                                form.setData('date_limite', event.target.value)
+                            }
+                            required
+                        />
+                        {form.errors.date_limite && (
+                            <p
+                                style={{
+                                    color: 'var(--dag-red)',
+                                    fontSize: 12,
+                                    marginTop: 4,
+                                }}
+                            >
+                                {form.errors.date_limite}
+                            </p>
+                        )}
+                    </div>
+                    <div
+                        style={{
+                            display: 'flex',
+                            justifyContent: 'flex-end',
+                            gap: 12,
+                        }}
+                    >
+                        <button
+                            type="button"
+                            className="btn-outline"
+                            onClick={onClose}
+                        >
+                            Annuler
+                        </button>
+                        <button
+                            type="submit"
+                            className="btn-primary"
+                            disabled={form.processing}
+                        >
+                            Prolonger
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     );
 }
 

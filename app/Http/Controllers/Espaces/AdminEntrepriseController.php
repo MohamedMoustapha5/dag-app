@@ -68,6 +68,8 @@ class AdminEntrepriseController extends Controller
                 'statut' => $offre->statut,
                 'candidaturesCount' => $offre->candidatures->count(),
                 'postulable' => $this->estPostulable($offre),
+                'dateLimite' => $offre->date_limite?->toDateString(),
+                'expiree' => $offre->statut === 'PUBLIEE' && ! $this->estPostulable($offre),
                 'apprenantIdsCandidats' => $offre->candidatures->pluck('apprenant_id')->values(),
             ]),
         ]);
@@ -230,6 +232,7 @@ class AdminEntrepriseController extends Controller
 
         $data = $request->validate([
             'statut' => ['required', Rule::in(['PUBLIEE', 'CLOTUREE'])],
+            'date_limite' => ['sometimes', 'nullable', 'date', 'after_or_equal:today'],
         ]);
 
         $this->authorizeTransition($membre, $data['statut']);

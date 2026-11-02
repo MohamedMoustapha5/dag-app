@@ -33,6 +33,7 @@ class ClientCandidatureController extends Controller
                 'formationSuivie' => $candidature->formationSuivie(),
                 'offreTitre' => $candidature->offre->titre,
                 'statut' => $candidature->statut,
+                'deposeeParDag' => $candidature->deposee_par_id !== null,
             ]),
             'repartition' => [
                 'enEtude' => $candidatures->where('statut', 'EN_ETUDE')->count(),
@@ -73,6 +74,7 @@ class ClientCandidatureController extends Controller
                 'statut' => $candidature->statut,
                 'offreId' => $candidature->offre_id,
                 'offreTitre' => $candidature->offre->titre,
+                'deposeeParDag' => $candidature->deposee_par_id !== null,
             ],
             'apprenant' => [
                 'nom' => $apprenant->user->name,
