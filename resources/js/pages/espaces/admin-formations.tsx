@@ -1,226 +1,296 @@
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, router, useForm, useHttp } from '@inertiajs/react';
+import { X } from 'lucide-react';
+import { useState } from 'react';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
-import formationsAdmin from '@/routes/espace-admin/formations';
+import inscriptionsAdmin from '@/routes/espace-admin/inscriptions';
+import sessionsAdmin from '@/routes/espace-admin/sessions';
 
-type Formation = {
+type Session = {
     id: string;
-    nom: string;
-    categorie: string | null;
+    formationId: string;
+    formationNom: string;
+    ville: string;
+    mode: string;
+    lieu: string | null;
+    formateur: string | null;
+    dateDebut: string | null;
+    dateFin: string | null;
+    places: number;
+    inscritsCount: number;
     statut: string;
-    sessionsCount: number;
+    image: string | null;
 };
 
 type Props = {
-    formations: Formation[];
+    sessions: Session[];
     peutCreer: boolean;
+    peutModifier: boolean;
+    peutSupprimer: boolean;
 };
 
-export default function AdminFormations({ formations, peutCreer }: Props) {
-    const form = useForm({
-        nom: '',
-        description: '',
-        categorie: '',
-        duree: '',
-        prerequis: '',
-    });
+type Inscrit = {
+    id: string;
+    nom: string;
+    email: string;
+    statut: string;
+    presence: number;
+    seancesTotal: number;
+};
 
-    const submit = (event: React.FormEvent) => {
-        event.preventDefault();
-        form.post(formationsAdmin.store().url);
+type Roster = {
+    session: { ville: string; formationNom: string };
+    peutValider: boolean;
+    inscriptions: Inscrit[];
+};
+
+const MODE_LABEL: Record<string, string> = {
+    PRESENTIEL: 'Présentiel',
+    EN_LIGNE: 'En ligne',
+    LES_DEUX: 'Les deux',
+};
+
+const MODE_CHIP: Record<string, string> = {
+    PRESENTIEL: 'chip-gray',
+    EN_LIGNE: 'chip-blue',
+    LES_DEUX: 'chip-green',
+};
+
+const MOIS_COURT = [
+    'janv.',
+    'févr.',
+    'mars',
+    'avr.',
+    'mai',
+    'juin',
+    'juil.',
+    'août',
+    'sept.',
+    'oct.',
+    'nov.',
+    'déc.',
+];
+
+function formatDateCourte(iso: string): string {
+    const [, mois, jour] = iso.split('-').map(Number);
+    return `${jour} ${MOIS_COURT[mois - 1]}`;
+}
+
+function formatPlage(debut: string | null, fin: string | null): string {
+    if (!debut && !fin) {
+        return '—';
+    }
+    if (debut && fin && debut !== fin) {
+        return `${formatDateCourte(debut)} → ${formatDateCourte(fin)}`;
+    }
+    return formatDateCourte(debut ?? fin ?? '');
+}
+
+export default function AdminFormations({
+    sessions,
+    peutCreer,
+    peutModifier,
+    peutSupprimer,
+}: Props) {
+    const [createOpen, setCreateOpen] = useState(false);
+    const [editingSession, setEditingSession] = useState<Session | null>(null);
+    const [expanded, setExpanded] = useState<Session | null>(null);
+    const [roster, setRoster] = useState<Roster | null>(null);
+    const [rosterLoading, setRosterLoading] = useState(false);
+
+    const { submit } = useHttp();
+
+    const chargerInscrits = async (session: Session) => {
+        if (expanded?.id === session.id) {
+            setExpanded(null);
+            setRoster(null);
+            return;
+        }
+
+        setExpanded(session);
+        setRoster(null);
+        setRosterLoading(true);
+
+        try {
+            const data = (await submit(
+                sessionsAdmin.inscrits(session.id),
+            )) as Roster;
+            setRoster(data);
+        } finally {
+            setRosterLoading(false);
+        }
+    };
+
+    const traiterInscription = async (
+        inscriptionId: string,
+        decision: 'valider' | 'refuser',
+    ) => {
+        const route =
+            decision === 'valider'
+                ? inscriptionsAdmin.valider(inscriptionId)
+                : inscriptionsAdmin.refuser(inscriptionId);
+
+        await submit(route);
+
+        if (expanded) {
+            const data = (await submit(
+                sessionsAdmin.inscrits(expanded.id),
+            )) as Roster;
+            setRoster(data);
+        }
+    };
+
+    const supprimerSession = (session: Session) => {
+        if (
+            !confirm(
+                `Supprimer la session « ${session.formationNom} — ${session.ville} » ? Ses séances seront également supprimées.`,
+            )
+        ) {
+            return;
+        }
+        router.delete(sessionsAdmin.destroy(session.id).url, {
+            preserveScroll: true,
+        });
+        if (expanded?.id === session.id) {
+            setExpanded(null);
+            setRoster(null);
+        }
     };
 
     return (
         <>
-            <Head title="Formations — Administration" />
+            <Head title="Formations & sessions — Administration" />
 
             <div
-                className="espace-hero"
                 style={{
-                    backgroundImage:
-                        "url('/images/photos/formation-digital-marketing.jpg')",
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-start',
+                    gap: 16,
+                    flexWrap: 'wrap',
+                    marginBottom: 24,
                 }}
             >
-                <div className="espace-hero-overlay" />
-                <div className="espace-hero-content">
-                    <h1>Formations</h1>
-                    <p>
-                        Gérez le catalogue de formations, leurs sessions et
-                        leurs séances.
+                <div>
+                    <h1 style={{ fontSize: 26, color: 'var(--dag-navy)' }}>
+                        Formations & sessions
+                    </h1>
+                    <p className="muted" style={{ marginTop: 4 }}>
+                        Gestion des sessions, validation des inscriptions.
                     </p>
                 </div>
+                {peutCreer && (
+                    <button
+                        type="button"
+                        className="btn-primary"
+                        onClick={() => setCreateOpen(true)}
+                    >
+                        + Nouvelle session
+                    </button>
+                )}
             </div>
 
-            {peutCreer && (
-                <form
-                    onSubmit={submit}
-                    className="card"
-                    style={{
-                        padding: 24,
-                        marginBottom: 28,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 14,
-                    }}
-                >
-                    <p style={{ fontSize: 14.5, fontWeight: 700 }}>
-                        Créer une formation
-                    </p>
-                    <div
-                        style={{
-                            display: 'grid',
-                            gridTemplateColumns:
-                                'repeat(auto-fit, minmax(220px, 1fr))',
-                            gap: 14,
-                        }}
-                    >
-                        <div>
-                            <label htmlFor="nom">Nom</label>
-                            <input
-                                id="nom"
-                                value={form.data.nom}
-                                onChange={(event) =>
-                                    form.setData('nom', event.target.value)
-                                }
-                            />
-                            {form.errors.nom && (
-                                <p
-                                    style={{
-                                        color: 'var(--dag-red)',
-                                        fontSize: 12,
-                                        marginTop: 4,
-                                    }}
-                                >
-                                    {form.errors.nom}
-                                </p>
-                            )}
-                        </div>
-                        <div>
-                            <label htmlFor="categorie">Catégorie</label>
-                            <input
-                                id="categorie"
-                                value={form.data.categorie}
-                                onChange={(event) =>
-                                    form.setData(
-                                        'categorie',
-                                        event.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div>
-                            <label htmlFor="duree">Durée</label>
-                            <input
-                                id="duree"
-                                placeholder="Ex. 3 semaines"
-                                value={form.data.duree}
-                                onChange={(event) =>
-                                    form.setData('duree', event.target.value)
-                                }
-                            />
-                        </div>
-                        <div>
-                            <label htmlFor="prerequis">Prérequis</label>
-                            <input
-                                id="prerequis"
-                                placeholder="Ex. Aucun"
-                                value={form.data.prerequis}
-                                onChange={(event) =>
-                                    form.setData(
-                                        'prerequis',
-                                        event.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div style={{ gridColumn: '1 / -1' }}>
-                            <label htmlFor="description">Description</label>
-                            <textarea
-                                id="description"
-                                rows={3}
-                                value={form.data.description}
-                                onChange={(event) =>
-                                    form.setData(
-                                        'description',
-                                        event.target.value,
-                                    )
-                                }
-                            />
-                            {form.errors.description && (
-                                <p
-                                    style={{
-                                        color: 'var(--dag-red)',
-                                        fontSize: 12,
-                                        marginTop: 4,
-                                    }}
-                                >
-                                    {form.errors.description}
-                                </p>
-                            )}
-                        </div>
-                    </div>
-                    <button
-                        type="submit"
-                        disabled={form.processing}
-                        className="btn-primary"
-                        style={{ alignSelf: 'flex-start' }}
-                    >
-                        {form.processing ? 'Création…' : 'Créer la formation'}
-                    </button>
-                </form>
-            )}
-
-            <div className="card" style={{ padding: 24 }}>
-                <p
-                    style={{
-                        fontSize: 14.5,
-                        fontWeight: 700,
-                        marginBottom: 16,
-                    }}
-                >
-                    Formations ({formations.length})
-                </p>
-                {formations.length === 0 ? (
-                    <p className="data-table-empty">
-                        Aucune formation pour le moment.
+            <div className="card" style={{ padding: 0, marginBottom: 28 }}>
+                {sessions.length === 0 ? (
+                    <p className="data-table-empty" style={{ padding: 24 }}>
+                        Aucune session pour le moment.
                     </p>
                 ) : (
                     <div className="data-table-wrap">
                         <table className="data-table">
                             <thead>
                                 <tr>
-                                    <th>Formation</th>
-                                    <th>Catégorie</th>
-                                    <th>Sessions</th>
+                                    <th>Session</th>
+                                    <th>Ville</th>
+                                    <th>Mode</th>
+                                    <th>Dates</th>
+                                    <th>Inscrits</th>
                                     <th>Statut</th>
+                                    <th />
                                 </tr>
                             </thead>
                             <tbody>
-                                {formations.map((formation) => (
-                                    <tr key={formation.id}>
-                                        <td>
-                                            <Link
-                                                href={formationsAdmin.show(
-                                                    formation.id,
-                                                )}
-                                                className="link-action"
-                                            >
-                                                {formation.nom}
-                                            </Link>
+                                {sessions.map((session) => (
+                                    <tr key={session.id}>
+                                        <td style={{ fontWeight: 600 }}>
+                                            {session.formationNom}
                                         </td>
                                         <td className="muted">
-                                            {formation.categorie ?? '—'}
-                                        </td>
-                                        <td className="muted">
-                                            {formation.sessionsCount}
+                                            {session.ville}
                                         </td>
                                         <td>
                                             <span
-                                                className={`chip ${STATUT_CHIP[formation.statut] ?? 'chip-gray'}`}
+                                                className={`chip ${MODE_CHIP[session.mode] ?? 'chip-gray'}`}
                                             >
-                                                {STATUT_LABEL[
-                                                    formation.statut
-                                                ] ?? formation.statut}
+                                                {MODE_LABEL[session.mode] ??
+                                                    session.mode}
                                             </span>
+                                        </td>
+                                        <td className="muted">
+                                            {formatPlage(
+                                                session.dateDebut,
+                                                session.dateFin,
+                                            )}
+                                        </td>
+                                        <td className="muted">
+                                            {session.inscritsCount}/
+                                            {session.places}
+                                        </td>
+                                        <td>
+                                            <span
+                                                className={`chip ${STATUT_CHIP[session.statut] ?? 'chip-gray'}`}
+                                            >
+                                                {STATUT_LABEL[session.statut] ??
+                                                    session.statut}
+                                            </span>
+                                        </td>
+                                        <td style={{ textAlign: 'right' }}>
+                                            <div
+                                                style={{
+                                                    display: 'flex',
+                                                    gap: 10,
+                                                    justifyContent: 'flex-end',
+                                                    flexWrap: 'wrap',
+                                                }}
+                                            >
+                                                <button
+                                                    type="button"
+                                                    className="link-action"
+                                                    onClick={() =>
+                                                        chargerInscrits(session)
+                                                    }
+                                                >
+                                                    Voir les inscrits
+                                                </button>
+                                                {peutModifier && (
+                                                    <button
+                                                        type="button"
+                                                        className="link-action"
+                                                        onClick={() =>
+                                                            setEditingSession(
+                                                                session,
+                                                            )
+                                                        }
+                                                    >
+                                                        Modifier
+                                                    </button>
+                                                )}
+                                                {peutSupprimer && (
+                                                    <button
+                                                        type="button"
+                                                        className="link-action"
+                                                        style={{
+                                                            color: 'var(--dag-red)',
+                                                        }}
+                                                        onClick={() =>
+                                                            supprimerSession(
+                                                                session,
+                                                            )
+                                                        }
+                                                    >
+                                                        Supprimer
+                                                    </button>
+                                                )}
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
@@ -229,6 +299,512 @@ export default function AdminFormations({ formations, peutCreer }: Props) {
                     </div>
                 )}
             </div>
+
+            {expanded && (
+                <div className="card" style={{ padding: 24 }}>
+                    <div
+                        style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            gap: 16,
+                            flexWrap: 'wrap',
+                            marginBottom: 16,
+                        }}
+                    >
+                        <p style={{ fontSize: 14.5, fontWeight: 700 }}>
+                            Inscrits — {expanded.formationNom}, {expanded.ville}{' '}
+                            {roster && (
+                                <span
+                                    className="chip chip-green"
+                                    style={{ marginLeft: 8 }}
+                                >
+                                    {roster.inscriptions.length}/
+                                    {expanded.places}
+                                </span>
+                            )}
+                        </p>
+                        <a
+                            href={sessionsAdmin.export(expanded.id).url}
+                            className="btn-outline"
+                            style={{ padding: '8px 16px', fontSize: 13 }}
+                        >
+                            Exporter la liste
+                        </a>
+                    </div>
+
+                    {rosterLoading && (
+                        <p className="muted" style={{ fontSize: 13 }}>
+                            Chargement…
+                        </p>
+                    )}
+
+                    {!rosterLoading && roster && (
+                        <>
+                            {roster.inscriptions.length === 0 ? (
+                                <p className="data-table-empty">
+                                    Aucun inscrit pour cette session.
+                                </p>
+                            ) : (
+                                <div className="data-table-wrap">
+                                    <table className="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Apprenant</th>
+                                                <th>E-mail</th>
+                                                <th>Statut</th>
+                                                <th>Présence</th>
+                                                <th />
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {roster.inscriptions.map(
+                                                (inscrit) => (
+                                                    <tr key={inscrit.id}>
+                                                        <td
+                                                            style={{
+                                                                fontWeight: 600,
+                                                            }}
+                                                        >
+                                                            {inscrit.nom}
+                                                        </td>
+                                                        <td className="muted">
+                                                            {inscrit.email}
+                                                        </td>
+                                                        <td>
+                                                            <span
+                                                                className={`chip ${STATUT_CHIP[inscrit.statut] ?? 'chip-gray'}`}
+                                                            >
+                                                                {STATUT_LABEL[
+                                                                    inscrit
+                                                                        .statut
+                                                                ] ??
+                                                                    inscrit.statut}
+                                                            </span>
+                                                        </td>
+                                                        <td className="muted">
+                                                            {inscrit.presence}/
+                                                            {
+                                                                inscrit.seancesTotal
+                                                            }
+                                                        </td>
+                                                        <td
+                                                            style={{
+                                                                textAlign:
+                                                                    'right',
+                                                            }}
+                                                        >
+                                                            {roster.peutValider &&
+                                                                inscrit.statut ===
+                                                                    'EN_ATTENTE_PAIEMENT' && (
+                                                                    <div
+                                                                        style={{
+                                                                            display:
+                                                                                'flex',
+                                                                            gap: 10,
+                                                                            justifyContent:
+                                                                                'flex-end',
+                                                                        }}
+                                                                    >
+                                                                        <button
+                                                                            type="button"
+                                                                            className="link-action"
+                                                                            onClick={() =>
+                                                                                traiterInscription(
+                                                                                    inscrit.id,
+                                                                                    'valider',
+                                                                                )
+                                                                            }
+                                                                        >
+                                                                            Valider
+                                                                            le
+                                                                            paiement
+                                                                        </button>
+                                                                        <button
+                                                                            type="button"
+                                                                            className="link-action"
+                                                                            style={{
+                                                                                color: 'var(--dag-red)',
+                                                                            }}
+                                                                            onClick={() =>
+                                                                                traiterInscription(
+                                                                                    inscrit.id,
+                                                                                    'refuser',
+                                                                                )
+                                                                            }
+                                                                        >
+                                                                            Refuser
+                                                                        </button>
+                                                                    </div>
+                                                                )}
+                                                        </td>
+                                                    </tr>
+                                                ),
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </>
+                    )}
+                </div>
+            )}
+
+            {createOpen && (
+                <SessionModal
+                    mode="create"
+                    onClose={() => setCreateOpen(false)}
+                />
+            )}
+            {editingSession && (
+                <SessionModal
+                    mode="edit"
+                    session={editingSession}
+                    onClose={() => setEditingSession(null)}
+                />
+            )}
         </>
+    );
+}
+
+function SessionModal({
+    mode,
+    session,
+    onClose,
+}: {
+    mode: 'create' | 'edit';
+    session?: Session;
+    onClose: () => void;
+}) {
+    const form = useForm<{
+        formation_nom: string;
+        ville: string;
+        places: number;
+        mode: string;
+        date_debut: string;
+        date_fin: string;
+        formateur: string;
+        statut: string;
+        image: File | null;
+    }>({
+        formation_nom: '',
+        ville: session?.ville ?? '',
+        places: session?.places ?? 15,
+        mode: session?.mode ?? 'PRESENTIEL',
+        date_debut: session?.dateDebut ?? '',
+        date_fin: session?.dateFin ?? '',
+        formateur: session?.formateur ?? '',
+        statut: session?.statut ?? 'OUVERTE',
+        image: null,
+    });
+
+    const submit = (event: React.FormEvent) => {
+        event.preventDefault();
+
+        if (mode === 'create') {
+            form.post(sessionsAdmin.storeRapide().url, {
+                onSuccess: onClose,
+            });
+        } else if (session) {
+            form.patch(sessionsAdmin.update(session.id).url, {
+                onSuccess: onClose,
+            });
+        }
+    };
+
+    return (
+        <div
+            className="modal-backdrop"
+            role="dialog"
+            aria-modal="true"
+            aria-label={
+                mode === 'create'
+                    ? 'Nouvelle session de formation'
+                    : 'Modifier la session'
+            }
+            onClick={(event) => {
+                if (event.target === event.currentTarget) {
+                    onClose();
+                }
+            }}
+        >
+            <div className="modal-panel">
+                <button
+                    type="button"
+                    className="modal-close"
+                    onClick={onClose}
+                    aria-label="Fermer"
+                >
+                    <X size={16} />
+                </button>
+
+                <h2 style={{ fontSize: 19, color: 'var(--dag-navy)' }}>
+                    {mode === 'create'
+                        ? 'Nouvelle session de formation'
+                        : 'Modifier la session'}
+                </h2>
+                <p
+                    style={{
+                        marginTop: 8,
+                        marginBottom: 24,
+                        fontSize: 13.5,
+                        lineHeight: 1.6,
+                        color: 'var(--dag-text-muted)',
+                    }}
+                >
+                    {mode === 'create'
+                        ? 'La session apparaît immédiatement dans la liste, avec le statut choisi.'
+                        : 'Les modifications sont enregistrées immédiatement.'}
+                </p>
+
+                <form
+                    onSubmit={submit}
+                    style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 16,
+                    }}
+                >
+                    {mode === 'create' && (
+                        <div>
+                            <label htmlFor="formation-nom">
+                                Intitulé de la formation
+                            </label>
+                            <input
+                                id="formation-nom"
+                                placeholder="Ex. Montage vidéo — Initiation"
+                                value={form.data.formation_nom}
+                                onChange={(event) =>
+                                    form.setData(
+                                        'formation_nom',
+                                        event.target.value,
+                                    )
+                                }
+                                autoFocus
+                            />
+                            {form.errors.formation_nom && (
+                                <p
+                                    style={{
+                                        color: 'var(--dag-red)',
+                                        fontSize: 12,
+                                        marginTop: 4,
+                                    }}
+                                >
+                                    {form.errors.formation_nom}
+                                </p>
+                            )}
+                        </div>
+                    )}
+
+                    <div
+                        style={{
+                            display: 'grid',
+                            gridTemplateColumns: '1fr 1fr',
+                            gap: 14,
+                        }}
+                    >
+                        <div>
+                            <label htmlFor="ville">Ville</label>
+                            <input
+                                id="ville"
+                                placeholder="Ex. Douala"
+                                value={form.data.ville}
+                                onChange={(event) =>
+                                    form.setData('ville', event.target.value)
+                                }
+                            />
+                            {form.errors.ville && (
+                                <p
+                                    style={{
+                                        color: 'var(--dag-red)',
+                                        fontSize: 12,
+                                        marginTop: 4,
+                                    }}
+                                >
+                                    {form.errors.ville}
+                                </p>
+                            )}
+                        </div>
+                        <div>
+                            <label htmlFor="places">Places disponibles</label>
+                            <input
+                                id="places"
+                                type="number"
+                                min={1}
+                                placeholder="Ex. 15"
+                                value={form.data.places}
+                                onChange={(event) =>
+                                    form.setData(
+                                        'places',
+                                        Number(event.target.value),
+                                    )
+                                }
+                            />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label htmlFor="mode">Mode</label>
+                        <select
+                            id="mode"
+                            value={form.data.mode}
+                            onChange={(event) =>
+                                form.setData('mode', event.target.value)
+                            }
+                        >
+                            <option value="PRESENTIEL">Présentiel</option>
+                            <option value="EN_LIGNE">En ligne</option>
+                            <option value="LES_DEUX">Les deux</option>
+                        </select>
+                    </div>
+
+                    <div
+                        style={{
+                            display: 'grid',
+                            gridTemplateColumns: '1fr 1fr',
+                            gap: 14,
+                        }}
+                    >
+                        <div>
+                            <label htmlFor="date_debut">Date de début</label>
+                            <input
+                                id="date_debut"
+                                type="date"
+                                value={form.data.date_debut}
+                                onChange={(event) =>
+                                    form.setData(
+                                        'date_debut',
+                                        event.target.value,
+                                    )
+                                }
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="date_fin">Date de fin</label>
+                            <input
+                                id="date_fin"
+                                type="date"
+                                value={form.data.date_fin}
+                                onChange={(event) =>
+                                    form.setData('date_fin', event.target.value)
+                                }
+                            />
+                            {form.errors.date_fin && (
+                                <p
+                                    style={{
+                                        color: 'var(--dag-red)',
+                                        fontSize: 12,
+                                        marginTop: 4,
+                                    }}
+                                >
+                                    {form.errors.date_fin}
+                                </p>
+                            )}
+                        </div>
+                    </div>
+
+                    <div>
+                        <label htmlFor="formateur">
+                            Formateur / Formatrice
+                        </label>
+                        <input
+                            id="formateur"
+                            placeholder="Ex. S. Mballa"
+                            value={form.data.formateur}
+                            onChange={(event) =>
+                                form.setData('formateur', event.target.value)
+                            }
+                        />
+                    </div>
+
+                    <div>
+                        <label htmlFor="image">Image de la formation</label>
+                        <input
+                            id="image"
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            onChange={(event) =>
+                                form.setData(
+                                    'image',
+                                    event.target.files?.[0] ?? null,
+                                )
+                            }
+                        />
+                        <p
+                            className="muted"
+                            style={{ fontSize: 11.5, marginTop: 4 }}
+                        >
+                            JPG, PNG ou WebP — 5 Mo maximum.
+                            {mode === 'edit' && session?.image
+                                ? ' Laissez vide pour conserver l’image actuelle.'
+                                : " L'image sélectionnée est affichée en aperçu."}
+                        </p>
+                        {form.errors.image && (
+                            <p
+                                style={{
+                                    color: 'var(--dag-red)',
+                                    fontSize: 12,
+                                    marginTop: 4,
+                                }}
+                            >
+                                {form.errors.image}
+                            </p>
+                        )}
+                        {mode === 'edit' && session?.image && (
+                            <img
+                                src={session.image}
+                                alt=""
+                                style={{
+                                    marginTop: 10,
+                                    width: '100%',
+                                    height: 100,
+                                    objectFit: 'cover',
+                                    borderRadius: 'var(--dag-radius-sm)',
+                                }}
+                            />
+                        )}
+                    </div>
+
+                    <div>
+                        <label htmlFor="statut">Statut</label>
+                        <select
+                            id="statut"
+                            value={form.data.statut}
+                            onChange={(event) =>
+                                form.setData('statut', event.target.value)
+                            }
+                        >
+                            <option value="BROUILLON">Brouillon</option>
+                            <option value="OUVERTE">Ouverte</option>
+                            <option value="COMPLETE">Complète</option>
+                            <option value="TERMINEE">Terminée</option>
+                        </select>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: 10 }}>
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="btn-outline"
+                            style={{ flex: 1 }}
+                        >
+                            Annuler
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={form.processing}
+                            className="btn-primary"
+                            style={{ flex: 1 }}
+                        >
+                            {form.processing
+                                ? 'Enregistrement…'
+                                : mode === 'create'
+                                  ? 'Créer la session'
+                                  : 'Enregistrer'}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     );
 }

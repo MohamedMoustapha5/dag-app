@@ -10,6 +10,7 @@ use App\Models\Formation;
 use App\Models\FormationSession;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -23,43 +24,85 @@ class AdminFormationController extends Controller
         $membre = $request->user()->membreEquipe;
         abort_unless($membre->peut(Donnee::Formations, Action::Voir), 403);
 
-        $formations = Formation::query()
-            ->withCount('sessions')
-            ->orderBy('nom')
+        $sessions = FormationSession::query()
+            ->with('formation')
+            ->orderByDesc('date_debut')
             ->get();
 
         return Inertia::render('espaces/admin-formations', [
             ...$this->adminEspaceProps($membre),
             'peutCreer' => $membre->peut(Donnee::Formations, Action::Creer),
-            'formations' => $formations->map(fn (Formation $formation) => [
-                'id' => $formation->id,
-                'nom' => $formation->nom,
-                'categorie' => $formation->categorie,
-                'statut' => $formation->statut,
-                'sessionsCount' => $formation->sessions_count,
+            'peutModifier' => $membre->peut(Donnee::Formations, Action::Modifier),
+            'peutSupprimer' => $membre->peut(Donnee::Formations, Action::Supprimer),
+            'sessions' => $sessions->map(fn (FormationSession $session) => [
+                'id' => $session->id,
+                'formationId' => $session->formation_id,
+                'formationNom' => $session->formation->nom,
+                'ville' => $session->ville,
+                'mode' => $session->mode,
+                'lieu' => $session->lieu,
+                'formateur' => $session->formateur,
+                'dateDebut' => $session->date_debut?->toDateString(),
+                'dateFin' => $session->date_fin?->toDateString(),
+                'places' => $session->places,
+                'inscritsCount' => $session->places - $session->placesRestantes(),
+                'statut' => $session->statut,
+                'image' => $session->image,
             ]),
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    /**
+     * Quick "nouvelle session" entry point used by the Formations & sessions
+     * index: the admin only types the training's title, not the full
+     * catalog form, so this resolves (or creates, on first use of that
+     * title) the underlying Formation and attaches a new session to it in
+     * one step.
+     */
+    public function storeRapide(Request $request): RedirectResponse
     {
         $membre = $request->user()->membreEquipe;
         abort_unless($membre->peut(Donnee::Formations, Action::Creer), 403);
 
         $data = $request->validate([
-            'nom' => ['required', 'string', 'max:191'],
-            'description' => ['required', 'string'],
-            'categorie' => ['nullable', 'string', 'max:191'],
-            'duree' => ['nullable', 'string', 'max:191'],
-            'prerequis' => ['nullable', 'string', 'max:500'],
+            'formation_nom' => ['required', 'string', 'max:191'],
+            'ville' => ['required', 'string', 'max:191'],
+            'mode' => ['required', Rule::in(['PRESENTIEL', 'EN_LIGNE', 'LES_DEUX'])],
+            'lieu' => ['nullable', 'string', 'max:191'],
+            'formateur' => ['nullable', 'string', 'max:191'],
+            'date_debut' => ['nullable', 'date'],
+            'date_fin' => ['nullable', 'date', 'after_or_equal:date_debut'],
+            'places' => ['required', 'integer', 'min:1'],
+            'statut' => ['required', Rule::in(['BROUILLON', 'OUVERTE', 'COMPLETE', 'TERMINEE'])],
+            'image' => ['nullable', 'image', 'max:5120'],
         ]);
 
-        $formation = Formation::create([
-            ...$data,
-            'statut' => 'BROUILLON',
+        $formation = Formation::firstOrCreate(
+            ['nom' => $data['formation_nom']],
+            ['description' => $data['formation_nom'], 'statut' => 'PUBLIEE'],
+        );
+
+        $imagePath = $this->storeImage($request);
+
+        if ($imagePath !== null && $formation->image === null) {
+            $formation->update(['image' => $imagePath]);
+        }
+
+        $formation->sessions()->create([
+            'ville' => $data['ville'],
+            'mode' => $data['mode'],
+            'lieu' => $data['lieu'] ?? null,
+            'formateur' => $data['formateur'] ?? null,
+            'date_debut' => $data['date_debut'] ?? null,
+            'date_fin' => $data['date_fin'] ?? null,
+            'places' => $data['places'],
+            'statut' => $data['statut'],
+            'image' => $imagePath,
         ]);
 
-        return to_route('espace-admin.formations.show', $formation);
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Session créée.']);
+
+        return back();
     }
 
     public function show(Request $request, Formation $formation): Response
@@ -131,12 +174,15 @@ class AdminFormationController extends Controller
             'date_debut' => ['nullable', 'date'],
             'date_fin' => ['nullable', 'date', 'after_or_equal:date_debut'],
             'places' => ['required', 'integer', 'min:1'],
-            'image' => ['nullable', 'string', 'max:255'],
+            'image' => ['nullable', 'image', 'max:5120'],
         ]);
+
+        unset($data['image']);
 
         $formation->sessions()->create([
             ...$data,
             'statut' => 'BROUILLON',
+            'image' => $this->storeImage($request),
         ]);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Session créée.']);
@@ -158,13 +204,46 @@ class AdminFormationController extends Controller
             'date_fin' => ['nullable', 'date', 'after_or_equal:date_debut'],
             'places' => ['required', 'integer', 'min:1'],
             'statut' => ['required', Rule::in(['BROUILLON', 'OUVERTE', 'COMPLETE', 'TERMINEE'])],
-            'image' => ['nullable', 'string', 'max:255'],
+            'image' => ['nullable', 'image', 'max:5120'],
         ]);
+
+        unset($data['image']);
+
+        $imagePath = $this->storeImage($request);
+
+        if ($imagePath !== null) {
+            $data['image'] = $imagePath;
+        }
 
         $formationSession->update($data);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Session mise à jour.']);
 
         return back();
+    }
+
+    public function destroySession(Request $request, FormationSession $formationSession): RedirectResponse
+    {
+        $membre = $request->user()->membreEquipe;
+        abort_unless($membre->peut(Donnee::Formations, Action::Supprimer), 403);
+
+        $formationSession->delete();
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Session supprimée.']);
+
+        return back();
+    }
+
+    private function storeImage(Request $request): ?string
+    {
+        if (! $request->hasFile('image')) {
+            return null;
+        }
+
+        $path = $request->file('image')->store('formations', 'public');
+
+        abort_if($path === false, 500, "Échec de l'enregistrement de l'image.");
+
+        return Storage::disk('public')->url($path);
     }
 }

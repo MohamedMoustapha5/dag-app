@@ -38,7 +38,17 @@ export default function AdminSessionShow({
     peutModifier,
     peutCreer,
 }: Props) {
-    const editForm = useForm({
+    const editForm = useForm<{
+        ville: string;
+        mode: string;
+        lieu: string;
+        formateur: string;
+        date_debut: string;
+        date_fin: string;
+        places: number;
+        statut: string;
+        image: File | null;
+    }>({
         ville: session.ville,
         mode: session.mode,
         lieu: session.lieu ?? '',
@@ -47,7 +57,7 @@ export default function AdminSessionShow({
         date_fin: session.dateFin ?? '',
         places: session.places,
         statut: session.statut,
-        image: session.image ?? '',
+        image: null,
     });
 
     const seanceForm = useForm({
@@ -247,20 +257,41 @@ export default function AdminSessionShow({
                             </select>
                         </div>
                         <div style={{ gridColumn: '1 / -1' }}>
-                            <label htmlFor="image">
-                                Image (chemin ou URL, optionnel)
-                            </label>
+                            <label htmlFor="image">Image (optionnel)</label>
                             <input
                                 id="image"
-                                placeholder="/images/photos/auditorium-welcome.jpg"
-                                value={editForm.data.image}
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp"
                                 onChange={(event) =>
                                     editForm.setData(
                                         'image',
-                                        event.target.value,
+                                        event.target.files?.[0] ?? null,
                                     )
                                 }
                             />
+                            <p
+                                className="muted"
+                                style={{ fontSize: 11.5, marginTop: 4 }}
+                            >
+                                JPG, PNG ou WebP — 5 Mo maximum.
+                                {session.image
+                                    ? ' Laissez vide pour conserver l’image actuelle.'
+                                    : ''}
+                            </p>
+                            {session.image && (
+                                <img
+                                    src={session.image}
+                                    alt=""
+                                    style={{
+                                        marginTop: 10,
+                                        width: '100%',
+                                        maxWidth: 240,
+                                        height: 100,
+                                        objectFit: 'cover',
+                                        borderRadius: 'var(--dag-radius-sm)',
+                                    }}
+                                />
+                            )}
                         </div>
                     </div>
                     <button

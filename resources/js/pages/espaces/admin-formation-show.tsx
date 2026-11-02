@@ -48,7 +48,16 @@ export default function AdminFormationShow({
         statut: formation.statut,
     });
 
-    const sessionForm = useForm({
+    const sessionForm = useForm<{
+        ville: string;
+        mode: string;
+        lieu: string;
+        formateur: string;
+        date_debut: string;
+        date_fin: string;
+        places: number;
+        image: File | null;
+    }>({
         ville: '',
         mode: 'PRESENTIEL',
         lieu: '',
@@ -56,7 +65,7 @@ export default function AdminFormationShow({
         date_debut: '',
         date_fin: '',
         places: 15,
-        image: '',
+        image: null,
     });
 
     const submitEdit = (event: React.FormEvent) => {
@@ -450,19 +459,25 @@ export default function AdminFormationShow({
                         </div>
                         <div style={{ gridColumn: '1 / -1' }}>
                             <label htmlFor="session-image">
-                                Image (chemin ou URL, optionnel)
+                                Image (optionnel)
                             </label>
                             <input
                                 id="session-image"
-                                placeholder="/images/photos/auditorium-welcome.jpg"
-                                value={sessionForm.data.image}
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp"
                                 onChange={(event) =>
                                     sessionForm.setData(
                                         'image',
-                                        event.target.value,
+                                        event.target.files?.[0] ?? null,
                                     )
                                 }
                             />
+                            <p
+                                className="muted"
+                                style={{ fontSize: 11.5, marginTop: 4 }}
+                            >
+                                JPG, PNG ou WebP — 5 Mo maximum.
+                            </p>
                         </div>
                     </div>
                     <button
