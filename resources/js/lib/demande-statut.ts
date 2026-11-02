@@ -29,6 +29,7 @@ export const STATUT_LABEL: Record<string, string> = {
     VALIDEE: 'Validée',
     FORMEE: 'Formée',
     ABANDONNEE: 'Abandonnée',
+    INACTIF: 'Inactif',
 };
 
 export const STATUT_CHIP: Record<string, string> = {
@@ -62,4 +63,5 @@ export const STATUT_CHIP: Record<string, string> = {
     VALIDEE: 'chip-green',
     FORMEE: 'chip-blue',
     ABANDONNEE: 'chip-red',
+    INACTIF: 'chip-gray',
 };

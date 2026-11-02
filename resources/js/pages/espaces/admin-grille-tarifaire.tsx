@@ -1,6 +1,5 @@
-import { Head, Link, router, useForm } from '@inertiajs/react';
+import { Head, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
-import espaceAdmin from '@/routes/espace-admin';
 import grilleTarifaireAdmin from '@/routes/espace-admin/grille-tarifaire';
 
 type Ligne = {
@@ -12,20 +11,22 @@ type Ligne = {
     ordre: number;
 };
 
+type Actions = {
+    creer: boolean;
+    modifier: boolean;
+    supprimer: boolean;
+};
+
 type Props = {
     lignes: Ligne[];
     categoriesExistantes: { nom: string; ordre: number }[];
-    droits: {
-        creer: boolean;
-        modifier: boolean;
-        supprimer: boolean;
-    };
+    actions: Actions;
 };
 
 export default function AdminGrilleTarifaire({
     lignes,
     categoriesExistantes,
-    droits,
+    actions,
 }: Props) {
     const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -61,176 +62,215 @@ export default function AdminGrilleTarifaire({
     return (
         <>
             <Head title="Grille tarifaire — Administration" />
-            <div className="mx-auto flex min-h-svh max-w-3xl flex-col gap-6 p-6">
-                <div>
-                    <Link
-                        href={espaceAdmin.dashboard()}
-                        className="text-sm text-muted-foreground underline"
-                    >
-                        ← Espace administrateur
-                    </Link>
-                    <h1 className="mt-2 text-2xl font-semibold">
-                        Grille tarifaire
-                    </h1>
-                    <p className="text-sm text-muted-foreground">
-                        {droits.modifier || droits.supprimer
+
+            <div
+                className="espace-hero"
+                style={{
+                    backgroundImage: "url('/images/photos/glass-charts.jpg')",
+                }}
+            >
+                <div className="espace-hero-overlay" />
+                <div className="espace-hero-content">
+                    <h1>Grille tarifaire</h1>
+                    <p>
+                        {actions.modifier || actions.supprimer
                             ? 'Gérez les prestations et tarifs indicatifs affichés publiquement.'
                             : 'Lecture seule : votre rôle ne permet pas de modifier la grille tarifaire.'}
                     </p>
                 </div>
+            </div>
 
-                {droits.creer && (
-                    <form
-                        onSubmit={submitCreate}
-                        className="flex flex-col gap-3 rounded-xl border p-4"
+            {actions.creer && (
+                <form
+                    onSubmit={submitCreate}
+                    className="card"
+                    style={{
+                        padding: 24,
+                        marginBottom: 28,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 14,
+                    }}
+                >
+                    <p style={{ fontSize: 14.5, fontWeight: 700 }}>
+                        Ajouter une ligne
+                    </p>
+                    <div
+                        style={{
+                            display: 'grid',
+                            gridTemplateColumns:
+                                'repeat(auto-fit, minmax(220px, 1fr))',
+                            gap: 14,
+                        }}
                     >
-                        <p className="text-sm font-medium">Ajouter une ligne</p>
-                        <div className="grid grid-cols-2 gap-3">
-                            <div className="flex flex-col gap-1">
-                                <label
-                                    htmlFor="categorie"
-                                    className="text-xs text-muted-foreground"
-                                >
-                                    Catégorie
-                                </label>
-                                <input
-                                    id="categorie"
-                                    list="categories-existantes"
-                                    className="rounded-md border px-2 py-1.5 text-sm"
-                                    value={createForm.data.categorie}
-                                    onChange={(event) =>
-                                        createForm.setData(
-                                            'categorie',
-                                            event.target.value,
-                                        )
-                                    }
-                                />
-                                <datalist id="categories-existantes">
-                                    {categoriesExistantes.map((categorie) => (
-                                        <option
-                                            key={categorie.nom}
-                                            value={categorie.nom}
-                                        />
-                                    ))}
-                                </datalist>
-                                {createForm.errors.categorie && (
-                                    <p className="text-xs text-destructive">
-                                        {createForm.errors.categorie}
-                                    </p>
-                                )}
-                            </div>
-                            <div className="flex flex-col gap-1">
-                                <label
-                                    htmlFor="categorie_ordre"
-                                    className="text-xs text-muted-foreground"
-                                >
-                                    N° de catégorie (ordre d'affichage)
-                                </label>
-                                <input
-                                    id="categorie_ordre"
-                                    type="number"
-                                    min={1}
-                                    className="rounded-md border px-2 py-1.5 text-sm"
-                                    value={createForm.data.categorie_ordre}
-                                    onChange={(event) =>
-                                        createForm.setData(
-                                            'categorie_ordre',
-                                            Number(event.target.value),
-                                        )
-                                    }
-                                />
-                                {createForm.errors.categorie_ordre && (
-                                    <p className="text-xs text-destructive">
-                                        {createForm.errors.categorie_ordre}
-                                    </p>
-                                )}
-                            </div>
-                            <div className="flex flex-col gap-1">
-                                <label
-                                    htmlFor="prestation"
-                                    className="text-xs text-muted-foreground"
-                                >
-                                    Prestation
-                                </label>
-                                <input
-                                    id="prestation"
-                                    className="rounded-md border px-2 py-1.5 text-sm"
-                                    placeholder="Ex. Logo simple"
-                                    value={createForm.data.prestation}
-                                    onChange={(event) =>
-                                        createForm.setData(
-                                            'prestation',
-                                            event.target.value,
-                                        )
-                                    }
-                                />
-                                {createForm.errors.prestation && (
-                                    <p className="text-xs text-destructive">
-                                        {createForm.errors.prestation}
-                                    </p>
-                                )}
-                            </div>
-                            <div className="flex flex-col gap-1">
-                                <label
-                                    htmlFor="tarif"
-                                    className="text-xs text-muted-foreground"
-                                >
-                                    Tarif indicatif
-                                </label>
-                                <input
-                                    id="tarif"
-                                    className="rounded-md border px-2 py-1.5 text-sm"
-                                    placeholder="Ex. 25 000–60 000 ou Sur devis"
-                                    value={createForm.data.tarif}
-                                    onChange={(event) =>
-                                        createForm.setData(
-                                            'tarif',
-                                            event.target.value,
-                                        )
-                                    }
-                                />
-                                {createForm.errors.tarif && (
-                                    <p className="text-xs text-destructive">
-                                        {createForm.errors.tarif}
-                                    </p>
-                                )}
-                            </div>
-                        </div>
-                        <button
-                            type="submit"
-                            disabled={createForm.processing}
-                            className="self-start rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-60"
-                        >
-                            {createForm.processing
-                                ? 'Ajout…'
-                                : 'Ajouter la ligne'}
-                        </button>
-                    </form>
-                )}
-
-                <div className="flex flex-col gap-6">
-                    {groupes.map((groupe) => (
-                        <div key={groupe.categorie}>
-                            <p className="mb-2 text-sm font-semibold">
-                                {groupe.lignes[0]?.categorieOrdre}.{' '}
-                                {groupe.categorie}
-                            </p>
-                            <div className="divide-y rounded-xl border">
-                                {groupe.lignes.map((ligne) => (
-                                    <LigneRow
-                                        key={ligne.id}
-                                        ligne={ligne}
-                                        editing={editingId === ligne.id}
-                                        droits={droits}
-                                        onEdit={() => setEditingId(ligne.id)}
-                                        onCancel={() => setEditingId(null)}
-                                        onSaved={() => setEditingId(null)}
+                        <div>
+                            <label htmlFor="categorie">Catégorie</label>
+                            <input
+                                id="categorie"
+                                list="categories-existantes"
+                                value={createForm.data.categorie}
+                                onChange={(event) =>
+                                    createForm.setData(
+                                        'categorie',
+                                        event.target.value,
+                                    )
+                                }
+                            />
+                            <datalist id="categories-existantes">
+                                {categoriesExistantes.map((categorie) => (
+                                    <option
+                                        key={categorie.nom}
+                                        value={categorie.nom}
                                     />
                                 ))}
-                            </div>
+                            </datalist>
+                            {createForm.errors.categorie && (
+                                <p
+                                    style={{
+                                        color: 'var(--dag-red)',
+                                        fontSize: 12,
+                                        marginTop: 4,
+                                    }}
+                                >
+                                    {createForm.errors.categorie}
+                                </p>
+                            )}
                         </div>
-                    ))}
-                </div>
+                        <div>
+                            <label htmlFor="categorie_ordre">
+                                N° de catégorie (ordre d'affichage)
+                            </label>
+                            <input
+                                id="categorie_ordre"
+                                type="number"
+                                min={1}
+                                value={createForm.data.categorie_ordre}
+                                onChange={(event) =>
+                                    createForm.setData(
+                                        'categorie_ordre',
+                                        Number(event.target.value),
+                                    )
+                                }
+                            />
+                            {createForm.errors.categorie_ordre && (
+                                <p
+                                    style={{
+                                        color: 'var(--dag-red)',
+                                        fontSize: 12,
+                                        marginTop: 4,
+                                    }}
+                                >
+                                    {createForm.errors.categorie_ordre}
+                                </p>
+                            )}
+                        </div>
+                        <div>
+                            <label htmlFor="prestation">Prestation</label>
+                            <input
+                                id="prestation"
+                                placeholder="Ex. Logo simple"
+                                value={createForm.data.prestation}
+                                onChange={(event) =>
+                                    createForm.setData(
+                                        'prestation',
+                                        event.target.value,
+                                    )
+                                }
+                            />
+                            {createForm.errors.prestation && (
+                                <p
+                                    style={{
+                                        color: 'var(--dag-red)',
+                                        fontSize: 12,
+                                        marginTop: 4,
+                                    }}
+                                >
+                                    {createForm.errors.prestation}
+                                </p>
+                            )}
+                        </div>
+                        <div>
+                            <label htmlFor="tarif">Tarif indicatif</label>
+                            <input
+                                id="tarif"
+                                placeholder="Ex. 25 000–60 000 ou Sur devis"
+                                value={createForm.data.tarif}
+                                onChange={(event) =>
+                                    createForm.setData(
+                                        'tarif',
+                                        event.target.value,
+                                    )
+                                }
+                            />
+                            {createForm.errors.tarif && (
+                                <p
+                                    style={{
+                                        color: 'var(--dag-red)',
+                                        fontSize: 12,
+                                        marginTop: 4,
+                                    }}
+                                >
+                                    {createForm.errors.tarif}
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                    <button
+                        type="submit"
+                        disabled={createForm.processing}
+                        className="btn-primary"
+                        style={{ alignSelf: 'flex-start' }}
+                    >
+                        {createForm.processing ? 'Ajout…' : 'Ajouter la ligne'}
+                    </button>
+                </form>
+            )}
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                {groupes.map((groupe) => (
+                    <div
+                        key={groupe.categorie}
+                        className="card"
+                        style={{ padding: 24 }}
+                    >
+                        <p
+                            style={{
+                                fontSize: 14.5,
+                                fontWeight: 700,
+                                marginBottom: 14,
+                            }}
+                        >
+                            {groupe.lignes[0]?.categorieOrdre}.{' '}
+                            {groupe.categorie}
+                        </p>
+                        <div className="data-table-wrap">
+                            <table className="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Prestation</th>
+                                        <th>Tarif</th>
+                                        <th />
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {groupe.lignes.map((ligne) => (
+                                        <LigneRow
+                                            key={ligne.id}
+                                            ligne={ligne}
+                                            editing={editingId === ligne.id}
+                                            actions={actions}
+                                            onEdit={() =>
+                                                setEditingId(ligne.id)
+                                            }
+                                            onCancel={() => setEditingId(null)}
+                                            onSaved={() => setEditingId(null)}
+                                        />
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                ))}
             </div>
         </>
     );
@@ -239,14 +279,14 @@ export default function AdminGrilleTarifaire({
 function LigneRow({
     ligne,
     editing,
-    droits,
+    actions,
     onEdit,
     onCancel,
     onSaved,
 }: {
     ligne: Ligne;
     editing: boolean;
-    droits: Props['droits'];
+    actions: Actions;
     onEdit: () => void;
     onCancel: () => void;
     onSaved: () => void;
@@ -272,70 +312,91 @@ function LigneRow({
 
     if (editing) {
         return (
-            <form
-                onSubmit={submitEdit}
-                className="flex flex-wrap items-center gap-2 p-3"
-            >
-                <input
-                    className="min-w-[160px] flex-1 rounded-md border px-2 py-1.5 text-sm"
-                    value={editForm.data.prestation}
-                    onChange={(event) =>
-                        editForm.setData('prestation', event.target.value)
-                    }
-                />
-                <input
-                    className="min-w-[160px] flex-1 rounded-md border px-2 py-1.5 text-sm"
-                    value={editForm.data.tarif}
-                    onChange={(event) =>
-                        editForm.setData('tarif', event.target.value)
-                    }
-                />
-                <button
-                    type="submit"
-                    disabled={editForm.processing}
-                    className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground disabled:opacity-60"
-                >
-                    Enregistrer
-                </button>
-                <button
-                    type="button"
-                    onClick={onCancel}
-                    className="rounded-md border px-3 py-1.5 text-xs font-medium"
-                >
-                    Annuler
-                </button>
-            </form>
+            <tr>
+                <td colSpan={3}>
+                    <form
+                        onSubmit={submitEdit}
+                        style={{
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            alignItems: 'center',
+                            gap: 10,
+                        }}
+                    >
+                        <input
+                            style={{ flex: 1, minWidth: 160 }}
+                            value={editForm.data.prestation}
+                            onChange={(event) =>
+                                editForm.setData(
+                                    'prestation',
+                                    event.target.value,
+                                )
+                            }
+                        />
+                        <input
+                            style={{ flex: 1, minWidth: 160 }}
+                            value={editForm.data.tarif}
+                            onChange={(event) =>
+                                editForm.setData('tarif', event.target.value)
+                            }
+                        />
+                        <button
+                            type="submit"
+                            disabled={editForm.processing}
+                            className="btn-primary"
+                            style={{ padding: '7px 14px', fontSize: 12.5 }}
+                        >
+                            Enregistrer
+                        </button>
+                        <button
+                            type="button"
+                            onClick={onCancel}
+                            className="btn-outline"
+                            style={{ padding: '7px 14px', fontSize: 12.5 }}
+                        >
+                            Annuler
+                        </button>
+                    </form>
+                </td>
+            </tr>
         );
     }
 
     return (
-        <div className="flex items-center justify-between gap-3 p-3 text-sm">
-            <div className="min-w-0">
-                <p className="font-medium">{ligne.prestation}</p>
-                <p className="text-muted-foreground">{ligne.tarif}</p>
-            </div>
-            {(droits.modifier || droits.supprimer) && (
-                <div className="flex shrink-0 gap-2">
-                    {droits.modifier && (
-                        <button
-                            type="button"
-                            onClick={onEdit}
-                            className="text-xs text-muted-foreground underline"
-                        >
-                            Modifier
-                        </button>
-                    )}
-                    {droits.supprimer && (
-                        <button
-                            type="button"
-                            onClick={supprimer}
-                            className="text-xs text-destructive underline"
-                        >
-                            Supprimer
-                        </button>
-                    )}
-                </div>
-            )}
-        </div>
+        <tr>
+            <td style={{ fontWeight: 600 }}>{ligne.prestation}</td>
+            <td className="muted">{ligne.tarif}</td>
+            <td style={{ textAlign: 'right' }}>
+                {(actions.modifier || actions.supprimer) && (
+                    <div
+                        style={{
+                            display: 'flex',
+                            gap: 10,
+                            justifyContent: 'flex-end',
+                        }}
+                    >
+                        {actions.modifier && (
+                            <button
+                                type="button"
+                                onClick={onEdit}
+                                className="link-action"
+                            >
+                                Modifier
+                            </button>
+                        )}
+                        {actions.supprimer && (
+                            <button
+                                type="button"
+                                onClick={supprimer}
+                                className="link-action"
+                                style={{ color: 'var(--dag-red)' }}
+                            >
+                                Supprimer
+                            </button>
+                        )}
+                    </div>
+                )}
+            </td>
+        </tr>
     );
 }

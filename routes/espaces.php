@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Espaces\AdminAttestationController;
 use App\Http\Controllers\Espaces\AdminDashboardController;
+use App\Http\Controllers\Espaces\AdminEntrepriseController;
 use App\Http\Controllers\Espaces\AdminEquipeController;
 use App\Http\Controllers\Espaces\AdminGrilleTarifaireController;
 use App\Http\Controllers\Espaces\ApprenantDashboardController;
@@ -104,4 +105,7 @@ Route::middleware(['auth', 'verified', EnsureUserType::class.':MEMBRE_EQUIPE'])
         Route::get('equipe', [AdminEquipeController::class, 'index'])->name('espace-admin.equipe.index');
         Route::post('equipe', [AdminEquipeController::class, 'store'])->name('espace-admin.equipe.store');
         Route::patch('equipe/{membreEquipe}', [AdminEquipeController::class, 'update'])->name('espace-admin.equipe.update');
+        Route::get('entreprises', [AdminEntrepriseController::class, 'index'])->name('espace-admin.entreprises.index');
+        Route::patch('entreprises/{entreprisePartenaire}', [AdminEntrepriseController::class, 'updateEntreprise'])->name('espace-admin.entreprises.update');
+        Route::patch('offres/{offreEmploi}', [AdminEntrepriseController::class, 'updateOffre'])->name('espace-admin.offres.update');
     });

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Espaces;
 
 use App\Concerns\PasswordValidationRules;
+use App\Concerns\SharesAdminEspaceProps;
 use App\Enums\MembreEquipeRole;
 use App\Enums\UserType;
 use App\Http\Controllers\Controller;
@@ -17,7 +18,7 @@ use Inertia\Response;
 
 class AdminEquipeController extends Controller
 {
-    use PasswordValidationRules;
+    use PasswordValidationRules, SharesAdminEspaceProps;
 
     public function index(Request $request): Response
     {
@@ -29,6 +30,7 @@ class AdminEquipeController extends Controller
             ->sortBy(fn (MembreEquipe $membre) => $membre->user->name);
 
         return Inertia::render('espaces/admin-equipe', [
+            ...$this->adminEspaceProps($request->user()->membreEquipe),
             'membres' => $membres->map(fn (MembreEquipe $membre) => [
                 'id' => $membre->id,
                 'nom' => $membre->user->name,

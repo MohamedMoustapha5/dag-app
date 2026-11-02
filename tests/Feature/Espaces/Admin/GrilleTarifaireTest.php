@@ -4,7 +4,7 @@ use App\Enums\MembreEquipeRole;
 use App\Models\LigneTarifaire;
 use App\Models\MembreEquipe;
 
-test('the index page exposes the droits for the current role', function () {
+test('the index page exposes the actions allowed for the current role', function () {
     $juriste = MembreEquipe::factory()->juriste()->create();
 
     $response = $this->actingAs($juriste->user)->get(route('espace-admin.grille-tarifaire.index'));
@@ -12,9 +12,10 @@ test('the index page exposes the droits for the current role', function () {
     $response->assertOk();
     $response->assertInertia(fn ($page) => $page
         ->component('espaces/admin-grille-tarifaire')
-        ->where('droits.creer', false)
-        ->where('droits.modifier', false)
-        ->where('droits.supprimer', false));
+        ->where('actions.creer', false)
+        ->where('actions.modifier', false)
+        ->where('actions.supprimer', false)
+        ->where('droits.CATALOGUE', 'LECTURE'));
 });
 
 test('a promotrice can create, modify and delete lignes tarifaires', function () {

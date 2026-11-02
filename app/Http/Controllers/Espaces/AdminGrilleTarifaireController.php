@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Espaces;
 
+use App\Concerns\SharesAdminEspaceProps;
 use App\Enums\Action;
 use App\Enums\Donnee;
 use App\Http\Controllers\Controller;
@@ -13,6 +14,8 @@ use Inertia\Response;
 
 class AdminGrilleTarifaireController extends Controller
 {
+    use SharesAdminEspaceProps;
+
     public function index(Request $request): Response
     {
         $membre = $request->user()->membreEquipe;
@@ -23,6 +26,7 @@ class AdminGrilleTarifaireController extends Controller
             ->get();
 
         return Inertia::render('espaces/admin-grille-tarifaire', [
+            ...$this->adminEspaceProps($membre),
             'lignes' => $lignes->map(fn (LigneTarifaire $ligne) => [
                 'id' => $ligne->id,
                 'categorie' => $ligne->categorie,
@@ -39,7 +43,7 @@ class AdminGrilleTarifaireController extends Controller
                     'ordre' => $ligne->categorie_ordre,
                 ])
                 ->values(),
-            'droits' => [
+            'actions' => [
                 'creer' => $membre->peut(Donnee::Catalogue, Action::Creer),
                 'modifier' => $membre->peut(Donnee::Catalogue, Action::Modifier),
                 'supprimer' => $membre->peut(Donnee::Catalogue, Action::Supprimer),

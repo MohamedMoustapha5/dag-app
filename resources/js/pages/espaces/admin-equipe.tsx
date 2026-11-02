@@ -1,5 +1,4 @@
-import { Head, Link, router, useForm } from '@inertiajs/react';
-import espaceAdmin from '@/routes/espace-admin';
+import { Head, router, useForm } from '@inertiajs/react';
 import equipeAdmin from '@/routes/espace-admin/equipe';
 
 type Membre = {
@@ -67,230 +66,274 @@ export default function AdminEquipe({ membres, roles }: Props) {
     return (
         <>
             <Head title="Équipe DAG — Administration" />
-            <div className="mx-auto flex min-h-svh max-w-3xl flex-col gap-6 p-6">
-                <div>
-                    <Link
-                        href={espaceAdmin.dashboard()}
-                        className="text-sm text-muted-foreground underline"
-                    >
-                        ← Espace administrateur
-                    </Link>
-                    <h1 className="mt-2 text-2xl font-semibold">Équipe DAG</h1>
-                    <p className="text-sm text-muted-foreground">
+
+            <div
+                className="espace-hero"
+                style={{
+                    backgroundImage:
+                        "url('/images/photos/team-meeting-laptop.jpg')",
+                }}
+            >
+                <div className="espace-hero-overlay" />
+                <div className="espace-hero-content">
+                    <h1>Équipe DAG</h1>
+                    <p>
                         Seule la Promotrice peut créer un compte ou changer le
-                        rôle d'un membre de l'équipe. Désactiver un compte lui
-                        retire immédiatement l'accès.
+                        rôle d'un membre. Désactiver un compte lui retire
+                        immédiatement l'accès.
                     </p>
                 </div>
+            </div>
 
-                <form
-                    onSubmit={submitCreate}
-                    className="flex flex-col gap-3 rounded-xl border p-4"
+            <form
+                onSubmit={submitCreate}
+                className="card"
+                style={{
+                    padding: 24,
+                    marginBottom: 28,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 14,
+                }}
+            >
+                <p style={{ fontSize: 14.5, fontWeight: 700 }}>
+                    Créer un compte membre de l'équipe
+                </p>
+                <div
+                    style={{
+                        display: 'grid',
+                        gridTemplateColumns:
+                            'repeat(auto-fit, minmax(220px, 1fr))',
+                        gap: 14,
+                    }}
                 >
-                    <p className="text-sm font-medium">
-                        Créer un compte membre de l'équipe
-                    </p>
-                    <div className="grid grid-cols-2 gap-3">
-                        <div className="flex flex-col gap-1">
-                            <label
-                                htmlFor="name"
-                                className="text-xs text-muted-foreground"
+                    <div>
+                        <label htmlFor="name">Nom</label>
+                        <input
+                            id="name"
+                            value={createForm.data.name}
+                            onChange={(event) =>
+                                createForm.setData('name', event.target.value)
+                            }
+                        />
+                        {createForm.errors.name && (
+                            <p
+                                style={{
+                                    color: 'var(--dag-red)',
+                                    fontSize: 12,
+                                    marginTop: 4,
+                                }}
                             >
-                                Nom
-                            </label>
-                            <input
-                                id="name"
-                                className="rounded-md border px-2 py-1.5 text-sm"
-                                value={createForm.data.name}
-                                onChange={(event) =>
-                                    createForm.setData(
-                                        'name',
-                                        event.target.value,
-                                    )
-                                }
-                            />
-                            {createForm.errors.name && (
-                                <p className="text-xs text-destructive">
-                                    {createForm.errors.name}
-                                </p>
-                            )}
-                        </div>
-                        <div className="flex flex-col gap-1">
-                            <label
-                                htmlFor="email"
-                                className="text-xs text-muted-foreground"
-                            >
-                                E-mail
-                            </label>
-                            <input
-                                id="email"
-                                type="email"
-                                className="rounded-md border px-2 py-1.5 text-sm"
-                                value={createForm.data.email}
-                                onChange={(event) =>
-                                    createForm.setData(
-                                        'email',
-                                        event.target.value,
-                                    )
-                                }
-                            />
-                            {createForm.errors.email && (
-                                <p className="text-xs text-destructive">
-                                    {createForm.errors.email}
-                                </p>
-                            )}
-                        </div>
-                        <div className="flex flex-col gap-1">
-                            <label
-                                htmlFor="password"
-                                className="text-xs text-muted-foreground"
-                            >
-                                Mot de passe
-                            </label>
-                            <input
-                                id="password"
-                                type="password"
-                                className="rounded-md border px-2 py-1.5 text-sm"
-                                value={createForm.data.password}
-                                onChange={(event) =>
-                                    createForm.setData(
-                                        'password',
-                                        event.target.value,
-                                    )
-                                }
-                            />
-                            {createForm.errors.password && (
-                                <p className="text-xs text-destructive">
-                                    {createForm.errors.password}
-                                </p>
-                            )}
-                        </div>
-                        <div className="flex flex-col gap-1">
-                            <label
-                                htmlFor="password_confirmation"
-                                className="text-xs text-muted-foreground"
-                            >
-                                Confirmer le mot de passe
-                            </label>
-                            <input
-                                id="password_confirmation"
-                                type="password"
-                                className="rounded-md border px-2 py-1.5 text-sm"
-                                value={createForm.data.password_confirmation}
-                                onChange={(event) =>
-                                    createForm.setData(
-                                        'password_confirmation',
-                                        event.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div className="col-span-2 flex flex-col gap-1">
-                            <label
-                                htmlFor="role"
-                                className="text-xs text-muted-foreground"
-                            >
-                                Rôle
-                            </label>
-                            <select
-                                id="role"
-                                className="rounded-md border px-2 py-1.5 text-sm"
-                                value={createForm.data.role}
-                                onChange={(event) =>
-                                    createForm.setData(
-                                        'role',
-                                        event.target.value,
-                                    )
-                                }
-                            >
-                                {roles.map((role) => (
-                                    <option key={role.value} value={role.value}>
-                                        {role.label}
-                                    </option>
-                                ))}
-                            </select>
-                            {createForm.errors.role && (
-                                <p className="text-xs text-destructive">
-                                    {createForm.errors.role}
-                                </p>
-                            )}
-                        </div>
+                                {createForm.errors.name}
+                            </p>
+                        )}
                     </div>
-                    <button
-                        type="submit"
-                        disabled={createForm.processing}
-                        className="self-start rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-60"
-                    >
-                        {createForm.processing
-                            ? 'Création…'
-                            : 'Créer le compte'}
-                    </button>
-                </form>
-
-                <div className="divide-y rounded-xl border">
-                    {membres.map((membre) => (
-                        <div
-                            key={membre.id}
-                            className="flex flex-wrap items-center justify-between gap-3 p-3 text-sm"
+                    <div>
+                        <label htmlFor="email">E-mail</label>
+                        <input
+                            id="email"
+                            type="email"
+                            value={createForm.data.email}
+                            onChange={(event) =>
+                                createForm.setData('email', event.target.value)
+                            }
+                        />
+                        {createForm.errors.email && (
+                            <p
+                                style={{
+                                    color: 'var(--dag-red)',
+                                    fontSize: 12,
+                                    marginTop: 4,
+                                }}
+                            >
+                                {createForm.errors.email}
+                            </p>
+                        )}
+                    </div>
+                    <div>
+                        <label htmlFor="password">Mot de passe</label>
+                        <input
+                            id="password"
+                            type="password"
+                            value={createForm.data.password}
+                            onChange={(event) =>
+                                createForm.setData(
+                                    'password',
+                                    event.target.value,
+                                )
+                            }
+                        />
+                        {createForm.errors.password && (
+                            <p
+                                style={{
+                                    color: 'var(--dag-red)',
+                                    fontSize: 12,
+                                    marginTop: 4,
+                                }}
+                            >
+                                {createForm.errors.password}
+                            </p>
+                        )}
+                    </div>
+                    <div>
+                        <label htmlFor="password_confirmation">
+                            Confirmer le mot de passe
+                        </label>
+                        <input
+                            id="password_confirmation"
+                            type="password"
+                            value={createForm.data.password_confirmation}
+                            onChange={(event) =>
+                                createForm.setData(
+                                    'password_confirmation',
+                                    event.target.value,
+                                )
+                            }
+                        />
+                    </div>
+                    <div>
+                        <label htmlFor="role">Rôle</label>
+                        <select
+                            id="role"
+                            value={createForm.data.role}
+                            onChange={(event) =>
+                                createForm.setData('role', event.target.value)
+                            }
                         >
-                            <div className="min-w-0">
-                                <p className="font-medium">
-                                    {membre.nom}
-                                    {membre.soiMeme && (
-                                        <span className="ml-2 text-xs text-muted-foreground">
-                                            (vous)
-                                        </span>
-                                    )}
-                                </p>
-                                <p className="text-muted-foreground">
-                                    {membre.email}
-                                </p>
-                            </div>
-                            <div className="flex shrink-0 flex-wrap items-center gap-2">
-                                <select
-                                    className="rounded-md border px-2 py-1.5 text-xs"
-                                    value={membre.role}
-                                    onChange={(event) =>
-                                        changerRole(
-                                            membre.id,
-                                            event.target.value,
-                                        )
-                                    }
-                                >
-                                    {roles.map((role) => (
-                                        <option
-                                            key={role.value}
-                                            value={role.value}
+                            {roles.map((role) => (
+                                <option key={role.value} value={role.value}>
+                                    {role.label}
+                                </option>
+                            ))}
+                        </select>
+                        {createForm.errors.role && (
+                            <p
+                                style={{
+                                    color: 'var(--dag-red)',
+                                    fontSize: 12,
+                                    marginTop: 4,
+                                }}
+                            >
+                                {createForm.errors.role}
+                            </p>
+                        )}
+                    </div>
+                </div>
+                <button
+                    type="submit"
+                    disabled={createForm.processing}
+                    className="btn-primary"
+                    style={{ alignSelf: 'flex-start' }}
+                >
+                    {createForm.processing ? 'Création…' : 'Créer le compte'}
+                </button>
+            </form>
+
+            <div className="card" style={{ padding: 24 }}>
+                <p
+                    style={{
+                        fontSize: 14.5,
+                        fontWeight: 700,
+                        marginBottom: 16,
+                    }}
+                >
+                    Membres de l'équipe ({membres.length})
+                </p>
+                <div className="data-table-wrap">
+                    <table className="data-table">
+                        <thead>
+                            <tr>
+                                <th>Membre</th>
+                                <th>Rôle</th>
+                                <th>Statut</th>
+                                <th />
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {membres.map((membre) => (
+                                <tr key={membre.id}>
+                                    <td>
+                                        <p style={{ fontWeight: 600 }}>
+                                            {membre.nom}
+                                            {membre.soiMeme && (
+                                                <span
+                                                    className="muted"
+                                                    style={{
+                                                        marginLeft: 8,
+                                                        fontSize: 11.5,
+                                                        fontWeight: 400,
+                                                    }}
+                                                >
+                                                    (vous)
+                                                </span>
+                                            )}
+                                        </p>
+                                        <p
+                                            className="muted"
+                                            style={{ fontSize: 12.5 }}
                                         >
-                                            {role.label}
-                                        </option>
-                                    ))}
-                                </select>
-                                <span
-                                    className={`rounded-full px-2 py-1 text-xs font-medium ${
-                                        membre.statut === 'ACTIF'
-                                            ? 'bg-emerald-100 text-emerald-700'
-                                            : 'bg-neutral-200 text-neutral-600'
-                                    }`}
-                                >
-                                    {membre.statut === 'ACTIF'
-                                        ? 'Actif'
-                                        : 'Inactif'}
-                                </span>
-                                {!membre.soiMeme && (
-                                    <button
-                                        type="button"
-                                        onClick={() => basculerStatut(membre)}
-                                        className="text-xs text-muted-foreground underline"
-                                    >
-                                        {membre.statut === 'ACTIF'
-                                            ? 'Désactiver'
-                                            : 'Réactiver'}
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-                    ))}
+                                            {membre.email}
+                                        </p>
+                                    </td>
+                                    <td>
+                                        <select
+                                            value={membre.role}
+                                            style={{
+                                                padding: '6px 10px',
+                                                fontSize: 12.5,
+                                            }}
+                                            onChange={(event) =>
+                                                changerRole(
+                                                    membre.id,
+                                                    event.target.value,
+                                                )
+                                            }
+                                        >
+                                            {roles.map((role) => (
+                                                <option
+                                                    key={role.value}
+                                                    value={role.value}
+                                                >
+                                                    {role.label}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <span
+                                            className={`chip ${membre.statut === 'ACTIF' ? 'chip-green' : 'chip-gray'}`}
+                                        >
+                                            {membre.statut === 'ACTIF'
+                                                ? 'Actif'
+                                                : 'Inactif'}
+                                        </span>
+                                    </td>
+                                    <td style={{ textAlign: 'right' }}>
+                                        {!membre.soiMeme && (
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    basculerStatut(membre)
+                                                }
+                                                className="link-action"
+                                                style={
+                                                    membre.statut === 'ACTIF'
+                                                        ? {
+                                                              color: 'var(--dag-red)',
+                                                          }
+                                                        : undefined
+                                                }
+                                            >
+                                                {membre.statut === 'ACTIF'
+                                                    ? 'Désactiver'
+                                                    : 'Réactiver'}
+                                            </button>
+                                        )}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </>

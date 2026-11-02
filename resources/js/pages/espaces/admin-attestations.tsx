@@ -1,5 +1,4 @@
-import { Head, Link, router } from '@inertiajs/react';
-import espaceAdmin from '@/routes/espace-admin';
+import { Head, router } from '@inertiajs/react';
 import attestationsAdmin from '@/routes/espace-admin/attestations';
 
 type EnAttente = {
@@ -33,95 +32,127 @@ export default function AdminAttestations({ enAttente, validees }: Props) {
     return (
         <>
             <Head title="Attestations — Administration" />
-            <div className="mx-auto flex min-h-svh max-w-3xl flex-col gap-6 p-6">
-                <div>
-                    <Link
-                        href={espaceAdmin.dashboard()}
-                        className="text-sm text-muted-foreground underline"
-                    >
-                        ← Espace administrateur
-                    </Link>
-                    <h1 className="mt-2 text-2xl font-semibold">
-                        Attestations
-                    </h1>
-                    <p className="text-sm text-muted-foreground">
+
+            <div
+                className="espace-hero"
+                style={{
+                    backgroundImage:
+                        "url('/images/photos/presentation-data-review.jpg')",
+                }}
+            >
+                <div className="espace-hero-overlay" />
+                <div className="espace-hero-content">
+                    <h1>Attestations</h1>
+                    <p>
                         Une attestation n'est jamais délivrée automatiquement :
-                        chaque formation terminée doit être validée ici par un
-                        membre habilité de l'équipe DAG avant que l'apprenant
-                        n'y ait accès.
+                        chaque formation terminée doit être validée ici avant
+                        que l'apprenant n'y ait accès.
                     </p>
                 </div>
+            </div>
 
-                <div>
-                    <p className="mb-2 text-sm font-semibold">
-                        En attente de validation ({enAttente.length})
+            <div className="card" style={{ padding: 24, marginBottom: 28 }}>
+                <p
+                    style={{
+                        fontSize: 14.5,
+                        fontWeight: 700,
+                        marginBottom: 16,
+                    }}
+                >
+                    En attente de validation ({enAttente.length})
+                </p>
+                {enAttente.length === 0 ? (
+                    <p className="data-table-empty">
+                        Aucune formation terminée en attente de validation.
                     </p>
-                    {enAttente.length === 0 ? (
-                        <p className="rounded-xl border p-4 text-sm text-muted-foreground">
-                            Aucune formation terminée en attente de validation.
-                        </p>
-                    ) : (
-                        <div className="divide-y rounded-xl border">
-                            {enAttente.map((item) => (
-                                <div
-                                    key={item.inscriptionId}
-                                    className="flex items-center justify-between gap-3 p-3 text-sm"
-                                >
-                                    <div className="min-w-0">
-                                        <p className="font-medium">
+                ) : (
+                    <div className="data-table-wrap">
+                        <table className="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Apprenant</th>
+                                    <th>Formation</th>
+                                    <th />
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {enAttente.map((item) => (
+                                    <tr key={item.inscriptionId}>
+                                        <td style={{ fontWeight: 600 }}>
                                             {item.apprenantNom}
-                                        </p>
-                                        <p className="text-muted-foreground">
+                                        </td>
+                                        <td className="muted">
                                             {item.formation}
-                                        </p>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            valider(item.inscriptionId)
-                                        }
-                                        className="shrink-0 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground"
-                                    >
-                                        Valider et générer
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
+                                        </td>
+                                        <td style={{ textAlign: 'right' }}>
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    valider(item.inscriptionId)
+                                                }
+                                                className="btn-primary"
+                                                style={{
+                                                    padding: '7px 14px',
+                                                    fontSize: 12.5,
+                                                }}
+                                            >
+                                                Valider et générer
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </div>
 
-                <div>
-                    <p className="mb-2 text-sm font-semibold">
-                        Attestations validées ({validees.length})
+            <div className="card" style={{ padding: 24 }}>
+                <p
+                    style={{
+                        fontSize: 14.5,
+                        fontWeight: 700,
+                        marginBottom: 16,
+                    }}
+                >
+                    Attestations validées ({validees.length})
+                </p>
+                {validees.length === 0 ? (
+                    <p className="data-table-empty">
+                        Aucune attestation validée pour le moment.
                     </p>
-                    {validees.length === 0 ? (
-                        <p className="rounded-xl border p-4 text-sm text-muted-foreground">
-                            Aucune attestation validée pour le moment.
-                        </p>
-                    ) : (
-                        <div className="divide-y rounded-xl border">
-                            {validees.map((attestation) => (
-                                <div
-                                    key={attestation.id}
-                                    className="flex items-center justify-between gap-3 p-3 text-sm"
-                                >
-                                    <div className="min-w-0">
-                                        <p className="font-medium">
+                ) : (
+                    <div className="data-table-wrap">
+                        <table className="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Apprenant</th>
+                                    <th>Formation</th>
+                                    <th>Référence</th>
+                                    <th>Validée le</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {validees.map((attestation) => (
+                                    <tr key={attestation.id}>
+                                        <td style={{ fontWeight: 600 }}>
                                             {attestation.apprenantNom}
-                                        </p>
-                                        <p className="text-muted-foreground">
-                                            {attestation.formation} —{' '}
+                                        </td>
+                                        <td className="muted">
+                                            {attestation.formation}
+                                        </td>
+                                        <td className="muted">
                                             {attestation.reference}
-                                        </p>
-                                    </div>
-                                    <span className="shrink-0 text-xs text-muted-foreground">
-                                        Validée le {attestation.dateEmission}
-                                    </span>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
+                                        </td>
+                                        <td className="muted">
+                                            {attestation.dateEmission}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
             </div>
         </>
     );

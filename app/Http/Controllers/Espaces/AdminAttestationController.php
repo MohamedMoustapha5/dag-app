@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Espaces;
 
+use App\Concerns\SharesAdminEspaceProps;
 use App\Enums\Action;
 use App\Enums\Donnee;
 use App\Http\Controllers\Controller;
@@ -17,9 +18,12 @@ use Inertia\Response;
 
 class AdminAttestationController extends Controller
 {
+    use SharesAdminEspaceProps;
+
     public function index(Request $request): Response
     {
-        abort_unless($request->user()->membreEquipe->peut(Donnee::DossiersApprenants, Action::Valider), 403);
+        $membre = $request->user()->membreEquipe;
+        abort_unless($membre->peut(Donnee::DossiersApprenants, Action::Valider), 403);
 
         $paires = Attestation::query()
             ->get(['apprenant_id', 'formation_id'])
@@ -41,6 +45,7 @@ class AdminAttestationController extends Controller
             ->get();
 
         return Inertia::render('espaces/admin-attestations', [
+            ...$this->adminEspaceProps($membre),
             'enAttente' => $enAttente->map(fn (Inscription $inscription) => [
                 'inscriptionId' => $inscription->id,
                 'apprenantNom' => $inscription->apprenant->user->name,
