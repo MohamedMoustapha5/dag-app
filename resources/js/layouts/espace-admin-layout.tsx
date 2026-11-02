@@ -3,6 +3,7 @@ import {
     Award,
     Bell,
     Briefcase,
+    BookOpen,
     FileText,
     LayoutDashboard,
     LogOut,
@@ -20,6 +21,7 @@ import attestationsAdmin from '@/routes/espace-admin/attestations';
 import demandesAdmin from '@/routes/espace-admin/demandes';
 import entreprisesAdmin from '@/routes/espace-admin/entreprises';
 import equipeAdmin from '@/routes/espace-admin/equipe';
+import formationsAdmin from '@/routes/espace-admin/formations';
 import grilleTarifaireAdmin from '@/routes/espace-admin/grille-tarifaire';
 
 type NavItem = {
@@ -56,6 +58,12 @@ const NAV_GROUPS: NavGroup[] = [
                 icon: Tag,
                 href: grilleTarifaireAdmin.index(),
                 visibleIf: 'CATALOGUE',
+            },
+            {
+                label: 'Formations & sessions',
+                icon: BookOpen,
+                href: formationsAdmin.index(),
+                visibleIf: 'FORMATIONS',
             },
         ],
     },
