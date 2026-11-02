@@ -12,6 +12,7 @@ import {
     Receipt,
     Shield,
     Tag,
+    UserRound,
     Users,
     X,
 } from 'lucide-react';
@@ -21,6 +22,7 @@ import { logout } from '@/routes';
 import LanguageSwitcher from '@/components/public/language-switcher';
 import espaceAdmin from '@/routes/espace-admin';
 import abonnementsAdmin from '@/routes/espace-admin/abonnements';
+import apprenantsAdmin from '@/routes/espace-admin/apprenants';
 import attestationsAdmin from '@/routes/espace-admin/attestations';
 import contratsAdmin from '@/routes/espace-admin/contrats';
 import demandesAdmin from '@/routes/espace-admin/demandes';
@@ -116,6 +118,12 @@ const NAV_GROUPS: NavGroup[] = [
     {
         label: 'Apprenants',
         items: [
+            {
+                label: 'Dossiers apprenants',
+                icon: UserRound,
+                href: apprenantsAdmin.index(),
+                visibleIf: 'DOSSIERS_APPRENANTS',
+            },
             {
                 label: 'Attestations',
                 icon: Award,

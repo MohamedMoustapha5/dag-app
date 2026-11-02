@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Espaces\AdminAbonnementController;
+use App\Http\Controllers\Espaces\AdminApprenantController;
 use App\Http\Controllers\Espaces\AdminAttestationController;
 use App\Http\Controllers\Espaces\AdminContratController;
 use App\Http\Controllers\Espaces\AdminDashboardController;
@@ -141,4 +142,7 @@ Route::middleware(['auth', 'verified', EnsureUserType::class.':MEMBRE_EQUIPE'])
         Route::get('abonnements', [AdminAbonnementController::class, 'index'])->name('espace-admin.abonnements.index');
         Route::post('abonnements', [AdminAbonnementController::class, 'store'])->name('espace-admin.abonnements.store');
         Route::patch('abonnements/{abonnement}', [AdminAbonnementController::class, 'update'])->name('espace-admin.abonnements.update');
+        Route::get('apprenants', [AdminApprenantController::class, 'index'])->name('espace-admin.apprenants.index');
+        Route::get('apprenants/{apprenant}', [AdminApprenantController::class, 'show'])->name('espace-admin.apprenants.show');
+        Route::get('apprenants/{apprenant}/cv', [AdminApprenantController::class, 'cv'])->name('espace-admin.apprenants.cv');
     });
