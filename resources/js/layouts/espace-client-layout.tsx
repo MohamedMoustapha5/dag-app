@@ -306,6 +306,12 @@ export default function EspaceClientLayout({ children }: PropsWithChildren) {
                             {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
                         </button>
 
+                        <img
+                            src="/images/brand/dag-logo.jpg"
+                            alt="DAG — Digital Agency Group"
+                            className="espace-topbar-logo"
+                        />
+
                         <div className="espace-search">
                             <Search size={16} />
                             <input
