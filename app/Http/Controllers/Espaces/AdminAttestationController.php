@@ -121,6 +121,7 @@ class AdminAttestationController extends Controller
             'duree' => $attestation->formation->duree,
             'dateEmission' => Carbon::parse($attestation->date_emission)->format('d/m/Y'),
             'signature' => DocumentAssets::signatureDirectrice(),
+            'cachet' => DocumentAssets::cachet(),
         ])->setPaper('a4', 'landscape')->download("attestation-{$attestation->reference}.pdf");
     }
 

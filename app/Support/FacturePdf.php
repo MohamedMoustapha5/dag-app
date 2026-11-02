@@ -28,6 +28,7 @@ class FacturePdf
             'moyen' => $facture->moyen_paiement ?? '—',
             'datePaiement' => self::datePaiement($facture),
             'signature' => DocumentAssets::signatureDirectrice(),
+            'cachet' => DocumentAssets::cachet(),
         ])->setPaper('a4')->download("facture-{$facture->reference}.pdf");
     }
 

@@ -122,11 +122,14 @@
         </table>
 
         <div class="signature">
-            @if($signature)
-                <img src="{{ $signature }}" alt="" style="height: 54px;">
-            @else
-                <div style="height: 54px;"></div>
-            @endif
+            <div style="height: 84px;">
+                @if($cachet)
+                    <img src="{{ $cachet }}" alt="" style="height: 80px;">
+                @endif
+                @if($signature)
+                    <img src="{{ $signature }}" alt="" style="height: 54px;">
+                @endif
+            </div>
             <div class="ligne">Signature autorisée</div>
         </div>
     </div>

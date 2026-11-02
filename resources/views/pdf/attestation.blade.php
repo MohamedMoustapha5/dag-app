@@ -17,7 +17,7 @@
         .formation { left: 152px; top: 440px; width: 620px; font-size: 16px; font-weight: bold; }
         .texte { left: 152px; top: 478px; width: 620px; font-size: 12px; line-height: 1.7; color: #3d4f6b; }
         .date-bloc { left: 210px; top: 640px; width: 220px; font-size: 12px; }
-        .signature-bloc { left: 500px; top: 600px; width: 250px; font-size: 12px; text-align: center; }
+        .signature-bloc { left: 500px; top: 540px; width: 250px; font-size: 12px; text-align: center; }
         .ligne { border-top: 1px solid #071f41; padding-top: 5px; letter-spacing: 2px; font-size: 10px; color: #5b6b82; }
         .sceau-1 { left: 855px; top: 214px; width: 100px; text-align: center; font-size: 10px; font-weight: bold; letter-spacing: 2px; color: #0166fe; }
         .sceau-2 { left: 855px; top: 232px; width: 100px; text-align: center; font-size: 28px; font-weight: bold; color: #071f41; }
@@ -48,11 +48,14 @@
     </div>
 
     <div class="abs signature-bloc">
-        @if($signature)
-            <img src="{{ $signature }}" alt="" style="height: 62px; margin-bottom: 2px;">
-        @else
-            <div style="height: 62px;"></div>
-        @endif
+        <div style="height: 104px;">
+            @if($cachet)
+                <img src="{{ $cachet }}" alt="" style="height: 100px;">
+            @endif
+            @if($signature)
+                <img src="{{ $signature }}" alt="" style="height: 62px;">
+            @endif
+        </div>
         <div class="ligne">LA DIRECTION &mdash; SIGNATURE</div>
     </div>
 

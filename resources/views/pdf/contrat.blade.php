@@ -22,7 +22,7 @@
         .accord td.k { font-weight: bold; background: #f6f9ff; width: 22%; }
         .signatures td { vertical-align: top; width: 50%; padding-right: 22px; }
         .signatures .tete { border-top: 2px solid #071f41; padding-top: 7px; font-weight: bold; font-size: 12.5px; }
-        .zone { height: 96px; padding-top: 8px; }
+        .zone { height: 124px; padding-top: 8px; }
         .bandeau { background: #eaf1ff; border-left: 4px solid #0166fe; padding: 8px 12px; margin: 14px 0; font-size: 11px; }
         .conteste { background: #fbeaea; border-left-color: #d64545; }
         .pied { position: fixed; left: 0; width: 86%; bottom: -46px; border-top: 1px solid #071f41; padding-top: 5px; font-size: 8.5px; color: #3d4f6b; }
@@ -124,7 +124,7 @@
                     <img src="{{ $signatureDirectrice }}" style="height: 80px;" alt="">
                 @endif
                 @if($cachet)
-                    <img src="{{ $cachet }}" style="height: 88px; margin-left: 8px;" alt="">
+                    <img src="{{ $cachet }}" style="height: 112px;" alt="">
                 @endif
             </div>
             <div>La Directrice</div>
