@@ -132,3 +132,47 @@ test('a role without the validation right cannot see or validate attestations', 
 
     $this->assertDatabaseMissing('attestations', ['apprenant_id' => $apprenant->id]);
 });
+
+test('validating an attestation records who validated it and the pdf is then downloadable', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $apprenant = Apprenant::factory()->create();
+    $formation = Formation::factory()->create();
+    $session = FormationSession::factory()->for($formation)->create();
+    $inscription = Inscription::create([
+        'apprenant_id' => $apprenant->id,
+        'formation_id' => $formation->id,
+        'formation_session_id' => $session->id,
+        'statut' => 'FORMEE',
+    ]);
+
+    $this->actingAs($promotrice, 'admin')
+        ->post(route('espace-admin.attestations.store'), ['inscription_id' => $inscription->id])
+        ->assertRedirect();
+
+    $attestation = Attestation::firstOrFail();
+    expect($attestation->valide_par_id)->toBe($promotrice->id);
+
+    $response = $this->actingAs($promotrice, 'admin')
+        ->get(route('espace-admin.attestations.pdf', $attestation))
+        ->assertOk();
+
+    expect($response->headers->get('content-type'))->toContain('application/pdf');
+});
+
+test('an apprenant can download only their own validated attestation', function () {
+    $apprenant = Apprenant::factory()->create();
+    $autre = Apprenant::factory()->create();
+    $attestation = Attestation::create([
+        'apprenant_id' => $apprenant->id,
+        'formation_id' => Formation::factory()->create()->id,
+        'date_emission' => now()->toDateString(),
+    ]);
+
+    $this->actingAs($apprenant->user)
+        ->get(route('espace-apprenant.attestations.pdf', $attestation))
+        ->assertOk();
+
+    $this->actingAs($autre->user)
+        ->get(route('espace-apprenant.attestations.pdf', $attestation))
+        ->assertNotFound();
+});

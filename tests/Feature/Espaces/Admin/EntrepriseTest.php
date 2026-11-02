@@ -1,6 +1,8 @@
 <?php
 
 use App\Enums\MembreEquipeRole;
+use App\Models\Apprenant;
+use App\Models\Candidature;
 use App\Models\EntreprisePartenaire;
 use App\Models\MembreEquipe;
 use App\Models\OffreEmploi;
@@ -76,5 +78,76 @@ test('a role without any access to entreprises offres cannot reach the page', fu
 
     $this->actingAs($membre, 'admin')
         ->get(route('espace-admin.entreprises.index'))
+        ->assertForbidden();
+});
+
+test('an admin can apply to a published offre on behalf of an apprenant, including one already trained', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $apprenant = Apprenant::factory()->create();
+    $offre = OffreEmploi::factory()->create(['statut' => 'PUBLIEE']);
+
+    $this->actingAs($promotrice, 'admin')
+        ->get(route('espace-admin.entreprises.index'))
+        ->assertInertia(fn ($page) => $page
+            ->where('peutPostuler', true)
+            ->has('apprenants', 1)
+            ->where('offres.0.postulable', true));
+
+    $this->actingAs($promotrice, 'admin')
+        ->post(route('espace-admin.offres.postuler', $offre), ['apprenant_id' => $apprenant->id])
+        ->assertRedirect();
+
+    $candidature = Candidature::firstOrFail();
+    expect($candidature->apprenant_id)->toBe($apprenant->id);
+    expect($candidature->statut)->toBe('DEPOSEE');
+    expect($candidature->deposee_par_id)->toBe($promotrice->id);
+});
+
+test('an admin cannot apply twice for the same apprenant on the same offre', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $apprenant = Apprenant::factory()->create();
+    $offre = OffreEmploi::factory()->create(['statut' => 'PUBLIEE']);
+    Candidature::factory()->create(['apprenant_id' => $apprenant->id, 'offre_id' => $offre->id]);
+
+    $this->actingAs($promotrice, 'admin')
+        ->post(route('espace-admin.offres.postuler', $offre), ['apprenant_id' => $apprenant->id])
+        ->assertSessionHasErrors('apprenant_id');
+
+    expect(Candidature::count())->toBe(1);
+});
+
+test('an admin cannot apply for an apprenant who did not consent to sharing their dossier', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $apprenant = Apprenant::factory()->create(['consentement_cv' => false]);
+    $offre = OffreEmploi::factory()->create(['statut' => 'PUBLIEE']);
+
+    $this->actingAs($promotrice, 'admin')
+        ->post(route('espace-admin.offres.postuler', $offre), ['apprenant_id' => $apprenant->id])
+        ->assertSessionHasErrors('apprenant_id');
+
+    expect(Candidature::count())->toBe(0);
+});
+
+test('an admin cannot apply to an offre that is not published', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $apprenant = Apprenant::factory()->create();
+    $offre = OffreEmploi::factory()->create(['statut' => 'CLOTUREE']);
+
+    $this->actingAs($promotrice, 'admin')
+        ->post(route('espace-admin.offres.postuler', $offre), ['apprenant_id' => $apprenant->id])
+        ->assertStatus(409);
+});
+
+test('a lecture-only role cannot apply to offres', function () {
+    $juriste = MembreEquipe::factory()->juriste()->create();
+    $apprenant = Apprenant::factory()->create();
+    $offre = OffreEmploi::factory()->create(['statut' => 'PUBLIEE']);
+
+    $this->actingAs($juriste, 'admin')
+        ->get(route('espace-admin.entreprises.index'))
+        ->assertInertia(fn ($page) => $page->where('peutPostuler', false)->where('apprenants', []));
+
+    $this->actingAs($juriste, 'admin')
+        ->post(route('espace-admin.offres.postuler', $offre), ['apprenant_id' => $apprenant->id])
         ->assertForbidden();
 });

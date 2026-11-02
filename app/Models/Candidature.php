@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-#[Fillable(['apprenant_id', 'offre_id', 'statut'])]
+#[Fillable(['apprenant_id', 'offre_id', 'statut', 'deposee_par_id'])]
 class Candidature extends Model
 {
     /** @use HasFactory<CandidatureFactory> */

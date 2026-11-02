@@ -70,6 +70,7 @@ Route::middleware(['auth', 'verified', EnsureUserType::class.':CLIENT'])
         Route::get('demandes/{demande}', [ClientDemandeController::class, 'show'])->name('espace-client.demandes.show');
         Route::get('abonnements', ClientAbonnementController::class)->name('espace-client.abonnements');
         Route::get('factures', ClientFactureController::class)->name('espace-client.factures');
+        Route::get('factures/{facture}/pdf', [ClientFactureController::class, 'pdf'])->name('espace-client.factures.pdf');
         Route::get('contrats', ClientContratController::class)->name('espace-client.contrats');
         Route::get('documents', ClientDocumentController::class)->name('espace-client.documents');
         Route::get('parametres', [ClientParametreController::class, 'edit'])->name('espace-client.parametres');
@@ -96,8 +97,10 @@ Route::middleware(['auth', 'verified', EnsureUserType::class.':APPRENANT'])
         Route::get('formations', ApprenantFormationController::class)->name('espace-apprenant.formations');
         Route::get('inscriptions', ApprenantInscriptionController::class)->name('espace-apprenant.inscriptions');
         Route::get('factures', ApprenantFactureController::class)->name('espace-apprenant.factures');
+        Route::get('factures/{facture}/pdf', [ApprenantFactureController::class, 'pdf'])->name('espace-apprenant.factures.pdf');
         Route::get('dossier', [ApprenantDossierController::class, 'edit'])->name('espace-apprenant.dossier');
         Route::patch('dossier', [ApprenantDossierController::class, 'update'])->name('espace-apprenant.dossier.update');
+        Route::get('attestations/{attestation}/pdf', [ApprenantDossierController::class, 'attestationPdf'])->name('espace-apprenant.attestations.pdf');
         Route::get('progression', [ApprenantProgressionController::class, 'index'])->name('espace-apprenant.progression');
         Route::get('progression/{inscription}', [ApprenantProgressionController::class, 'show'])->name('espace-apprenant.progression.show');
         Route::get('profil', [ApprenantProfilController::class, 'edit'])->name('espace-apprenant.profil');
@@ -129,6 +132,7 @@ Route::middleware(['auth:admin', EnsureMembreActif::class])
         Route::delete('grille-tarifaire/{ligneTarifaire}', [AdminGrilleTarifaireController::class, 'destroy'])->name('espace-admin.grille-tarifaire.destroy');
         Route::get('attestations', [AdminAttestationController::class, 'index'])->name('espace-admin.attestations.index');
         Route::post('attestations', [AdminAttestationController::class, 'store'])->name('espace-admin.attestations.store');
+        Route::get('attestations/{attestation}/pdf', [AdminAttestationController::class, 'pdf'])->name('espace-admin.attestations.pdf');
         Route::get('equipe', [AdminEquipeController::class, 'index'])->name('espace-admin.equipe.index');
         Route::post('equipe', [AdminEquipeController::class, 'store'])->name('espace-admin.equipe.store');
         Route::patch('equipe/{membreEquipe}', [AdminEquipeController::class, 'update'])->name('espace-admin.equipe.update');
@@ -137,6 +141,7 @@ Route::middleware(['auth:admin', EnsureMembreActif::class])
         Route::get('entreprises', [AdminEntrepriseController::class, 'index'])->name('espace-admin.entreprises.index');
         Route::patch('entreprises/{entreprisePartenaire}', [AdminEntrepriseController::class, 'updateEntreprise'])->name('espace-admin.entreprises.update');
         Route::patch('offres/{offreEmploi}', [AdminEntrepriseController::class, 'updateOffre'])->name('espace-admin.offres.update');
+        Route::post('offres/{offreEmploi}/candidatures', [AdminEntrepriseController::class, 'postuler'])->name('espace-admin.offres.postuler');
         Route::get('demandes', [AdminDemandeController::class, 'index'])->name('espace-admin.demandes.index');
         Route::get('demandes/{demande}', [AdminDemandeController::class, 'show'])->name('espace-admin.demandes.show');
         Route::patch('demandes/{demande}', [AdminDemandeController::class, 'update'])->name('espace-admin.demandes.update');
@@ -164,6 +169,7 @@ Route::middleware(['auth:admin', EnsureMembreActif::class])
         Route::get('contrats', [AdminContratController::class, 'index'])->name('espace-admin.contrats.index');
         Route::post('contrats', [AdminContratController::class, 'store'])->name('espace-admin.contrats.store');
         Route::get('contrats/{contrat}', [AdminContratController::class, 'show'])->name('espace-admin.contrats.show');
+        Route::get('contrats/{contrat}/pdf', [AdminContratController::class, 'pdf'])->name('espace-admin.contrats.pdf');
         Route::patch('contrats/{contrat}', [AdminContratController::class, 'update'])->name('espace-admin.contrats.update');
         Route::post('modeles-contrat', [AdminContratController::class, 'storeModele'])->name('espace-admin.modeles-contrat.store');
         Route::patch('modeles-contrat/{modeleContrat}', [AdminContratController::class, 'updateModele'])->name('espace-admin.modeles-contrat.update');

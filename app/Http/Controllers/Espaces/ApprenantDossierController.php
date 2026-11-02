@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Espaces;
 
 use App\Http\Controllers\Controller;
+use App\Models\Attestation;
 use App\Models\Inscription;
 use App\Models\Presence;
 use App\Models\Seance;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection as BaseCollection;
 use Inertia\Inertia;
@@ -54,6 +56,7 @@ class ApprenantDossierController extends Controller
                     'seancesTotal' => $seances->count(),
                     'seancesRestantes' => $seances->where('date', '>=', now()->toDateString())->count(),
                     'attestation' => [
+                        'id' => $attestation?->id,
                         // L'attestation n'est jamais générée automatiquement :
                         // seule son existence, créée par un membre DAG
                         // habilité (espace-admin/attestations), vaut
@@ -64,6 +67,17 @@ class ApprenantDossierController extends Controller
                 ];
             }),
         ]);
+    }
+
+    /**
+     * The apprenant can only download an attestation that DAG has
+     * validated (its existence is the validation) and that is theirs.
+     */
+    public function attestationPdf(Request $request, Attestation $attestation): HttpResponse
+    {
+        abort_unless($attestation->apprenant_id === $request->user('web')->apprenant->id, 404);
+
+        return AdminAttestationController::genererPdf($attestation);
     }
 
     /**

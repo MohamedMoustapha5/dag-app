@@ -16,10 +16,16 @@ type Props = {
         signataireNom: string | null;
         dateSignature: string | null;
         signatureContestee: boolean;
+        estSigne: boolean;
     };
+    peutTelecharger: boolean;
 };
 
-export default function AdminContratShow({ peutModifier, contrat }: Props) {
+export default function AdminContratShow({
+    peutModifier,
+    peutTelecharger,
+    contrat,
+}: Props) {
     const form = useForm({ statut: contrat.statut });
 
     const submit = (event: React.FormEvent) => {
@@ -60,12 +66,23 @@ export default function AdminContratShow({ peutModifier, contrat }: Props) {
                         {contrat.codeVerification}
                     </span>
                 </div>
-                <span
-                    className={`chip ${STATUT_CHIP[contrat.statut] ?? 'chip-gray'}`}
-                    style={{ fontSize: 13, padding: '8px 16px' }}
-                >
-                    {STATUT_LABEL[contrat.statut] ?? contrat.statut}
-                </span>
+                <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                    {peutTelecharger && contrat.estSigne && (
+                        <a
+                            href={contratsAdmin.pdf(contrat.id).url}
+                            className="btn-outline"
+                            style={{ padding: '8px 16px', fontSize: 13 }}
+                        >
+                            Télécharger le PDF signé
+                        </a>
+                    )}
+                    <span
+                        className={`chip ${STATUT_CHIP[contrat.statut] ?? 'chip-gray'}`}
+                        style={{ fontSize: 13, padding: '8px 16px' }}
+                    >
+                        {STATUT_LABEL[contrat.statut] ?? contrat.statut}
+                    </span>
+                </div>
             </div>
 
             {contrat.signatureContestee && (

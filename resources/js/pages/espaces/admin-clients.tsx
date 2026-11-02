@@ -1,5 +1,7 @@
-import { Head, router } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
+import { useState } from 'react';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
+import apprenantsAdmin from '@/routes/espace-admin/apprenants';
 import clientsAdmin from '@/routes/espace-admin/clients';
 
 type Client = {
@@ -15,14 +17,32 @@ type Client = {
     inscritLe: string | null;
 };
 
+type ApprenantCompte = {
+    id: string;
+    nom: string;
+    email: string;
+    telephone: string | null;
+    ville: string | null;
+    estForme: boolean;
+    inscriptionsCount: number;
+    inscritLe: string | null;
+};
+
 type Props = {
     clients: Client[];
+    apprenants: ApprenantCompte[] | null;
     actions: {
         supprimer: boolean;
     };
 };
 
-export default function AdminClients({ clients, actions }: Props) {
+export default function AdminClients({
+    clients,
+    apprenants,
+    actions,
+}: Props) {
+    const [onglet, setOnglet] = useState<'clients' | 'apprenants'>('clients');
+
     const supprimer = (client: Client) => {
         if (
             !confirm(
@@ -49,14 +69,117 @@ export default function AdminClients({ clients, actions }: Props) {
                 <div className="espace-hero-content">
                     <h1>Comptes clients</h1>
                     <p>
-                        {clients.length} compte{clients.length > 1 ? 's' : ''}{' '}
-                        client{clients.length > 1 ? 's' : ''} enregistré
-                        {clients.length > 1 ? 's' : ''}.
+                        {clients.length} compte
+                        {clients.length > 1 ? 's' : ''} client
+                        {clients.length > 1 ? 's' : ''}
+                        {apprenants !== null &&
+                            ` et ${apprenants.length} compte${apprenants.length > 1 ? 's' : ''} apprenant${apprenants.length > 1 ? 's' : ''}`}
+                        .
                     </p>
                 </div>
             </div>
 
-            <div className="card" style={{ padding: 24 }}>
+            {apprenants !== null && (
+                <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
+                    <button
+                        type="button"
+                        className={
+                            onglet === 'clients' ? 'btn-primary' : 'btn-outline'
+                        }
+                        style={{ padding: '7px 16px', fontSize: 13 }}
+                        onClick={() => setOnglet('clients')}
+                    >
+                        Clients ({clients.length})
+                    </button>
+                    <button
+                        type="button"
+                        className={
+                            onglet === 'apprenants'
+                                ? 'btn-primary'
+                                : 'btn-outline'
+                        }
+                        style={{ padding: '7px 16px', fontSize: 13 }}
+                        onClick={() => setOnglet('apprenants')}
+                    >
+                        Apprenants ({apprenants.length})
+                    </button>
+                </div>
+            )}
+
+            {onglet === 'apprenants' && apprenants !== null && (
+                <div className="card" style={{ padding: 24 }}>
+                    {apprenants.length === 0 ? (
+                        <p className="muted" style={{ fontSize: 13 }}>
+                            Aucun apprenant n'a encore créé son compte.
+                        </p>
+                    ) : (
+                        <div className="data-table-wrap">
+                            <table className="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Apprenant</th>
+                                        <th>Ville</th>
+                                        <th>Profil</th>
+                                        <th>Inscriptions</th>
+                                        <th>Inscrit le</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {apprenants.map((apprenant) => (
+                                        <tr key={apprenant.id}>
+                                            <td>
+                                                <Link
+                                                    href={apprenantsAdmin.show(
+                                                        apprenant.id,
+                                                    )}
+                                                    className="link-action"
+                                                >
+                                                    {apprenant.nom}
+                                                </Link>
+                                                <p
+                                                    className="muted"
+                                                    style={{ fontSize: 12.5 }}
+                                                >
+                                                    {apprenant.email}
+                                                    {apprenant.telephone
+                                                        ? ` · ${apprenant.telephone}`
+                                                        : ''}
+                                                </p>
+                                            </td>
+                                            <td className="muted">
+                                                {apprenant.ville ?? '—'}
+                                            </td>
+                                            <td>
+                                                <span
+                                                    className={`chip ${apprenant.estForme ? 'chip-green' : 'chip-gray'}`}
+                                                >
+                                                    {apprenant.estForme
+                                                        ? 'Formé'
+                                                        : 'En parcours'}
+                                                </span>
+                                            </td>
+                                            <td className="muted">
+                                                {apprenant.inscriptionsCount}
+                                            </td>
+                                            <td className="muted">
+                                                {apprenant.inscritLe ?? '—'}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            <div
+                className="card"
+                style={{
+                    padding: 24,
+                    display: onglet === 'clients' ? undefined : 'none',
+                }}
+            >
                 {clients.length === 0 ? (
                     <p className="muted" style={{ fontSize: 13 }}>
                         Aucun compte client pour le moment.

@@ -1,5 +1,6 @@
 import { Head } from '@inertiajs/react';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
+import facturesRoutes from '@/routes/espace-apprenant/factures';
 
 type Facture = {
     id: string;
@@ -142,16 +143,18 @@ export default function ApprenantFacturesIndex({ stats, factures }: Props) {
                                                 Payer
                                             </span>
                                         ) : (
-                                            <span
-                                                className="link-action"
-                                                style={{
-                                                    opacity: 0.5,
-                                                    cursor: 'not-allowed',
-                                                }}
-                                                title="Export PDF bientôt disponible"
-                                            >
-                                                PDF ↓
-                                            </span>
+                                            facture.statut === 'PAYEE' ? (
+                                                <a
+                                                    className="link-action"
+                                                    href={
+                                                        facturesRoutes.pdf(
+                                                            facture.id,
+                                                        ).url
+                                                    }
+                                                >
+                                                    PDF ↓
+                                                </a>
+                                            ) : null
                                         )}
                                     </td>
                                 </tr>

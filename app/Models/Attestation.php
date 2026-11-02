@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['reference', 'apprenant_id', 'formation_id', 'date_emission', 'fichier_pdf'])]
+#[Fillable(['reference', 'apprenant_id', 'formation_id', 'date_emission', 'valide_par_id', 'fichier_pdf'])]
 class Attestation extends Model
 {
     use GeneratesReference, HasUuids;

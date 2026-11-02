@@ -4,6 +4,7 @@ import { useRef } from 'react';
 import { type EspaceApprenantInfo } from '@/layouts/espace-apprenant-layout';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
 import espaceApprenant from '@/routes/espace-apprenant';
+import attestationsRoutes from '@/routes/espace-apprenant/attestations';
 import dossierRoutes from '@/routes/espace-apprenant/dossier';
 
 type FormationSuivie = {
@@ -17,6 +18,7 @@ type FormationSuivie = {
     seancesTotal: number;
     seancesRestantes: number;
     attestation: {
+        id: string | null;
         validee: boolean;
         dateEmission: string | null;
     };
@@ -405,9 +407,31 @@ export default function ApprenantDossier({
                                                 </span>
                                             </div>
                                             {formation.attestation.validee ? (
-                                                <span className="chip chip-green">
-                                                    Validée
-                                                </span>
+                                                <div
+                                                    style={{
+                                                        display: 'flex',
+                                                        gap: 10,
+                                                        alignItems: 'center',
+                                                    }}
+                                                >
+                                                    <span className="chip chip-green">
+                                                        Validée
+                                                    </span>
+                                                    {formation.attestation.id && (
+                                                        <a
+                                                            href={
+                                                                attestationsRoutes.pdf(
+                                                                    formation
+                                                                        .attestation
+                                                                        .id,
+                                                                ).url
+                                                            }
+                                                            className="link-action"
+                                                        >
+                                                            Télécharger
+                                                        </a>
+                                                    )}
+                                                </div>
                                             ) : formation.seancesRestantes ===
                                               0 ? (
                                                 <span className="chip chip-orange">

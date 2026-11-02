@@ -10,6 +10,7 @@ use App\Models\Apprenant;
 use App\Models\Attestation;
 use App\Models\Candidature;
 use App\Models\Inscription;
+use App\Models\OffreEmploi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -26,7 +27,7 @@ class AdminApprenantController extends Controller
         abort_unless($membre->peut(Donnee::DossiersApprenants, Action::Voir), 403);
 
         $apprenants = Apprenant::query()
-            ->with('user')
+            ->with(['user', 'inscriptions.formation', 'attestations'])
             ->withCount('inscriptions')
             ->get()
             ->sortBy(fn (Apprenant $apprenant) => $apprenant->user->name);
@@ -39,6 +40,13 @@ class AdminApprenantController extends Controller
                 'email' => $apprenant->user->email,
                 'ville' => $apprenant->ville,
                 'inscriptionsCount' => $apprenant->inscriptions_count,
+                'estForme' => $apprenant->estForme(),
+                'formations' => $apprenant->inscriptions
+                    ->whereIn('statut', ['VALIDEE', 'FORMEE'])
+                    ->map(fn (Inscription $inscription) => $inscription->formation->nom)
+                    ->unique()
+                    ->values(),
+                'attestationsCount' => $apprenant->attestations->count(),
                 'aUnCv' => $apprenant->cv_path !== null,
             ])->values(),
         ]);
@@ -51,6 +59,22 @@ class AdminApprenantController extends Controller
 
         $apprenant->load(['user', 'inscriptions.formation', 'candidatures.offre.entreprise', 'attestations.formation']);
 
+        $peutPostuler = $membre->peut(Donnee::EntreprisesOffres, Action::Creer)
+            && $apprenant->consentement_cv;
+
+        $offresDisponibles = $peutPostuler
+            ? OffreEmploi::publiees()
+                ->with('entreprise')
+                ->whereDoesntHave('candidatures', fn ($query) => $query->where('apprenant_id', $apprenant->id))
+                ->latest()
+                ->get()
+                ->map(fn (OffreEmploi $offre) => [
+                    'id' => $offre->id,
+                    'titre' => $offre->titre,
+                    'entrepriseNom' => $offre->entreprise->nom,
+                ])
+            : [];
+
         return Inertia::render('espaces/admin-apprenant-show', [
             ...$this->adminEspaceProps($membre),
             'apprenant' => [
@@ -61,6 +85,7 @@ class AdminApprenantController extends Controller
                 'ville' => $apprenant->ville,
                 'cvNomFichier' => $apprenant->cv_path !== null ? basename($apprenant->cv_path) : null,
                 'consentementCv' => $apprenant->consentement_cv,
+                'estForme' => $apprenant->estForme(),
             ],
             'inscriptions' => $apprenant->inscriptions->map(fn (Inscription $inscription) => [
                 'id' => $inscription->id,
@@ -72,7 +97,11 @@ class AdminApprenantController extends Controller
                 'offreTitre' => $candidature->offre->titre,
                 'entrepriseNom' => $candidature->offre->entreprise->nom,
                 'statut' => $candidature->statut,
+                'deposeeParDag' => $candidature->deposee_par_id !== null,
             ]),
+            'peutTelecharger' => $membre->peut(Donnee::DossiersApprenants, Action::Telecharger),
+            'peutPostuler' => $peutPostuler,
+            'offresDisponibles' => $offresDisponibles,
             'attestations' => $apprenant->attestations->map(fn (Attestation $attestation) => [
                 'id' => $attestation->id,
                 'reference' => $attestation->reference,

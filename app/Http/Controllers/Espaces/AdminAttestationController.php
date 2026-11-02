@@ -9,9 +9,11 @@ use App\Http\Controllers\Controller;
 use App\Models\Attestation;
 use App\Models\Inscription;
 use App\Models\Seance;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Carbon;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -46,6 +48,7 @@ class AdminAttestationController extends Controller
 
         return Inertia::render('espaces/admin-attestations', [
             ...$this->adminEspaceProps($membre),
+            'peutTelecharger' => $membre->peut(Donnee::DossiersApprenants, Action::Telecharger),
             'enAttente' => $enAttente->map(fn (Inscription $inscription) => [
                 'inscriptionId' => $inscription->id,
                 'apprenantNom' => $inscription->apprenant->user->name,
@@ -84,11 +87,7 @@ class AdminAttestationController extends Controller
             'apprenant_id' => $inscription->apprenant_id,
             'formation_id' => $inscription->formation_id,
             'date_emission' => now()->toDateString(),
-            // Aucune génération de PDF réelle n'est encore branchée — le
-            // chemin est un espace réservé, comme pour le reste des
-            // documents de l'espace apprenant qui n'ont pas encore de
-            // téléchargement en place.
-            'fichier_pdf' => 'attestations/'.$inscription->apprenant_id.'-'.$inscription->formation_id.'.pdf',
+            'valide_par_id' => $this->membre($request)->id,
         ]);
 
         Inertia::flash('toast', [
@@ -97,6 +96,30 @@ class AdminAttestationController extends Controller
         ]);
 
         return back();
+    }
+
+    public function pdf(Request $request, Attestation $attestation): HttpResponse
+    {
+        abort_unless($this->membre($request)->peut(Donnee::DossiersApprenants, Action::Telecharger), 403);
+
+        return self::genererPdf($attestation);
+    }
+
+    /**
+     * Shared by the admin and the apprenant downloads: the PDF is rendered
+     * on demand from the validated attestation, never stored.
+     */
+    public static function genererPdf(Attestation $attestation): HttpResponse
+    {
+        $attestation->load(['apprenant.user', 'formation']);
+
+        return Pdf::loadView('pdf.attestation', [
+            'attestation' => $attestation,
+            'apprenant' => $attestation->apprenant->user->name,
+            'formation' => $attestation->formation->nom,
+            'duree' => $attestation->formation->duree,
+            'dateEmission' => Carbon::parse($attestation->date_emission)->format('d/m/Y'),
+        ])->setPaper('a4', 'landscape')->download("attestation-{$attestation->reference}.pdf");
     }
 
     /**

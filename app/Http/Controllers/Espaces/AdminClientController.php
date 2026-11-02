@@ -6,6 +6,7 @@ use App\Concerns\SharesAdminEspaceProps;
 use App\Enums\Action;
 use App\Enums\Donnee;
 use App\Http\Controllers\Controller;
+use App\Models\Apprenant;
 use App\Models\Client;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -27,8 +28,27 @@ class AdminClientController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
+        $apprenants = $membre->peut(Donnee::DossiersApprenants, Action::Voir)
+            ? Apprenant::query()
+                ->with(['user', 'inscriptions', 'attestations'])
+                ->get()
+                ->sortByDesc(fn (Apprenant $apprenant) => $apprenant->user->created_at)
+                ->values()
+                ->map(fn (Apprenant $apprenant) => [
+                    'id' => $apprenant->id,
+                    'nom' => $apprenant->user->name,
+                    'email' => $apprenant->user->email,
+                    'telephone' => $apprenant->telephone,
+                    'ville' => $apprenant->ville,
+                    'estForme' => $apprenant->estForme(),
+                    'inscriptionsCount' => $apprenant->inscriptions->count(),
+                    'inscritLe' => $apprenant->user->created_at?->format('d/m/Y'),
+                ])
+            : null;
+
         return Inertia::render('espaces/admin-clients', [
             ...$this->adminEspaceProps($membre),
+            'apprenants' => $apprenants,
             'clients' => $clients->map(fn (Client $client) => [
                 'id' => $client->id,
                 'nom' => $client->nom,

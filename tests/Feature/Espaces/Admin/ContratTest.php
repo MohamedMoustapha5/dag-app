@@ -109,3 +109,33 @@ test('communication marketing has read-only access to contrats clauses', functio
         'contenu' => 'Test',
     ])->assertForbidden();
 });
+
+test('an admin can download the pdf of a signed contrat', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $contrat = Contrat::factory()->signe()->create(['signataire_nom' => 'Aïcha N.']);
+
+    $response = $this->actingAs($promotrice, 'admin')
+        ->get(route('espace-admin.contrats.pdf', $contrat))
+        ->assertOk();
+
+    expect($response->headers->get('content-type'))->toContain('application/pdf');
+    expect($response->headers->get('content-disposition'))->toContain($contrat->reference);
+});
+
+test('a contrat that is not signed yet cannot be downloaded as pdf', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $contrat = Contrat::factory()->create(['statut' => 'ENVOYE']);
+
+    $this->actingAs($promotrice, 'admin')
+        ->get(route('espace-admin.contrats.pdf', $contrat))
+        ->assertStatus(409);
+});
+
+test('a role without access to contrats cannot download a signed contrat pdf', function () {
+    $membre = MembreEquipe::factory()->create(['role' => MembreEquipeRole::CreationContenu]);
+    $contrat = Contrat::factory()->signe()->create();
+
+    $this->actingAs($membre, 'admin')
+        ->get(route('espace-admin.contrats.pdf', $contrat))
+        ->assertForbidden();
+});

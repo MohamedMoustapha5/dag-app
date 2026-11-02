@@ -10,8 +10,10 @@ use App\Models\Clause;
 use App\Models\Contrat;
 use App\Models\Demande;
 use App\Models\ModeleContrat;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -40,6 +42,7 @@ class AdminContratController extends Controller
             'peutCreer' => $membre->peut(Donnee::ContratsClauses, Action::Creer),
             'peutModifier' => $membre->peut(Donnee::ContratsClauses, Action::Modifier),
             'peutSupprimer' => $membre->peut(Donnee::ContratsClauses, Action::Supprimer),
+            'peutTelecharger' => $membre->peut(Donnee::ContratsClauses, Action::Telecharger),
             'modeles' => ModeleContrat::query()->orderBy('nom')->get(['id', 'nom', 'type', 'statut']),
             'clauses' => Clause::query()->orderBy('ordre')->get(['id', 'titre', 'ordre']),
             'contrats' => $contrats->map(fn (Contrat $contrat) => [
@@ -48,6 +51,7 @@ class AdminContratController extends Controller
                 'objet' => $contrat->libelleObjet(),
                 'type' => $contrat->type,
                 'statut' => $contrat->statut,
+                'estSigne' => $contrat->estSigne(),
             ]),
             'demandesAContractualiser' => $demandesAContractualiser->map(fn (Demande $demande) => [
                 'id' => $demande->id,
@@ -157,6 +161,7 @@ class AdminContratController extends Controller
         return Inertia::render('espaces/admin-contrat-show', [
             ...$this->adminEspaceProps($membre),
             'peutModifier' => $membre->peut(Donnee::ContratsClauses, Action::Modifier),
+            'peutTelecharger' => $membre->peut(Donnee::ContratsClauses, Action::Telecharger),
             'contrat' => [
                 'id' => $contrat->id,
                 'reference' => $contrat->reference,
@@ -169,8 +174,31 @@ class AdminContratController extends Controller
                 'signataireNom' => $contrat->signataire_nom,
                 'dateSignature' => $contrat->date_signature?->toDateString(),
                 'signatureContestee' => $contrat->signature_contestee,
+                'estSigne' => $contrat->estSigne(),
             ],
         ]);
+    }
+
+    public function pdf(Request $request, Contrat $contrat): HttpResponse
+    {
+        $membre = $this->membre($request);
+        abort_unless($membre->peut(Donnee::ContratsClauses, Action::Telecharger), 403);
+        abort_unless($contrat->estSigne(), 409, "Ce contrat n'a pas encore été signé.");
+
+        $contrat->load(['client', 'apprenant.user', 'entreprise', 'demande', 'abonnement.formule', 'candidature.offre']);
+
+        $statutLabels = [
+            'SIGNE' => 'Signé', 'ACTIF' => 'Actif', 'TERMINE' => 'Terminé',
+            'RESILIE' => 'Résilié', 'ENVOYE' => 'Envoyé', 'BROUILLON' => 'Brouillon', 'REFUSE' => 'Refusé',
+        ];
+
+        return Pdf::loadView('pdf.contrat', [
+            'contrat' => $contrat,
+            'objet' => $contrat->libelleObjet(),
+            'partie' => $contrat->nomPartie(),
+            'statutLabel' => $statutLabels[$contrat->statut],
+            'dateSignature' => $contrat->date_signature?->format('d/m/Y à H:i') ?? '—',
+        ])->download("contrat-{$contrat->reference}.pdf");
     }
 
     public function update(Request $request, Contrat $contrat): RedirectResponse

@@ -1,6 +1,9 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
+import { useState } from 'react';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
 import apprenantsAdmin from '@/routes/espace-admin/apprenants';
+import attestationsAdmin from '@/routes/espace-admin/attestations';
+import offresAdmin from '@/routes/espace-admin/offres';
 
 type Props = {
     apprenant: {
@@ -11,15 +14,20 @@ type Props = {
         ville: string | null;
         cvNomFichier: string | null;
         consentementCv: boolean;
+        estForme: boolean;
     };
+    peutPostuler: boolean;
+    offresDisponibles: { id: string; titre: string; entrepriseNom: string }[];
     inscriptions: { id: string; formation: string; statut: string }[];
     candidatures: {
         id: string;
         offreTitre: string;
         entrepriseNom: string;
         statut: string;
+        deposeeParDag: boolean;
     }[];
     attestations: { id: string; reference: string; formation: string }[];
+    peutTelecharger: boolean;
 };
 
 export default function AdminApprenantShow({
@@ -27,7 +35,21 @@ export default function AdminApprenantShow({
     inscriptions,
     candidatures,
     attestations,
+    peutTelecharger,
+    peutPostuler,
+    offresDisponibles,
 }: Props) {
+    const postulerForm = useForm({ apprenant_id: apprenant.id });
+    const [offreId, setOffreId] = useState('');
+
+    const postuler = (event: React.FormEvent) => {
+        event.preventDefault();
+        postulerForm.post(offresAdmin.postuler(offreId).url, {
+            preserveScroll: true,
+            onSuccess: () => setOffreId(''),
+        });
+    };
+
     return (
         <>
             <Head title={`${apprenant.nom} — Administration`} />
@@ -47,7 +69,15 @@ export default function AdminApprenantShow({
                     marginBottom: 24,
                 }}
             >
-                {apprenant.nom}
+                {apprenant.nom}{' '}
+                {apprenant.estForme && (
+                    <span
+                        className="chip chip-green"
+                        style={{ verticalAlign: 'middle' }}
+                    >
+                        Formé
+                    </span>
+                )}
             </h1>
 
             <div
@@ -175,7 +205,8 @@ export default function AdminApprenantShow({
                     <p className="muted" style={{ fontSize: 13 }}>
                         Aucune candidature pour le moment.
                     </p>
-                ) : (
+                ) : null}
+                {candidatures.length > 0 && (
                     <ul
                         style={{
                             display: 'flex',
@@ -205,10 +236,68 @@ export default function AdminApprenantShow({
                                 >
                                     {STATUT_LABEL[candidature.statut] ??
                                         candidature.statut}
+                                    {candidature.deposeeParDag &&
+                                        ' · déposée par DAG'}
                                 </span>
                             </li>
                         ))}
                     </ul>
+                )}
+                {peutPostuler && (
+                    <form
+                        onSubmit={postuler}
+                        style={{
+                            display: 'flex',
+                            gap: 10,
+                            flexWrap: 'wrap',
+                            marginTop: 20,
+                            paddingTop: 16,
+                            borderTop: '1px solid var(--dag-border)',
+                        }}
+                    >
+                        <select
+                            aria-label="Offre à laquelle postuler"
+                            value={offreId}
+                            onChange={(event) => setOffreId(event.target.value)}
+                            style={{ flex: 1, minWidth: 220 }}
+                        >
+                            <option value="">
+                                {offresDisponibles.length === 0
+                                    ? 'Aucune offre publiée disponible'
+                                    : 'Postuler à une offre…'}
+                            </option>
+                            {offresDisponibles.map((offre) => (
+                                <option key={offre.id} value={offre.id}>
+                                    {offre.titre} — {offre.entrepriseNom}
+                                </option>
+                            ))}
+                        </select>
+                        <button
+                            type="submit"
+                            className="btn-primary"
+                            disabled={offreId === '' || postulerForm.processing}
+                        >
+                            Postuler pour {apprenant.nom}
+                        </button>
+                        {postulerForm.errors.apprenant_id && (
+                            <p
+                                style={{
+                                    color: 'var(--dag-red)',
+                                    fontSize: 12.5,
+                                    width: '100%',
+                                }}
+                            >
+                                {postulerForm.errors.apprenant_id}
+                            </p>
+                        )}
+                    </form>
+                )}
+                {!peutPostuler && !apprenant.consentementCv && (
+                    <p className="muted" style={{ fontSize: 12.5, marginTop: 16 }}>
+                        Cet apprenant n'a pas autorisé le partage de son dossier
+                        avec les entreprises : DAG ne peut pas postuler à sa
+                        place.
+                    </p>
                 )}
             </div>
 
@@ -240,6 +329,21 @@ export default function AdminApprenantShow({
                                 <span className="muted">
                                     {attestation.reference}
                                 </span>
+                                {peutTelecharger && (
+                                    <>
+                                        {' · '}
+                                        <a
+                                            href={
+                                                attestationsAdmin.pdf(
+                                                    attestation.id,
+                                                ).url
+                                            }
+                                            className="link-action"
+                                        >
+                                            Télécharger le PDF
+                                        </a>
+                                    </>
+                                )}
                             </li>
                         ))}
                     </ul>

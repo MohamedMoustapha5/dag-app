@@ -49,6 +49,16 @@ class Apprenant extends Model
         return $this->hasMany(Inscription::class);
     }
 
+    /**
+     * Whether the apprenant has completed a formation with DAG. Expects
+     * the inscriptions and attestations relations to be eager loaded.
+     */
+    public function estForme(): bool
+    {
+        return $this->inscriptions->contains('statut', 'FORMEE')
+            || $this->attestations->isNotEmpty();
+    }
+
     /** @return HasMany<Candidature, $this> */
     public function candidatures(): HasMany
     {

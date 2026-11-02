@@ -18,9 +18,14 @@ type Validee = {
 type Props = {
     enAttente: EnAttente[];
     validees: Validee[];
+    peutTelecharger: boolean;
 };
 
-export default function AdminAttestations({ enAttente, validees }: Props) {
+export default function AdminAttestations({
+    enAttente,
+    validees,
+    peutTelecharger,
+}: Props) {
     const valider = (inscriptionId: string) => {
         router.post(
             attestationsAdmin.store().url,
@@ -130,6 +135,7 @@ export default function AdminAttestations({ enAttente, validees }: Props) {
                                     <th>Formation</th>
                                     <th>Référence</th>
                                     <th>Validée le</th>
+                                    <th />
                                 </tr>
                             </thead>
                             <tbody>
@@ -146,6 +152,20 @@ export default function AdminAttestations({ enAttente, validees }: Props) {
                                         </td>
                                         <td className="muted">
                                             {attestation.dateEmission}
+                                        </td>
+                                        <td style={{ textAlign: 'right' }}>
+                                            {peutTelecharger && (
+                                                <a
+                                                    href={
+                                                        attestationsAdmin.pdf(
+                                                            attestation.id,
+                                                        ).url
+                                                    }
+                                                    className="link-action"
+                                                >
+                                                    Télécharger le PDF
+                                                </a>
+                                            )}
                                         </td>
                                     </tr>
                                 ))}

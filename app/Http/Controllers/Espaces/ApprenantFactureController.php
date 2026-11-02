@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Espaces;
 
 use App\Http\Controllers\Controller;
 use App\Models\Facture;
+use App\Support\FacturePdf;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response as HttpResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -46,5 +48,15 @@ class ApprenantFactureController extends Controller
                 'statut' => $facture->statut,
             ]),
         ]);
+    }
+
+    /**
+     * Only a paid facture of this apprenant can be downloaded.
+     */
+    public function pdf(Request $request, Facture $facture): HttpResponse
+    {
+        abort_unless($facture->apprenant_id === $request->user('web')->apprenant->id, 404);
+
+        return FacturePdf::telecharger($facture);
     }
 }

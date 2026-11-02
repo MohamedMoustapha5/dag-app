@@ -1,4 +1,6 @@
-import { Head, router } from '@inertiajs/react';
+import { Head, router, useForm } from '@inertiajs/react';
+import { X } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
 import entreprisesAdmin from '@/routes/espace-admin/entreprises';
 import offresAdmin from '@/routes/espace-admin/offres';
@@ -22,6 +24,18 @@ type Offre = {
     ville: string | null;
     statut: string;
     candidaturesCount: number;
+    postulable: boolean;
+    apprenantIdsCandidats: string[];
+};
+
+type ApprenantPostulable = {
+    id: string;
+    nom: string;
+    ville: string | null;
+    estForme: boolean;
+    formations: string[];
+    aUnCv: boolean;
+    consentement: boolean;
 };
 
 type Props = {
@@ -29,6 +43,8 @@ type Props = {
     offres: Offre[];
     peutValider: boolean;
     peutModifier: boolean;
+    peutPostuler: boolean;
+    apprenants: ApprenantPostulable[];
 };
 
 export default function AdminEntreprises({
@@ -36,7 +52,13 @@ export default function AdminEntreprises({
     offres,
     peutValider,
     peutModifier,
+    peutPostuler,
+    apprenants,
 }: Props) {
+    const [offrePourPostuler, setOffrePourPostuler] = useState<Offre | null>(
+        null,
+    );
+
     const changerStatutEntreprise = (id: string, statut: string) => {
         router.patch(
             entreprisesAdmin.update(id).url,
@@ -263,6 +285,20 @@ export default function AdminEntreprises({
                                             </span>
                                         </td>
                                         <td style={{ textAlign: 'right' }}>
+                                            {peutPostuler && offre.postulable && (
+                                                <button
+                                                    type="button"
+                                                    className="link-action"
+                                                    style={{ marginRight: 14 }}
+                                                    onClick={() =>
+                                                        setOffrePourPostuler(
+                                                            offre,
+                                                        )
+                                                    }
+                                                >
+                                                    Postuler pour un apprenant
+                                                </button>
+                                            )}
                                             {offre.statut === 'BROUILLON' &&
                                                 peutValider && (
                                                     <button
@@ -305,6 +341,244 @@ export default function AdminEntreprises({
                     </div>
                 )}
             </div>
+
+            {offrePourPostuler && (
+                <PostulerModal
+                    offre={offrePourPostuler}
+                    apprenants={apprenants}
+                    onClose={() => setOffrePourPostuler(null)}
+                />
+            )}
         </>
+    );
+}
+
+function PostulerModal({
+    offre,
+    apprenants,
+    onClose,
+}: {
+    offre: Offre;
+    apprenants: ApprenantPostulable[];
+    onClose: () => void;
+}) {
+    const [recherche, setRecherche] = useState('');
+    const [filtre, setFiltre] = useState<'tous' | 'formes'>('tous');
+    const form = useForm({ apprenant_id: '' });
+
+    const liste = useMemo(() => {
+        const terme = recherche.trim().toLowerCase();
+
+        return apprenants.filter(
+            (apprenant) =>
+                (filtre === 'tous' || apprenant.estForme) &&
+                (terme === '' ||
+                    apprenant.nom.toLowerCase().includes(terme) ||
+                    (apprenant.ville ?? '').toLowerCase().includes(terme)),
+        );
+    }, [apprenants, recherche, filtre]);
+
+    const raisonBlocage = (apprenant: ApprenantPostulable): string | null => {
+        if (offre.apprenantIdsCandidats.includes(apprenant.id)) {
+            return 'A déjà postulé';
+        }
+
+        if (!apprenant.consentement) {
+            return 'Partage du dossier non autorisé';
+        }
+
+        return null;
+    };
+
+    const submit = (event: React.FormEvent) => {
+        event.preventDefault();
+        form.post(offresAdmin.postuler(offre.id).url, {
+            preserveScroll: true,
+            onSuccess: onClose,
+        });
+    };
+
+    return (
+        <div
+            className="modal-backdrop"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Postuler pour un apprenant"
+            onClick={(event) => {
+                if (event.target === event.currentTarget) {
+                    onClose();
+                }
+            }}
+        >
+            <div className="modal-panel">
+                <button
+                    type="button"
+                    className="modal-close"
+                    onClick={onClose}
+                    aria-label="Fermer"
+                >
+                    <X size={16} />
+                </button>
+
+                <h2 style={{ fontSize: 19, color: 'var(--dag-navy)' }}>
+                    Postuler pour un apprenant
+                </h2>
+                <p
+                    style={{
+                        marginTop: 8,
+                        marginBottom: 20,
+                        fontSize: 13.5,
+                        lineHeight: 1.6,
+                        color: 'var(--dag-text-muted)',
+                    }}
+                >
+                    {offre.titre} — {offre.entrepriseNom}. Choisissez un dossier
+                    parmi les apprenants, y compris ceux déjà formés.
+                </p>
+
+                <form
+                    onSubmit={submit}
+                    style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 14,
+                    }}
+                >
+                    <div style={{ display: 'flex', gap: 10 }}>
+                        <input
+                            type="search"
+                            placeholder="Rechercher un nom ou une ville"
+                            value={recherche}
+                            onChange={(event) =>
+                                setRecherche(event.target.value)
+                            }
+                            style={{ flex: 1 }}
+                        />
+                        <select
+                            aria-label="Filtrer les apprenants"
+                            value={filtre}
+                            onChange={(event) =>
+                                setFiltre(event.target.value as 'tous' | 'formes')
+                            }
+                        >
+                            <option value="tous">Tous</option>
+                            <option value="formes">Déjà formés</option>
+                        </select>
+                    </div>
+
+                    <div
+                        style={{
+                            maxHeight: 280,
+                            overflowY: 'auto',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 8,
+                        }}
+                    >
+                        {liste.length === 0 && (
+                            <p className="muted" style={{ fontSize: 13 }}>
+                                Aucun apprenant ne correspond.
+                            </p>
+                        )}
+                        {liste.map((apprenant) => {
+                            const blocage = raisonBlocage(apprenant);
+
+                            return (
+                                <label
+                                    key={apprenant.id}
+                                    style={{
+                                        display: 'flex',
+                                        gap: 10,
+                                        alignItems: 'flex-start',
+                                        padding: '10px 12px',
+                                        border: '1px solid var(--dag-border)',
+                                        borderRadius: 10,
+                                        opacity: blocage ? 0.55 : 1,
+                                        cursor: blocage
+                                            ? 'not-allowed'
+                                            : 'pointer',
+                                    }}
+                                >
+                                    <input
+                                        type="radio"
+                                        name="apprenant_id"
+                                        value={apprenant.id}
+                                        disabled={blocage !== null}
+                                        checked={
+                                            form.data.apprenant_id ===
+                                            apprenant.id
+                                        }
+                                        onChange={() =>
+                                            form.setData(
+                                                'apprenant_id',
+                                                apprenant.id,
+                                            )
+                                        }
+                                    />
+                                    <span style={{ flex: 1, fontSize: 13.5 }}>
+                                        <strong>{apprenant.nom}</strong>
+                                        <span
+                                            className="muted"
+                                            style={{ display: 'block' }}
+                                        >
+                                            {apprenant.ville ?? '—'}
+                                            {apprenant.formations.length > 0 &&
+                                                ` · ${apprenant.formations.join(', ')}`}
+                                            {!apprenant.aUnCv && ' · sans CV'}
+                                        </span>
+                                        {blocage && (
+                                            <span
+                                                style={{
+                                                    color: 'var(--dag-red)',
+                                                    fontSize: 12,
+                                                }}
+                                            >
+                                                {blocage}
+                                            </span>
+                                        )}
+                                    </span>
+                                    {apprenant.estForme && (
+                                        <span className="chip chip-green">
+                                            Formé
+                                        </span>
+                                    )}
+                                </label>
+                            );
+                        })}
+                    </div>
+
+                    {form.errors.apprenant_id && (
+                        <p style={{ color: 'var(--dag-red)', fontSize: 12.5 }}>
+                            {form.errors.apprenant_id}
+                        </p>
+                    )}
+
+                    <div
+                        style={{
+                            display: 'flex',
+                            justifyContent: 'flex-end',
+                            gap: 12,
+                        }}
+                    >
+                        <button
+                            type="button"
+                            className="btn-outline"
+                            onClick={onClose}
+                        >
+                            Annuler
+                        </button>
+                        <button
+                            type="submit"
+                            className="btn-primary"
+                            disabled={
+                                form.processing || form.data.apprenant_id === ''
+                            }
+                        >
+                            Déposer la candidature
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     );
 }

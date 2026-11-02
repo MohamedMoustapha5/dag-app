@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Espaces;
 
 use App\Http\Controllers\Controller;
 use App\Models\Facture;
+use App\Support\FacturePdf;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response as HttpResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -46,5 +48,21 @@ class ClientFactureController extends Controller
                 'statut' => $facture->statut,
             ]),
         ]);
+    }
+
+    /**
+     * Only a paid facture of this client (or of their entreprise) can be
+     * downloaded; anything else is a 404 so references can't be probed.
+     */
+    public function pdf(Request $request, Facture $facture): HttpResponse
+    {
+        $client = $request->user('web')->client;
+
+        abort_unless(
+            $client->enregistrementsClientOuEntreprise(Facture::class)->where('id', $facture->id)->exists(),
+            404
+        );
+
+        return FacturePdf::telecharger($facture);
     }
 }

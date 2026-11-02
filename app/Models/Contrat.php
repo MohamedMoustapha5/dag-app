@@ -101,6 +101,37 @@ class Contrat extends Model
     }
 
     /**
+     * Whether the cocontractant has signed (the signed PDF is only issued
+     * from this point on, including after a later termination).
+     */
+    public function estSigne(): bool
+    {
+        return $this->date_signature !== null
+            || in_array($this->statut, ['SIGNE', 'ACTIF', 'TERMINE'], true);
+    }
+
+    /**
+     * Name of the cocontractant, whichever of client / apprenant /
+     * entreprise the contrat is attached to.
+     */
+    public function nomPartie(): string
+    {
+        if ($this->client_id !== null) {
+            return $this->client->nom;
+        }
+
+        if ($this->apprenant_id !== null) {
+            return $this->apprenant->user->name;
+        }
+
+        if ($this->entreprise_id !== null) {
+            return $this->entreprise->nom;
+        }
+
+        return '—';
+    }
+
+    /**
      * Display label combining the contrat's type and what it covers
      * (the formule for an abonnement, the service/formule of the demande
      * for a one-off prestation).

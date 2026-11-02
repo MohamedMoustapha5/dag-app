@@ -20,6 +20,7 @@ type Contrat = {
     objet: string;
     type: string;
     statut: string;
+    estSigne: boolean;
 };
 type DemandeAContractualiser = { id: string; reference: string; objet: string };
 
@@ -31,6 +32,7 @@ type Props = {
     peutCreer: boolean;
     peutModifier: boolean;
     peutSupprimer: boolean;
+    peutTelecharger: boolean;
 };
 
 export default function AdminContrats({
@@ -41,6 +43,7 @@ export default function AdminContrats({
     peutCreer,
     peutModifier,
     peutSupprimer,
+    peutTelecharger,
 }: Props) {
     const [ongletActif, setOngletActif] = useState<
         'contrats' | 'modeles' | 'clauses'
@@ -252,6 +255,7 @@ export default function AdminContrats({
                                             <th>Objet</th>
                                             <th>Type</th>
                                             <th>Statut</th>
+                                            <th />
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -286,6 +290,25 @@ export default function AdminContrats({
                                                             contrat.statut
                                                         ] ?? contrat.statut}
                                                     </span>
+                                                </td>
+                                                <td
+                                                    style={{
+                                                        textAlign: 'right',
+                                                    }}
+                                                >
+                                                    {peutTelecharger &&
+                                                        contrat.estSigne && (
+                                                            <a
+                                                                href={
+                                                                    contratsAdmin.pdf(
+                                                                        contrat.id,
+                                                                    ).url
+                                                                }
+                                                                className="link-action"
+                                                            >
+                                                                Télécharger le PDF
+                                                            </a>
+                                                        )}
                                                 </td>
                                             </tr>
                                         ))}

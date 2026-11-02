@@ -2,7 +2,11 @@
 
 use App\Enums\MembreEquipeRole;
 use App\Models\Apprenant;
+use App\Models\Formation;
+use App\Models\FormationSession;
+use App\Models\Inscription;
 use App\Models\MembreEquipe;
+use App\Models\OffreEmploi;
 use Illuminate\Support\Facades\Storage;
 
 test('a promotrice can list and view an apprenant dossier', function () {
@@ -55,4 +59,30 @@ test('a role without access to dossiers apprenants cannot reach the page', funct
     $this->actingAs($membre, 'admin')
         ->get(route('espace-admin.apprenants.index'))
         ->assertForbidden();
+});
+
+test('the dossier list flags apprenants who completed a formation and the dossier offers published offres to apply to', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $apprenant = Apprenant::factory()->create();
+    $formation = Formation::factory()->create();
+    $session = FormationSession::factory()->for($formation)->create();
+    Inscription::create([
+        'apprenant_id' => $apprenant->id,
+        'formation_id' => $formation->id,
+        'formation_session_id' => $session->id,
+        'statut' => 'FORMEE',
+    ]);
+    $offre = OffreEmploi::factory()->create(['statut' => 'PUBLIEE']);
+    OffreEmploi::factory()->create(['statut' => 'CLOTUREE']);
+
+    $this->actingAs($promotrice, 'admin')
+        ->get(route('espace-admin.apprenants.index'))
+        ->assertInertia(fn ($page) => $page->where('apprenants.0.estForme', true));
+
+    $this->actingAs($promotrice, 'admin')
+        ->get(route('espace-admin.apprenants.show', $apprenant))
+        ->assertInertia(fn ($page) => $page
+            ->where('peutPostuler', true)
+            ->has('offresDisponibles', 1)
+            ->where('offresDisponibles.0.id', $offre->id));
 });

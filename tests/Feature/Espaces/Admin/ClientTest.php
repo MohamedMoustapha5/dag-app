@@ -1,9 +1,14 @@
 <?php
 
+use App\Enums\Donnee;
 use App\Enums\MembreEquipeRole;
+use App\Enums\NiveauDroit;
+use App\Models\Apprenant;
 use App\Models\Client;
 use App\Models\Demande;
+use App\Models\DroitRole;
 use App\Models\MembreEquipe;
+use Illuminate\Support\Facades\Cache;
 
 test('a membre with voir can list the client accounts', function () {
     $membre = MembreEquipe::factory()->juriste()->create();
@@ -52,4 +57,32 @@ test('a role without access to demandes clients cannot reach the page', function
     $this->actingAs($membre, 'admin')
         ->get(route('espace-admin.clients.index'))
         ->assertForbidden();
+});
+
+test('the comptes page also lists the apprenant accounts for a role allowed to see dossiers', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $apprenant = Apprenant::factory()->create(['ville' => 'Yaoundé']);
+
+    $this->actingAs($promotrice, 'admin')
+        ->get(route('espace-admin.clients.index'))
+        ->assertInertia(fn ($page) => $page
+            ->has('apprenants', 1)
+            ->where('apprenants.0.id', $apprenant->id)
+            ->where('apprenants.0.ville', 'Yaoundé'));
+});
+
+test('the comptes page hides apprenant accounts from a role without access to dossiers', function () {
+    $membre = MembreEquipe::factory()->create(['role' => MembreEquipeRole::CommunicationMarketing]);
+    Apprenant::factory()->create();
+
+    DroitRole::create([
+        'role' => MembreEquipeRole::CommunicationMarketing->value,
+        'donnee' => Donnee::DossiersApprenants->value,
+        'niveau' => NiveauDroit::Aucun->value,
+    ]);
+    Cache::forget('droits_roles');
+
+    $this->actingAs($membre, 'admin')
+        ->get(route('espace-admin.clients.index'))
+        ->assertInertia(fn ($page) => $page->where('apprenants', null));
 });
