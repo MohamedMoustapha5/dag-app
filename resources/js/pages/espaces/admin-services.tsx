@@ -1,4 +1,5 @@
 import { Head, router, useForm } from '@inertiajs/react';
+import { Upload, X } from 'lucide-react';
 import { useState } from 'react';
 import servicesAdmin from '@/routes/espace-admin/services';
 
@@ -22,575 +23,529 @@ type Actions = {
 type Props = {
     services: Service[];
     categoriesExistantes: string[];
+    fournisseursExistants: string[];
+    droitsResume: string;
     actions: Actions;
 };
 
-const formatPrix = (prix: string | null) =>
-    prix === null
-        ? 'Sur devis'
-        : `${new Intl.NumberFormat('fr-FR').format(Number(prix))} FCFA`;
+const afficherFournisseur = (fournisseur: string) =>
+    fournisseur === 'DAG' ? 'DAG (interne)' : fournisseur;
 
 export default function AdminServices({
     services,
     categoriesExistantes,
+    fournisseursExistants,
+    droitsResume,
     actions,
 }: Props) {
-    const [editingId, setEditingId] = useState<string | null>(null);
+    const [createOpen, setCreateOpen] = useState(false);
+    const [editingService, setEditingService] = useState<Service | null>(null);
 
-    const createForm = useForm({
-        nom: '',
-        description: '',
-        categorie: categoriesExistantes[0] ?? '',
-        fournisseur: 'DAG',
-        prix: '',
-        image: '',
-        statut: 'BROUILLON',
-    });
-
-    const submitCreate = (event: React.FormEvent) => {
-        event.preventDefault();
-        createForm.post(servicesAdmin.store().url, {
-            onSuccess: () =>
-                createForm.reset(
-                    'nom',
-                    'description',
-                    'prix',
-                    'image',
-                    'statut',
-                ),
-        });
-    };
-
-    const groupes = Object.values(
-        services.reduce<
-            Record<string, { categorie: string; services: Service[] }>
-        >((acc, service) => {
-            acc[service.categorie] ??= {
-                categorie: service.categorie,
-                services: [],
-            };
-            acc[service.categorie].services.push(service);
-            return acc;
-        }, {}),
-    );
-
-    return (
-        <>
-            <Head title="Catalogue des services — Administration" />
-
-            <div
-                className="espace-hero"
-                style={{
-                    backgroundImage: "url('/images/photos/glass-charts.jpg')",
-                }}
-            >
-                <div className="espace-hero-overlay" />
-                <div className="espace-hero-content">
-                    <h1>Catalogue des services</h1>
-                    <p>
-                        {actions.modifier || actions.supprimer
-                            ? 'Gérez les prestations affichées dans le catalogue public et côté client.'
-                            : 'Lecture seule : votre rôle ne permet pas de modifier le catalogue.'}
-                    </p>
-                </div>
-            </div>
-
-            {actions.creer && (
-                <form
-                    onSubmit={submitCreate}
-                    className="card"
-                    style={{
-                        padding: 24,
-                        marginBottom: 28,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 14,
-                    }}
-                >
-                    <p style={{ fontSize: 14.5, fontWeight: 700 }}>
-                        Ajouter un service
-                    </p>
-                    <div
-                        style={{
-                            display: 'grid',
-                            gridTemplateColumns:
-                                'repeat(auto-fit, minmax(200px, 1fr))',
-                            gap: 14,
-                        }}
-                    >
-                        <div>
-                            <label htmlFor="nom">Nom</label>
-                            <input
-                                id="nom"
-                                placeholder="Ex. Création de logo"
-                                value={createForm.data.nom}
-                                onChange={(event) =>
-                                    createForm.setData(
-                                        'nom',
-                                        event.target.value,
-                                    )
-                                }
-                            />
-                            {createForm.errors.nom && (
-                                <p
-                                    style={{
-                                        color: 'var(--dag-red)',
-                                        fontSize: 12,
-                                        marginTop: 4,
-                                    }}
-                                >
-                                    {createForm.errors.nom}
-                                </p>
-                            )}
-                        </div>
-                        <div>
-                            <label htmlFor="categorie">Catégorie</label>
-                            <input
-                                id="categorie"
-                                list="categories-existantes"
-                                value={createForm.data.categorie}
-                                onChange={(event) =>
-                                    createForm.setData(
-                                        'categorie',
-                                        event.target.value,
-                                    )
-                                }
-                            />
-                            <datalist id="categories-existantes">
-                                {categoriesExistantes.map((categorie) => (
-                                    <option key={categorie} value={categorie} />
-                                ))}
-                            </datalist>
-                            {createForm.errors.categorie && (
-                                <p
-                                    style={{
-                                        color: 'var(--dag-red)',
-                                        fontSize: 12,
-                                        marginTop: 4,
-                                    }}
-                                >
-                                    {createForm.errors.categorie}
-                                </p>
-                            )}
-                        </div>
-                        <div>
-                            <label htmlFor="fournisseur">Fournisseur</label>
-                            <select
-                                id="fournisseur"
-                                value={createForm.data.fournisseur}
-                                onChange={(event) =>
-                                    createForm.setData(
-                                        'fournisseur',
-                                        event.target.value,
-                                    )
-                                }
-                            >
-                                <option value="DAG">DAG</option>
-                                <option value="Nova-Tech">Nova-Tech</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label htmlFor="prix">
-                                Prix (FCFA, vide = sur devis)
-                            </label>
-                            <input
-                                id="prix"
-                                type="number"
-                                min={0}
-                                value={createForm.data.prix}
-                                onChange={(event) =>
-                                    createForm.setData(
-                                        'prix',
-                                        event.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div>
-                            <label htmlFor="statut">Statut</label>
-                            <select
-                                id="statut"
-                                value={createForm.data.statut}
-                                onChange={(event) =>
-                                    createForm.setData(
-                                        'statut',
-                                        event.target.value,
-                                    )
-                                }
-                            >
-                                <option value="BROUILLON">Brouillon</option>
-                                <option value="PUBLIE">Publié</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label htmlFor="image">
-                                Image (chemin ou URL, optionnel)
-                            </label>
-                            <input
-                                id="image"
-                                placeholder="/images/services/logo.jpg"
-                                value={createForm.data.image}
-                                onChange={(event) =>
-                                    createForm.setData(
-                                        'image',
-                                        event.target.value,
-                                    )
-                                }
-                            />
-                        </div>
-                        <div style={{ gridColumn: '1 / -1' }}>
-                            <label htmlFor="description">Description</label>
-                            <textarea
-                                id="description"
-                                rows={2}
-                                value={createForm.data.description}
-                                onChange={(event) =>
-                                    createForm.setData(
-                                        'description',
-                                        event.target.value,
-                                    )
-                                }
-                            />
-                            {createForm.errors.description && (
-                                <p
-                                    style={{
-                                        color: 'var(--dag-red)',
-                                        fontSize: 12,
-                                        marginTop: 4,
-                                    }}
-                                >
-                                    {createForm.errors.description}
-                                </p>
-                            )}
-                        </div>
-                    </div>
-                    <button
-                        type="submit"
-                        disabled={createForm.processing}
-                        className="btn-primary"
-                        style={{ alignSelf: 'flex-start' }}
-                    >
-                        {createForm.processing
-                            ? 'Ajout…'
-                            : 'Ajouter le service'}
-                    </button>
-                </form>
-            )}
-
-            {groupes.length === 0 ? (
-                <div className="card" style={{ padding: 24 }}>
-                    <p className="muted" style={{ fontSize: 13 }}>
-                        Aucun service dans le catalogue pour le moment.
-                    </p>
-                </div>
-            ) : (
-                <div
-                    style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 24,
-                    }}
-                >
-                    {groupes.map((groupe) => (
-                        <div
-                            key={groupe.categorie}
-                            className="card"
-                            style={{ padding: 24 }}
-                        >
-                            <p
-                                style={{
-                                    fontSize: 14.5,
-                                    fontWeight: 700,
-                                    marginBottom: 14,
-                                }}
-                            >
-                                {groupe.categorie}
-                            </p>
-                            <div className="data-table-wrap">
-                                <table className="data-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Service</th>
-                                            <th>Fournisseur</th>
-                                            <th>Prix</th>
-                                            <th>Statut</th>
-                                            <th />
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {groupe.services.map((service) => (
-                                            <ServiceRow
-                                                key={service.id}
-                                                service={service}
-                                                editing={
-                                                    editingId === service.id
-                                                }
-                                                actions={actions}
-                                                categoriesExistantes={
-                                                    categoriesExistantes
-                                                }
-                                                onEdit={() =>
-                                                    setEditingId(service.id)
-                                                }
-                                                onCancel={() =>
-                                                    setEditingId(null)
-                                                }
-                                                onSaved={() =>
-                                                    setEditingId(null)
-                                                }
-                                            />
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            )}
-        </>
-    );
-}
-
-function ServiceRow({
-    service,
-    editing,
-    actions,
-    categoriesExistantes,
-    onEdit,
-    onCancel,
-    onSaved,
-}: {
-    service: Service;
-    editing: boolean;
-    actions: Actions;
-    categoriesExistantes: string[];
-    onEdit: () => void;
-    onCancel: () => void;
-    onSaved: () => void;
-}) {
-    const editForm = useForm({
-        nom: service.nom,
-        description: service.description,
-        categorie: service.categorie,
-        fournisseur: service.fournisseur,
-        prix: service.prix === null ? '' : String(service.prix),
-        image: service.image ?? '',
-        statut: service.statut,
-    });
-
-    const submitEdit = (event: React.FormEvent) => {
-        event.preventDefault();
-        editForm.patch(servicesAdmin.update(service.id).url, {
-            onSuccess: onSaved,
-        });
-    };
-
-    const basculerStatut = () => {
-        router.patch(
-            servicesAdmin.update(service.id).url,
-            { statut: service.statut === 'PUBLIE' ? 'BROUILLON' : 'PUBLIE' },
-            { preserveScroll: true },
-        );
-    };
-
-    const supprimer = () => {
+    const supprimer = (service: Service) => {
         if (!confirm(`Supprimer « ${service.nom} » du catalogue ?`)) {
             return;
         }
         router.delete(servicesAdmin.destroy(service.id).url);
     };
 
-    if (editing) {
-        return (
-            <tr>
-                <td colSpan={5}>
-                    <form
-                        onSubmit={submitEdit}
-                        style={{
-                            display: 'grid',
-                            gridTemplateColumns:
-                                'repeat(auto-fit, minmax(160px, 1fr))',
-                            gap: 10,
-                            padding: '8px 0',
-                        }}
+    return (
+        <>
+            <Head title="Catalogue de services — Administration" />
+
+            <div
+                style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-start',
+                    gap: 16,
+                    flexWrap: 'wrap',
+                    marginBottom: 24,
+                }}
+            >
+                <div>
+                    <h1 style={{ fontSize: 26, color: 'var(--dag-navy)' }}>
+                        Catalogue de services
+                    </h1>
+                    <p className="muted" style={{ marginTop: 4 }}>
+                        {droitsResume}
+                    </p>
+                </div>
+                {actions.creer && (
+                    <button
+                        type="button"
+                        className="btn-primary"
+                        onClick={() => setCreateOpen(true)}
                     >
+                        + Ajouter un service
+                    </button>
+                )}
+            </div>
+
+            <div className="card" style={{ padding: 0 }}>
+                {services.length === 0 ? (
+                    <p className="data-table-empty" style={{ padding: 24 }}>
+                        Aucun service dans le catalogue pour le moment.
+                    </p>
+                ) : (
+                    <div className="data-table-wrap">
+                        <table className="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Service</th>
+                                    <th>Catégorie</th>
+                                    <th>Fournisseur</th>
+                                    <th>Statut</th>
+                                    <th />
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {services.map((service) => (
+                                    <tr key={service.id}>
+                                        <td>
+                                            <div
+                                                style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: 12,
+                                                }}
+                                            >
+                                                {service.image ? (
+                                                    <img
+                                                        src={service.image}
+                                                        alt=""
+                                                        style={{
+                                                            width: 40,
+                                                            height: 40,
+                                                            borderRadius: 8,
+                                                            objectFit: 'cover',
+                                                            flex: 'none',
+                                                        }}
+                                                    />
+                                                ) : (
+                                                    <span
+                                                        style={{
+                                                            width: 40,
+                                                            height: 40,
+                                                            borderRadius: 8,
+                                                            background:
+                                                                '#f1f2f6',
+                                                            flex: 'none',
+                                                        }}
+                                                    />
+                                                )}
+                                                <span
+                                                    style={{
+                                                        fontWeight: 600,
+                                                    }}
+                                                >
+                                                    {service.nom}
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td className="muted">
+                                            {service.categorie}
+                                        </td>
+                                        <td className="muted">
+                                            {afficherFournisseur(
+                                                service.fournisseur,
+                                            )}
+                                        </td>
+                                        <td>
+                                            <span
+                                                className={`chip ${service.statut === 'PUBLIE' ? 'chip-green' : 'chip-gray'}`}
+                                            >
+                                                {service.statut === 'PUBLIE'
+                                                    ? 'Publié'
+                                                    : 'Brouillon'}
+                                            </span>
+                                        </td>
+                                        <td style={{ textAlign: 'right' }}>
+                                            {(actions.modifier ||
+                                                actions.supprimer) && (
+                                                <div
+                                                    style={{
+                                                        display: 'flex',
+                                                        gap: 10,
+                                                        justifyContent:
+                                                            'flex-end',
+                                                        flexWrap: 'wrap',
+                                                    }}
+                                                >
+                                                    {actions.modifier && (
+                                                        <button
+                                                            type="button"
+                                                            className="link-action"
+                                                            onClick={() =>
+                                                                setEditingService(
+                                                                    service,
+                                                                )
+                                                            }
+                                                        >
+                                                            Modifier
+                                                        </button>
+                                                    )}
+                                                    {actions.supprimer && (
+                                                        <button
+                                                            type="button"
+                                                            className="link-action"
+                                                            style={{
+                                                                color: 'var(--dag-red)',
+                                                            }}
+                                                            onClick={() =>
+                                                                supprimer(
+                                                                    service,
+                                                                )
+                                                            }
+                                                        >
+                                                            Supprimer
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </div>
+
+            {createOpen && (
+                <ServiceModal
+                    mode="create"
+                    categoriesExistantes={categoriesExistantes}
+                    fournisseursExistants={fournisseursExistants}
+                    onClose={() => setCreateOpen(false)}
+                />
+            )}
+            {editingService && (
+                <ServiceModal
+                    mode="edit"
+                    service={editingService}
+                    categoriesExistantes={categoriesExistantes}
+                    fournisseursExistants={fournisseursExistants}
+                    onClose={() => setEditingService(null)}
+                />
+            )}
+        </>
+    );
+}
+
+function ServiceModal({
+    mode,
+    service,
+    categoriesExistantes,
+    fournisseursExistants,
+    onClose,
+}: {
+    mode: 'create' | 'edit';
+    service?: Service;
+    categoriesExistantes: string[];
+    fournisseursExistants: string[];
+    onClose: () => void;
+}) {
+    const form = useForm<{
+        nom: string;
+        categorie: string;
+        fournisseur: string;
+        description: string;
+        image: File | null;
+        statut: string;
+    }>({
+        nom: service?.nom ?? '',
+        categorie: service?.categorie ?? categoriesExistantes[0] ?? '',
+        fournisseur: service?.fournisseur ?? 'DAG',
+        description: service?.description ?? '',
+        image: null,
+        statut: service?.statut ?? 'BROUILLON',
+    });
+
+    const submit = (event: React.FormEvent) => {
+        event.preventDefault();
+
+        if (mode === 'create') {
+            form.post(servicesAdmin.store().url, { onSuccess: onClose });
+        } else if (service) {
+            form.patch(servicesAdmin.update(service.id).url, {
+                onSuccess: onClose,
+            });
+        }
+    };
+
+    return (
+        <div
+            className="modal-backdrop"
+            role="dialog"
+            aria-modal="true"
+            aria-label={
+                mode === 'create' ? 'Ajouter un service' : 'Modifier le service'
+            }
+            onClick={(event) => {
+                if (event.target === event.currentTarget) {
+                    onClose();
+                }
+            }}
+        >
+            <div className="modal-panel">
+                <button
+                    type="button"
+                    className="modal-close"
+                    onClick={onClose}
+                    aria-label="Fermer"
+                >
+                    <X size={16} />
+                </button>
+
+                <h2 style={{ fontSize: 19, color: 'var(--dag-navy)' }}>
+                    {mode === 'create'
+                        ? 'Ajouter un service'
+                        : 'Modifier le service'}
+                </h2>
+                <p
+                    style={{
+                        marginTop: 8,
+                        marginBottom: 24,
+                        fontSize: 13.5,
+                        lineHeight: 1.6,
+                        color: 'var(--dag-text-muted)',
+                    }}
+                >
+                    {mode === 'create'
+                        ? "Le service apparaît en brouillon tant qu'il n'est pas publié."
+                        : 'Les modifications sont enregistrées immédiatement.'}
+                </p>
+
+                <form
+                    onSubmit={submit}
+                    style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 16,
+                    }}
+                >
+                    <div>
+                        <label htmlFor="nom">Nom du service</label>
                         <input
-                            placeholder="Nom"
-                            value={editForm.data.nom}
+                            id="nom"
+                            placeholder="Ex. Montage vidéo"
+                            value={form.data.nom}
                             onChange={(event) =>
-                                editForm.setData('nom', event.target.value)
+                                form.setData('nom', event.target.value)
+                            }
+                            autoFocus
+                        />
+                        {form.errors.nom && (
+                            <p
+                                style={{
+                                    color: 'var(--dag-red)',
+                                    fontSize: 12,
+                                    marginTop: 4,
+                                }}
+                            >
+                                {form.errors.nom}
+                            </p>
+                        )}
+                    </div>
+
+                    <div>
+                        <label htmlFor="categorie">Catégorie</label>
+                        <input
+                            id="categorie"
+                            list="categories-existantes"
+                            placeholder="Ex. Création & communication…"
+                            value={form.data.categorie}
+                            onChange={(event) =>
+                                form.setData('categorie', event.target.value)
                             }
                         />
-                        <input
-                            list="categories-existantes-edit"
-                            placeholder="Catégorie"
-                            value={editForm.data.categorie}
-                            onChange={(event) =>
-                                editForm.setData(
-                                    'categorie',
-                                    event.target.value,
-                                )
-                            }
-                        />
-                        <datalist id="categories-existantes-edit">
+                        <datalist id="categories-existantes">
                             {categoriesExistantes.map((categorie) => (
                                 <option key={categorie} value={categorie} />
                             ))}
                         </datalist>
-                        <select
-                            value={editForm.data.fournisseur}
+                        <p
+                            className="muted"
+                            style={{ fontSize: 11.5, marginTop: 4 }}
+                        >
+                            Détermine la section où le service apparaît dans le
+                            catalogue public. Tapez une nouvelle catégorie pour
+                            en créer une.
+                        </p>
+                        {form.errors.categorie && (
+                            <p
+                                style={{
+                                    color: 'var(--dag-red)',
+                                    fontSize: 12,
+                                    marginTop: 4,
+                                }}
+                            >
+                                {form.errors.categorie}
+                            </p>
+                        )}
+                    </div>
+
+                    <div>
+                        <label htmlFor="fournisseur">Fournisseur</label>
+                        <input
+                            id="fournisseur"
+                            list="fournisseurs-existants"
+                            placeholder="Ex. DAG (interne), Nova-Tech…"
+                            value={form.data.fournisseur}
                             onChange={(event) =>
-                                editForm.setData(
-                                    'fournisseur',
-                                    event.target.value,
+                                form.setData('fournisseur', event.target.value)
+                            }
+                        />
+                        <datalist id="fournisseurs-existants">
+                            {fournisseursExistants.map((fournisseur) => (
+                                <option key={fournisseur} value={fournisseur} />
+                            ))}
+                        </datalist>
+                        {form.errors.fournisseur && (
+                            <p
+                                style={{
+                                    color: 'var(--dag-red)',
+                                    fontSize: 12,
+                                    marginTop: 4,
+                                }}
+                            >
+                                {form.errors.fournisseur}
+                            </p>
+                        )}
+                    </div>
+
+                    <div>
+                        <label htmlFor="description">
+                            Description{' '}
+                            <span style={{ color: 'var(--dag-red)' }}>*</span>
+                        </label>
+                        <textarea
+                            id="description"
+                            rows={2}
+                            placeholder="Visible sur la fiche du catalogue"
+                            value={form.data.description}
+                            onChange={(event) =>
+                                form.setData('description', event.target.value)
+                            }
+                        />
+                        {form.errors.description && (
+                            <p
+                                style={{
+                                    color: 'var(--dag-red)',
+                                    fontSize: 12,
+                                    marginTop: 4,
+                                }}
+                            >
+                                {form.errors.description}
+                            </p>
+                        )}
+                    </div>
+
+                    <div>
+                        <label htmlFor="image">Image du service</label>
+                        <label
+                            htmlFor="image"
+                            className="dashed"
+                            style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: 6,
+                                padding: '28px 16px',
+                                cursor: 'pointer',
+                                textAlign: 'center',
+                            }}
+                        >
+                            <Upload
+                                size={20}
+                                style={{ color: 'var(--dag-text-muted)' }}
+                            />
+                            <span style={{ fontWeight: 600, fontSize: 13.5 }}>
+                                {form.data.image
+                                    ? form.data.image.name
+                                    : 'Cliquez pour importer une image'}
+                            </span>
+                            <span className="muted" style={{ fontSize: 11.5 }}>
+                                JPG, PNG — ratio 4:3 recommandé
+                            </span>
+                        </label>
+                        <input
+                            id="image"
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            style={{ display: 'none' }}
+                            onChange={(event) =>
+                                form.setData(
+                                    'image',
+                                    event.target.files?.[0] ?? null,
                                 )
                             }
-                        >
-                            <option value="DAG">DAG</option>
-                            <option value="Nova-Tech">Nova-Tech</option>
-                        </select>
-                        <input
-                            type="number"
-                            min={0}
-                            placeholder="Prix (vide = sur devis)"
-                            value={editForm.data.prix}
-                            onChange={(event) =>
-                                editForm.setData('prix', event.target.value)
-                            }
                         />
-                        <input
-                            placeholder="Image (chemin ou URL)"
-                            value={editForm.data.image}
-                            onChange={(event) =>
-                                editForm.setData('image', event.target.value)
-                            }
-                        />
+                        {form.errors.image && (
+                            <p
+                                style={{
+                                    color: 'var(--dag-red)',
+                                    fontSize: 12,
+                                    marginTop: 4,
+                                }}
+                            >
+                                {form.errors.image}
+                            </p>
+                        )}
+                        {mode === 'edit' && service?.image && (
+                            <img
+                                src={service.image}
+                                alt=""
+                                style={{
+                                    marginTop: 10,
+                                    width: '100%',
+                                    height: 100,
+                                    objectFit: 'cover',
+                                    borderRadius: 'var(--dag-radius-sm)',
+                                }}
+                            />
+                        )}
+                    </div>
+
+                    <div>
+                        <label htmlFor="statut">Statut</label>
                         <select
-                            value={editForm.data.statut}
+                            id="statut"
+                            value={form.data.statut}
                             onChange={(event) =>
-                                editForm.setData('statut', event.target.value)
+                                form.setData('statut', event.target.value)
                             }
                         >
                             <option value="BROUILLON">Brouillon</option>
                             <option value="PUBLIE">Publié</option>
                         </select>
-                        <textarea
-                            rows={2}
-                            placeholder="Description"
-                            style={{ gridColumn: '1 / -1' }}
-                            value={editForm.data.description}
-                            onChange={(event) =>
-                                editForm.setData(
-                                    'description',
-                                    event.target.value,
-                                )
-                            }
-                        />
-                        <div
-                            style={{
-                                gridColumn: '1 / -1',
-                                display: 'flex',
-                                gap: 10,
-                            }}
-                        >
-                            <button
-                                type="submit"
-                                disabled={editForm.processing}
-                                className="btn-primary"
-                                style={{ padding: '7px 14px', fontSize: 12.5 }}
-                            >
-                                Enregistrer
-                            </button>
-                            <button
-                                type="button"
-                                onClick={onCancel}
-                                className="btn-outline"
-                                style={{ padding: '7px 14px', fontSize: 12.5 }}
-                            >
-                                Annuler
-                            </button>
-                        </div>
-                    </form>
-                </td>
-            </tr>
-        );
-    }
-
-    return (
-        <tr>
-            <td>
-                <p style={{ fontWeight: 600 }}>{service.nom}</p>
-                <p
-                    className="muted"
-                    style={{
-                        fontSize: 12,
-                        maxWidth: 320,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                    }}
-                >
-                    {service.description}
-                </p>
-            </td>
-            <td>
-                <span
-                    className={`chip ${service.fournisseur === 'Nova-Tech' ? 'chip-orange' : 'chip-blue'}`}
-                >
-                    {service.fournisseur}
-                </span>
-            </td>
-            <td className="muted">{formatPrix(service.prix)}</td>
-            <td>
-                <span
-                    className={`chip ${service.statut === 'PUBLIE' ? 'chip-green' : 'chip-gray'}`}
-                >
-                    {service.statut === 'PUBLIE' ? 'Publié' : 'Brouillon'}
-                </span>
-            </td>
-            <td style={{ textAlign: 'right' }}>
-                {(actions.modifier || actions.supprimer) && (
-                    <div
-                        style={{
-                            display: 'flex',
-                            gap: 10,
-                            justifyContent: 'flex-end',
-                            flexWrap: 'wrap',
-                        }}
-                    >
-                        {actions.modifier && (
-                            <>
-                                <button
-                                    type="button"
-                                    onClick={basculerStatut}
-                                    className="link-action"
-                                >
-                                    {service.statut === 'PUBLIE'
-                                        ? 'Mettre en brouillon'
-                                        : 'Publier'}
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={onEdit}
-                                    className="link-action"
-                                >
-                                    Modifier
-                                </button>
-                            </>
-                        )}
-                        {actions.supprimer && (
-                            <button
-                                type="button"
-                                onClick={supprimer}
-                                className="link-action"
-                                style={{ color: 'var(--dag-red)' }}
-                            >
-                                Supprimer
-                            </button>
-                        )}
                     </div>
-                )}
-            </td>
-        </tr>
+
+                    <div style={{ display: 'flex', gap: 10 }}>
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="btn-outline"
+                            style={{ flex: 1 }}
+                        >
+                            Annuler
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={form.processing}
+                            className="btn-primary"
+                            style={{ flex: 1 }}
+                        >
+                            {form.processing
+                                ? 'Enregistrement…'
+                                : mode === 'create'
+                                  ? 'Ajouter le service'
+                                  : 'Enregistrer'}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     );
 }

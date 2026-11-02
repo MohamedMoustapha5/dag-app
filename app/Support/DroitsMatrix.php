@@ -87,4 +87,44 @@ class DroitsMatrix
     {
         return self::$matrice[$role->value];
     }
+
+    /**
+     * A one-line French summary of who can see/manage this domain and at
+     * what level, e.g. "Visible par : Directrice (total), Responsable
+     * Marketing & Création de contenu (gestion), Juriste & Secrétaire
+     * (lecture)." — used as a transparent droits reminder on the admin
+     * pages gated by that domain, grouping roles by access level in
+     * Total > Gestion > Validation > Lecture order and skipping Aucun.
+     */
+    public static function resume(Donnee $donnee): string
+    {
+        $rolesParNiveau = [];
+
+        foreach (MembreEquipeRole::cases() as $role) {
+            $niveau = self::niveau($role, $donnee);
+
+            if ($niveau === NiveauDroit::Aucun) {
+                continue;
+            }
+
+            $rolesParNiveau[$niveau->value][] = $role->label();
+        }
+
+        $segments = [];
+
+        foreach ([NiveauDroit::Total, NiveauDroit::Gestion, NiveauDroit::Validation, NiveauDroit::Lecture] as $niveau) {
+            $roles = $rolesParNiveau[$niveau->value] ?? [];
+
+            if ($roles === []) {
+                continue;
+            }
+
+            $dernier = array_pop($roles);
+            $libelles = $roles === [] ? $dernier : implode(', ', $roles).' & '.$dernier;
+
+            $segments[] = "{$libelles} (".mb_strtolower($niveau->label()).')';
+        }
+
+        return 'Visible par : '.implode(', ', $segments).'.';
+    }
 }

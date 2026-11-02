@@ -15,7 +15,22 @@ test('the index page exposes the actions allowed for the current role', function
         ->where('actions.creer', false)
         ->where('actions.modifier', false)
         ->where('actions.supprimer', false)
-        ->where('droits.CATALOGUE', 'LECTURE'));
+        ->where('droits.CATALOGUE', 'LECTURE')
+        ->where('droitsResume', 'Visible par : Directrice (total), Responsable Marketing & Création de contenu (gestion), Juriste & Secrétaire (lecture).'));
+});
+
+test('a service can use any fournisseur name, not just DAG or Nova-Tech', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+
+    $this->actingAs($promotrice->user)->post(route('espace-admin.services.store'), [
+        'nom' => 'Audit cybersécurité',
+        'description' => 'Audit complet de la sécurité informatique.',
+        'categorie' => 'Technique & digital',
+        'fournisseur' => 'SecureNet Cameroun',
+        'statut' => 'PUBLIE',
+    ])->assertRedirect();
+
+    $this->assertDatabaseHas('services', ['nom' => 'Audit cybersécurité', 'fournisseur' => 'SecureNet Cameroun']);
 });
 
 test('a promotrice can create, modify and delete a service', function () {

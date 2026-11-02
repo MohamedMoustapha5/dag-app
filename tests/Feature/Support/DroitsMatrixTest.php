@@ -53,3 +53,11 @@ test('a deactivated membre equipe has no rights regardless of role', function ()
 
     expect($promotrice->peut(Donnee::Catalogue, Action::Voir))->toBeFalse();
 });
+
+test('resume groups roles by access level, highest first, and skips roles with no access', function () {
+    expect(DroitsMatrix::resume(Donnee::Catalogue))
+        ->toBe('Visible par : Directrice (total), Responsable Marketing & Création de contenu (gestion), Juriste & Secrétaire (lecture).');
+
+    expect(DroitsMatrix::resume(Donnee::DossiersApprenants))
+        ->toBe('Visible par : Directrice (total), Responsable Marketing (gestion), Juriste (lecture).');
+});
