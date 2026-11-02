@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Espaces\AdminAttestationController;
 use App\Http\Controllers\Espaces\AdminDashboardController;
+use App\Http\Controllers\Espaces\AdminDemandeController;
 use App\Http\Controllers\Espaces\AdminEntrepriseController;
 use App\Http\Controllers\Espaces\AdminEquipeController;
 use App\Http\Controllers\Espaces\AdminGrilleTarifaireController;
@@ -108,4 +109,7 @@ Route::middleware(['auth', 'verified', EnsureUserType::class.':MEMBRE_EQUIPE'])
         Route::get('entreprises', [AdminEntrepriseController::class, 'index'])->name('espace-admin.entreprises.index');
         Route::patch('entreprises/{entreprisePartenaire}', [AdminEntrepriseController::class, 'updateEntreprise'])->name('espace-admin.entreprises.update');
         Route::patch('offres/{offreEmploi}', [AdminEntrepriseController::class, 'updateOffre'])->name('espace-admin.offres.update');
+        Route::get('demandes', [AdminDemandeController::class, 'index'])->name('espace-admin.demandes.index');
+        Route::get('demandes/{demande}', [AdminDemandeController::class, 'show'])->name('espace-admin.demandes.show');
+        Route::patch('demandes/{demande}', [AdminDemandeController::class, 'update'])->name('espace-admin.demandes.update');
     });

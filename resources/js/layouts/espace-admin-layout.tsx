@@ -3,6 +3,7 @@ import {
     Award,
     Bell,
     Briefcase,
+    FileText,
     LayoutDashboard,
     LogOut,
     Menu,
@@ -16,6 +17,7 @@ import { logout } from '@/routes';
 import LanguageSwitcher from '@/components/public/language-switcher';
 import espaceAdmin from '@/routes/espace-admin';
 import attestationsAdmin from '@/routes/espace-admin/attestations';
+import demandesAdmin from '@/routes/espace-admin/demandes';
 import entreprisesAdmin from '@/routes/espace-admin/entreprises';
 import equipeAdmin from '@/routes/espace-admin/equipe';
 import grilleTarifaireAdmin from '@/routes/espace-admin/grille-tarifaire';
@@ -54,6 +56,17 @@ const NAV_GROUPS: NavGroup[] = [
                 icon: Tag,
                 href: grilleTarifaireAdmin.index(),
                 visibleIf: 'CATALOGUE',
+            },
+        ],
+    },
+    {
+        label: 'Activité commerciale',
+        items: [
+            {
+                label: 'Demandes clients',
+                icon: FileText,
+                href: demandesAdmin.index(),
+                visibleIf: 'DEMANDES_CLIENTS',
             },
         ],
     },
