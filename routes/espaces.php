@@ -12,6 +12,7 @@ use App\Http\Controllers\Espaces\AdminFactureController;
 use App\Http\Controllers\Espaces\AdminFormationController;
 use App\Http\Controllers\Espaces\AdminGrilleTarifaireController;
 use App\Http\Controllers\Espaces\AdminSeanceController;
+use App\Http\Controllers\Espaces\AdminStatistiqueController;
 use App\Http\Controllers\Espaces\ApprenantDashboardController;
 use App\Http\Controllers\Espaces\ApprenantDossierController;
 use App\Http\Controllers\Espaces\ApprenantFactureController;
@@ -145,4 +146,5 @@ Route::middleware(['auth', 'verified', EnsureUserType::class.':MEMBRE_EQUIPE'])
         Route::get('apprenants', [AdminApprenantController::class, 'index'])->name('espace-admin.apprenants.index');
         Route::get('apprenants/{apprenant}', [AdminApprenantController::class, 'show'])->name('espace-admin.apprenants.show');
         Route::get('apprenants/{apprenant}/cv', [AdminApprenantController::class, 'cv'])->name('espace-admin.apprenants.cv');
+        Route::get('statistiques', AdminStatistiqueController::class)->name('espace-admin.statistiques');
     });

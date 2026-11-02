@@ -4,6 +4,7 @@ import {
     Bell,
     Briefcase,
     BookOpen,
+    BarChart3,
     FileText,
     FileSignature,
     LayoutDashboard,
@@ -129,6 +130,17 @@ const NAV_GROUPS: NavGroup[] = [
                 icon: Award,
                 href: attestationsAdmin.index(),
                 visibleIf: 'DOSSIERS_APPRENANTS',
+            },
+        ],
+    },
+    {
+        label: 'Pilotage',
+        items: [
+            {
+                label: 'Statistiques',
+                icon: BarChart3,
+                href: espaceAdmin.statistiques(),
+                visibleIf: 'STATISTIQUES',
             },
         ],
     },
