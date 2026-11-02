@@ -3369,7 +3369,7 @@
         gap: 10px;
     }
     .dag .espace-topbar-right {
-        gap: 10px;
+        gap: 8px;
     }
     .dag .espace-notif {
         width: 34px;
@@ -3413,6 +3413,17 @@
     }
     .dag .espace-topbar .btn-ghost .btn-label-short {
         display: inline-flex;
+    }
+    .dag .espace-topbar .lang-dropdown-trigger {
+        padding: 7px 8px;
+        gap: 0;
+    }
+    .dag .espace-topbar .lang-dropdown-code,
+    .dag .espace-topbar .lang-dropdown-trigger svg {
+        /* Le chevron et le code texte ("FR") sont redondants avec le
+           drapeau sur un espace déjà très dense en largeur mobile — le
+           menu reste ouvrable au toucher sans ces indices visuels. */
+        display: none;
     }
     .dag .espace-content {
         padding: 20px 16px;

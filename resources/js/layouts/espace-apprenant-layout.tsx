@@ -17,6 +17,7 @@ import type { PropsWithChildren } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { contact, logout } from '@/routes';
 import espaceApprenant from '@/routes/espace-apprenant';
+import LanguageSwitcher from '@/components/public/language-switcher';
 
 type NavItem = {
     label: string;
@@ -208,6 +209,7 @@ export default function EspaceApprenantLayout({ children }: PropsWithChildren) {
                         />
 
                         <div className="espace-topbar-right">
+                            <LanguageSwitcher />
                             <span className="espace-notif">
                                 <Bell size={18} />
                                 <span className="espace-notif-dot" />

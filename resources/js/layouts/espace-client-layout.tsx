@@ -21,6 +21,7 @@ import {
 import type { PropsWithChildren } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { contact, logout } from '@/routes';
+import LanguageSwitcher from '@/components/public/language-switcher';
 import espaceClient from '@/routes/espace-client';
 import candidatures from '@/routes/espace-client/candidatures';
 import demandes from '@/routes/espace-client/demandes';
@@ -314,6 +315,7 @@ export default function EspaceClientLayout({ children }: PropsWithChildren) {
                         </div>
 
                         <div className="espace-topbar-right">
+                            <LanguageSwitcher />
                             <span className="espace-notif">
                                 <Bell size={18} />
                                 <span className="espace-notif-dot" />
