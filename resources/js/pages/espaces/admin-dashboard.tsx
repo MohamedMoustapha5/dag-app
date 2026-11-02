@@ -46,9 +46,21 @@ type Props = {
 };
 
 const PERIODES = [
-    { key: '7j' as const, label: '7 jours' },
-    { key: '30j' as const, label: '30 jours' },
-    { key: '3mois' as const, label: '3 mois' },
+    {
+        key: '7j' as const,
+        label: '7 jours',
+        soustitre: 'Sur les 7 derniers jours',
+    },
+    {
+        key: '30j' as const,
+        label: '30 jours',
+        soustitre: 'Sur les 30 derniers jours',
+    },
+    {
+        key: '3mois' as const,
+        label: '3 mois',
+        soustitre: 'Sur les 3 derniers mois',
+    },
 ];
 
 const DONUT_COLORS = [
@@ -65,6 +77,12 @@ export default function AdminDashboard({
     servicesPlusDemandes,
 }: Props) {
     const [periode, setPeriode] = useState<keyof typeof paiements>('7j');
+    const periodeActive =
+        PERIODES.find((item) => item.key === periode) ?? PERIODES[0];
+    const totalPeriode = paiements[periode].reduce(
+        (somme, point) => somme + point.montant,
+        0,
+    );
 
     const formatMontant = (montant: number) =>
         new Intl.NumberFormat('fr-FR').format(montant);
@@ -282,19 +300,35 @@ export default function AdminDashboard({
                         style={{
                             display: 'flex',
                             justifyContent: 'space-between',
-                            alignItems: 'center',
-                            marginBottom: 16,
+                            alignItems: 'flex-start',
+                            marginBottom: 20,
                             flexWrap: 'wrap',
-                            gap: 10,
+                            gap: 14,
                         }}
                     >
-                        <p style={{ fontSize: 14, fontWeight: 700 }}>
-                            Paiements encaissés
-                        </p>
+                        <div>
+                            <p className="muted" style={{ fontSize: 13 }}>
+                                Paiements encaissés
+                            </p>
+                            <strong
+                                style={{
+                                    display: 'block',
+                                    fontSize: 28,
+                                    fontWeight: 800,
+                                    color: 'var(--dag-navy)',
+                                    margin: '4px 0 2px',
+                                }}
+                            >
+                                {formatMontant(totalPeriode)} FCFA
+                            </strong>
+                            <span className="muted" style={{ fontSize: 12.5 }}>
+                                {periodeActive.soustitre}
+                            </span>
+                        </div>
                         <div
                             style={{
                                 display: 'flex',
-                                gap: 4,
+                                gap: 2,
                                 padding: 4,
                                 background: '#f1f2f6',
                                 borderRadius: 999,
@@ -308,18 +342,23 @@ export default function AdminDashboard({
                                     style={{
                                         border: 'none',
                                         borderRadius: 999,
-                                        padding: '6px 14px',
+                                        padding: '7px 16px',
                                         fontSize: 12.5,
                                         fontWeight: 700,
                                         cursor: 'pointer',
                                         background:
                                             periode === item.key
-                                                ? 'var(--dag-blue)'
+                                                ? '#fff'
                                                 : 'transparent',
                                         color:
                                             periode === item.key
-                                                ? '#fff'
+                                                ? 'var(--dag-blue)'
                                                 : 'var(--dag-text-muted)',
+                                        boxShadow:
+                                            periode === item.key
+                                                ? '0 2px 6px rgba(7, 31, 65, 0.1)'
+                                                : 'none',
+                                        transition: 'all 0.15s ease',
                                     }}
                                 >
                                     {item.label}
