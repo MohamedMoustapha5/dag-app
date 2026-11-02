@@ -8,6 +8,7 @@ import {
     FileText,
     FileSignature,
     LayoutDashboard,
+    LayoutGrid,
     LogOut,
     Menu,
     Receipt,
@@ -32,6 +33,7 @@ import equipeAdmin from '@/routes/espace-admin/equipe';
 import facturesAdmin from '@/routes/espace-admin/factures';
 import formationsAdmin from '@/routes/espace-admin/formations';
 import grilleTarifaireAdmin from '@/routes/espace-admin/grille-tarifaire';
+import servicesAdmin from '@/routes/espace-admin/services';
 
 type NavItem = {
     label: string;
@@ -62,6 +64,12 @@ const NAV_GROUPS: NavGroup[] = [
     {
         label: 'Catalogue & formations',
         items: [
+            {
+                label: 'Catalogue des services',
+                icon: LayoutGrid,
+                href: servicesAdmin.index(),
+                visibleIf: 'CATALOGUE',
+            },
             {
                 label: 'Grille tarifaire',
                 icon: Tag,

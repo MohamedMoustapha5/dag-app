@@ -151,36 +151,26 @@ class AdminDashboardController extends Controller
         $paiements = Paiement::query()
             ->where('statut', 'CONFIRME')
             ->whereBetween('date_paiement', [$debutMois, now()])
-            ->with(['facture.demande.service'])
+            ->with('facture')
             ->get();
 
-        $novaTech = 0.0;
+        $services = 0.0;
+        $abonnements = 0.0;
         $formations = 0.0;
-        $servicesDag = 0.0;
 
         foreach ($paiements as $paiement) {
-            $facture = $paiement->facture;
-
-            if ($facture?->type === 'FORMATION') {
-                $formations += (float) $paiement->montant;
-
-                continue;
-            }
-
-            if ($facture?->demande?->service?->fournisseur === 'Nova-Tech') {
-                $novaTech += (float) $paiement->montant;
-
-                continue;
-            }
-
-            $servicesDag += (float) $paiement->montant;
+            match ($paiement->facture?->type) {
+                'ABONNEMENT' => $abonnements += (float) $paiement->montant,
+                'FORMATION' => $formations += (float) $paiement->montant,
+                default => $services += (float) $paiement->montant,
+            };
         }
 
         return [
-            'total' => $servicesDag + $novaTech + $formations,
+            'total' => $services + $abonnements + $formations,
             'segments' => [
-                ['label' => 'Services DAG', 'montant' => $servicesDag],
-                ['label' => 'Partenaires Nova-Tech', 'montant' => $novaTech],
+                ['label' => 'Services', 'montant' => $services],
+                ['label' => 'Abonnements', 'montant' => $abonnements],
                 ['label' => 'Formations', 'montant' => $formations],
             ],
         ];
