@@ -21,7 +21,7 @@ class EnsureMembreActif
     {
         $membre = Auth::guard('admin')->user();
 
-        abort_if($membre === null || ! $membre->estActif(), 403);
+        abort_if($membre === null || ! $membre->estActif(), 403, 'Ce compte est désactivé.');
 
         return $next($request);
     }

@@ -323,28 +323,37 @@ export default function AdminEquipe({
                                         </p>
                                     </td>
                                     <td>
-                                        <select
-                                            value={membre.role}
-                                            style={{
-                                                padding: '6px 10px',
-                                                fontSize: 12.5,
-                                            }}
-                                            onChange={(event) =>
-                                                changerRole(
-                                                    membre.id,
-                                                    event.target.value,
-                                                )
-                                            }
-                                        >
-                                            {roles.map((role) => (
-                                                <option
-                                                    key={role.value}
-                                                    value={role.value}
-                                                >
-                                                    {role.label}
-                                                </option>
-                                            ))}
-                                        </select>
+                                        {membre.soiMeme ? (
+                                            <span
+                                                className="muted"
+                                                title="Vous ne pouvez pas modifier votre propre rôle"
+                                            >
+                                                {membre.roleLabel}
+                                            </span>
+                                        ) : (
+                                            <select
+                                                value={membre.role}
+                                                style={{
+                                                    padding: '6px 10px',
+                                                    fontSize: 12.5,
+                                                }}
+                                                onChange={(event) =>
+                                                    changerRole(
+                                                        membre.id,
+                                                        event.target.value,
+                                                    )
+                                                }
+                                            >
+                                                {roles.map((role) => (
+                                                    <option
+                                                        key={role.value}
+                                                        value={role.value}
+                                                    >
+                                                        {role.label}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        )}
                                     </td>
                                     <td>
                                         <span

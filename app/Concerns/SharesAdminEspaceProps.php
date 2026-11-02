@@ -21,7 +21,7 @@ trait SharesAdminEspaceProps
     {
         $membre = $request->user('admin');
 
-        abort_unless($membre instanceof MembreEquipe, 403);
+        abort_unless($membre instanceof MembreEquipe, 403, 'Session administration invalide : reconnectez-vous.');
 
         return $membre;
     }

@@ -154,6 +154,10 @@ class AdminEquipeController extends Controller
         // créer ou gérer les comptes de l'équipe DAG — ce n'est pas une
         // donnée de la matrice d'accès (App\Enums\Donnee), c'est une
         // habilitation à part, réservée au rôle à accès total.
-        abort_unless($this->membre($request)->role === MembreEquipeRole::Promotrice, 403);
+        abort_unless(
+            $this->membre($request)->role === MembreEquipeRole::Promotrice,
+            403,
+            "Seule la Directrice peut gérer l'équipe et les droits."
+        );
     }
 }
