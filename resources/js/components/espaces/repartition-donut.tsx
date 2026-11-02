@@ -6,12 +6,20 @@ type Segment = {
 
 type Props = {
     segments: Segment[];
+    centerLabel?: string;
+    centerValue?: string;
+    legendAsPercentage?: boolean;
 };
 
 const RADIUS = 52;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
-export default function RepartitionDonut({ segments }: Props) {
+export default function RepartitionDonut({
+    segments,
+    centerLabel = 'candidatures',
+    centerValue,
+    legendAsPercentage = false,
+}: Props) {
     const total = segments.reduce((sum, segment) => sum + segment.value, 0);
 
     let offset = 0;
@@ -73,15 +81,16 @@ export default function RepartitionDonut({ segments }: Props) {
                 >
                     <strong
                         style={{
-                            fontSize: 22,
+                            fontSize: centerValue ? 16 : 22,
                             fontWeight: 800,
                             color: 'var(--dag-navy)',
+                            textAlign: 'center',
                         }}
                     >
-                        {total}
+                        {centerValue ?? total}
                     </strong>
                     <span className="muted" style={{ fontSize: 11 }}>
-                        candidatures
+                        {centerLabel}
                     </span>
                 </div>
             </div>
@@ -122,7 +131,11 @@ export default function RepartitionDonut({ segments }: Props) {
                             />
                             {segment.label}
                         </span>
-                        <strong>{segment.value}</strong>
+                        <strong>
+                            {legendAsPercentage
+                                ? `${total > 0 ? Math.round((segment.value / total) * 100) : 0}%`
+                                : segment.value}
+                        </strong>
                     </div>
                 ))}
             </div>

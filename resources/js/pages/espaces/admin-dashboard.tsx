@@ -1,46 +1,97 @@
 import { Head, Link } from '@inertiajs/react';
-import { Award, Tag, Users } from 'lucide-react';
-import attestationsAdmin from '@/routes/espace-admin/attestations';
-import equipeAdmin from '@/routes/espace-admin/equipe';
-import grilleTarifaireAdmin from '@/routes/espace-admin/grille-tarifaire';
+import {
+    Briefcase,
+    FileSignature,
+    FileText,
+    Receipt,
+    TrendingDown,
+    TrendingUp,
+    UserRound,
+} from 'lucide-react';
+import { useState } from 'react';
+import PaiementsChart from '@/components/espaces/paiements-chart';
+import RepartitionDonut from '@/components/espaces/repartition-donut';
+import ServicesRanking from '@/components/espaces/services-ranking';
+import abonnementsAdmin from '@/routes/espace-admin/abonnements';
+import apprenantsAdmin from '@/routes/espace-admin/apprenants';
+import contratsAdmin from '@/routes/espace-admin/contrats';
+import demandesAdmin from '@/routes/espace-admin/demandes';
+import entreprisesAdmin from '@/routes/espace-admin/entreprises';
+import facturesAdmin from '@/routes/espace-admin/factures';
+
+type Point = { label: string; montant: number };
 
 type Props = {
-    membre: {
-        role: string;
-        roleLabel: string;
-    };
     droits: Record<string, string>;
+    kpis: {
+        chiffreAffairesMois: number;
+        chiffreAffairesEvolution: number;
+        demandesEnAttente: number;
+        aTransmettreNovaTech: number;
+        contratsASigner: number;
+        relancesEnvoyees: number;
+        tauxPlacement: number;
+        apprenantsPlaces: number;
+    };
+    paiements: {
+        '7j': Point[];
+        '30j': Point[];
+        '3mois': Point[];
+    };
+    repartitionCa: {
+        total: number;
+        segments: { label: string; montant: number }[];
+    };
+    servicesPlusDemandes: { label: string; total: number; novaTech: boolean }[];
 };
 
-const DONNEE_LABELS: Record<string, string> = {
-    CATALOGUE: 'Catalogue de services',
-    FORMATIONS: 'Formations & sessions',
-    DEMANDES_CLIENTS: 'Demandes clients',
-    ABONNEMENTS: 'Abonnements',
-    FACTURES_PAIEMENTS: 'Factures & paiements',
-    CONTRATS_CLAUSES: 'Contrats & clauses',
-    DOSSIERS_APPRENANTS: 'Dossiers apprenants',
-    ENTREPRISES_OFFRES: 'Entreprises partenaires & offres',
-    STATISTIQUES: 'Statistiques',
-};
+const PERIODES = [
+    { key: '7j' as const, label: '7 jours' },
+    { key: '30j' as const, label: '30 jours' },
+    { key: '3mois' as const, label: '3 mois' },
+];
 
-const NIVEAU_CHIP: Record<string, string> = {
-    TOTAL: 'chip-green',
-    GESTION: 'chip-blue',
-    VALIDATION: 'chip-orange',
-    LECTURE: 'chip-gray',
-    AUCUN: 'chip-red',
-};
+const DONUT_COLORS = [
+    'var(--dag-blue)',
+    'var(--dag-orange)',
+    'var(--dag-green)',
+];
 
-const NIVEAU_LABEL: Record<string, string> = {
-    TOTAL: 'Total',
-    GESTION: 'Gestion',
-    VALIDATION: 'Validation',
-    LECTURE: 'Lecture',
-    AUCUN: 'Aucun',
-};
+export default function AdminDashboard({
+    droits,
+    kpis,
+    paiements,
+    repartitionCa,
+    servicesPlusDemandes,
+}: Props) {
+    const [periode, setPeriode] = useState<keyof typeof paiements>('7j');
 
-export default function AdminDashboard({ membre, droits }: Props) {
+    const formatMontant = (montant: number) =>
+        new Intl.NumberFormat('fr-FR').format(montant);
+
+    const peutVoir = (domaine: string) => droits[domaine] !== 'AUCUN';
+
+    const Evolution = ({ valeur }: { valeur: number }) => (
+        <span
+            style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                fontSize: 12.5,
+                fontWeight: 700,
+                color: valeur >= 0 ? 'var(--dag-green)' : 'var(--dag-red)',
+            }}
+        >
+            {valeur >= 0 ? (
+                <TrendingUp size={13} />
+            ) : (
+                <TrendingDown size={13} />
+            )}
+            {valeur >= 0 ? '+' : ''}
+            {valeur}% vs mois dernier
+        </span>
+    );
+
     return (
         <>
             <Head title="Tableau de bord — Administration" />
@@ -54,134 +105,263 @@ export default function AdminDashboard({ membre, droits }: Props) {
             >
                 <div className="espace-hero-overlay" />
                 <div className="espace-hero-content">
-                    <h1>Espace administrateur DAG</h1>
-                    <p>Connecté en tant que {membre.roleLabel}.</p>
+                    <h1>Tableau de bord</h1>
+                    <p>Vue d'ensemble de l'activité DAG, en temps réel.</p>
                 </div>
             </div>
 
-            <div className="card" style={{ padding: 24, marginBottom: 28 }}>
-                <p style={{ fontSize: 15, fontWeight: 700, marginBottom: 16 }}>
-                    Vos droits d'accès
+            <div
+                className="grid-4 espace-stats-grid"
+                style={{ marginBottom: 24 }}
+            >
+                <div
+                    className="card espace-stat-card"
+                    style={{ padding: 22, borderTopColor: 'var(--dag-blue)' }}
+                >
+                    <span className="muted" style={{ fontSize: 12.5 }}>
+                        Chiffre d'affaires (mois)
+                    </span>
+                    <strong
+                        style={{
+                            display: 'block',
+                            fontSize: 24,
+                            fontWeight: 800,
+                            margin: '6px 0',
+                        }}
+                    >
+                        {formatMontant(kpis.chiffreAffairesMois)} FCFA
+                    </strong>
+                    <Evolution valeur={kpis.chiffreAffairesEvolution} />
+                </div>
+
+                <div
+                    className="card espace-stat-card"
+                    style={{ padding: 22, borderTopColor: 'var(--dag-orange)' }}
+                >
+                    <span className="muted" style={{ fontSize: 12.5 }}>
+                        Demandes en attente
+                    </span>
+                    <strong
+                        style={{
+                            display: 'block',
+                            fontSize: 24,
+                            fontWeight: 800,
+                            margin: '6px 0',
+                        }}
+                    >
+                        {kpis.demandesEnAttente}
+                    </strong>
+                    <span className="muted" style={{ fontSize: 12.5 }}>
+                        {kpis.aTransmettreNovaTech} à transmettre à Nova-Tech
+                    </span>
+                </div>
+
+                <div
+                    className="card espace-stat-card"
+                    style={{ padding: 22, borderTopColor: 'var(--dag-red)' }}
+                >
+                    <span className="muted" style={{ fontSize: 12.5 }}>
+                        Contrats à signer
+                    </span>
+                    <strong
+                        style={{
+                            display: 'block',
+                            fontSize: 24,
+                            fontWeight: 800,
+                            margin: '6px 0',
+                        }}
+                    >
+                        {kpis.contratsASigner}
+                    </strong>
+                    <span className="muted" style={{ fontSize: 12.5 }}>
+                        {kpis.relancesEnvoyees} relances envoyées
+                    </span>
+                </div>
+
+                <div
+                    className="card espace-stat-card"
+                    style={{ padding: 22, borderTopColor: 'var(--dag-green)' }}
+                >
+                    <span className="muted" style={{ fontSize: 12.5 }}>
+                        Taux de placement formation
+                    </span>
+                    <strong
+                        style={{
+                            display: 'block',
+                            fontSize: 24,
+                            fontWeight: 800,
+                            margin: '6px 0',
+                        }}
+                    >
+                        {kpis.tauxPlacement}%
+                    </strong>
+                    <span className="muted" style={{ fontSize: 12.5 }}>
+                        +{kpis.apprenantsPlaces} apprenants placés
+                    </span>
+                </div>
+            </div>
+
+            <div className="card" style={{ padding: 24, marginBottom: 24 }}>
+                <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 16 }}>
+                    Actions rapides
                 </p>
-                <div className="data-table-wrap">
-                    <table className="data-table">
-                        <thead>
-                            <tr>
-                                <th>Domaine</th>
-                                <th>Niveau</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {Object.entries(droits).map(([donnee, niveau]) => (
-                                <tr key={donnee}>
-                                    <td style={{ fontWeight: 600 }}>
-                                        {DONNEE_LABELS[donnee] ?? donnee}
-                                    </td>
-                                    <td>
-                                        <span
-                                            className={`chip ${NIVEAU_CHIP[niveau] ?? 'chip-gray'}`}
-                                        >
-                                            {NIVEAU_LABEL[niveau] ?? niveau}
-                                        </span>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                    {peutVoir('DEMANDES_CLIENTS') && (
+                        <Link
+                            href={demandesAdmin.index()}
+                            className="espace-action-btn"
+                        >
+                            <FileText size={16} />
+                            Demandes clients
+                            {kpis.demandesEnAttente > 0 && (
+                                <span className="espace-action-badge">
+                                    {kpis.demandesEnAttente}
+                                </span>
+                            )}
+                        </Link>
+                    )}
+                    {peutVoir('FACTURES_PAIEMENTS') && (
+                        <Link
+                            href={facturesAdmin.index()}
+                            className="espace-action-btn"
+                        >
+                            <Receipt size={16} />
+                            Factures & paiements
+                        </Link>
+                    )}
+                    {peutVoir('CONTRATS_CLAUSES') && (
+                        <Link
+                            href={contratsAdmin.index()}
+                            className="espace-action-btn"
+                        >
+                            <FileSignature size={16} />
+                            Contrats & clauses
+                            {kpis.contratsASigner > 0 && (
+                                <span className="espace-action-badge">
+                                    {kpis.contratsASigner}
+                                </span>
+                            )}
+                        </Link>
+                    )}
+                    {peutVoir('ENTREPRISES_OFFRES') && (
+                        <Link
+                            href={entreprisesAdmin.index()}
+                            className="espace-action-btn"
+                        >
+                            <Briefcase size={16} />
+                            Entreprises & offres
+                        </Link>
+                    )}
+                    {peutVoir('DOSSIERS_APPRENANTS') && (
+                        <Link
+                            href={apprenantsAdmin.index()}
+                            className="espace-action-btn"
+                        >
+                            <UserRound size={16} />
+                            Dossiers apprenants
+                        </Link>
+                    )}
+                    {peutVoir('ABONNEMENTS') && (
+                        <Link
+                            href={abonnementsAdmin.index()}
+                            className="espace-action-btn"
+                        >
+                            <Receipt size={16} />
+                            Abonnements
+                        </Link>
+                    )}
                 </div>
             </div>
 
-            <div className="grid-3">
-                {droits.CATALOGUE !== 'AUCUN' && (
-                    <Link
-                        href={grilleTarifaireAdmin.index()}
-                        className="card"
-                        style={{ padding: 24 }}
+            <div
+                className="split-layout-wide"
+                style={{ marginBottom: 24, gap: 24 }}
+            >
+                <div className="card" style={{ padding: 24 }}>
+                    <div
+                        style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            marginBottom: 16,
+                            flexWrap: 'wrap',
+                            gap: 10,
+                        }}
                     >
-                        <span
-                            className="espace-stat-icon"
-                            style={{
-                                background: 'var(--dag-blue-light)',
-                                color: 'var(--dag-blue)',
-                            }}
-                        >
-                            <Tag size={18} />
-                        </span>
-                        <p
-                            style={{
-                                fontSize: 14.5,
-                                fontWeight: 700,
-                                marginTop: 14,
-                                color: 'var(--dag-navy)',
-                            }}
-                        >
-                            Grille tarifaire
+                        <p style={{ fontSize: 14, fontWeight: 700 }}>
+                            Paiements encaissés
                         </p>
-                        <p className="muted" style={{ fontSize: 12.5 }}>
-                            Gérer les prestations et tarifs publiés.
-                        </p>
-                    </Link>
-                )}
-                {droits.DOSSIERS_APPRENANTS !== 'AUCUN' && (
-                    <Link
-                        href={attestationsAdmin.index()}
-                        className="card"
-                        style={{ padding: 24 }}
-                    >
-                        <span
-                            className="espace-stat-icon"
+                        <div
                             style={{
-                                background: 'var(--dag-green-bg)',
-                                color: 'var(--dag-green)',
-                            }}
-                        >
-                            <Award size={18} />
-                        </span>
-                        <p
-                            style={{
-                                fontSize: 14.5,
-                                fontWeight: 700,
-                                marginTop: 14,
-                                color: 'var(--dag-navy)',
-                            }}
-                        >
-                            Attestations
-                        </p>
-                        <p className="muted" style={{ fontSize: 12.5 }}>
-                            Valider les formations terminées.
-                        </p>
-                    </Link>
-                )}
-                {membre.role === 'PROMOTRICE' && (
-                    <Link
-                        href={equipeAdmin.index()}
-                        className="card"
-                        style={{ padding: 24 }}
-                    >
-                        <span
-                            className="espace-stat-icon"
-                            style={{
+                                display: 'flex',
+                                gap: 4,
+                                padding: 4,
                                 background: '#f1f2f6',
-                                color: 'var(--dag-text-muted)',
+                                borderRadius: 999,
                             }}
                         >
-                            <Users size={18} />
-                        </span>
-                        <p
-                            style={{
-                                fontSize: 14.5,
-                                fontWeight: 700,
-                                marginTop: 14,
-                                color: 'var(--dag-navy)',
-                            }}
-                        >
-                            Équipe DAG
-                        </p>
-                        <p className="muted" style={{ fontSize: 12.5 }}>
-                            Créer et gérer les comptes de l'équipe.
-                        </p>
-                    </Link>
-                )}
+                            {PERIODES.map((item) => (
+                                <button
+                                    key={item.key}
+                                    type="button"
+                                    onClick={() => setPeriode(item.key)}
+                                    style={{
+                                        border: 'none',
+                                        borderRadius: 999,
+                                        padding: '6px 14px',
+                                        fontSize: 12.5,
+                                        fontWeight: 700,
+                                        cursor: 'pointer',
+                                        background:
+                                            periode === item.key
+                                                ? 'var(--dag-blue)'
+                                                : 'transparent',
+                                        color:
+                                            periode === item.key
+                                                ? '#fff'
+                                                : 'var(--dag-text-muted)',
+                                    }}
+                                >
+                                    {item.label}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                    <PaiementsChart series={paiements[periode]} />
+                </div>
+
+                <div className="card" style={{ padding: 24 }}>
+                    <p
+                        style={{
+                            fontSize: 14,
+                            fontWeight: 700,
+                            marginBottom: 16,
+                        }}
+                    >
+                        Répartition du chiffre d'affaires
+                    </p>
+                    <RepartitionDonut
+                        segments={repartitionCa.segments.map(
+                            (segment, index) => ({
+                                label: segment.label,
+                                value: segment.montant,
+                                color: DONUT_COLORS[
+                                    index % DONUT_COLORS.length
+                                ],
+                            }),
+                        )}
+                        centerValue={`${formatMontant(repartitionCa.total)}`}
+                        centerLabel="FCFA ce mois"
+                        legendAsPercentage
+                    />
+                </div>
+            </div>
+
+            <div className="card" style={{ padding: 24 }}>
+                <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 16 }}>
+                    Services les plus demandés
+                </p>
+                <ServicesRanking services={servicesPlusDemandes} />
             </div>
         </>
     );
