@@ -1,4 +1,5 @@
 import { Head, router, useForm } from '@inertiajs/react';
+import { NIVEAU_CHIP, NIVEAU_LABEL } from '@/lib/niveau-droit';
 import equipeAdmin from '@/routes/espace-admin/equipe';
 
 type Membre = {
@@ -12,13 +13,26 @@ type Membre = {
 };
 
 type Role = { value: string; label: string };
+type Domaine = { value: string; label: string };
+type MatriceRole = {
+    role: string;
+    roleLabel: string;
+    droits: Record<string, string>;
+};
 
 type Props = {
     membres: Membre[];
     roles: Role[];
+    domaines: Domaine[];
+    matriceRoles: MatriceRole[];
 };
 
-export default function AdminEquipe({ membres, roles }: Props) {
+export default function AdminEquipe({
+    membres,
+    roles,
+    domaines,
+    matriceRoles,
+}: Props) {
     const createForm = useForm({
         name: '',
         email: '',
@@ -219,6 +233,13 @@ export default function AdminEquipe({ membres, roles }: Props) {
                         )}
                     </div>
                 </div>
+
+                <DroitsPreview
+                    domaines={domaines}
+                    matrice={matriceRoles}
+                    role={createForm.data.role}
+                />
+
                 <button
                     type="submit"
                     disabled={createForm.processing}
@@ -336,6 +357,110 @@ export default function AdminEquipe({ membres, roles }: Props) {
                     </table>
                 </div>
             </div>
+
+            <div className="card" style={{ padding: 24, marginTop: 28 }}>
+                <p style={{ fontSize: 14.5, fontWeight: 700 }}>
+                    Droits par rôle
+                </p>
+                <p
+                    className="muted"
+                    style={{ fontSize: 12.5, marginTop: 4, marginBottom: 18 }}
+                >
+                    Le rôle attribué à un membre détermine automatiquement ce
+                    qu'il peut voir et gérer dans l'espace admin. Par exemple,
+                    attribuer le rôle Juriste donne un accès Total à « Contrats
+                    & clauses ».
+                </p>
+                <div
+                    style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 18,
+                    }}
+                >
+                    {matriceRoles.map((matrice) => (
+                        <div
+                            key={matrice.role}
+                            style={{
+                                paddingTop: 14,
+                                borderTop: '1px solid var(--dag-border)',
+                            }}
+                        >
+                            <p style={{ fontWeight: 700, marginBottom: 10 }}>
+                                {matrice.roleLabel}
+                            </p>
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    flexWrap: 'wrap',
+                                    gap: 8,
+                                }}
+                            >
+                                {domaines.map((domaine) => {
+                                    const niveau =
+                                        matrice.droits[domaine.value] ??
+                                        'AUCUN';
+
+                                    return (
+                                        <span
+                                            key={domaine.value}
+                                            className={`chip ${NIVEAU_CHIP[niveau] ?? 'chip-gray'}`}
+                                            style={{ fontSize: 11.5 }}
+                                        >
+                                            {domaine.label} ·{' '}
+                                            {NIVEAU_LABEL[niveau] ?? niveau}
+                                        </span>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
         </>
+    );
+}
+
+function DroitsPreview({
+    domaines,
+    matrice,
+    role,
+}: {
+    domaines: Domaine[];
+    matrice: MatriceRole[];
+    role: string;
+}) {
+    const droits = matrice.find((item) => item.role === role)?.droits ?? {};
+
+    return (
+        <div
+            style={{
+                background: '#f6f7fb',
+                borderRadius: 'var(--dag-radius-sm)',
+                padding: 14,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 10,
+            }}
+        >
+            <span className="muted" style={{ fontSize: 12 }}>
+                Accès accordés par ce rôle :
+            </span>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {domaines.map((domaine) => {
+                    const niveau = droits[domaine.value] ?? 'AUCUN';
+
+                    return (
+                        <span
+                            key={domaine.value}
+                            className={`chip ${NIVEAU_CHIP[niveau] ?? 'chip-gray'}`}
+                            style={{ fontSize: 11.5 }}
+                        >
+                            {domaine.label} · {NIVEAU_LABEL[niveau] ?? niveau}
+                        </span>
+                    );
+                })}
+            </div>
+        </div>
     );
 }

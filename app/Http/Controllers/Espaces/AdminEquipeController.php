@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Espaces;
 
 use App\Concerns\PasswordValidationRules;
 use App\Concerns\SharesAdminEspaceProps;
+use App\Enums\Donnee;
 use App\Enums\MembreEquipeRole;
 use App\Enums\UserType;
 use App\Http\Controllers\Controller;
 use App\Models\MembreEquipe;
 use App\Models\User;
+use App\Support\DroitsMatrix;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -43,6 +45,15 @@ class AdminEquipeController extends Controller
             'roles' => collect(MembreEquipeRole::cases())->map(fn (MembreEquipeRole $role) => [
                 'value' => $role->value,
                 'label' => $role->label(),
+            ]),
+            'domaines' => collect(Donnee::cases())->map(fn (Donnee $donnee) => [
+                'value' => $donnee->value,
+                'label' => $donnee->label(),
+            ]),
+            'matriceRoles' => collect(MembreEquipeRole::cases())->map(fn (MembreEquipeRole $role) => [
+                'role' => $role->value,
+                'roleLabel' => $role->label(),
+                'droits' => collect(DroitsMatrix::pourRole($role))->map(fn ($niveau) => $niveau->value),
             ]),
         ]);
     }

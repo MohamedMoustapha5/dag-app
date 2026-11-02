@@ -3,6 +3,20 @@
 use App\Enums\MembreEquipeRole;
 use App\Models\MembreEquipe;
 
+test('the index page exposes the access matrix, confirming the juriste role grants contract management', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+
+    $response = $this->actingAs($promotrice->user)->get(route('espace-admin.equipe.index'));
+
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page
+        ->component('espaces/admin-equipe')
+        ->has('matriceRoles', 5)
+        ->where('matriceRoles.1.role', 'JURISTE')
+        ->where('matriceRoles.1.droits.CONTRATS_CLAUSES', 'TOTAL')
+        ->has('domaines', 9));
+});
+
 test('a promotrice can create a new membre equipe account', function () {
     $promotrice = MembreEquipe::factory()->promotrice()->create();
 
