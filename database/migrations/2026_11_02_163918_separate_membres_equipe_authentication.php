@@ -46,7 +46,15 @@ return new class extends Migration
             $table->unique('email');
         });
 
-        DB::table('users')->whereIn('id', $membres->pluck('user_id'))->delete();
+        // Any account still typed as staff in the public table (including an
+        // orphan without a membres_equipe row) must go too: the application no
+        // longer knows that account type, so a leftover row, or a browser
+        // session still pointing at it, would crash on load.
+        DB::table('users')
+            ->where(fn ($query) => $query
+                ->whereIn('id', $membres->pluck('user_id'))
+                ->orWhere('type', 'MEMBRE_EQUIPE'))
+            ->delete();
     }
 
     public function down(): void
