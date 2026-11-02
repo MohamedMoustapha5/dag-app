@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Attestation;
 use App\Models\Inscription;
 use App\Models\Seance;
+use App\Support\DocumentAssets;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
@@ -119,6 +120,7 @@ class AdminAttestationController extends Controller
             'formation' => $attestation->formation->nom,
             'duree' => $attestation->formation->duree,
             'dateEmission' => Carbon::parse($attestation->date_emission)->format('d/m/Y'),
+            'signature' => DocumentAssets::signatureDirectrice(),
         ])->setPaper('a4', 'landscape')->download("attestation-{$attestation->reference}.pdf");
     }
 

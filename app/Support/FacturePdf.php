@@ -16,31 +16,39 @@ class FacturePdf
     {
         abort_unless($facture->statut === 'PAYEE', 403, 'Seule une facture payée peut être téléchargée.');
 
-        $facture->load(['client', 'entreprise', 'apprenant.user', 'demande.service', 'demande.formule', 'abonnement.formule', 'inscription.formation', 'paiements']);
+        $facture->load(['client.user', 'entreprise', 'apprenant.user', 'demande.service', 'demande.formule', 'abonnement.formule', 'inscription.formation', 'paiements']);
+
+        [$destinataire, $contact] = self::destinataire($facture);
 
         return Pdf::loadView('pdf.facture', [
             'facture' => $facture,
             'objet' => $facture->libelleObjet(),
-            'destinataire' => self::destinataire($facture),
+            'destinataire' => $destinataire,
+            'contact' => $contact,
+            'moyen' => $facture->moyen_paiement ?? '—',
             'datePaiement' => self::datePaiement($facture),
-        ])->download("facture-{$facture->reference}.pdf");
+            'signature' => DocumentAssets::signatureDirectrice(),
+        ])->setPaper('a4')->download("facture-{$facture->reference}.pdf");
     }
 
-    private static function destinataire(Facture $facture): string
+    /**
+     * @return array{0: string, 1: string|null}
+     */
+    private static function destinataire(Facture $facture): array
     {
         if ($facture->client_id !== null) {
-            return $facture->client->nom;
+            return [$facture->client->nom, $facture->client->user->email];
         }
 
         if ($facture->entreprise_id !== null) {
-            return $facture->entreprise->nom;
+            return [$facture->entreprise->nom, $facture->entreprise->email];
         }
 
         if ($facture->apprenant_id !== null) {
-            return $facture->apprenant->user->name;
+            return [$facture->apprenant->user->name, $facture->apprenant->user->email];
         }
 
-        return '—';
+        return ['—', null];
     }
 
     private static function datePaiement(Facture $facture): string

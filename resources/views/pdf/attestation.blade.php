@@ -5,45 +5,61 @@
     <title>Attestation {{ $attestation->reference }}</title>
     <style>
         @page { margin: 0; }
-        body { font-family: DejaVu Sans, sans-serif; color: #071f41; margin: 0; }
-        .frame { margin: 22px; padding: 14px; border: 3px solid #071f41; height: 690px; }
-        .inner { border: 1px solid #faa608; padding: 28px 32px; height: 602px; text-align: center; }
-        .brand { font-size: 13px; letter-spacing: 3px; color: #0166fe; font-weight: bold; text-transform: uppercase; }
-        h1 { font-size: 30px; margin: 26px 0 6px; letter-spacing: 2px; text-transform: uppercase; }
-        .sub { font-size: 12px; color: #5b6b82; }
-        .name { font-size: 26px; font-weight: bold; margin: 28px 0 8px; color: #0166fe; }
-        .text { font-size: 13.5px; line-height: 1.7; margin: 0 40px; }
-        .formation { font-size: 19px; font-weight: bold; margin: 14px 0; }
-        .meta { margin-top: 36px; font-size: 11.5px; color: #5b6b82; line-height: 1.7; }
-        .signature { margin-top: 34px; font-size: 12px; }
-        .signature strong { display: block; margin-top: 4px; }
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: sans-serif; color: #071f41; }
+        .abs { position: absolute; }
+        .fond { left: 0; top: 0; width: 1123px; height: 794px; }
+        .logo { left: 78px; top: 66px; width: 190px; }
+        .titre { left: 150px; top: 200px; font-size: 62px; font-weight: bold; color: #0166fe; letter-spacing: 1px; }
+        .sous-titre { left: 152px; top: 282px; font-size: 17px; font-weight: bold; letter-spacing: 3px; }
+        .presente { left: 152px; top: 315px; font-size: 11px; letter-spacing: 2px; color: #5b6b82; }
+        .nom { left: 150px; top: 372px; font-size: 40px; font-weight: bold; color: #0166fe; }
+        .formation { left: 152px; top: 440px; width: 620px; font-size: 16px; font-weight: bold; }
+        .texte { left: 152px; top: 478px; width: 620px; font-size: 12px; line-height: 1.7; color: #3d4f6b; }
+        .date-bloc { left: 210px; top: 640px; width: 220px; font-size: 12px; }
+        .signature-bloc { left: 500px; top: 600px; width: 250px; font-size: 12px; text-align: center; }
+        .ligne { border-top: 1px solid #071f41; padding-top: 5px; letter-spacing: 2px; font-size: 10px; color: #5b6b82; }
+        .sceau-1 { left: 855px; top: 214px; width: 100px; text-align: center; font-size: 10px; font-weight: bold; letter-spacing: 2px; color: #0166fe; }
+        .sceau-2 { left: 855px; top: 232px; width: 100px; text-align: center; font-size: 28px; font-weight: bold; color: #071f41; }
+        .sceau-3 { left: 855px; top: 266px; width: 100px; text-align: center; font-size: 9px; letter-spacing: 2px; color: #faa608; font-weight: bold; }
+        .ref { left: 210px; top: 700px; font-size: 9.5px; color: #5b6b82; letter-spacing: 0.5px; }
     </style>
 </head>
 <body>
-<div class="frame">
-    <div class="inner">
-        <div class="brand">DAG &mdash; Digital Agency Group</div>
-        <h1>Attestation de formation</h1>
-        <div class="sub">Réf. {{ $attestation->reference }}</div>
+    <img class="abs fond" src="{{ public_path('images/brand/pdf/attestation-fond.svg') }}" alt="">
+    <img class="abs logo" src="{{ public_path('images/brand/dag-logo-pdf.png') }}" alt="DAG — Digital Agency Group">
 
-        <p class="text" style="margin-top: 30px;">DAG &mdash; Digital Agency Group atteste que</p>
-        <div class="name">{{ $apprenant }}</div>
-        <p class="text">a suivi avec assiduité et mené à son terme la formation</p>
-        <div class="formation">{{ $formation }}</div>
-        @if($duree)
-            <p class="text">Durée de la formation : {{ $duree }}</p>
-        @endif
+    <div class="abs titre">Attestation</div>
+    <div class="abs sous-titre">DE FORMATION</div>
+    <div class="abs presente">CETTE ATTESTATION EST DÉCERNÉE À</div>
 
-        <div class="signature">
-            Fait le {{ $dateEmission }}<br>
-            <strong>La Direction de DAG</strong>
-        </div>
+    <div class="abs nom">{{ $apprenant }}</div>
 
-        <div class="meta">
-            Attestation validée par l'équipe DAG avant délivrance.<br>
-            Numéro de référence : {{ $attestation->reference }}
-        </div>
+    <div class="abs formation">{{ $formation }}</div>
+    <div class="abs texte">
+        DAG — Digital Agency Group atteste que la personne ci-dessus a suivi avec assiduité
+        et mené à son terme cette formation @if($duree)(durée : {{ $duree }})@endif.
+        Cette attestation a été vérifiée et validée par l'équipe DAG avant sa délivrance.
     </div>
-</div>
+
+    <div class="abs date-bloc">
+        <div style="font-size: 13px; font-weight: bold; margin-bottom: 6px;">{{ $dateEmission }}</div>
+        <div class="ligne">DATE</div>
+    </div>
+
+    <div class="abs signature-bloc">
+        @if($signature)
+            <img src="{{ $signature }}" alt="" style="height: 62px; margin-bottom: 2px;">
+        @else
+            <div style="height: 62px;"></div>
+        @endif
+        <div class="ligne">LA DIRECTION &mdash; SIGNATURE</div>
+    </div>
+
+    <div class="abs sceau-1">CERTIFIÉ</div>
+    <div class="abs sceau-2">DAG</div>
+    <div class="abs sceau-3">FORMATION</div>
+
+    <div class="abs ref">Réf. {{ $attestation->reference }} &nbsp;·&nbsp; Délivrée par DAG — Digital Agency Group, Douala, Cameroun</div>
 </body>
 </html>

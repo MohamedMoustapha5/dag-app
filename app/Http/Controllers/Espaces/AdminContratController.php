@@ -10,7 +10,7 @@ use App\Models\Clause;
 use App\Models\Contrat;
 use App\Models\Demande;
 use App\Models\ModeleContrat;
-use Barryvdh\DomPDF\Facade\Pdf;
+use App\Support\ContratPdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
@@ -185,20 +185,7 @@ class AdminContratController extends Controller
         abort_unless($membre->peut(Donnee::ContratsClauses, Action::Telecharger), 403);
         abort_unless($contrat->estSigne(), 409, "Ce contrat n'a pas encore été signé.");
 
-        $contrat->load(['client', 'apprenant.user', 'entreprise', 'demande', 'abonnement.formule', 'candidature.offre']);
-
-        $statutLabels = [
-            'SIGNE' => 'Signé', 'ACTIF' => 'Actif', 'TERMINE' => 'Terminé',
-            'RESILIE' => 'Résilié', 'ENVOYE' => 'Envoyé', 'BROUILLON' => 'Brouillon', 'REFUSE' => 'Refusé',
-        ];
-
-        return Pdf::loadView('pdf.contrat', [
-            'contrat' => $contrat,
-            'objet' => $contrat->libelleObjet(),
-            'partie' => $contrat->nomPartie(),
-            'statutLabel' => $statutLabels[$contrat->statut],
-            'dateSignature' => $contrat->date_signature?->format('d/m/Y à H:i') ?? '—',
-        ])->download("contrat-{$contrat->reference}.pdf");
+        return ContratPdf::telecharger($contrat);
     }
 
     public function update(Request $request, Contrat $contrat): RedirectResponse
