@@ -13,7 +13,6 @@ import {
     Menu,
     Receipt,
     Shield,
-    Sparkles,
     Tag,
     UserRound,
     Users,
@@ -35,7 +34,6 @@ import entreprisesAdmin from '@/routes/espace-admin/entreprises';
 import equipeAdmin from '@/routes/espace-admin/equipe';
 import facturesAdmin from '@/routes/espace-admin/factures';
 import formationsAdmin from '@/routes/espace-admin/formations';
-import formulesAdmin from '@/routes/espace-admin/formules';
 import grilleTarifaireAdmin from '@/routes/espace-admin/grille-tarifaire';
 import servicesAdmin from '@/routes/espace-admin/services';
 
@@ -119,12 +117,6 @@ const NAV_GROUPS: NavGroup[] = [
                 label: 'Abonnements',
                 icon: Shield,
                 href: abonnementsAdmin.index(),
-                visibleIf: 'ABONNEMENTS',
-            },
-            {
-                label: 'Formules d’abonnement',
-                icon: Sparkles,
-                href: formulesAdmin.index(),
                 visibleIf: 'ABONNEMENTS',
             },
         ],
