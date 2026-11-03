@@ -27,7 +27,7 @@ class AdminFactureController extends Controller
         abort_unless($membre->peut(Donnee::FacturesPaiements, Action::Voir), 403);
 
         $factures = Facture::query()
-            ->with(['client', 'entreprise', 'apprenant.user', 'demande', 'abonnement.formule', 'inscription.formation'])
+            ->with(['client', 'entreprise', 'apprenant.user', 'demande.contrat', 'abonnement.formule', 'inscription.formation'])
             ->latest()
             ->get();
 
@@ -40,6 +40,7 @@ class AdminFactureController extends Controller
         return Inertia::render('espaces/admin-factures', [
             ...$this->adminEspaceProps($membre),
             'peutCreer' => $membre->peut(Donnee::FacturesPaiements, Action::Creer),
+            'peutGenererContrat' => $membre->peut(Donnee::ContratsClauses, Action::Creer),
             'factures' => $factures->map(fn (Facture $facture) => [
                 'id' => $facture->id,
                 'reference' => $facture->reference,
@@ -48,6 +49,8 @@ class AdminFactureController extends Controller
                 'montant' => $facture->montant,
                 'montantPaye' => $facture->montant_paye,
                 'statut' => $facture->statut,
+                'demandeId' => $facture->demande_id,
+                'aContrat' => $facture->demande_id !== null && $facture->demande->contrat !== null,
             ]),
             'demandesAFacturer' => $demandesAFacturer->map(fn (Demande $demande) => [
                 'id' => $demande->id,
@@ -100,6 +103,7 @@ class AdminFactureController extends Controller
             ...$this->adminEspaceProps($membre),
             'peutCreer' => $membre->peut(Donnee::FacturesPaiements, Action::Creer),
             'peutModifier' => $membre->peut(Donnee::FacturesPaiements, Action::Modifier),
+            'peutGenererContrat' => $membre->peut(Donnee::ContratsClauses, Action::Creer),
             'facture' => [
                 'id' => $facture->id,
                 'reference' => $facture->reference,
@@ -108,6 +112,8 @@ class AdminFactureController extends Controller
                 'montant' => $facture->montant,
                 'montantPaye' => $facture->montant_paye,
                 'statut' => $facture->statut,
+                'demandeId' => $facture->demande_id,
+                'aContrat' => $facture->demande_id !== null && $facture->demande->contrat()->exists(),
             ],
             'paiements' => $facture->paiements->map(fn (Paiement $paiement) => [
                 'id' => $paiement->id,

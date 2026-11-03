@@ -1,9 +1,11 @@
 import { Head, Link, useForm } from '@inertiajs/react';
+import GenererContratButton from '@/components/espaces/generer-contrat-button';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
 import demandesAdmin from '@/routes/espace-admin/demandes';
 
 type Props = {
     peutModifier: boolean;
+    peutGenererContrat: boolean;
     demande: {
         id: string;
         reference: string;
@@ -13,6 +15,7 @@ type Props = {
         description: string;
         statut: string;
         montantNegocie: string | null;
+        payee: boolean;
         createdAt: string;
         contrat: { reference: string; statut: string } | null;
         facture: { reference: string; statut: string } | null;
@@ -26,6 +29,7 @@ type Props = {
 
 export default function AdminDemandeShow({
     peutModifier,
+    peutGenererContrat,
     demande,
     suivi,
 }: Props) {
@@ -142,6 +146,24 @@ export default function AdminDemandeShow({
                                 {STATUT_LABEL[demande.contrat.statut] ??
                                     demande.contrat.statut}
                             </span>
+                        </div>
+                    )}
+                    {!demande.contrat && demande.payee && peutGenererContrat && (
+                        <div className="card" style={{ padding: 20 }}>
+                            <p className="muted" style={{ fontSize: 12.5 }}>
+                                Contrat
+                            </p>
+                            <p
+                                className="muted"
+                                style={{ fontSize: 13, margin: '6px 0 12px' }}
+                            >
+                                Demande payée : vous pouvez générer son contrat
+                                (facultatif).
+                            </p>
+                            <GenererContratButton
+                                demandeId={demande.id}
+                                variante="bouton"
+                            />
                         </div>
                     )}
                     {demande.facture && (

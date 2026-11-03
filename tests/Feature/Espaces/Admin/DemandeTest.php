@@ -3,6 +3,7 @@
 use App\Enums\MembreEquipeRole;
 use App\Models\Client;
 use App\Models\Demande;
+use App\Models\Facture;
 use App\Models\MembreEquipe;
 
 test('a promotrice can list and view demandes from clients and entreprises', function () {
@@ -124,4 +125,27 @@ test('a role with only lecture cannot send a devis', function () {
         ->assertForbidden();
 
     expect($demande->fresh()->statut)->toBe('EN_ETUDE');
+});
+
+test('a demande is flagged as paid from its facture, whatever its progress status', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $payeeEnCours = Demande::factory()->create(['statut' => 'EN_COURS']);
+    Facture::factory()->payee()->create(['demande_id' => $payeeEnCours->id]);
+    $terminee = Demande::factory()->create(['statut' => 'TERMINEE']);
+    $impayee = Demande::factory()->create(['statut' => 'DEVIS_ENVOYE']);
+    Facture::factory()->create(['demande_id' => $impayee->id]);
+
+    $reponse = $this->actingAs($promotrice, 'admin')->get(route('espace-admin.demandes.index'));
+
+    $reponse->assertInertia(function ($page) use ($payeeEnCours, $terminee, $impayee) {
+        $demandes = collect($page->toArray()['props']['demandes'])->keyBy('id');
+
+        expect($demandes[$payeeEnCours->id]['payee'])->toBeTrue();
+        expect($demandes[$terminee->id]['payee'])->toBeFalse();
+        expect($demandes[$impayee->id]['payee'])->toBeFalse();
+    });
+
+    $this->actingAs($promotrice, 'admin')
+        ->get(route('espace-admin.demandes.show', $payeeEnCours))
+        ->assertInertia(fn ($page) => $page->where('demande.payee', true)->where('peutGenererContrat', true));
 });

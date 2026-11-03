@@ -1,5 +1,6 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useState } from 'react';
+import GenererContratButton from '@/components/espaces/generer-contrat-button';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
 import facturesAdmin from '@/routes/espace-admin/factures';
 
@@ -11,6 +12,8 @@ type Facture = {
     montant: string;
     montantPaye: string;
     statut: string;
+    demandeId: string | null;
+    aContrat: boolean;
 };
 
 type DemandeAFacturer = {
@@ -24,12 +27,14 @@ type Props = {
     factures: Facture[];
     demandesAFacturer: DemandeAFacturer[];
     peutCreer: boolean;
+    peutGenererContrat: boolean;
 };
 
 export default function AdminFactures({
     factures,
     demandesAFacturer,
     peutCreer,
+    peutGenererContrat,
 }: Props) {
     const [demandeId, setDemandeId] = useState(demandesAFacturer[0]?.id ?? '');
     const demandeSelectionnee = demandesAFacturer.find(
@@ -175,6 +180,7 @@ export default function AdminFactures({
                                     <th>Montant</th>
                                     <th>Payé</th>
                                     <th>Statut</th>
+                                    <th />
                                 </tr>
                             </thead>
                             <tbody>
@@ -209,6 +215,26 @@ export default function AdminFactures({
                                                 {STATUT_LABEL[facture.statut] ??
                                                     facture.statut}
                                             </span>
+                                        </td>
+                                        <td style={{ textAlign: 'right' }}>
+                                            {facture.statut === 'PAYEE' &&
+                                                facture.demandeId &&
+                                                (facture.aContrat ? (
+                                                    <span
+                                                        className="muted"
+                                                        style={{ fontSize: 12 }}
+                                                    >
+                                                        Contrat créé
+                                                    </span>
+                                                ) : (
+                                                    peutGenererContrat && (
+                                                        <GenererContratButton
+                                                            demandeId={
+                                                                facture.demandeId
+                                                            }
+                                                        />
+                                                    )
+                                                ))}
                                         </td>
                                     </tr>
                                 ))}

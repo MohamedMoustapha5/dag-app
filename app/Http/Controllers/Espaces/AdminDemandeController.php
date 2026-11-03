@@ -26,7 +26,7 @@ class AdminDemandeController extends Controller
         abort_unless($membre->peut(Donnee::DemandesClients, Action::Voir), 403);
 
         $demandes = Demande::query()
-            ->with(['client', 'entreprise', 'service', 'formule'])
+            ->with(['client', 'entreprise', 'service', 'formule', 'facture'])
             ->withExists('contrat')
             ->latest('updated_at')
             ->get();
@@ -43,6 +43,7 @@ class AdminDemandeController extends Controller
                 'statut' => $demande->statut,
                 'montantNegocie' => $demande->montant_negocie,
                 'aContrat' => $demande->contrat_exists,
+                'payee' => $demande->facture !== null && $demande->facture->statut === 'PAYEE',
                 'updatedAt' => $demande->updated_at?->toDateString(),
             ]),
         ]);
@@ -60,6 +61,7 @@ class AdminDemandeController extends Controller
         return Inertia::render('espaces/admin-demande-show', [
             ...$this->adminEspaceProps($membre),
             'peutModifier' => $membre->peut(Donnee::DemandesClients, Action::Modifier),
+            'peutGenererContrat' => $membre->peut(Donnee::ContratsClauses, Action::Creer),
             'demande' => [
                 'id' => $demande->id,
                 'reference' => $demande->reference,
@@ -69,6 +71,7 @@ class AdminDemandeController extends Controller
                 'description' => $demande->description,
                 'statut' => $demande->statut,
                 'montantNegocie' => $demande->montant_negocie,
+                'payee' => $demande->facture !== null && $demande->facture->statut === 'PAYEE',
                 'createdAt' => $demande->created_at?->toDateString(),
                 'contrat' => $demande->contrat !== null ? [
                     'reference' => $demande->contrat->reference,

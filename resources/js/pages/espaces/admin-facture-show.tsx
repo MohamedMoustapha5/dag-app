@@ -1,4 +1,5 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
+import GenererContratButton from '@/components/espaces/generer-contrat-button';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
 import facturesAdmin from '@/routes/espace-admin/factures';
 import paiementsAdmin from '@/routes/espace-admin/paiements';
@@ -11,6 +12,8 @@ type Facture = {
     montant: string;
     montantPaye: string;
     statut: string;
+    demandeId: string | null;
+    aContrat: boolean;
 };
 
 type Paiement = {
@@ -37,6 +40,7 @@ type Props = {
     paiements: Paiement[];
     peutCreer: boolean;
     peutModifier: boolean;
+    peutGenererContrat: boolean;
 };
 
 export default function AdminFactureShow({
@@ -44,6 +48,7 @@ export default function AdminFactureShow({
     paiements,
     peutCreer,
     peutModifier,
+    peutGenererContrat,
 }: Props) {
     const trancher = (id: string, statut: 'CONFIRME' | 'ECHEC') => {
         router.patch(
@@ -101,12 +106,25 @@ export default function AdminFactureShow({
                         {facture.reference} · {facture.client}
                     </span>
                 </div>
-                <span
-                    className={`chip ${STATUT_CHIP[facture.statut] ?? 'chip-gray'}`}
-                    style={{ fontSize: 13, padding: '8px 16px' }}
+                <div
+                    style={{ display: 'flex', alignItems: 'center', gap: 12 }}
                 >
-                    {STATUT_LABEL[facture.statut] ?? facture.statut}
-                </span>
+                    {facture.statut === 'PAYEE' &&
+                        facture.demandeId &&
+                        peutGenererContrat &&
+                        !facture.aContrat && (
+                            <GenererContratButton
+                                demandeId={facture.demandeId}
+                                variante="bouton"
+                            />
+                        )}
+                    <span
+                        className={`chip ${STATUT_CHIP[facture.statut] ?? 'chip-gray'}`}
+                        style={{ fontSize: 13, padding: '8px 16px' }}
+                    >
+                        {STATUT_LABEL[facture.statut] ?? facture.statut}
+                    </span>
+                </div>
             </div>
 
             <div

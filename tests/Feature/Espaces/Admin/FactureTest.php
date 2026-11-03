@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\MembreEquipeRole;
+use App\Models\Contrat;
 use App\Models\Demande;
 use App\Models\Facture;
 use App\Models\MembreEquipe;
@@ -92,4 +93,30 @@ test('juriste has no access to factures but controle de gestion has full access'
     $this->actingAs($juriste, 'admin')
         ->get(route('espace-admin.factures.index'))
         ->assertForbidden();
+});
+
+test('a paid facture tells whether its demande already has a contrat, so the contract can be offered', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $sansContrat = Demande::factory()->create(['statut' => 'PAYEE']);
+    $factureSansContrat = Facture::factory()->payee()->create(['demande_id' => $sansContrat->id]);
+    $avecContrat = Demande::factory()->create(['statut' => 'PAYEE']);
+    Contrat::factory()->create(['demande_id' => $avecContrat->id]);
+    $factureAvecContrat = Facture::factory()->payee()->create(['demande_id' => $avecContrat->id]);
+
+    $this->actingAs($promotrice, 'admin')
+        ->get(route('espace-admin.factures.index'))
+        ->assertInertia(function ($page) use ($factureSansContrat, $factureAvecContrat, $sansContrat) {
+            $factures = collect($page->toArray()['props']['factures'])->keyBy('id');
+
+            expect($factures[$factureSansContrat->id]['aContrat'])->toBeFalse();
+            expect($factures[$factureSansContrat->id]['demandeId'])->toBe($sansContrat->id);
+            expect($factures[$factureAvecContrat->id]['aContrat'])->toBeTrue();
+        });
+
+    $this->actingAs($promotrice, 'admin')
+        ->get(route('espace-admin.factures.show', $factureSansContrat))
+        ->assertInertia(fn ($page) => $page
+            ->where('facture.demandeId', $sansContrat->id)
+            ->where('facture.aContrat', false)
+            ->where('peutGenererContrat', true));
 });
