@@ -10,7 +10,7 @@ cahier des charges.
 > propre connexion (guard `admin`, `/espace-admin/connexion`), et la matrice de droits
 > est désormais modifiable depuis la page Équipe (table `droits_roles`). Les valeurs
 > décrites ci-dessous restent les valeurs par défaut. Voir
-> `docs/10-phase-10-espace-administrateur.md`.
+> `docs/10-phase-9-espace-administrateur.md`.
 
 > **Mise à jour** : le compte/espace « Entreprise partenaire » décrit ci-dessous
 > a été **retiré** après cette phase, sur décision explicite de l'utilisateur :
@@ -158,7 +158,7 @@ Puis, dans le navigateur :
   kit) — ajustement visuel mineur, à faire lors de l'habillage complet de l'espace
   client.
 - La création des comptes Membre de l'équipe (par la Promotrice) n'existe pas
-  encore : elle sera construite avec l'espace administrateur (phase 10).
+  encore : elle sera construite avec l'espace administrateur (phase 9).
   L'entreprise partenaire, elle, n'a plus de compte du tout (voir la mise à
   jour en tête de document) : sa fiche sera créée/éditée directement depuis
   l'espace admin, sans inscription ni connexion de son côté.

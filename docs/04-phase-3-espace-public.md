@@ -176,7 +176,7 @@ section 6.1 :
 
 Les deux modèles (`app/Models/ContactMessage.php`, `app/Models/AuditRequest.php`)
 sont des tables de capture simples, sans relation : leur traitement (passage à
-`TRAITE`/`TRAITEE`) sera piloté depuis l'espace administrateur (phase 10).
+`TRAITE`/`TRAITEE`) sera piloté depuis l'espace administrateur (phase 9).
 
 ## 4. Tests (`tests/Feature/Public/PublicPagesTest.php`)
 
@@ -234,5 +234,5 @@ encore de factory ni le trait `HasFactory`).
 - Inscription effective à une session de formation, et candidature à une
   offre de stage/emploi (nécessitent un compte Apprenant authentifié →
   phase 7).
-- Traitement des `ContactMessage`/`AuditRequest` côté équipe DAG → phase 10
+- Traitement des `ContactMessage`/`AuditRequest` côté équipe DAG → phase 9
   (espace administrateur).

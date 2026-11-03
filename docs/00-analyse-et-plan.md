@@ -69,40 +69,113 @@ matrice de droits par type de donnée est implémentée depuis la phase 2
 
 ## 6. Plan de développement par phase
 
-Légende : `[x]` phase terminée et documentée, `[ ]` phase à faire ou partielle
-(le reste à faire est indiqué).
+### Avancement
 
-- [x] **Phase 1 — Base de données** : migrations, modèles, enums, seeders de démo, tests.
-  Documentation : [`01-phase-1-fondations-donnees.md`](01-phase-1-fondations-donnees.md)
-- [x] **Phase 2 — Authentification et rôles** : authentification par type de compte, rôles,
-  matrice de droits, espaces de base.
-  Documentation : [`02-phase-2-authentification-roles.md`](02-phase-2-authentification-roles.md)
-- [x] **Phase 3 — Espace public** : catalogue, formations, formules, contact, audit gratuit.
-  Documentation : [`04-phase-3-espace-public.md`](04-phase-3-espace-public.md)
-  (charte graphique : [`03-charte-graphique-et-assets.md`](03-charte-graphique-et-assets.md))
-- [x] **Phase 4 — Espace client** : demandes, suivi, documents.
-  Documentation : [`05-phase-4-espace-client.md`](05-phase-4-espace-client.md)
-- [x] **Phase 5 — Paiement et facturation** : Orange Money, MTN MoMo, carte, facture
-  manuelle. Parcours complet avec passerelle simulée ; il reste à brancher un prestataire
-  réel (compte et clés API).
-  Documentation : [`06-phase-5-paiement-facturation.md`](06-phase-5-paiement-facturation.md)
-- [ ] **Phase 6 — Contrats et signature** : partielle. Gestion des contrats, modèles,
-  clauses et PDF signé en place ; reste la signature par photo importée côté client.
-  Documentation : [`07-phase-6-contrats.md`](07-phase-6-contrats.md)
-- [ ] **Phase 7 — Module Formation** : partielle. Sessions, inscriptions et attestations
-  validées en place ; reste le pointage de la présence par l'équipe.
-  Documentation : [`08-phase-7-formation.md`](08-phase-7-formation.md)
-- [x] **Phase 8 — Entreprises partenaires et placement** : offres, candidatures, dossiers
-  reçus de candidats externes.
-  Documentation : [`09-phase-8-entreprises-placement.md`](09-phase-8-entreprises-placement.md)
-- [ ] **Phase 9 — Demandes partenaires Nova-Tech** : volontairement exclue pour le moment.
-- [ ] **Phase 10 — Espace administrateur** : partielle. Catalogue, équipe et droits,
-  tableau de bord, comptes et documents en place ; reste le journal d'activité.
-  Documentation : [`10-phase-10-espace-administrateur.md`](10-phase-10-espace-administrateur.md)
-- [ ] **Phase 11 — Notifications** : e-mail d'abord, architecture prête pour WhatsApp et SMS.
-- [ ] **Phase 12 — Déploiement et recette finale.**
+| Terminées | Partielles | À venir | Total |
+| --------- | ---------- | ------- | ----- |
+| 6         | 3          | 2       | 11    |
 
-Chaque phase terminée ou partielle a son fichier de documentation dans `docs/`.
+Légende : `[x]` fait, `[ ]` reste à faire. Une phase n'est cochée que lorsque tous ses
+points le sont. Chaque phase livrée a son fichier de documentation dans `docs/`.
+
+### Phase 1 — Base de données — terminée
+
+Documentation : [`01-phase-1-fondations-donnees.md`](01-phase-1-fondations-donnees.md)
+
+- [x] Migrations, modèles et enums
+- [x] Seeders de démonstration
+- [x] Tests
+
+### Phase 2 — Authentification et rôles — terminée
+
+Documentation : [`02-phase-2-authentification-roles.md`](02-phase-2-authentification-roles.md)
+
+- [x] Authentification par type de compte (client, apprenant)
+- [x] Rôles internes et matrice de droits
+- [x] Espaces de base
+
+### Phase 3 — Espace public — terminée
+
+Documentation : [`04-phase-3-espace-public.md`](04-phase-3-espace-public.md)
+(charte graphique : [`03-charte-graphique-et-assets.md`](03-charte-graphique-et-assets.md))
+
+- [x] Catalogue de services et formules
+- [x] Formations et candidature spontanée
+- [x] Contact et audit gratuit
+
+### Phase 4 — Espace client — terminée
+
+Documentation : [`05-phase-4-espace-client.md`](05-phase-4-espace-client.md)
+
+- [x] Demandes et suivi
+- [x] Abonnements, factures, contrats
+- [x] Documents
+
+### Phase 5 — Paiement et facturation — terminée (passerelle simulée)
+
+Documentation : [`06-phase-5-paiement-facturation.md`](06-phase-5-paiement-facturation.md)
+
+- [x] Facture émise avec le devis
+- [x] Paiement en ligne : Orange Money, MTN MoMo, carte
+- [x] Webhook signé du prestataire
+- [x] Paiement manuel et confirmation par l'administration
+- [x] PDF de la facture payée (espaces client et apprenant)
+
+Le parcours complet fonctionne avec la passerelle de simulation ; le branchement d'un
+prestataire réel dépend de l'ouverture d'un compte et figure dans la phase 11.
+
+### Phase 6 — Contrats et signature — partielle
+
+Documentation : [`07-phase-6-contrats.md`](07-phase-6-contrats.md)
+
+- [x] Contrats, modèles et clauses
+- [x] Création d'un contrat depuis une demande payée
+- [x] PDF du contrat signé
+- [ ] Signature par photo importée côté client
+- [ ] Relance et contestation de signature
+
+### Phase 7 — Module Formation — partielle
+
+Documentation : [`08-phase-7-formation.md`](08-phase-7-formation.md)
+
+- [x] Formations, sessions et séances
+- [x] Inscriptions, validation et export
+- [x] Attestations validées par DAG, avec PDF
+- [x] Espace apprenant : progression, dossier, CV
+- [ ] Pointage de la présence par l'équipe
+
+### Phase 8 — Entreprises partenaires et placement — terminée
+
+Documentation : [`09-phase-8-entreprises-placement.md`](09-phase-8-entreprises-placement.md)
+
+- [x] Validation des entreprises, publication et prolongation des offres
+- [x] Candidature déposée par DAG pour un apprenant
+- [x] Dossiers reçus de candidats externes
+- [x] Sélection ou refus par l'entreprise
+
+### Phase 9 — Espace administrateur — partielle
+
+Documentation : [`10-phase-9-espace-administrateur.md`](10-phase-9-espace-administrateur.md)
+
+- [x] Connexion séparée des comptes équipe
+- [x] Équipe et droits modifiables par rôle
+- [x] Tableau de bord et statistiques adaptés au rôle
+- [x] Catalogue, grille tarifaire, abonnements
+- [x] Comptes clients et apprenants, dossiers
+- [ ] Journal d'activité
+
+### Phase 10 — Notifications — à venir
+
+- [ ] E-mails (devis, paiement, contrat, attestation)
+- [ ] Architecture prête pour WhatsApp et SMS
+
+### Phase 11 — Déploiement et recette finale — à venir
+
+- [ ] Configuration de production
+- [ ] Prestataire de paiement réel
+- [ ] Recette finale
+
+> La phase « Demandes partenaires Nova-Tech » a été annulée : elle ne figure plus au plan.
 
 Chaque phase est développée, testée par l'IA (tests Pest + vérifications manuelles),
 documentée dans `docs/`, puis remise à l'utilisateur pour test et validation avant de

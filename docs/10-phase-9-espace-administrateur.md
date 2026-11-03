@@ -1,4 +1,4 @@
-# Phase 10 — Espace administrateur
+# Phase 9 — Espace administrateur
 
 Statut : **partielle**. Correspond à la ligne « Espace administrateur (catalogue,
 équipe, journal) » du plan. L'espace est complet à l'exception du journal d'activité.

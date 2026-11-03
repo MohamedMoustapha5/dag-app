@@ -182,7 +182,7 @@ recrutement ne s'activent que si DAG la relie ensuite à un
 `EntreprisePartenaire` (`entreprises_partenaires.client_id`, nouvelle
 colonne, nullable + unique) dont le `statut` est `ACTIF` —
 `Client::estPartenaireValide()`. Aucune UI admin pour faire cette validation
-n'existe encore (l'espace admin lui-même n'est pas construit, phase 10) :
+n'existe encore (l'espace admin lui-même n'est pas construit, phase 9) :
 le lien se fait pour l'instant en base, comme `EntreprisePartenaire` et
 `OffreEmploi` l'étaient déjà avant cette phase.
 
@@ -284,6 +284,6 @@ rapport avec le code — seule la suite Pest valide ces fichiers.
 - Espace Organisation (3ᵉ visage du `Client`) : en attente de ses propres
   maquettes.
 - UI admin pour valider une entreprise comme partenaire ou créer un
-  `ProfilPropose` : phase 10 (espace administrateur). Le lien
+  `ProfilPropose` : phase 9 (espace administrateur). Le lien
   `entreprises_partenaires.client_id` et les propositions se font en base
   en attendant.
