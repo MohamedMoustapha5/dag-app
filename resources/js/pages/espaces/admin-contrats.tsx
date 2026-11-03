@@ -22,14 +22,7 @@ type Contrat = {
     statut: string;
     estSigne: boolean;
 };
-type DemandeAContractualiser = {
-    id: string;
-    reference: string;
-    objet: string;
-    client: { nom: string; email: string | null; telephone: string | null };
-    montant: string | null;
-    payeLe: string | null;
-};
+type DemandeAContractualiser = { id: string; reference: string; objet: string };
 
 type Props = {
     modeles: Modele[];
@@ -56,8 +49,10 @@ export default function AdminContrats({
         'contrats' | 'modeles' | 'clauses'
     >('contrats');
 
-    const [modeleChoisi, setModeleChoisi] = useState('');
-    const [enCours, setEnCours] = useState<string | null>(null);
+    const contratForm = useForm({
+        demande_id: demandesAContractualiser[0]?.id ?? '',
+        modele_contrat_id: modeles[0]?.id ?? '',
+    });
 
     const modeleForm = useForm({
         nom: '',
@@ -71,16 +66,9 @@ export default function AdminContrats({
         ordre: 0,
     });
 
-    const genererContrat = (demandeId: string) => {
-        setEnCours(demandeId);
-        router.post(
-            contratsAdmin.store().url,
-            {
-                demande_id: demandeId,
-                ...(modeleChoisi !== '' ? { modele_contrat_id: modeleChoisi } : {}),
-            },
-            { onFinish: () => setEnCours(null) },
-        );
+    const submitContrat = (event: React.FormEvent) => {
+        event.preventDefault();
+        contratForm.post(contratsAdmin.store().url);
     };
 
     const submitModele = (event: React.FormEvent) => {
@@ -159,55 +147,75 @@ export default function AdminContrats({
 
             {ongletActif === 'contrats' && (
                 <>
-                    {peutCreer && (
-                        <div
+                    {peutCreer && demandesAContractualiser.length > 0 && (
+                        <form
+                            onSubmit={submitContrat}
                             className="card"
-                            style={{ padding: 24, marginBottom: 28 }}
+                            style={{
+                                padding: 24,
+                                marginBottom: 28,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 14,
+                            }}
                         >
+                            <p style={{ fontSize: 14.5, fontWeight: 700 }}>
+                                Générer un contrat pour une demande
+                            </p>
                             <div
                                 style={{
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'flex-end',
-                                    gap: 16,
-                                    flexWrap: 'wrap',
-                                    marginBottom: 16,
+                                    display: 'grid',
+                                    gridTemplateColumns:
+                                        'repeat(auto-fit, minmax(220px, 1fr))',
+                                    gap: 14,
                                 }}
                             >
                                 <div>
-                                    <p style={{ fontSize: 14.5, fontWeight: 700 }}>
-                                        Demandes payées en attente de contrat (
-                                        {demandesAContractualiser.length})
-                                    </p>
-                                    <p
-                                        className="muted"
-                                        style={{ fontSize: 12.5, marginTop: 2 }}
+                                    <label htmlFor="demande_id">Demande</label>
+                                    <select
+                                        id="demande_id"
+                                        value={contratForm.data.demande_id}
+                                        onChange={(event) =>
+                                            contratForm.setData(
+                                                'demande_id',
+                                                event.target.value,
+                                            )
+                                        }
                                     >
-                                        Dès qu'une demande est payée, son client
-                                        apparaît ici pour que vous génériez son
-                                        contrat.
-                                    </p>
+                                        {demandesAContractualiser.map(
+                                            (demande) => (
+                                                <option
+                                                    key={demande.id}
+                                                    value={demande.id}
+                                                >
+                                                    {demande.reference} —{' '}
+                                                    {demande.objet}
+                                                </option>
+                                            ),
+                                        )}
+                                    </select>
                                 </div>
-                                <div style={{ minWidth: 240 }}>
+                                <div>
                                     <label htmlFor="modele_contrat_id">
-                                        Modèle de contrat
+                                        Modèle (optionnel)
                                     </label>
                                     <select
                                         id="modele_contrat_id"
-                                        value={modeleChoisi}
+                                        value={
+                                            contratForm.data.modele_contrat_id
+                                        }
                                         onChange={(event) =>
-                                            setModeleChoisi(event.target.value)
+                                            contratForm.setData(
+                                                'modele_contrat_id',
+                                                event.target.value,
+                                            )
                                         }
                                     >
-                                        <option value="">
-                                            Automatique (modèle actif)
-                                        </option>
+                                        <option value="">Aucun</option>
                                         {modeles
                                             .filter(
                                                 (modele) =>
-                                                    modele.statut === 'ACTIF' &&
-                                                    modele.type ===
-                                                        'PRESTATION_SERVICE',
+                                                    modele.statut === 'ACTIF',
                                             )
                                             .map((modele) => (
                                                 <option
@@ -220,114 +228,17 @@ export default function AdminContrats({
                                     </select>
                                 </div>
                             </div>
-
-                            {demandesAContractualiser.length === 0 ? (
-                                <p className="data-table-empty">
-                                    Aucune demande payée en attente de contrat.
-                                </p>
-                            ) : (
-                                <div className="data-table-wrap">
-                                    <table className="data-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Client</th>
-                                                <th>Demande</th>
-                                                <th>Montant</th>
-                                                <th>Payée le</th>
-                                                <th />
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {demandesAContractualiser.map(
-                                                (demande) => (
-                                                    <tr key={demande.id}>
-                                                        <td>
-                                                            <p
-                                                                style={{
-                                                                    fontWeight: 600,
-                                                                }}
-                                                            >
-                                                                {demande.client.nom}
-                                                            </p>
-                                                            <p
-                                                                className="muted"
-                                                                style={{
-                                                                    fontSize: 12,
-                                                                }}
-                                                            >
-                                                                {[
-                                                                    demande.client
-                                                                        .email,
-                                                                    demande.client
-                                                                        .telephone,
-                                                                ]
-                                                                    .filter(Boolean)
-                                                                    .join(' · ') ||
-                                                                    '—'}
-                                                            </p>
-                                                        </td>
-                                                        <td>
-                                                            <p
-                                                                style={{
-                                                                    fontWeight: 600,
-                                                                }}
-                                                            >
-                                                                {demande.reference}
-                                                            </p>
-                                                            <p
-                                                                className="muted"
-                                                                style={{
-                                                                    fontSize: 12,
-                                                                }}
-                                                            >
-                                                                {demande.objet}
-                                                            </p>
-                                                        </td>
-                                                        <td className="muted">
-                                                            {demande.montant
-                                                                ? `${Number(demande.montant).toLocaleString('fr-FR')} FCFA`
-                                                                : '—'}
-                                                        </td>
-                                                        <td className="muted">
-                                                            {demande.payeLe ?? '—'}
-                                                        </td>
-                                                        <td
-                                                            style={{
-                                                                textAlign: 'right',
-                                                            }}
-                                                        >
-                                                            <button
-                                                                type="button"
-                                                                className="btn-primary"
-                                                                style={{
-                                                                    padding:
-                                                                        '7px 16px',
-                                                                    fontSize: 12.5,
-                                                                }}
-                                                                disabled={
-                                                                    enCours ===
-                                                                    demande.id
-                                                                }
-                                                                onClick={() =>
-                                                                    genererContrat(
-                                                                        demande.id,
-                                                                    )
-                                                                }
-                                                            >
-                                                                {enCours ===
-                                                                demande.id
-                                                                    ? 'Création…'
-                                                                    : 'Générer le contrat'}
-                                                            </button>
-                                                        </td>
-                                                    </tr>
-                                                ),
-                                            )}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            )}
-                        </div>
+                            <button
+                                type="submit"
+                                disabled={contratForm.processing}
+                                className="btn-primary"
+                                style={{ alignSelf: 'flex-start' }}
+                            >
+                                {contratForm.processing
+                                    ? 'Création…'
+                                    : 'Générer le contrat'}
+                            </button>
+                        </form>
                     )}
 
                     <div className="card" style={{ padding: 24 }}>

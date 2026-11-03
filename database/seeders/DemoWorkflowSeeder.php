@@ -62,7 +62,7 @@ class DemoWorkflowSeeder extends Seeder
         ModeleContrat::create(['nom' => 'Prestation de service', 'type' => 'PRESTATION_SERVICE', 'contenu' => 'Contrat de prestation de service entre DAG et {{client}} pour {{service}}, au montant de {{montant}} FCFA.']);
         ModeleContrat::create(['nom' => 'Abonnement', 'type' => 'ABONNEMENT', 'contenu' => "Contrat d'abonnement à la formule {{formule}} entre DAG et {{client}}, au montant mensuel de {{montant}} FCFA."]);
         ModeleContrat::create(['nom' => 'Convention de stage', 'type' => 'CONVENTION_STAGE', 'contenu' => 'Convention de stage entre DAG, {{entreprise}} et {{apprenant}} pour le poste de {{poste}}.']);
-        ModeleContrat::create(['nom' => 'Contrat partenaire', 'type' => 'CONTRAT_PARTENAIRE', 'contenu' => 'Contrat-cadre de partenariat entre DAG et {{entreprise}}.']);
+        ModeleContrat::create(['nom' => 'Contrat partenaire (Nova-Tech)', 'type' => 'CONTRAT_PARTENAIRE', 'contenu' => 'Contrat-cadre de partenariat entre DAG et {{entreprise}}.']);
     }
 
     private function parcoursClientAicha(): void

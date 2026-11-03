@@ -34,12 +34,9 @@ class AdminContratController extends Controller
             ->latest()
             ->get();
 
-        // Only demandes the client has paid for can be contracted.
         $demandesAContractualiser = Demande::query()
-            ->whereIn('statut', ['PAYEE', 'EN_COURS', 'LIVREE', 'TERMINEE'])
+            ->whereNotIn('statut', ['BROUILLON', 'REFUSEE'])
             ->whereDoesntHave('contrat')
-            ->with(['client.user', 'entreprise', 'service', 'formule', 'facture.paiements'])
-            ->latest('updated_at')
             ->get();
 
         return Inertia::render('espaces/admin-contrats', [
@@ -62,9 +59,6 @@ class AdminContratController extends Controller
                 'id' => $demande->id,
                 'reference' => $demande->reference,
                 'objet' => $demande->libelleObjet(),
-                'client' => $this->coordonneesClient($demande),
-                'montant' => $demande->montant_negocie,
-                'payeLe' => $this->datePaiement($demande),
             ]),
         ]);
     }
@@ -187,47 +181,6 @@ class AdminContratController extends Controller
                 'estSigne' => $contrat->estSigne(),
             ],
         ]);
-    }
-
-    /**
-     * Who paid, so DAG knows who the contrat is for.
-     *
-     * @return array{nom: string, email: string|null, telephone: string|null}
-     */
-    private function coordonneesClient(Demande $demande): array
-    {
-        if ($demande->client_id !== null) {
-            return [
-                'nom' => $demande->client->nom,
-                'email' => $demande->client->user->email,
-                'telephone' => $demande->client->telephone,
-            ];
-        }
-
-        if ($demande->entreprise_id !== null) {
-            return [
-                'nom' => $demande->entreprise->nom,
-                'email' => $demande->entreprise->email,
-                'telephone' => $demande->entreprise->telephone,
-            ];
-        }
-
-        return ['nom' => '—', 'email' => null, 'telephone' => null];
-    }
-
-    private function datePaiement(Demande $demande): ?string
-    {
-        $facture = $demande->facture;
-
-        if ($facture === null) {
-            return null;
-        }
-
-        $dernier = $facture->paiements->whereNotNull('date_paiement')->sortByDesc('date_paiement')->first();
-
-        return ($dernier !== null && $dernier->date_paiement !== null
-            ? $dernier->date_paiement
-            : $facture->updated_at)?->format('d/m/Y');
     }
 
     public function pdf(Request $request, Contrat $contrat): HttpResponse
