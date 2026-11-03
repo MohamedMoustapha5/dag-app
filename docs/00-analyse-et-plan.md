@@ -10,7 +10,7 @@ Plateforme web DAG (Digital Agency Group) : catalogue de services, formations av
 placement en entreprise, paiement en ligne (Orange Money / MTN MoMo / carte), contrats
 signés par photo de signature importée (pas de signature électronique au sens strict),
 et quatre espaces utilisateurs distincts : **Client**, **Apprenant**, **Entreprise
-partenaire**, **Équipe DAG** (5 rôles internes). Nova-Tech est un partenaire externe
+partenaire**, **Équipe DAG** (6 rôles internes). Nova-Tech est un partenaire externe
 sans accès à l'application : les demandes qui le concernent sont juste transmises par
 message préparé (e-mail/WhatsApp).
 
@@ -62,8 +62,9 @@ Détail complet, relations et justification de chaque colonne : voir
 
 ## 5. Rôles et droits (matrice 3.2 du cahier des charges)
 
-5 rôles internes (`App\Enums\MembreEquipeRole`) : Promotrice (accès total), Juriste,
-Communication & marketing digital, Contrôle de gestion, Création de contenu. La
+6 rôles internes (`App\Enums\MembreEquipeRole`) : Promotrice (accès total), Juriste,
+Communication & marketing digital, Contrôle de gestion, Création de contenu et
+Développeur (lecture seule par défaut, relevable depuis la page Équipe). La
 matrice de droits par type de donnée est implémentée depuis la phase 2
 (`App\Support\DroitsMatrix`, détail dans `docs/02-phase-2-authentification-roles.md`).
 

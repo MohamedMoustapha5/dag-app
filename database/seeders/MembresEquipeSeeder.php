@@ -9,7 +9,7 @@ use Illuminate\Database\Seeder;
 class MembresEquipeSeeder extends Seeder
 {
     /**
-     * The five internal DAG roles, matching the default access matrix in
+     * The internal DAG roles, matching the default access matrix in
      * section 3.2 of the cahier des charges. The Promotrice has full
      * (« Total ») access. These accounts sign in at /espace-admin/connexion.
      */
@@ -21,6 +21,7 @@ class MembresEquipeSeeder extends Seeder
             ['name' => 'Senghor', 'email' => 'jules.k@dag.cm', 'role' => MembreEquipeRole::CommunicationMarketing],
             ['name' => 'Layana D.', 'email' => 'herve.n@dag.cm', 'role' => MembreEquipeRole::ControleGestion],
             ['name' => 'Hussein', 'email' => 'rosine.t@dag.cm', 'role' => MembreEquipeRole::CreationContenu],
+            ['name' => 'Mustapha', 'email' => 'dev@dag.cm', 'role' => MembreEquipeRole::Developpeur],
         ];
 
         foreach ($membres as $membre) {

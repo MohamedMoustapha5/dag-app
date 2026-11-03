@@ -13,7 +13,7 @@ test('the index page exposes the access matrix, confirming the juriste role gran
     $response->assertOk();
     $response->assertInertia(fn ($page) => $page
         ->component('espaces/admin-equipe')
-        ->has('matriceRoles', 5)
+        ->has('matriceRoles', 6)
         ->where('matriceRoles.1.role', 'JURISTE')
         ->where('matriceRoles.1.droits.CONTRATS_CLAUSES', 'TOTAL')
         ->has('domaines', 9));
@@ -146,4 +146,37 @@ test("the directrice's own rights cannot be edited and only she can edit rights"
         'donnee' => 'FACTURES_PAIEMENTS',
         'niveau' => 'TOTAL',
     ])->assertForbidden();
+});
+
+test('a promotrice can create a developpeur account, who starts with read-only rights', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+
+    $this->actingAs($promotrice, 'admin')->post(route('espace-admin.equipe.store'), [
+        'name' => 'Mustapha',
+        'email' => 'dev@dag.cm',
+        'password' => 'mot-de-passe-sur',
+        'password_confirmation' => 'mot-de-passe-sur',
+        'role' => MembreEquipeRole::Developpeur->value,
+    ])->assertRedirect();
+
+    $developpeur = MembreEquipe::where('email', 'dev@dag.cm')->firstOrFail();
+
+    expect($developpeur->role)->toBe(MembreEquipeRole::Developpeur);
+    expect($developpeur->role->label())->toBe('Développeur');
+    expect($developpeur->peut(Donnee::FacturesPaiements, Action::Voir))->toBeTrue();
+    expect($developpeur->peut(Donnee::FacturesPaiements, Action::Modifier))->toBeFalse();
+    expect($developpeur->peut(Donnee::ContratsClauses, Action::Telecharger))->toBeTrue();
+});
+
+test('the developpeur can open the admin space but cannot manage the team', function () {
+    $developpeur = MembreEquipe::factory()->developpeur()->create();
+
+    $this->actingAs($developpeur, 'admin')
+        ->get(route('espace-admin.statistiques'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->where('membre.roleLabel', 'Développeur')->where('onglets', ['indicateurs', 'documents']));
+
+    $this->actingAs($developpeur, 'admin')
+        ->get(route('espace-admin.equipe.index'))
+        ->assertForbidden();
 });

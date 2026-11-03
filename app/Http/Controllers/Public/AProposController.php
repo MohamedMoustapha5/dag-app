@@ -23,13 +23,13 @@ class AProposController extends Controller
         return Inertia::render('public/a-propos', [
             'stats' => [
                 'services' => Service::publies()->count(),
-                // Partenariats techniques, contrats en ligne et taille
-                // d'équipe affichée : chiffres de communication, comme les
-                // autres statistiques fixes de la vitrine publique (voir
-                // docs/04-phase-3-espace-public.md).
+                // Partenariats techniques et contrats en ligne : chiffres de
+                // communication, comme les autres statistiques fixes de la
+                // vitrine publique (voir docs/04-phase-3-espace-public.md). La
+                // taille de l'équipe, elle, suit les comptes actifs.
                 'partenariats' => 3,
                 'contratsEnLigne' => 100,
-                'membresEquipe' => 6,
+                'membresEquipe' => MembreEquipe::where('statut', 'ACTIF')->count(),
             ],
             'equipe' => $equipe,
         ]);

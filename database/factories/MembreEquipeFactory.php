@@ -32,6 +32,11 @@ class MembreEquipeFactory extends Factory
         return $this->state(['role' => MembreEquipeRole::Juriste]);
     }
 
+    public function developpeur(): static
+    {
+        return $this->state(['role' => MembreEquipeRole::Developpeur]);
+    }
+
     public function inactif(): static
     {
         return $this->state(['statut' => 'INACTIF']);

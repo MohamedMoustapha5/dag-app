@@ -16,7 +16,7 @@ test('the index page exposes the actions allowed for the current role', function
         ->where('actions.modifier', false)
         ->where('actions.supprimer', false)
         ->where('droits.CATALOGUE', 'LECTURE')
-        ->where('droitsResume', 'Visible par : Directrice (total), Responsable Marketing & Création de contenu (gestion), Juriste & Secrétaire (lecture).'));
+        ->where('droitsResume', 'Visible par : Directrice (total), Responsable Marketing & Création de contenu (gestion), Juriste, Secrétaire & Développeur (lecture).'));
 });
 
 test('a service can use any fournisseur name, not just DAG or Nova-Tech', function () {

@@ -15,9 +15,13 @@ Les comptes de l'équipe DAG sont isolés des comptes publics.
 
 ## 2. Rôles et droits évolutifs
 
-Cinq rôles : Directrice (accès total), Juriste, Responsable Marketing, Secrétaire,
-Création de contenu.
+Six rôles : Directrice (accès total), Juriste, Responsable Marketing, Secrétaire,
+Création de contenu, Développeur.
 
+- Le rôle Développeur (ajouté après les cinq rôles du cahier des charges) démarre en
+  lecture et téléchargement sur tous les domaines, sans pouvoir modifier ni gérer
+  l'équipe ; la Directrice peut relever chaque niveau. Son compte est aussi présenté
+  dans l'équipe du site public.
 - Les droits par rôle et par domaine (catalogue, formations, demandes clients,
   abonnements, factures et paiements, contrats et clauses, dossiers apprenants,
   entreprises et offres, statistiques) ont des valeurs par défaut issues du cahier des

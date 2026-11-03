@@ -38,6 +38,7 @@ const EQUIPE_TAGLINES: Record<string, string> = {
         'Orchestre vos campagnes et votre présence en ligne.',
     Secrétaire: 'Garde un œil sur chaque facture et chaque échéance.',
     'Création de contenu': 'Donne vie à vos idées en visuels et en mots.',
+    Développeur: 'Conçoit et fait évoluer la plateforme DAG, de bout en bout.',
 };
 
 const EQUIPE_PHOTOS: Record<string, string> = {
@@ -46,18 +47,11 @@ const EQUIPE_PHOTOS: Record<string, string> = {
     'Responsable Marketing': '/images/photos/senghor-responsable-marketing.jpg',
     Secrétaire: '/images/photos/layana-d-secretaire.jpg',
     'Création de contenu': '/images/photos/hussein-createur-contenu.jpg',
-};
-
-const DEVELOPPEUR = {
-    nom: 'Mustapha',
-    role: 'Développeur',
-    tagline: 'Conçoit et fait évoluer la plateforme DAG, de bout en bout.',
-    photo: '/images/photos/mustapha-developpeur.jpg',
+    Développeur: '/images/photos/mustapha-developpeur.jpg',
 };
 
 export default function APropos({ stats, equipe }: AProposProps) {
-    const equipeAffichee = [
-        ...equipe.map((membre) => ({
+    const equipeAffichee = equipe.map((membre) => ({
             nom: membre.nom,
             role: membre.role,
             tagline:
@@ -66,9 +60,7 @@ export default function APropos({ stats, equipe }: AProposProps) {
             photo:
                 EQUIPE_PHOTOS[membre.role] ??
                 '/images/photos/man-laptop-smile.jpg',
-        })),
-        DEVELOPPEUR,
-    ];
+    }));
 
     return (
         <PublicLayout>

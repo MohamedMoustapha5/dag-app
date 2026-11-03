@@ -9,6 +9,7 @@ enum MembreEquipeRole: string
     case CommunicationMarketing = 'COMMUNICATION_MARKETING';
     case ControleGestion = 'CONTROLE_GESTION';
     case CreationContenu = 'CREATION_CONTENU';
+    case Developpeur = 'DEVELOPPEUR';
 
     public function label(): string
     {
@@ -24,6 +25,7 @@ enum MembreEquipeRole: string
             // key) — only the public-facing title changed.
             self::ControleGestion => 'Secrétaire',
             self::CreationContenu => 'Création de contenu',
+            self::Developpeur => 'Développeur',
         };
     }
 }

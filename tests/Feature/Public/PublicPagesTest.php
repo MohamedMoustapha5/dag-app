@@ -277,3 +277,16 @@ test('the offres emploi page only lists published, non-expired offers', function
         ->has('offres', 1)
         ->where('offres.0.id', $published->id));
 });
+
+test('the developpeur account appears once in the public team, with the team size following the active accounts', function () {
+    MembreEquipe::factory()->promotrice()->create(['name' => 'Afsa Maira']);
+    MembreEquipe::factory()->developpeur()->create(['name' => 'Mustapha']);
+    MembreEquipe::factory()->developpeur()->inactif()->create(['name' => 'Ancien']);
+
+    $this->get(route('a-propos'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('equipe', 2)
+            ->where('equipe.1.role', 'Développeur')
+            ->where('stats.membresEquipe', 2));
+});

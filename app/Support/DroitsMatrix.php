@@ -78,6 +78,17 @@ class DroitsMatrix
             Donnee::EntreprisesOffres->value => NiveauDroit::Aucun,
             Donnee::Statistiques->value => NiveauDroit::Aucun,
         ],
+        MembreEquipeRole::Developpeur->value => [
+            Donnee::Catalogue->value => NiveauDroit::Lecture,
+            Donnee::Formations->value => NiveauDroit::Lecture,
+            Donnee::DemandesClients->value => NiveauDroit::Lecture,
+            Donnee::Abonnements->value => NiveauDroit::Lecture,
+            Donnee::FacturesPaiements->value => NiveauDroit::Lecture,
+            Donnee::ContratsClauses->value => NiveauDroit::Lecture,
+            Donnee::DossiersApprenants->value => NiveauDroit::Lecture,
+            Donnee::EntreprisesOffres->value => NiveauDroit::Lecture,
+            Donnee::Statistiques->value => NiveauDroit::Lecture,
+        ],
     ];
 
     private const CACHE_KEY = 'droits_roles';

@@ -125,8 +125,6 @@ const TEAM_TAGLINES: Record<string, string> = {
     Développeur: 'Conçoit et fait évoluer la plateforme DAG, de bout en bout.',
 };
 
-const DEVELOPPEUR = { nom: 'Mustapha', role: 'Développeur' };
-
 const TESTIMONIALS = [
     {
         nom: 'Aïcha N.',
@@ -177,7 +175,7 @@ export default function Home({ stats, equipe }: HomeProps) {
     const [testimonialIndex, setTestimonialIndex] = useState(0);
     const [auditModalOpen, setAuditModalOpen] = useState(false);
 
-    const equipeAffichee = [...equipe, DEVELOPPEUR];
+    const equipeAffichee = equipe;
     const activeMember = equipeAffichee[teamIndex];
     const activeTestimonial = TESTIMONIALS[testimonialIndex];
 
