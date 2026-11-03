@@ -7,7 +7,7 @@ use App\Enums\Action;
 use App\Enums\Donnee;
 use App\Http\Controllers\Controller;
 use App\Models\Demande;
-use App\Models\Facture;
+use App\Support\Paiements\PaiementService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -86,7 +86,7 @@ class AdminDemandeController extends Controller
         ]);
     }
 
-    public function update(Request $request, Demande $demande): RedirectResponse
+    public function update(Request $request, Demande $demande, PaiementService $paiements): RedirectResponse
     {
         $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::DemandesClients, Action::Modifier), 403);
@@ -96,14 +96,22 @@ class AdminDemandeController extends Controller
             'montant_negocie' => ['nullable', 'numeric', 'min:0'],
         ]);
 
-        $demande->update($data);
+        DB::transaction(function () use ($demande, $data, $paiements): void {
+            $demande->update($data);
+
+            // Moving a demande to "Devis envoyé" with an amount issues the
+            // facture the client pays, whichever screen the change comes from.
+            if ($demande->statut === 'DEVIS_ENVOYE' && (float) $demande->montant_negocie > 0) {
+                $paiements->emettreFacturePourDevis($demande, (float) $demande->montant_negocie);
+            }
+        });
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Demande mise à jour.']);
 
         return back();
     }
 
-    public function envoyerDevis(Request $request, Demande $demande): RedirectResponse
+    public function envoyerDevis(Request $request, Demande $demande, PaiementService $paiements): RedirectResponse
     {
         $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::DemandesClients, Action::Modifier), 403);
@@ -126,28 +134,14 @@ class AdminDemandeController extends Controller
             'Un paiement a déjà été enregistré : le devis ne peut plus être modifié.'
         );
 
-        DB::transaction(function () use ($demande, $facture, $data): void {
+        DB::transaction(function () use ($demande, $data, $paiements): void {
             $demande->update([
                 'montant_negocie' => $data['montant'],
                 'message_devis' => $data['message'] ?? null,
                 'statut' => 'DEVIS_ENVOYE',
             ]);
 
-            // The facture the client pays from their espace is issued with
-            // the devis; re-sending a devis only adjusts its amount.
-            if ($facture === null) {
-                Facture::create([
-                    'type' => 'SERVICE',
-                    'client_id' => $demande->client_id,
-                    'entreprise_id' => $demande->entreprise_id,
-                    'demande_id' => $demande->id,
-                    'montant' => $data['montant'],
-                    'montant_paye' => 0,
-                    'statut' => 'EN_ATTENTE',
-                ]);
-            } else {
-                $facture->update(['montant' => $data['montant']]);
-            }
+            $paiements->emettreFacturePourDevis($demande, (float) $data['montant']);
         });
 
         Inertia::flash('toast', ['type' => 'success', 'message' => "Devis envoyé pour {$demande->reference}."]);

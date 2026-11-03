@@ -25,6 +25,34 @@ class PaiementService
         return app($classe);
     }
 
+    /**
+     * Issues the facture a client pays for a demande once its devis is
+     * sent. Idempotent: an existing unpaid facture only has its amount
+     * adjusted, and a facture that already received money is left alone.
+     */
+    public function emettreFacturePourDevis(Demande $demande, float $montant): Facture
+    {
+        $facture = $demande->facture;
+
+        if ($facture === null) {
+            return Facture::create([
+                'type' => 'SERVICE',
+                'client_id' => $demande->client_id,
+                'entreprise_id' => $demande->entreprise_id,
+                'demande_id' => $demande->id,
+                'montant' => $montant,
+                'montant_paye' => 0,
+                'statut' => 'EN_ATTENTE',
+            ]);
+        }
+
+        if ((float) $facture->montant_paye <= 0) {
+            $facture->update(['montant' => $montant]);
+        }
+
+        return $facture;
+    }
+
     public function soldeRestant(Facture $facture): float
     {
         return max(0.0, (float) $facture->montant - (float) $facture->montant_paye);

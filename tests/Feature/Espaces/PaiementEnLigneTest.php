@@ -281,3 +281,17 @@ test('a devis cannot be re-sent once a payment was recorded', function () {
         ->post(route('espace-admin.demandes.devis', $demande), ['montant' => 90000])
         ->assertStatus(409);
 });
+
+test('moving a demande to devis envoyé from the status form also issues the facture', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $demande = Demande::factory()->create(['statut' => 'EN_ETUDE']);
+
+    $this->actingAs($promotrice, 'admin')
+        ->patch(route('espace-admin.demandes.update', $demande), ['statut' => 'DEVIS_ENVOYE', 'montant_negocie' => 700000])
+        ->assertRedirect();
+
+    $facture = Facture::firstOrFail();
+    expect($facture->demande_id)->toBe($demande->id);
+    expect((float) $facture->montant)->toBe(700000.0);
+    expect($facture->statut)->toBe('EN_ATTENTE');
+});
