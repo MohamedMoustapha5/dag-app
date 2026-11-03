@@ -1,6 +1,7 @@
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
 import facturesAdmin from '@/routes/espace-admin/factures';
+import paiementsAdmin from '@/routes/espace-admin/paiements';
 
 type Facture = {
     id: string;
@@ -19,6 +20,7 @@ type Paiement = {
     referenceTransaction: string | null;
     statut: string;
     datePaiement: string | null;
+    initieLe: string | null;
 };
 
 const MOYEN_LABEL: Record<string, string> = {
@@ -34,13 +36,23 @@ type Props = {
     facture: Facture;
     paiements: Paiement[];
     peutCreer: boolean;
+    peutModifier: boolean;
 };
 
 export default function AdminFactureShow({
     facture,
     paiements,
     peutCreer,
+    peutModifier,
 }: Props) {
+    const trancher = (id: string, statut: 'CONFIRME' | 'ECHEC') => {
+        router.patch(
+            paiementsAdmin.update(id).url,
+            { statut },
+            { preserveScroll: true },
+        );
+    };
+
     const resteAPayer = (
         Number(facture.montant) - Number(facture.montantPaye)
     ).toFixed(2);
@@ -150,6 +162,8 @@ export default function AdminFactureShow({
                                     <th>Moyen</th>
                                     <th>Référence</th>
                                     <th>Date</th>
+                                    <th>Statut</th>
+                                    <th />
                                 </tr>
                             </thead>
                             <tbody>
@@ -167,7 +181,57 @@ export default function AdminFactureShow({
                                                 '—'}
                                         </td>
                                         <td className="muted">
-                                            {paiement.datePaiement}
+                                            {paiement.datePaiement ??
+                                                paiement.initieLe}
+                                        </td>
+                                        <td>
+                                            <span
+                                                className={`chip ${paiement.statut === 'CONFIRME' ? 'chip-green' : paiement.statut === 'ECHEC' ? 'chip-red' : 'chip-orange'}`}
+                                            >
+                                                {paiement.statut === 'CONFIRME'
+                                                    ? 'Confirmé'
+                                                    : paiement.statut === 'ECHEC'
+                                                      ? 'Échec'
+                                                      : 'En attente'}
+                                            </span>
+                                        </td>
+                                        <td style={{ textAlign: 'right' }}>
+                                            {peutModifier &&
+                                                paiement.statut ===
+                                                    'EN_ATTENTE' && (
+                                                    <>
+                                                        <button
+                                                            type="button"
+                                                            className="link-action"
+                                                            style={{
+                                                                marginRight: 12,
+                                                            }}
+                                                            onClick={() =>
+                                                                trancher(
+                                                                    paiement.id,
+                                                                    'CONFIRME',
+                                                                )
+                                                            }
+                                                        >
+                                                            Confirmer
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            className="link-action"
+                                                            style={{
+                                                                color: 'var(--dag-red)',
+                                                            }}
+                                                            onClick={() =>
+                                                                trancher(
+                                                                    paiement.id,
+                                                                    'ECHEC',
+                                                                )
+                                                            }
+                                                        >
+                                                            Marquer échoué
+                                                        </button>
+                                                    </>
+                                                )}
                                         </td>
                                     </tr>
                                 ))}

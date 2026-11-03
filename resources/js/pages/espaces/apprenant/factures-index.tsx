@@ -1,4 +1,8 @@
 import { Head } from '@inertiajs/react';
+import { useState } from 'react';
+import PayerFactureModal, {
+    type MoyenPaiement,
+} from '@/components/espaces/payer-facture-modal';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
 import facturesRoutes from '@/routes/espace-apprenant/factures';
 
@@ -9,6 +13,8 @@ type Facture = {
     montant: string;
     moyenPaiement: string | null;
     statut: string;
+    solde: string;
+    paiementEnAttente: boolean;
 };
 
 type Props = {
@@ -18,9 +24,16 @@ type Props = {
         moyenPlusUtilise: string | null;
     };
     factures: Facture[];
+    moyensPaiement: MoyenPaiement[];
 };
 
-export default function ApprenantFacturesIndex({ stats, factures }: Props) {
+export default function ApprenantFacturesIndex({
+    stats,
+    factures,
+    moyensPaiement,
+}: Props) {
+    const [aPayer, setAPayer] = useState<Facture | null>(null);
+
     return (
         <>
             <Head title="Factures" />
@@ -132,16 +145,29 @@ export default function ApprenantFacturesIndex({ stats, factures }: Props) {
                                         {facture.statut === 'EN_ATTENTE' ||
                                         facture.statut ===
                                             'PARTIELLEMENT_PAYEE' ? (
-                                            <span
-                                                className="link-action"
-                                                style={{
-                                                    opacity: 0.5,
-                                                    cursor: 'not-allowed',
-                                                }}
-                                                title="Paiement en ligne bientôt disponible"
-                                            >
-                                                Payer
-                                            </span>
+                                            facture.paiementEnAttente ? (
+                                                <span
+                                                    className="muted"
+                                                    style={{ fontSize: 12 }}
+                                                >
+                                                    Paiement en attente de
+                                                    confirmation
+                                                </span>
+                                            ) : (
+                                                <button
+                                                    type="button"
+                                                    className="btn-primary"
+                                                    style={{
+                                                        padding: '6px 16px',
+                                                        fontSize: 12.5,
+                                                    }}
+                                                    onClick={() =>
+                                                        setAPayer(facture)
+                                                    }
+                                                >
+                                                    Payer
+                                                </button>
+                                            )
                                         ) : (
                                             facture.statut === 'PAYEE' ? (
                                                 <a
@@ -163,6 +189,14 @@ export default function ApprenantFacturesIndex({ stats, factures }: Props) {
                     </table>
                 )}
             </div>
+
+            {aPayer && (
+                <PayerFactureModal
+                    facture={aPayer}
+                    moyens={moyensPaiement}
+                    onClose={() => setAPayer(null)}
+                />
+            )}
         </>
     );
 }

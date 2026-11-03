@@ -77,6 +77,22 @@ class Facture extends Model
         return $this->belongsTo(Contrat::class);
     }
 
+    /**
+     * Whether this facture is billed to the given web user: their client
+     * account (or its linked entreprise partenaire) or their apprenant
+     * profile.
+     */
+    public function appartientA(User $user): bool
+    {
+        if ($user->client !== null) {
+            return $user->client->enregistrementsClientOuEntreprise(self::class)
+                ->where('id', $this->id)
+                ->exists();
+        }
+
+        return $user->apprenant !== null && $this->apprenant_id === $user->apprenant->id;
+    }
+
     /** @return HasMany<Paiement, $this> */
     public function paiements(): HasMany
     {

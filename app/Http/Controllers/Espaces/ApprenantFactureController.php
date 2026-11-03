@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Espaces;
 use App\Http\Controllers\Controller;
 use App\Models\Facture;
 use App\Support\FacturePdf;
+use App\Support\Paiements\PaiementService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
 use Inertia\Inertia;
@@ -12,7 +13,7 @@ use Inertia\Response;
 
 class ApprenantFactureController extends Controller
 {
-    public function __invoke(Request $request): Response
+    public function __invoke(Request $request, PaiementService $paiements): Response
     {
         $apprenant = $request->user('web')->apprenant;
 
@@ -46,7 +47,10 @@ class ApprenantFactureController extends Controller
                 'montant' => (string) $facture->montant,
                 'moyenPaiement' => $facture->moyen_paiement,
                 'statut' => $facture->statut,
+                'solde' => (string) $paiements->soldeRestant($facture),
+                'paiementEnAttente' => $paiements->paiementEnAttente($facture),
             ]),
+            'moyensPaiement' => $paiements->moyens(),
         ]);
     }
 

@@ -36,6 +36,8 @@ use App\Http\Controllers\Espaces\ClientOffreController;
 use App\Http\Controllers\Espaces\ClientPaiementController;
 use App\Http\Controllers\Espaces\ClientParametreController;
 use App\Http\Controllers\Espaces\ClientServiceController;
+use App\Http\Controllers\Espaces\PaiementEnLigneController;
+use App\Http\Controllers\PaiementWebhookController;
 use App\Http\Middleware\EnsureMembreActif;
 use App\Http\Middleware\EnsurePartenaireValide;
 use App\Http\Middleware\EnsureUserType;
@@ -167,6 +169,7 @@ Route::middleware(['auth:admin', EnsureMembreActif::class])
         Route::post('factures', [AdminFactureController::class, 'store'])->name('espace-admin.factures.store');
         Route::get('factures/{facture}', [AdminFactureController::class, 'show'])->name('espace-admin.factures.show');
         Route::post('factures/{facture}/paiements', [AdminFactureController::class, 'storePaiement'])->name('espace-admin.factures.paiements.store');
+        Route::patch('paiements/{paiement}', [AdminFactureController::class, 'updatePaiement'])->name('espace-admin.paiements.update');
         Route::get('contrats', [AdminContratController::class, 'index'])->name('espace-admin.contrats.index');
         Route::post('contrats', [AdminContratController::class, 'store'])->name('espace-admin.contrats.store');
         Route::get('contrats/{contrat}', [AdminContratController::class, 'show'])->name('espace-admin.contrats.show');
@@ -190,3 +193,15 @@ Route::middleware(['auth:admin', EnsureMembreActif::class])
         Route::delete('candidats-externes/{candidatureSpontanee}', [AdminCandidatExterneController::class, 'destroy'])->name('espace-admin.candidats-externes.destroy');
         Route::get('statistiques', AdminStatistiqueController::class)->name('espace-admin.statistiques');
     });
+
+/*
+| Online payment by the payer (client, entreprise or apprenant): initiation,
+| the simulation provider screen, and the provider's signed webhook.
+*/
+Route::middleware(['auth', 'verified'])->prefix('paiements')->group(function () {
+    Route::post('factures/{facture}', [PaiementEnLigneController::class, 'initier'])->name('paiements.initier');
+    Route::get('simulation/{paiement}', [PaiementEnLigneController::class, 'simulation'])->name('paiements.simulation');
+    Route::post('simulation/{paiement}', [PaiementEnLigneController::class, 'decision'])->name('paiements.simulation.decision');
+});
+
+Route::post('webhooks/paiements', PaiementWebhookController::class)->name('paiements.webhook');

@@ -24,6 +24,8 @@ return Application::configure(basePath: dirname(__DIR__))
                 : route('login'),
         );
 
+        $middleware->validateCsrfTokens(except: ['webhooks/*']);
+
         $middleware->web(append: [
             HandleAppearance::class,
             HandleInertiaRequests::class,

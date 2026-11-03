@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Demande;
 use App\Models\Facture;
 use App\Models\Paiement;
+use App\Support\Paiements\PaiementService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -95,6 +96,7 @@ class AdminFactureController extends Controller
         return Inertia::render('espaces/admin-facture-show', [
             ...$this->adminEspaceProps($membre),
             'peutCreer' => $membre->peut(Donnee::FacturesPaiements, Action::Creer),
+            'peutModifier' => $membre->peut(Donnee::FacturesPaiements, Action::Modifier),
             'facture' => [
                 'id' => $facture->id,
                 'reference' => $facture->reference,
@@ -111,11 +113,12 @@ class AdminFactureController extends Controller
                 'referenceTransaction' => $paiement->reference_transaction,
                 'statut' => $paiement->statut,
                 'datePaiement' => $paiement->date_paiement?->toDateString(),
+                'initieLe' => $paiement->created_at?->format('d/m/Y H:i'),
             ]),
         ]);
     }
 
-    public function storePaiement(Request $request, Facture $facture): RedirectResponse
+    public function storePaiement(Request $request, Facture $facture, PaiementService $paiements): RedirectResponse
     {
         $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::FacturesPaiements, Action::Creer), 403);
@@ -126,33 +129,41 @@ class AdminFactureController extends Controller
             'reference_transaction' => ['nullable', 'string', 'max:191'],
         ]);
 
-        Paiement::create([
-            ...$data,
-            'facture_id' => $facture->id,
-            'statut' => 'CONFIRME',
-            'valide_par_id' => $membre->id,
-            'date_paiement' => now(),
-        ]);
-
-        $montantPaye = (float) $facture->montant_paye + (float) $data['montant'];
-        $soldee = $montantPaye >= (float) $facture->montant;
-
-        $facture->update([
-            'montant_paye' => $montantPaye,
-            'statut' => $soldee ? 'PAYEE' : 'PARTIELLEMENT_PAYEE',
-        ]);
-
-        if ($soldee && $facture->demande_id !== null) {
-            $demande = $facture->demande;
-            $etapeActuelle = array_search($demande->statut, Demande::SUIVI_STEPS, true);
-            $etapePayee = array_search('PAYEE', Demande::SUIVI_STEPS, true);
-
-            if ($etapeActuelle !== false && $etapeActuelle < $etapePayee) {
-                $demande->update(['statut' => 'PAYEE']);
-            }
-        }
+        $paiements->enregistrerManuel(
+            $facture,
+            (float) $data['montant'],
+            $data['moyen'],
+            $data['reference_transaction'] ?? null,
+            $membre,
+        );
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Paiement enregistré.']);
+
+        return back();
+    }
+
+    /**
+     * Settles an online payment left pending (the payer paid but the
+     * provider's notification never arrived) or marks it failed.
+     */
+    public function updatePaiement(Request $request, Paiement $paiement, PaiementService $paiements): RedirectResponse
+    {
+        $membre = $this->membre($request);
+        abort_unless($membre->peut(Donnee::FacturesPaiements, Action::Modifier), 403);
+
+        $data = $request->validate([
+            'statut' => ['required', Rule::in(['CONFIRME', 'ECHEC'])],
+        ]);
+
+        abort_unless($paiement->statut === 'EN_ATTENTE', 409, 'Ce paiement a déjà été traité.');
+
+        if ($data['statut'] === 'CONFIRME') {
+            $paiements->confirmer($paiement, $membre);
+        } else {
+            $paiements->echouer($paiement);
+        }
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Paiement mis à jour.']);
 
         return back();
     }
