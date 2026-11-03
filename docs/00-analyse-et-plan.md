@@ -69,34 +69,40 @@ matrice de droits par type de donnée est implémentée depuis la phase 2
 
 ## 6. Plan de développement par phase
 
-| Phase | Contenu                                                                        | Statut                       |
-| ----- | ------------------------------------------------------------------------------ | ---------------------------- |
-| 1     | Base de données : migrations, modèles, enums, seeders de démo, tests           | Terminé                      |
-| 2     | Authentification par type de compte, rôles, matrice de droits, espaces de base | Terminé                      |
-| 3     | Espace public : catalogue, formations, formules, contact, audit gratuit        | Terminé                      |
-| 4     | Espace client : demandes, suivi, documents                                     | Terminé                      |
-| 5     | Paiement et facturation (Orange Money / MTN MoMo / carte, facture manuelle)    | Terminé (passerelle simulée) |
-| 6     | Contrats et signature par photo importée                                       | Partiel                      |
-| 7     | Module Formation (inscription, présence, attestation)                          | Terminé                      |
-| 8     | Entreprises partenaires et placement (offres, candidatures)                    | Terminé                      |
-| 9     | Demandes partenaires Nova-Tech                                                 | À venir                      |
-| 10    | Espace administrateur (catalogue, équipe, journal)                             | Terminé                      |
-| 11    | Notifications (e-mail d'abord, architecture prête pour WhatsApp/SMS)           | À venir                      |
-| 12    | Déploiement et recette finale                                                  | À venir                      |
+Légende : `[x]` phase terminée et documentée, `[ ]` phase à faire ou partielle
+(le reste à faire est indiqué).
 
-Détail de l'avancement :
+- [x] **Phase 1 — Base de données** : migrations, modèles, enums, seeders de démo, tests.
+  Documentation : [`01-phase-1-fondations-donnees.md`](01-phase-1-fondations-donnees.md)
+- [x] **Phase 2 — Authentification et rôles** : authentification par type de compte, rôles,
+  matrice de droits, espaces de base.
+  Documentation : [`02-phase-2-authentification-roles.md`](02-phase-2-authentification-roles.md)
+- [x] **Phase 3 — Espace public** : catalogue, formations, formules, contact, audit gratuit.
+  Documentation : [`04-phase-3-espace-public.md`](04-phase-3-espace-public.md)
+  (charte graphique : [`03-charte-graphique-et-assets.md`](03-charte-graphique-et-assets.md))
+- [x] **Phase 4 — Espace client** : demandes, suivi, documents.
+  Documentation : [`05-phase-4-espace-client.md`](05-phase-4-espace-client.md)
+- [x] **Phase 5 — Paiement et facturation** : Orange Money, MTN MoMo, carte, facture
+  manuelle. Parcours complet avec passerelle simulée ; il reste à brancher un prestataire
+  réel (compte et clés API).
+  Documentation : [`06-phase-5-paiement-facturation.md`](06-phase-5-paiement-facturation.md)
+- [ ] **Phase 6 — Contrats et signature** : partielle. Gestion des contrats, modèles,
+  clauses et PDF signé en place ; reste la signature par photo importée côté client.
+  Documentation : [`07-phase-6-contrats.md`](07-phase-6-contrats.md)
+- [ ] **Phase 7 — Module Formation** : partielle. Sessions, inscriptions et attestations
+  validées en place ; reste le pointage de la présence par l'équipe.
+  Documentation : [`08-phase-7-formation.md`](08-phase-7-formation.md)
+- [x] **Phase 8 — Entreprises partenaires et placement** : offres, candidatures, dossiers
+  reçus de candidats externes.
+  Documentation : [`09-phase-8-entreprises-placement.md`](09-phase-8-entreprises-placement.md)
+- [ ] **Phase 9 — Demandes partenaires Nova-Tech** : volontairement exclue pour le moment.
+- [ ] **Phase 10 — Espace administrateur** : partielle. Catalogue, équipe et droits,
+  tableau de bord, comptes et documents en place ; reste le journal d'activité.
+  Documentation : [`10-phase-10-espace-administrateur.md`](10-phase-10-espace-administrateur.md)
+- [ ] **Phase 11 — Notifications** : e-mail d'abord, architecture prête pour WhatsApp et SMS.
+- [ ] **Phase 12 — Déploiement et recette finale.**
 
-- Phases 1 à 4 : documentées dans `docs/01` à `docs/05`.
-- Phase 5 : documentée dans `docs/06-phase-5-paiement-facturation.md`. Le parcours
-  complet (demande, devis, paiement, facture) fonctionne avec une passerelle de
-  simulation ; il reste à brancher un prestataire réel (compte et clés API).
-- Phase 6 : les contrats sont créés, envoyés et consultables, et le PDF du contrat
-  signé est téléchargeable par l'administrateur. La signature par photo importée
-  côté client n'est pas encore en place.
-- Phases 7, 8 et 10 : réalisées avec l'espace administrateur (sessions, inscriptions,
-  attestations validées avant délivrance, offres, candidatures déposées par DAG,
-  dossiers reçus de candidats externes, équipe et droits modifiables).
-- Phase 9 (Nova-Tech) : volontairement exclue pour le moment.
+Chaque phase terminée ou partielle a son fichier de documentation dans `docs/`.
 
 Chaque phase est développée, testée par l'IA (tests Pest + vérifications manuelles),
 documentée dans `docs/`, puis remise à l'utilisateur pour test et validation avant de

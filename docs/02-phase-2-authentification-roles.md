@@ -5,6 +5,13 @@ Statut : **terminée**. Correspond aux critères de validation des sections 6.2
 accède uniquement aux données et actions prévues par la matrice de droits ») du
 cahier des charges.
 
+> **Mise à jour (comptes équipe et droits)** : les membres de l'équipe DAG ne sont
+> plus des lignes de `users` mais des comptes de la table `membres_equipe`, avec leur
+> propre connexion (guard `admin`, `/espace-admin/connexion`), et la matrice de droits
+> est désormais modifiable depuis la page Équipe (table `droits_roles`). Les valeurs
+> décrites ci-dessous restent les valeurs par défaut. Voir
+> `docs/10-phase-10-espace-administrateur.md`.
+
 > **Mise à jour** : le compte/espace « Entreprise partenaire » décrit ci-dessous
 > a été **retiré** après cette phase, sur décision explicite de l'utilisateur :
 > un partenaire échange directement avec un membre de l'équipe DAG, il n'a pas
