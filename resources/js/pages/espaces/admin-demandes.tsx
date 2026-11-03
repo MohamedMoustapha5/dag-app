@@ -23,6 +23,7 @@ type Props = {
 };
 
 const STATUTS_DEVIS = ['BROUILLON', 'EN_ETUDE', 'DEVIS_ENVOYE'];
+const STATUTS_PAYES = ['PAYEE', 'EN_COURS', 'LIVREE', 'TERMINEE'];
 
 export default function AdminDemandes({
     demandes,
@@ -151,8 +152,9 @@ export default function AdminDemandes({
                                                         </button>
                                                     )}
                                                 {peutGenererContrat &&
-                                                    demande.statut ===
-                                                        'PAYEE' &&
+                                                    STATUTS_PAYES.includes(
+                                                        demande.statut,
+                                                    ) &&
                                                     !demande.aContrat && (
                                                         <button
                                                             type="button"
