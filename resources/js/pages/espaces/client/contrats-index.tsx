@@ -1,13 +1,14 @@
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { FileSignature, Shield } from 'lucide-react';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
+import contratsRoutes from '@/routes/espace-client/contrats';
 
 type Contrat = {
     id: string;
     reference: string;
     objet: string;
     statut: string;
-    fichierPdf: string | null;
+    estSigne: boolean;
 };
 
 type Props = {
@@ -137,34 +138,37 @@ export default function ContratsIndex({ contrats }: Props) {
                                             contrat.statut}
                                     </span>
                                     {contrat.statut === 'ENVOYE' ? (
-                                        <button
-                                            type="button"
+                                        <Link
+                                            href={contratsRoutes.show(
+                                                contrat.id,
+                                            )}
                                             className="btn-primary"
-                                            disabled
-                                            title="Disponible prochainement"
                                         >
-                                            Importer ma signature
-                                        </button>
-                                    ) : contrat.fichierPdf ? (
-                                        <a
-                                            href={contrat.fichierPdf}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="link-action"
-                                        >
-                                            Voir
-                                        </a>
+                                            Lire et signer
+                                        </Link>
                                     ) : (
-                                        <span
-                                            className="link-action"
-                                            style={{
-                                                opacity: 0.5,
-                                                cursor: 'not-allowed',
-                                            }}
-                                            title="Document bientôt disponible"
-                                        >
-                                            Voir
-                                        </span>
+                                        <>
+                                            <Link
+                                                href={contratsRoutes.show(
+                                                    contrat.id,
+                                                )}
+                                                className="link-action"
+                                            >
+                                                Voir
+                                            </Link>
+                                            {contrat.estSigne && (
+                                                <a
+                                                    href={
+                                                        contratsRoutes.pdf(
+                                                            contrat.id,
+                                                        ).url
+                                                    }
+                                                    className="link-action"
+                                                >
+                                                    PDF
+                                                </a>
+                                            )}
+                                        </>
                                     )}
                                 </div>
                             </div>

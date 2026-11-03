@@ -1,13 +1,14 @@
 import { Head } from '@inertiajs/react';
 import { Download } from 'lucide-react';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
+import contratsRoutes from '@/routes/espace-client/contrats';
 
 type Contrat = {
     id: string;
     reference: string;
     objet: string;
     statut: string;
-    fichierPdf: string | null;
+    estSigne: boolean;
 };
 
 type Facture = {
@@ -78,14 +79,16 @@ export default function Documents({ contrats, factures }: Props) {
                                         </span>
                                     </td>
                                     <td style={{ textAlign: 'right' }}>
-                                        {contrat.fichierPdf && (
+                                        {contrat.estSigne && (
                                             <a
-                                                href={contrat.fichierPdf}
-                                                target="_blank"
-                                                rel="noreferrer"
+                                                href={
+                                                    contratsRoutes.pdf(
+                                                        contrat.id,
+                                                    ).url
+                                                }
                                                 className="link-action"
                                             >
-                                                <Download size={14} /> Voir
+                                                <Download size={14} /> PDF
                                             </a>
                                         )}
                                     </td>

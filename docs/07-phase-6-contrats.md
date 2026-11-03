@@ -2,8 +2,8 @@
 
 Statut : **partielle**. Correspond à la ligne « Contrats et signature par photo
 importée » du plan (section 6 de `docs/00-analyse-et-plan.md`). La gestion des
-contrats par l'administration et le PDF du contrat signé sont en place ; la
-signature par photo importée côté client reste à construire.
+contrats par l'administration, la signature par photo importée côté client et le PDF
+du contrat signé sont en place ; restent la relance et la contestation de signature.
 
 ## 1. Réalisé
 
@@ -11,7 +11,13 @@ signature par photo importée côté client reste à construire.
   suivi du statut, consultation.
 - Modèles de contrat réutilisables et bibliothèque de clauses.
 - Création d'un contrat depuis une demande payée (action « Générer le contrat »
-  de la page Demandes clients).
+  de la page Demandes clients). Le texte est rédigé automatiquement : le modèle actif du
+  type « prestation de service » avec ses champs remplacés (`{{client}}`, `{{service}}`,
+  `{{montant}}`, `{{date}}`, `{{reference}}`), suivi des clauses de la bibliothèque,
+  numérotées dans l'ordre.
+- Envoi au client : le contrat est créé en brouillon (invisible du client) ; le bouton
+  « Envoyer au client pour signature » de sa fiche le passe à « Envoyé ».
+- Signature par le client : voir la section 5.
 - Consultation des contrats côté client (page Contrats et page Documents).
 - PDF du contrat signé, téléchargeable par l'administration.
 
@@ -55,14 +61,29 @@ Généré à la demande par `App\Support\ContratPdf` (vue `resources/views/pdf/c
 
 Les images de marque (logo, cachet) sont dans `public/images/brand/`.
 
-## 5. Reste à faire
+## 5. Signature par le client
 
-- Signature du contrat par le client avec une photo de signature importée, avec
-  enregistrement de la date, de l'adresse IP et du code de vérification.
-- Relance automatique et gestion de la contestation de signature.
+1. Le client ouvre le contrat depuis « Contrats » (bouton « Lire et signer ») ou depuis
+   sa demande ; il lit le texte intégral.
+2. Il importe une image de sa signature manuscrite (PNG ou JPG, 4 Mo maximum), confirme
+   son nom complet et coche l'acceptation des termes.
+3. Le contrat passe à « Signé ». Sont conservés : l'image (disque privé), le nom saisi,
+   la date et l'heure, l'adresse IP.
+4. Le client et l'administration peuvent télécharger le PDF signé, dont le procès-verbal
+   d'acceptation reprend ces éléments et la signature importée.
 
-## 6. Tests
+Règles : seul un contrat « Envoyé » peut être signé (409 sinon) ; un contrat en brouillon
+est invisible du client (404) ; un client ne peut lire, signer ni télécharger que ses
+propres contrats, ou ceux de l'entreprise partenaire liée à son compte.
+
+## 6. Reste à faire
+
+- Relance automatique d'un contrat envoyé et non signé, et gestion de la contestation de
+  signature (les champs existent en base).
+
+## 7. Tests
 
 `tests/Feature/Espaces/Admin/ContratTest.php` (création, statut, PDF signé, refus
-d'un contrat non signé, refus sans droit) et `tests/Unit/ContratPdfTest.php`
-(découpage du texte en clauses).
+d'un contrat non signé, refus sans droit), `tests/Feature/Espaces/Client/ContratSignatureTest.php`
+(rédaction automatique, brouillon masqué, signature, validations, accès des autres clients)
+et `tests/Unit/ContratPdfTest.php` (découpage du texte en clauses).

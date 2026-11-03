@@ -4,6 +4,7 @@ import { useState } from 'react';
 import PayerFactureModal, {
     type MoyenPaiement,
 } from '@/components/espaces/payer-facture-modal';
+import contratsRoutes from '@/routes/espace-client/contrats';
 import facturesRoutes from '@/routes/espace-client/factures';
 import demandes from '@/routes/espace-client/demandes';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
@@ -21,7 +22,9 @@ type Props = {
         contrat: {
             reference: string;
             statut: string;
-            fichierPdf: string | null;
+            id: string;
+            estSigne: boolean;
+            envoye: boolean;
         } | null;
         facture: {
             id: string;
@@ -175,11 +178,28 @@ export default function DemandesShow({
                                 {STATUT_LABEL[demande.contrat.statut] ??
                                     demande.contrat.statut}
                             </span>
-                            {demande.contrat.fichierPdf && (
+                            {demande.contrat.envoye && (
+                                <Link
+                                    href={contratsRoutes.show(
+                                        demande.contrat.id,
+                                    )}
+                                    className="btn-primary"
+                                    style={{
+                                        display: 'inline-block',
+                                        marginTop: 12,
+                                        padding: '8px 18px',
+                                        fontSize: 13,
+                                    }}
+                                >
+                                    Lire et signer
+                                </Link>
+                            )}
+                            {demande.contrat.estSigne && (
                                 <a
-                                    href={demande.contrat.fichierPdf}
-                                    target="_blank"
-                                    rel="noreferrer"
+                                    href={
+                                        contratsRoutes.pdf(demande.contrat.id)
+                                            .url
+                                    }
                                     className="link-action"
                                     style={{ display: 'block', marginTop: 12 }}
                                 >

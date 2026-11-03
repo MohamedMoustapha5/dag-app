@@ -93,10 +93,12 @@ class ClientDemandeController extends Controller
                 'montantNegocie' => $demande->montant_negocie,
                 'messageDevis' => $demande->message_devis,
                 'createdAt' => $demande->created_at,
-                'contrat' => $demande->contrat ? [
+                'contrat' => $demande->contrat && $demande->contrat->statut !== 'BROUILLON' ? [
                     'reference' => $demande->contrat->reference,
                     'statut' => $demande->contrat->statut,
-                    'fichierPdf' => $demande->contrat->fichier_pdf,
+                    'id' => $demande->contrat->id,
+                    'estSigne' => $demande->contrat->estSigne(),
+                    'envoye' => $demande->contrat->statut === 'ENVOYE',
                 ] : null,
                 'facture' => $demande->facture ? [
                     'id' => $demande->facture->id,

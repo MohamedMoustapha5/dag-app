@@ -11,6 +11,7 @@ use App\Models\Contrat;
 use App\Models\Demande;
 use App\Models\ModeleContrat;
 use App\Support\ContratPdf;
+use App\Support\ContratRedaction;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
@@ -131,9 +132,9 @@ class AdminContratController extends Controller
 
         abort_if($demande->contrat()->exists(), 409, 'Cette demande a déjà un contrat.');
 
-        $modele = $data['modele_contrat_id'] !== null
+        $modele = isset($data['modele_contrat_id'])
             ? ModeleContrat::where('id', $data['modele_contrat_id'])->first()
-            : null;
+            : ContratRedaction::modeleParDefaut('PRESTATION_SERVICE');
 
         $contrat = Contrat::create([
             'type' => 'PRESTATION_SERVICE',
@@ -141,7 +142,7 @@ class AdminContratController extends Controller
             'client_id' => $demande->client_id,
             'entreprise_id' => $demande->entreprise_id,
             'demande_id' => $demande->id,
-            'contenu' => $modele?->contenu,
+            'contenu' => ContratRedaction::pour($demande, $modele),
             'montant' => $demande->montant_negocie,
             'statut' => 'BROUILLON',
         ]);

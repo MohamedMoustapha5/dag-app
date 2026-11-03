@@ -16,6 +16,7 @@ class ClientDocumentController extends Controller
         $client = $request->user('web')->client;
 
         $contrats = $client->enregistrementsClientOuEntreprise(Contrat::class)
+            ->where('statut', '!=', 'BROUILLON')
             ->with(['demande.service', 'demande.formule', 'abonnement.formule', 'candidature.offre'])
             ->latest()
             ->get();
@@ -32,7 +33,7 @@ class ClientDocumentController extends Controller
                 'reference' => $contrat->reference,
                 'objet' => $contrat->libelleObjet(),
                 'statut' => $contrat->statut,
-                'fichierPdf' => $contrat->fichier_pdf,
+                'estSigne' => $contrat->estSigne(),
             ]),
             'factures' => $factures->map(fn (Facture $facture) => [
                 'id' => $facture->id,

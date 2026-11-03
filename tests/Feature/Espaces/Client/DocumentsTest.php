@@ -20,7 +20,7 @@ test('the documents page lists only the authenticated client own contrats and fa
         ->component('espaces/client/documents')
         ->has('contrats', 1)
         ->where('contrats.0.id', $monContrat->id)
-        ->where('contrats.0.fichierPdf', $monContrat->fichier_pdf)
+        ->where('contrats.0.estSigne', true)
         ->has('factures', 1)
         ->where('factures.0.id', $maFacture->id));
 });

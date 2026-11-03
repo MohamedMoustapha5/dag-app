@@ -1,4 +1,4 @@
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
 import contratsAdmin from '@/routes/espace-admin/contrats';
 
@@ -27,6 +27,14 @@ export default function AdminContratShow({
     contrat,
 }: Props) {
     const form = useForm({ statut: contrat.statut });
+
+    const envoyerAuClient = () => {
+        router.patch(
+            contratsAdmin.update(contrat.id).url,
+            { statut: 'ENVOYE' },
+            { preserveScroll: true },
+        );
+    };
 
     const submit = (event: React.FormEvent) => {
         event.preventDefault();
@@ -67,6 +75,16 @@ export default function AdminContratShow({
                     </span>
                 </div>
                 <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                    {peutModifier && contrat.statut === 'BROUILLON' && (
+                        <button
+                            type="button"
+                            className="btn-primary"
+                            style={{ padding: '8px 16px', fontSize: 13 }}
+                            onClick={envoyerAuClient}
+                        >
+                            Envoyer au client pour signature
+                        </button>
+                    )}
                     {peutTelecharger && contrat.estSigne && (
                         <a
                             href={contratsAdmin.pdf(contrat.id).url}

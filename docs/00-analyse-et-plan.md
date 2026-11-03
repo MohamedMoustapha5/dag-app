@@ -130,8 +130,9 @@ Documentation : [`07-phase-6-contrats.md`](07-phase-6-contrats.md)
 
 - [x] Contrats, modèles et clauses
 - [x] Création d'un contrat depuis une demande payée
-- [x] PDF du contrat signé
-- [ ] Signature par photo importée côté client
+- [x] Rédaction automatique du contrat (modèle actif et clauses)
+- [x] Envoi au client et signature par photo importée
+- [x] PDF du contrat signé (administration et client)
 - [ ] Relance et contestation de signature
 
 ### Phase 7 — Module Formation — partielle

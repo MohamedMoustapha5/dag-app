@@ -75,6 +75,9 @@ Route::middleware(['auth', 'verified', EnsureUserType::class.':CLIENT'])
         Route::get('factures', ClientFactureController::class)->name('espace-client.factures');
         Route::get('factures/{facture}/pdf', [ClientFactureController::class, 'pdf'])->name('espace-client.factures.pdf');
         Route::get('contrats', ClientContratController::class)->name('espace-client.contrats');
+        Route::get('contrats/{contrat}', [ClientContratController::class, 'show'])->name('espace-client.contrats.show');
+        Route::post('contrats/{contrat}/signature', [ClientContratController::class, 'signer'])->name('espace-client.contrats.signer');
+        Route::get('contrats/{contrat}/pdf', [ClientContratController::class, 'pdf'])->name('espace-client.contrats.pdf');
         Route::get('documents', ClientDocumentController::class)->name('espace-client.documents');
         Route::get('parametres', [ClientParametreController::class, 'edit'])->name('espace-client.parametres');
         Route::patch('parametres', [ClientParametreController::class, 'update'])->name('espace-client.parametres.update');
