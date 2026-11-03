@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Demande;
 use App\Models\Formule;
 use App\Models\Service;
+use App\Support\Paiements\PaiementService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -73,7 +74,7 @@ class ClientDemandeController extends Controller
         return to_route('espace-client.demandes.show', $demande);
     }
 
-    public function show(Request $request, Demande $demande): Response
+    public function show(Request $request, Demande $demande, PaiementService $paiements): Response
     {
         Gate::authorize('view', $demande);
 
@@ -98,12 +99,16 @@ class ClientDemandeController extends Controller
                     'fichierPdf' => $demande->contrat->fichier_pdf,
                 ] : null,
                 'facture' => $demande->facture ? [
+                    'id' => $demande->facture->id,
                     'reference' => $demande->facture->reference,
                     'statut' => $demande->facture->statut,
                     'montant' => $demande->facture->montant,
                     'montantPaye' => $demande->facture->montant_paye,
+                    'solde' => (string) $paiements->soldeRestant($demande->facture),
+                    'paiementEnAttente' => $paiements->paiementEnAttente($demande->facture),
                 ] : null,
             ],
+            'moyensPaiement' => $paiements->moyens(),
             'suivi' => [
                 'etapes' => Demande::SUIVI_STEPS,
                 'etapeActuelle' => $etapeActuelle === false ? null : $etapeActuelle,

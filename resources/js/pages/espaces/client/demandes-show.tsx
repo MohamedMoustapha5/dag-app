@@ -1,5 +1,10 @@
 import { Head, Link } from '@inertiajs/react';
 import { Download } from 'lucide-react';
+import { useState } from 'react';
+import PayerFactureModal, {
+    type MoyenPaiement,
+} from '@/components/espaces/payer-facture-modal';
+import facturesRoutes from '@/routes/espace-client/factures';
 import demandes from '@/routes/espace-client/demandes';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
 
@@ -19,12 +24,16 @@ type Props = {
             fichierPdf: string | null;
         } | null;
         facture: {
+            id: string;
             reference: string;
             statut: string;
             montant: string;
             montantPaye: string;
+            solde: string;
+            paiementEnAttente: boolean;
         } | null;
     };
+    moyensPaiement: MoyenPaiement[];
     suivi: {
         etapes: string[];
         etapeActuelle: number | null;
@@ -32,7 +41,18 @@ type Props = {
     };
 };
 
-export default function DemandesShow({ demande, suivi }: Props) {
+export default function DemandesShow({
+    demande,
+    suivi,
+    moyensPaiement,
+}: Props) {
+    const [paiementOuvert, setPaiementOuvert] = useState(false);
+    const facture = demande.facture;
+    const aPayer =
+        facture !== null &&
+        (facture.statut === 'EN_ATTENTE' ||
+            facture.statut === 'PARTIELLEMENT_PAYEE');
+
     return (
         <>
             <Head title={`Demande ${demande.reference}`} />
@@ -189,9 +209,56 @@ export default function DemandesShow({ demande, suivi }: Props) {
                                 {demande.facture.montantPaye} /{' '}
                                 {demande.facture.montant} FCFA payés
                             </p>
+                            {aPayer &&
+                                (demande.facture.paiementEnAttente ? (
+                                    <p
+                                        className="muted"
+                                        style={{ fontSize: 12, marginTop: 12 }}
+                                    >
+                                        Paiement en attente de confirmation
+                                    </p>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        className="btn-primary"
+                                        style={{
+                                            marginTop: 12,
+                                            padding: '8px 18px',
+                                            fontSize: 13,
+                                        }}
+                                        onClick={() => setPaiementOuvert(true)}
+                                    >
+                                        Payer {demande.facture.solde} FCFA
+                                    </button>
+                                ))}
+                            {demande.facture.statut === 'PAYEE' && (
+                                <a
+                                    href={
+                                        facturesRoutes.pdf(demande.facture.id)
+                                            .url
+                                    }
+                                    className="link-action"
+                                    style={{ display: 'block', marginTop: 12 }}
+                                >
+                                    <Download size={14} /> Télécharger la facture
+                                </a>
+                            )}
                         </div>
                     )}
                 </div>
+            )}
+
+            {paiementOuvert && facture && (
+                <PayerFactureModal
+                    facture={{
+                        id: facture.id,
+                        reference: facture.reference,
+                        objet: demande.objet,
+                        solde: facture.solde,
+                    }}
+                    moyens={moyensPaiement}
+                    onClose={() => setPaiementOuvert(false)}
+                />
             )}
         </>
     );

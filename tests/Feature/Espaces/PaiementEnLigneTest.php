@@ -6,6 +6,7 @@ use App\Models\Demande;
 use App\Models\Facture;
 use App\Models\MembreEquipe;
 use App\Models\Paiement;
+use App\Models\Service;
 
 test('a client starts an Orange Money payment and is sent to the simulation screen', function () {
     $client = Client::factory()->create();
@@ -213,4 +214,70 @@ test('a lecture-only admin role cannot settle a pending payment', function () {
     $this->actingAs($juriste, 'admin')
         ->patch(route('espace-admin.paiements.update', $enAttente), ['statut' => 'CONFIRME'])
         ->assertForbidden();
+});
+
+test('the full journey: request a service, receive the devis, pay it and download the facture', function () {
+    $client = Client::factory()->create();
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $service = Service::factory()->create();
+
+    $this->actingAs($client->user)
+        ->post(route('espace-client.demandes.store'), [
+            'type' => 'service',
+            'service_id' => $service->id,
+            'description' => 'Je souhaite un site vitrine.',
+        ])
+        ->assertRedirect();
+
+    $demande = Demande::firstOrFail();
+    expect($demande->facture)->toBeNull();
+
+    $this->actingAs($promotrice, 'admin')
+        ->post(route('espace-admin.demandes.devis', $demande), ['montant' => 150000, 'message' => 'Livraison sous 3 semaines.'])
+        ->assertRedirect();
+
+    $facture = Facture::firstOrFail();
+    expect($facture->demande_id)->toBe($demande->id);
+    expect((float) $facture->montant)->toBe(150000.0);
+    expect($facture->statut)->toBe('EN_ATTENTE');
+
+    $this->actingAs($client->user)
+        ->get(route('espace-client.demandes.show', $demande))
+        ->assertInertia(fn ($page) => $page
+            ->where('demande.facture.solde', '150000')
+            ->has('moyensPaiement', 3));
+
+    $this->actingAs($client->user)
+        ->post(route('paiements.initier', $facture), ['moyen' => 'OM', 'telephone' => '690000000']);
+
+    $this->actingAs($client->user)
+        ->post(route('paiements.simulation.decision', Paiement::firstOrFail()), ['resultat' => 'succes']);
+
+    expect($facture->fresh()->statut)->toBe('PAYEE');
+    expect($demande->fresh()->statut)->toBe('PAYEE');
+
+    $this->actingAs($client->user)
+        ->get(route('espace-client.factures.pdf', $facture))
+        ->assertOk();
+});
+
+test('re-sending a devis adjusts the unpaid facture instead of creating another', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $demande = Demande::factory()->create(['statut' => 'EN_ETUDE']);
+
+    $this->actingAs($promotrice, 'admin')->post(route('espace-admin.demandes.devis', $demande), ['montant' => 100000]);
+    $this->actingAs($promotrice, 'admin')->post(route('espace-admin.demandes.devis', $demande), ['montant' => 120000]);
+
+    expect(Facture::count())->toBe(1);
+    expect((float) Facture::firstOrFail()->montant)->toBe(120000.0);
+});
+
+test('a devis cannot be re-sent once a payment was recorded', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $demande = Demande::factory()->create(['statut' => 'DEVIS_ENVOYE']);
+    Facture::factory()->create(['demande_id' => $demande->id, 'montant' => 100000, 'montant_paye' => 40000, 'statut' => 'PARTIELLEMENT_PAYEE']);
+
+    $this->actingAs($promotrice, 'admin')
+        ->post(route('espace-admin.demandes.devis', $demande), ['montant' => 90000])
+        ->assertStatus(409);
 });

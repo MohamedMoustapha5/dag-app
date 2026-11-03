@@ -7,8 +7,10 @@ use App\Enums\Action;
 use App\Enums\Donnee;
 use App\Http\Controllers\Controller;
 use App\Models\Demande;
+use App\Models\Facture;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -116,11 +118,37 @@ class AdminDemandeController extends Controller
             'message' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        $demande->update([
-            'montant_negocie' => $data['montant'],
-            'message_devis' => $data['message'] ?? null,
-            'statut' => 'DEVIS_ENVOYE',
-        ]);
+        $facture = $demande->facture;
+
+        abort_if(
+            $facture !== null && (float) $facture->montant_paye > 0,
+            409,
+            'Un paiement a déjà été enregistré : le devis ne peut plus être modifié.'
+        );
+
+        DB::transaction(function () use ($demande, $facture, $data): void {
+            $demande->update([
+                'montant_negocie' => $data['montant'],
+                'message_devis' => $data['message'] ?? null,
+                'statut' => 'DEVIS_ENVOYE',
+            ]);
+
+            // The facture the client pays from their espace is issued with
+            // the devis; re-sending a devis only adjusts its amount.
+            if ($facture === null) {
+                Facture::create([
+                    'type' => 'SERVICE',
+                    'client_id' => $demande->client_id,
+                    'entreprise_id' => $demande->entreprise_id,
+                    'demande_id' => $demande->id,
+                    'montant' => $data['montant'],
+                    'montant_paye' => 0,
+                    'statut' => 'EN_ATTENTE',
+                ]);
+            } else {
+                $facture->update(['montant' => $data['montant']]);
+            }
+        });
 
         Inertia::flash('toast', ['type' => 'success', 'message' => "Devis envoyé pour {$demande->reference}."]);
 

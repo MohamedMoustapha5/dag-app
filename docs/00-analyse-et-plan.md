@@ -69,20 +69,34 @@ matrice de droits par type de donnée est implémentée depuis la phase 2
 
 ## 6. Plan de développement par phase
 
-| Phase | Contenu                                                                        | Statut  |
-| ----- | ------------------------------------------------------------------------------ | ------- |
-| 1     | Base de données : migrations, modèles, enums, seeders de démo, tests           | ✅ fait |
-| 2     | Authentification par type de compte, rôles, matrice de droits, espaces de base | ✅ fait |
-| 3     | Espace public : catalogue, formations, formules, contact, audit gratuit        | ✅ fait |
-| 4     | Espace client : demandes, suivi, documents                                     | ✅ fait |
-| 5     | Paiement & facturation (Orange Money / MTN MoMo / carte, facture manuelle)     | à venir |
-| 6     | Contrats & signature par photo importée                                        | à venir |
-| 7     | Module Formation (inscription, présence, attestation)                          | à venir |
-| 8     | Entreprises partenaires & placement (offres, candidatures)                     | à venir |
-| 9     | Demandes partenaires Nova-Tech                                                 | à venir |
-| 10    | Espace administrateur (catalogue, équipe, journal)                             | à venir |
-| 11    | Notifications (e-mail d'abord, architecture prête pour WhatsApp/SMS)           | à venir |
-| 12    | Déploiement & recette finale                                                   | à venir |
+| Phase | Contenu                                                                        | Statut                       |
+| ----- | ------------------------------------------------------------------------------ | ---------------------------- |
+| 1     | Base de données : migrations, modèles, enums, seeders de démo, tests           | Terminé                      |
+| 2     | Authentification par type de compte, rôles, matrice de droits, espaces de base | Terminé                      |
+| 3     | Espace public : catalogue, formations, formules, contact, audit gratuit        | Terminé                      |
+| 4     | Espace client : demandes, suivi, documents                                     | Terminé                      |
+| 5     | Paiement et facturation (Orange Money / MTN MoMo / carte, facture manuelle)    | Terminé (passerelle simulée) |
+| 6     | Contrats et signature par photo importée                                       | Partiel                      |
+| 7     | Module Formation (inscription, présence, attestation)                          | Terminé                      |
+| 8     | Entreprises partenaires et placement (offres, candidatures)                    | Terminé                      |
+| 9     | Demandes partenaires Nova-Tech                                                 | À venir                      |
+| 10    | Espace administrateur (catalogue, équipe, journal)                             | Terminé                      |
+| 11    | Notifications (e-mail d'abord, architecture prête pour WhatsApp/SMS)           | À venir                      |
+| 12    | Déploiement et recette finale                                                  | À venir                      |
+
+Détail de l'avancement :
+
+- Phases 1 à 4 : documentées dans `docs/01` à `docs/05`.
+- Phase 5 : documentée dans `docs/06-phase-5-paiement-facturation.md`. Le parcours
+  complet (demande, devis, paiement, facture) fonctionne avec une passerelle de
+  simulation ; il reste à brancher un prestataire réel (compte et clés API).
+- Phase 6 : les contrats sont créés, envoyés et consultables, et le PDF du contrat
+  signé est téléchargeable par l'administrateur. La signature par photo importée
+  côté client n'est pas encore en place.
+- Phases 7, 8 et 10 : réalisées avec l'espace administrateur (sessions, inscriptions,
+  attestations validées avant délivrance, offres, candidatures déposées par DAG,
+  dossiers reçus de candidats externes, équipe et droits modifiables).
+- Phase 9 (Nova-Tech) : volontairement exclue pour le moment.
 
 Chaque phase est développée, testée par l'IA (tests Pest + vérifications manuelles),
 documentée dans `docs/`, puis remise à l'utilisateur pour test et validation avant de
