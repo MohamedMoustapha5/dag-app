@@ -1,7 +1,7 @@
 # Phase 9 — Espace administrateur
 
-Statut : **partielle**. Correspond à la ligne « Espace administrateur (catalogue,
-équipe, journal) » du plan. L'espace est complet à l'exception du journal d'activité.
+Statut : **terminée**. Correspond à la ligne « Espace administrateur (catalogue,
+équipe, journal) » du plan.
 
 ## 1. Authentification séparée
 
@@ -54,13 +54,43 @@ voir le domaine.
 Les PDF d'attestation, de facture et de contrat utilisent l'identité DAG (logo,
 couleurs, cachet signé de la directrice) : voir les phases 5, 6 et 7.
 
-## 6. Reste à faire
+## 6. Statistiques, journal d'activité et documents
 
-- Journal d'activité consultable (la table `activity_logs` existe mais aucun écran ne
-  l'expose).
+La page Statistiques regroupe trois onglets, affichés selon les droits du rôle.
+
+| Onglet | Contenu | Qui le voit |
+| ------ | ------- | ----------- |
+| Indicateurs | Chiffres clés par domaine, demandes par statut, finances | Tout rôle ayant le droit de voir les statistiques, chaque indicateur étant filtré par ses droits |
+| Journal d'activité | Qui a fait quoi, du plus récent au plus ancien | La Directrice uniquement |
+| Documents | Contrats signés, attestations, CV et dossiers reçus, en un seul tableau | Les rôles ayant le droit de téléchargement sur l'un de ces domaines |
+
+### Journal d'activité
+
+- Chaque ligne indique l'auteur et son rôle, l'action, un détail et la date. Les événements
+  sans auteur humain (paiement en ligne confirmé ou échoué, contrat signé par le client)
+  apparaissent sous « Système ».
+- Filtres : auteur (membre ou « Système et clients ») et recherche libre. Pagination de 20
+  événements.
+- Il est réservé à la Directrice car ses entrées couvrent tous les domaines : un autre rôle
+  verrait des informations qu'il n'a pas le droit de voir.
+- Événements enregistrés : connexion à l'administration, devis envoyé, demande mise à
+  jour, contrat généré ou changé de statut, attestation validée, candidature déposée par
+  DAG, partenaire validé ou désactivé, offre publiée ou clôturée, facture créée, paiement
+  enregistré ou confirmé, comptes client et apprenant supprimés, dossier reçu supprimé,
+  compte d'équipe créé ou modifié, droits modifiés ou réinitialisés.
+- Les enregistrements passent par `ActivityLog::record()` (table `activity_logs`).
+
+### Documents
+
+- Liste unique, triée par date, avec filtre par famille (contrats signés, attestations,
+  CV et dossiers), recherche par nom ou référence et lien de téléchargement.
+- Chaque famille n'apparaît que si le rôle a le droit de téléchargement correspondant. Les
+  factures n'y figurent pas : leur PDF est réservé aux espaces client et apprenant.
+- Les 100 documents les plus récents sont affichés ; la recherche et le filtre permettent
+  d'affiner.
 
 ## 7. Tests
 
 Un fichier par domaine dans `tests/Feature/Espaces/Admin/` (dont `EquipeTest`,
-`DashboardTest`, `StatistiqueTest`), `tests/Feature/Auth/LoginRedirectTest.php` pour la
+`DashboardTest`, `StatistiqueTest` qui couvre aussi le journal et les documents), `tests/Feature/Auth/LoginRedirectTest.php` pour la
 connexion séparée et `tests/Feature/Support/DroitsMatrixTest.php` pour la matrice.

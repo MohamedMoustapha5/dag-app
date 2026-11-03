@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import {
     Award,
     Briefcase,
@@ -8,7 +8,20 @@ import {
     Shield,
     Users,
 } from 'lucide-react';
+import DocumentsAdmin, {
+    type DocumentsData,
+} from '@/components/espaces/documents-admin';
+import JournalActivite, {
+    type JournalData,
+} from '@/components/espaces/journal-activite';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
+import { statistiques } from '@/routes/espace-admin';
+
+const ONGLET_LABEL: Record<string, string> = {
+    indicateurs: 'Indicateurs',
+    journal: "Journal d'activité",
+    documents: 'Documents',
+};
 
 type Props = {
     activite: {
@@ -26,12 +39,20 @@ type Props = {
         factureEncaissee: number;
         facturesImpayeesCount: number;
     } | null;
+    onglet: string;
+    onglets: string[];
+    journal: JournalData | null;
+    documents: DocumentsData | null;
 };
 
 export default function AdminStatistiques({
     activite,
     demandesParStatut,
     finances,
+    onglet,
+    onglets,
+    journal,
+    documents,
 }: Props) {
     const formatMontant = (montant: number) =>
         new Intl.NumberFormat('fr-FR').format(montant);
@@ -49,9 +70,49 @@ export default function AdminStatistiques({
                 <div className="espace-hero-overlay" />
                 <div className="espace-hero-content">
                     <h1>Statistiques</h1>
-                    <p>Vue d'ensemble de l'activité DAG, en temps réel.</p>
+                    <p>
+                        Indicateurs, journal d'activité et documents de DAG, au
+                        même endroit.
+                    </p>
                 </div>
             </div>
+
+            {onglets.length > 1 && (
+                <nav
+                    aria-label="Sections"
+                    style={{
+                        display: 'flex',
+                        gap: 8,
+                        flexWrap: 'wrap',
+                        marginBottom: 24,
+                    }}
+                >
+                    {onglets.map((cle) => (
+                        <Link
+                            key={cle}
+                            href={statistiques({ query: { onglet: cle } })}
+                            preserveScroll
+                            className={
+                                onglet === cle ? 'btn-primary' : 'btn-outline'
+                            }
+                            style={{ padding: '8px 18px', fontSize: 13.5 }}
+                        >
+                            {ONGLET_LABEL[cle] ?? cle}
+                        </Link>
+                    ))}
+                </nav>
+            )}
+
+            {onglet === 'journal' && journal && (
+                <JournalActivite journal={journal} />
+            )}
+
+            {onglet === 'documents' && documents && (
+                <DocumentsAdmin documents={documents} />
+            )}
+
+            {onglet === 'indicateurs' && (
+                <>
 
             <div
                 className="grid-4 espace-stats-grid"
@@ -361,6 +422,8 @@ export default function AdminStatistiques({
                     </div>
                 )}
             </div>
+                </>
+            )}
         </>
     );
 }

@@ -33,6 +33,18 @@ class Demande extends Model
         'BROUILLON', 'EN_ETUDE', 'DEVIS_ENVOYE', 'PAYEE', 'EN_COURS', 'LIVREE', 'TERMINEE',
     ];
 
+    /** @var array<string, string> */
+    public const STATUT_LABELS = [
+        'BROUILLON' => 'Brouillon', 'EN_ETUDE' => "À l'étude", 'DEVIS_ENVOYE' => 'Devis envoyé',
+        'PAYEE' => 'Payé', 'EN_COURS' => 'En cours', 'LIVREE' => 'Livrée', 'TERMINEE' => 'Terminée',
+        'REFUSEE' => 'Refusée',
+    ];
+
+    public function libelleStatut(): string
+    {
+        return self::STATUT_LABELS[$this->statut];
+    }
+
     protected function casts(): array
     {
         return [

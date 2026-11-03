@@ -8,6 +8,7 @@ use App\Enums\Donnee;
 use App\Enums\MembreEquipeRole;
 use App\Enums\NiveauDroit;
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\MembreEquipe;
 use App\Support\DroitsMatrix;
 use Illuminate\Http\RedirectResponse;
@@ -83,6 +84,8 @@ class AdminEquipeController extends Controller
             'statut' => 'ACTIF',
         ]);
 
+        ActivityLog::record($this->membre($request), "a créé le compte d'un membre", null, "{$data['name']} — {$data['role']}.");
+
         Inertia::flash('toast', ['type' => 'success', 'message' => "Compte créé pour {$data['name']}."]);
 
         return back();
@@ -111,6 +114,8 @@ class AdminEquipeController extends Controller
 
         $membreEquipe->update($data);
 
+        ActivityLog::record($this->membre($request), 'a modifié le compte de', $membreEquipe, "{$membreEquipe->name} : ".json_encode($data, JSON_UNESCAPED_UNICODE).'.');
+
         return back();
     }
 
@@ -130,6 +135,8 @@ class AdminEquipeController extends Controller
             NiveauDroit::from($data['niveau']),
         );
 
+        ActivityLog::record($this->membre($request), 'a modifié un droit', null, "{$data['role']} — {$data['donnee']} : {$data['niveau']}.");
+
         return back();
     }
 
@@ -142,6 +149,8 @@ class AdminEquipeController extends Controller
         abort_if($roleEnum === null || $roleEnum === MembreEquipeRole::Promotrice, 404);
 
         DroitsMatrix::reinitialiser($roleEnum);
+
+        ActivityLog::record($this->membre($request), 'a réinitialisé les droits', null, "Rôle « {$roleEnum->label()} ».");
 
         Inertia::flash('toast', ['type' => 'success', 'message' => "Droits de « {$roleEnum->label()} » réinitialisés."]);
 

@@ -6,6 +6,7 @@ use App\Concerns\SharesAdminEspaceProps;
 use App\Enums\Action;
 use App\Enums\Donnee;
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\Apprenant;
 use App\Models\Client;
 use Illuminate\Http\RedirectResponse;
@@ -74,7 +75,10 @@ class AdminClientController extends Controller
         $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::DemandesClients, Action::Supprimer), 403);
 
+        $nom = $client->nom;
         $client->user->delete();
+
+        ActivityLog::record($membre, 'a supprimé le compte client', null, "Compte de {$nom}.");
 
         return back();
     }

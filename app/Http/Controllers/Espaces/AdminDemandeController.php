@@ -6,6 +6,7 @@ use App\Concerns\SharesAdminEspaceProps;
 use App\Enums\Action;
 use App\Enums\Donnee;
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\Demande;
 use App\Support\Paiements\PaiementService;
 use Illuminate\Http\RedirectResponse;
@@ -106,6 +107,8 @@ class AdminDemandeController extends Controller
             }
         });
 
+        ActivityLog::record($this->membre($request), 'a mis à jour la demande', $demande, "{$demande->reference} : {$demande->libelleStatut()}.");
+
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Demande mise à jour.']);
 
         return back();
@@ -143,6 +146,8 @@ class AdminDemandeController extends Controller
 
             $paiements->emettreFacturePourDevis($demande, (float) $data['montant']);
         });
+
+        ActivityLog::record($this->membre($request), 'a envoyé un devis', $demande, "{$demande->reference} : ".number_format((float) $data['montant'], 0, ',', ' ').' FCFA.');
 
         Inertia::flash('toast', ['type' => 'success', 'message' => "Devis envoyé pour {$demande->reference}."]);
 

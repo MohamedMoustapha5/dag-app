@@ -6,6 +6,7 @@ use App\Concerns\SharesAdminEspaceProps;
 use App\Enums\Action;
 use App\Enums\Donnee;
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\Clause;
 use App\Models\Contrat;
 use App\Models\Demande;
@@ -147,6 +148,8 @@ class AdminContratController extends Controller
             'statut' => 'BROUILLON',
         ]);
 
+        ActivityLog::record($this->membre($request), 'a généré le contrat', $contrat, "{$contrat->reference} pour la demande {$demande->reference}.");
+
         Inertia::flash('toast', ['type' => 'success', 'message' => "Contrat {$contrat->reference} créé."]);
 
         return to_route('espace-admin.contrats.show', $contrat);
@@ -199,6 +202,8 @@ class AdminContratController extends Controller
         ]);
 
         $contrat->update($data);
+
+        ActivityLog::record($this->membre($request), 'a changé le statut du contrat', $contrat, "{$contrat->reference} : {$contrat->libelleStatut()}.");
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Contrat mis à jour.']);
 

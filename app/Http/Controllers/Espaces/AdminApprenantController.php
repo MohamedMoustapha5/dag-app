@@ -6,6 +6,7 @@ use App\Concerns\SharesAdminEspaceProps;
 use App\Enums\Action;
 use App\Enums\Donnee;
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\Apprenant;
 use App\Models\Attestation;
 use App\Models\Candidature;
@@ -158,7 +159,10 @@ class AdminApprenantController extends Controller
     {
         abort_unless($this->membre($request)->peut(Donnee::DossiersApprenants, Action::Supprimer), 403);
 
+        $nom = $apprenant->user->name;
         $apprenant->user->delete();
+
+        ActivityLog::record($this->membre($request), 'a supprimé le compte apprenant', null, "Compte de {$nom}.");
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Compte apprenant supprimé.']);
 

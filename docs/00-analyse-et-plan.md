@@ -73,7 +73,7 @@ matrice de droits par type de donnée est implémentée depuis la phase 2
 
 | Terminées | Partielles | À venir | Total |
 | --------- | ---------- | ------- | ----- |
-| 6         | 3          | 2       | 11    |
+| 7         | 2          | 2       | 11    |
 
 Légende : `[x]` fait, `[ ]` reste à faire. Une phase n'est cochée que lorsque tous ses
 points le sont. Chaque phase livrée a son fichier de documentation dans `docs/`.
@@ -154,7 +154,7 @@ Documentation : [`09-phase-8-entreprises-placement.md`](09-phase-8-entreprises-p
 - [x] Dossiers reçus de candidats externes
 - [x] Sélection ou refus par l'entreprise
 
-### Phase 9 — Espace administrateur — partielle
+### Phase 9 — Espace administrateur — terminée
 
 Documentation : [`10-phase-9-espace-administrateur.md`](10-phase-9-espace-administrateur.md)
 
@@ -163,7 +163,8 @@ Documentation : [`10-phase-9-espace-administrateur.md`](10-phase-9-espace-admini
 - [x] Tableau de bord et statistiques adaptés au rôle
 - [x] Catalogue, grille tarifaire, abonnements
 - [x] Comptes clients et apprenants, dossiers
-- [ ] Journal d'activité
+- [x] Journal d'activité (réservé à la Directrice)
+- [x] Centre de documents : contrats signés, attestations et CV au même endroit
 
 ### Phase 10 — Notifications — à venir
 

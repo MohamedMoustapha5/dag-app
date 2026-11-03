@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Espaces;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\Contrat;
 use App\Support\ContratPdf;
 use Illuminate\Http\RedirectResponse;
@@ -91,6 +92,8 @@ class ClientContratController extends Controller
             'date_signature' => now(),
             'statut' => 'SIGNE',
         ]);
+
+        ActivityLog::record(null, 'contrat signé par le client', $contrat, "{$contrat->reference} signé par {$data['nom']}.");
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Contrat signé. Merci !']);
 

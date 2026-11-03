@@ -6,6 +6,7 @@ use App\Concerns\SharesAdminEspaceProps;
 use App\Enums\Action;
 use App\Enums\Donnee;
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\Apprenant;
 use App\Models\CandidatureSpontanee;
 use App\Models\EntreprisePartenaire;
@@ -117,6 +118,8 @@ class AdminEntrepriseController extends Controller
             return $apprenant;
         });
 
+        ActivityLog::record($membre, 'a déposé une candidature', $offreEmploi, "{$apprenant->user->name} sur « {$offreEmploi->titre} ».");
+
         Inertia::flash('toast', [
             'type' => 'success',
             'message' => "Candidature déposée pour {$apprenant->user->name} sur « {$offreEmploi->titre} ».",
@@ -216,6 +219,8 @@ class AdminEntrepriseController extends Controller
 
         $entreprisePartenaire->update($data);
 
+        ActivityLog::record($membre, $data['statut'] === 'ACTIF' ? 'a validé le partenaire' : 'a désactivé le partenaire', $entreprisePartenaire, $entreprisePartenaire->nom.'.');
+
         Inertia::flash('toast', [
             'type' => 'success',
             'message' => $data['statut'] === 'ACTIF'
@@ -238,6 +243,8 @@ class AdminEntrepriseController extends Controller
         $this->authorizeTransition($membre, $data['statut']);
 
         $offreEmploi->update($data);
+
+        ActivityLog::record($membre, $data['statut'] === 'PUBLIEE' ? "a publié l'offre" : "a clôturé l'offre", $offreEmploi, $offreEmploi->titre.'.');
 
         return back();
     }

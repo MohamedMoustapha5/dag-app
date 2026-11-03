@@ -6,6 +6,7 @@ use App\Concerns\SharesAdminEspaceProps;
 use App\Enums\Action;
 use App\Enums\Donnee;
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\Attestation;
 use App\Models\Inscription;
 use App\Models\Seance;
@@ -90,6 +91,8 @@ class AdminAttestationController extends Controller
             'date_emission' => now()->toDateString(),
             'valide_par_id' => $this->membre($request)->id,
         ]);
+
+        ActivityLog::record($this->membre($request), 'a validé une attestation', null, "{$inscription->apprenant->user->name} — {$inscription->formation->nom}.");
 
         Inertia::flash('toast', [
             'type' => 'success',

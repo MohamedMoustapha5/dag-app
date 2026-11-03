@@ -21,11 +21,6 @@ class ContratPdf
         'CONTRAT_PARTENAIRE' => 'Contrat partenaire',
     ];
 
-    private const STATUTS = [
-        'SIGNE' => 'Signé', 'ACTIF' => 'Actif', 'TERMINE' => 'Terminé',
-        'RESILIE' => 'Résilié', 'ENVOYE' => 'Envoyé', 'BROUILLON' => 'Brouillon', 'REFUSE' => 'Refusé',
-    ];
-
     public static function telecharger(Contrat $contrat): Response
     {
         $contrat->load(['client', 'apprenant.user', 'entreprise', 'demande', 'abonnement.formule', 'candidature.offre']);
@@ -35,7 +30,7 @@ class ContratPdf
             'typeLabel' => self::TYPES[$contrat->type],
             'objet' => $contrat->libelleObjet(),
             'partie' => $contrat->nomPartie(),
-            'statutLabel' => self::STATUTS[$contrat->statut],
+            'statutLabel' => Contrat::STATUT_LABELS[$contrat->statut],
             'signe' => $contrat->estSigne(),
             'dateSignature' => $contrat->date_signature?->format('d/m/Y H:i') ?? '—',
             'dateSignatureCourte' => $contrat->date_signature?->format('d/m/Y') ?? '—',

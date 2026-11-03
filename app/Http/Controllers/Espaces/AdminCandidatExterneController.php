@@ -6,6 +6,7 @@ use App\Concerns\SharesAdminEspaceProps;
 use App\Enums\Action;
 use App\Enums\Donnee;
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\CandidatureSpontanee;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -46,6 +47,8 @@ class AdminCandidatExterneController extends Controller
 
         Storage::disk('local')->delete($candidatureSpontanee->cv_path);
         $candidatureSpontanee->delete();
+
+        ActivityLog::record($this->membre($request), 'a supprimé un dossier reçu', null, "Dossier de {$candidatureSpontanee->nom}.");
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Dossier supprimé.']);
 

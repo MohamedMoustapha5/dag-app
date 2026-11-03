@@ -2,6 +2,7 @@
 
 namespace App\Support\Paiements;
 
+use App\Models\ActivityLog;
 use App\Models\Demande;
 use App\Models\Facture;
 use App\Models\MembreEquipe;
@@ -136,14 +137,25 @@ class PaiementService
             ]);
 
             $this->appliquerAFacture($verrouille->facture, (float) $verrouille->montant, $verrouille->moyen);
+
+            ActivityLog::record(
+                $par,
+                $par === null ? 'paiement en ligne confirmé' : 'a confirmé un paiement',
+                $verrouille->facture,
+                $verrouille->facture->reference.' : '.number_format((float) $verrouille->montant, 0, ',', ' ').' FCFA ('.$verrouille->moyen.').'
+            );
         });
     }
 
     public function echouer(Paiement $paiement): void
     {
-        Paiement::where('id', $paiement->id)
+        $modifies = Paiement::where('id', $paiement->id)
             ->where('statut', 'EN_ATTENTE')
             ->update(['statut' => 'ECHEC']);
+
+        if ($modifies > 0) {
+            ActivityLog::record(null, 'paiement en ligne échoué', $paiement->facture, $paiement->facture->reference.' : '.number_format((float) $paiement->montant, 0, ',', ' ').' FCFA.');
+        }
     }
 
     /**
@@ -164,6 +176,8 @@ class PaiementService
             ]);
 
             $this->appliquerAFacture($facture, $montant, $moyen);
+
+            ActivityLog::record($par, 'a enregistré un paiement', $facture, $facture->reference.' : '.number_format($montant, 0, ',', ' ').' FCFA ('.$moyen.').');
 
             return $paiement;
         });

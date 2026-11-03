@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Espaces;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -58,6 +59,8 @@ class AdminAuthController extends Controller
 
         RateLimiter::clear($cle);
         $request->session()->regenerate();
+
+        ActivityLog::record($request->user('admin'), 's\'est connecté', null, 'Connexion à l\'espace administration.');
 
         return redirect()->intended(route('espace-admin.dashboard'));
     }

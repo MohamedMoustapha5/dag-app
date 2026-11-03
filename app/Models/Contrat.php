@@ -27,6 +27,17 @@ class Contrat extends Model
     /** @use HasFactory<ContratFactory> */
     use GeneratesReference, HasFactory, HasUuids;
 
+    /** @var array<string, string> */
+    public const STATUT_LABELS = [
+        'BROUILLON' => 'Brouillon', 'ENVOYE' => 'Envoyé', 'SIGNE' => 'Signé', 'ACTIF' => 'Actif',
+        'TERMINE' => 'Terminé', 'REFUSE' => 'Refusé', 'RESILIE' => 'Résilié',
+    ];
+
+    public function libelleStatut(): string
+    {
+        return self::STATUT_LABELS[$this->statut];
+    }
+
     protected function casts(): array
     {
         return [

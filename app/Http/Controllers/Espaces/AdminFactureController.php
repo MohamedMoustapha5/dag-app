@@ -6,6 +6,7 @@ use App\Concerns\SharesAdminEspaceProps;
 use App\Enums\Action;
 use App\Enums\Donnee;
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\Demande;
 use App\Models\Facture;
 use App\Models\Paiement;
@@ -80,6 +81,8 @@ class AdminFactureController extends Controller
             'montant_paye' => 0,
             'statut' => 'EN_ATTENTE',
         ]);
+
+        ActivityLog::record($membre, 'a créé la facture', $facture, "{$facture->reference} : ".number_format((float) $facture->montant, 0, ',', ' ').' FCFA.');
 
         Inertia::flash('toast', ['type' => 'success', 'message' => "Facture {$facture->reference} créée."]);
 
