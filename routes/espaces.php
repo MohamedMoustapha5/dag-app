@@ -102,6 +102,8 @@ Route::middleware(['auth', 'verified', EnsureUserType::class.':APPRENANT'])
         Route::get('/', ApprenantDashboardController::class)->name('espace-apprenant.dashboard');
         Route::get('formations', ApprenantFormationController::class)->name('espace-apprenant.formations');
         Route::get('inscriptions', ApprenantInscriptionController::class)->name('espace-apprenant.inscriptions');
+        Route::get('formations/{formationSession}/inscription', [ApprenantInscriptionController::class, 'create'])->name('espace-apprenant.inscriptions.create');
+        Route::post('formations/{formationSession}/inscription', [ApprenantInscriptionController::class, 'store'])->name('espace-apprenant.inscriptions.store');
         Route::get('factures', ApprenantFactureController::class)->name('espace-apprenant.factures');
         Route::get('factures/{facture}/pdf', [ApprenantFactureController::class, 'pdf'])->name('espace-apprenant.factures.pdf');
         Route::get('dossier', [ApprenantDossierController::class, 'edit'])->name('espace-apprenant.dossier');

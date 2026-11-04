@@ -228,11 +228,33 @@ encore de factory ni le trait `HasFactory`).
 > (`vite.config.ts`) — toute régénération manuelle doit donc utiliser
 > `php artisan wayfinder:generate --with-form --no-interaction`.
 
+## 5 bis. Demandes depuis l'espace public : connexion obligatoire
+
+Demander un service, choisir une formule d'abonnement ou s'inscrire à une session exige un
+compte. Les boutons du catalogue (« Demander ce service »), de la fiche formation
+(« S'inscrire ») et de la page abonnement (« Choisir cette formule ») pointent donc vers les
+pages protégées de l'espace client ou apprenant.
+
+- [x] Visiteur non connecté : redirection automatique vers la page de connexion, l'adresse
+  voulue est mémorisée et le visiteur y revient aussitôt connecté (connexion, inscription ou
+  vérification de l'e-mail)
+- [x] Bandeau d'explication sur les pages de connexion et d'inscription (« Connectez-vous pour
+  demander le service X », « ... choisir la formule X », « ... vous inscrire à la formation X »)
+- [x] Type de compte proposé par défaut à l'inscription selon l'intention (apprenant pour une
+  formation, particulier sinon)
+- [x] Formule choisie sur la page abonnement présélectionnée dans le formulaire de demande
+- [x] Inscription à une session par un apprenant : page de confirmation, inscription créée
+  « en attente de paiement », refus si la session est fermée ou complète, aucun doublon,
+  alerte à l'équipe
+- [x] Un compte du mauvais type (client sur une inscription de formation) reçoit un refus 403
+- [ ] Candidature à une offre depuis l'espace public (reste dans l'espace entreprises)
+
+Tests : `tests/Feature/Espaces/LoginWallTest.php`.
+
 ## 6. Hors périmètre (volontairement)
 
 - i18n réelle (le sélecteur FR/EN est un gabarit visuel, non fonctionnel).
-- Inscription effective à une session de formation, et candidature à une
-  offre de stage/emploi (nécessitent un compte Apprenant authentifié →
+- Candidature à une offre de stage/emploi (compte Apprenant authentifié →
   phase 7).
 - Traitement des `ContactMessage`/`AuditRequest` côté équipe DAG → phase 9
   (espace administrateur).

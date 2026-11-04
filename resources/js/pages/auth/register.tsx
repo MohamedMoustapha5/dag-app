@@ -8,9 +8,14 @@ import type { TeamInvitationContext } from '@/types';
 type Props = {
     passwordRules: string;
     teamInvitation?: TeamInvitationContext | null;
+    intention?: { message: string; compteType: string } | null;
 };
 
-export default function Register({ passwordRules, teamInvitation }: Props) {
+export default function Register({
+    passwordRules,
+    teamInvitation,
+    intention,
+}: Props) {
     return (
         <>
             <Head title="Créer un compte" />
@@ -29,6 +34,23 @@ export default function Register({ passwordRules, teamInvitation }: Props) {
                             />
                         )}
 
+                        {intention && (
+                            <div
+                                role="status"
+                                style={{
+                                    padding: '12px 14px',
+                                    borderRadius: 10,
+                                    background: 'var(--dag-blue-50, #eff6ff)',
+                                    border: '1px solid var(--dag-blue-200, #bfdbfe)',
+                                    color: 'var(--dag-blue-900, #1e3a8a)',
+                                    fontSize: 14,
+                                    marginBottom: 4,
+                                }}
+                            >
+                                {intention.message}
+                            </div>
+                        )}
+
                         <div className="auth-field">
                             <label htmlFor="compte_type">Je suis</label>
                             <select
@@ -36,7 +58,7 @@ export default function Register({ passwordRules, teamInvitation }: Props) {
                                 name="compte_type"
                                 required
                                 tabIndex={1}
-                                defaultValue="particulier"
+                                defaultValue={intention?.compteType ?? 'particulier'}
                             >
                                 <option value="particulier">Particulier</option>
                                 <option value="entreprise">Entreprise</option>

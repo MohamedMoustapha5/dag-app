@@ -49,6 +49,7 @@ class ClientDemandeController extends Controller
             'services' => Service::publies()->orderBy('nom')->get(['id', 'nom', 'categorie']),
             'formules' => Formule::where('statut', 'PUBLIEE')->orderBy('nom')->get(['id', 'nom', 'prix_affiche']),
             'serviceSelectionne' => $request->query('service'),
+            'formuleSelectionnee' => $request->query('formule'),
         ]);
     }
 

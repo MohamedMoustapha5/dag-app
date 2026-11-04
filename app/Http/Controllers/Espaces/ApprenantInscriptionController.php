@@ -2,11 +2,17 @@
 
 namespace App\Http\Controllers\Espaces;
 
+use App\Enums\Action;
+use App\Enums\Donnee;
 use App\Http\Controllers\Controller;
+use App\Models\Apprenant;
+use App\Models\FormationSession;
 use App\Models\Inscription;
 use App\Models\Presence;
 use App\Models\Seance;
+use App\Support\Notifications\Notifier;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Inertia\Inertia;
@@ -27,6 +33,93 @@ class ApprenantInscriptionController extends Controller
             'apprenant' => $apprenant->espaceHeaderProps(),
             'inscriptions' => $inscriptions->map(fn (Inscription $inscription) => $this->mapInscription($inscription))->all(),
         ]);
+    }
+
+    /**
+     * Confirmation screen of an enrolment, reached from the public "S'inscrire"
+     * button (after signing in as an apprenant when needed).
+     */
+    public function create(Request $request, FormationSession $formationSession): Response|RedirectResponse
+    {
+        $apprenant = $request->user('web')->apprenant;
+        $formationSession->load('formation');
+
+        if ($this->dejaInscrit($apprenant, $formationSession)) {
+            return $this->dejaInscritReponse();
+        }
+
+        return Inertia::render('espaces/apprenant/inscription-create', [
+            'apprenant' => $apprenant->espaceHeaderProps(),
+            'session' => [
+                'id' => $formationSession->id,
+                'formation' => $formationSession->formation->nom,
+                'categorie' => $formationSession->formation->libelleCategorie(),
+                'ville' => $formationSession->ville,
+                'lieu' => $formationSession->lieu,
+                'mode' => $formationSession->mode,
+                'formateur' => $formationSession->formateur,
+                'dateDebut' => $this->formatDate($formationSession->date_debut),
+                'dateFin' => $this->formatDate($formationSession->date_fin),
+                'placesRestantes' => $formationSession->placesRestantes(),
+                'ouverte' => $formationSession->statut === 'OUVERTE' && $formationSession->formation->statut === 'PUBLIEE',
+            ],
+        ]);
+    }
+
+    public function store(Request $request, FormationSession $formationSession): RedirectResponse
+    {
+        $apprenant = $request->user('web')->apprenant;
+        $formationSession->load('formation');
+
+        if ($this->dejaInscrit($apprenant, $formationSession)) {
+            return $this->dejaInscritReponse();
+        }
+
+        abort_unless(
+            $formationSession->statut === 'OUVERTE' && $formationSession->formation->statut === 'PUBLIEE',
+            409,
+            'Les inscriptions à cette session ne sont pas ouvertes.'
+        );
+
+        abort_if($formationSession->placesRestantes() <= 0, 409, 'Cette session est complète.');
+
+        $inscription = Inscription::create([
+            'apprenant_id' => $apprenant->id,
+            'formation_id' => $formationSession->formation_id,
+            'formation_session_id' => $formationSession->id,
+            'statut' => 'EN_ATTENTE_PAIEMENT',
+        ]);
+
+        Notifier::alerterEquipe(
+            Donnee::Formations,
+            Action::Valider,
+            'inscription.nouvelle',
+            "Nouvelle inscription — {$formationSession->formation->nom}",
+            "{$apprenant->user->name} demande à s'inscrire à la session de {$formationSession->ville}. Elle attend la validation du paiement.",
+            route('espace-admin.sessions.show', $formationSession),
+        );
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => 'Inscription enregistrée : l\'équipe DAG vous contacte pour le paiement et valide votre place.',
+        ]);
+
+        return to_route('espace-apprenant.inscriptions');
+    }
+
+    private function dejaInscrit(Apprenant $apprenant, FormationSession $session): bool
+    {
+        return $apprenant->inscriptions()
+            ->where('formation_session_id', $session->id)
+            ->where('statut', '!=', 'ABANDONNEE')
+            ->exists();
+    }
+
+    private function dejaInscritReponse(): RedirectResponse
+    {
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Vous êtes déjà inscrit à cette session.']);
+
+        return to_route('espace-apprenant.inscriptions');
     }
 
     /**

@@ -14,6 +14,7 @@ import type { LucideIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import PublicLayout from '@/layouts/public-layout';
 import { contact, grilleTarifaire } from '@/routes';
+import espaceClientDemandes from '@/routes/espace-client/demandes';
 
 type Service = {
     id: string;
@@ -287,7 +288,9 @@ export default function Catalogue({ services }: CatalogueProps) {
                                         </p>
                                     )}
                                     <Link
-                                        href={contact()}
+                                        href={espaceClientDemandes.create({
+                                            query: { service: service.id },
+                                        })}
                                         className="catalogue-card-footer"
                                     >
                                         Demander ce service

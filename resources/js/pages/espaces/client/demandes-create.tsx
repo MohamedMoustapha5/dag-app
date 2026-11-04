@@ -8,17 +8,21 @@ type Props = {
     services: Service[];
     formules: Formule[];
     serviceSelectionne: string | null;
+    formuleSelectionnee?: string | null;
 };
 
 export default function DemandesCreate({
     services,
     formules,
     serviceSelectionne,
+    formuleSelectionnee = null,
 }: Props) {
     const { data, setData, post, processing, errors } = useForm({
-        type: 'service' as 'service' | 'formule',
+        type: (formuleSelectionnee ? 'formule' : 'service') as
+            | 'service'
+            | 'formule',
         service_id: serviceSelectionne ?? '',
-        formule_id: '',
+        formule_id: formuleSelectionnee ?? '',
         description: '',
     });
 

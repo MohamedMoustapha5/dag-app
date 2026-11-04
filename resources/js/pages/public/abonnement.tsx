@@ -2,7 +2,8 @@ import { Head, Link } from '@inertiajs/react';
 import { Check, Rocket, Sparkles, TrendingUp } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import PublicLayout from '@/layouts/public-layout';
-import { contact, grilleTarifaire } from '@/routes';
+import { grilleTarifaire } from '@/routes';
+import espaceClientDemandes from '@/routes/espace-client/demandes';
 
 type Formule = {
     id: string;
@@ -166,7 +167,9 @@ export default function Abonnement({ formules }: AbonnementProps) {
                                     }}
                                 >
                                     <Link
-                                        href={contact()}
+                                        href={espaceClientDemandes.create({
+                                            query: { formule: formule.id },
+                                        })}
                                         className={
                                             formule.populaire
                                                 ? 'btn-primary btn-block'

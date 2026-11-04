@@ -1,6 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import PublicLayout from '@/layouts/public-layout';
-import { contact, formations } from '@/routes';
+import { formations } from '@/routes';
+import inscriptions from '@/routes/espace-apprenant/inscriptions';
 
 type Formation = {
     id: string;
@@ -191,7 +192,9 @@ export default function FormationDetail({
                                             </span>
                                         </div>
                                         <Link
-                                            href={contact()}
+                                            href={inscriptions.create(
+                                                session.id,
+                                            )}
                                             className="btn-primary btn-block"
                                             style={{ marginTop: 16 }}
                                         >
