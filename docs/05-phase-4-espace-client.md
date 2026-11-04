@@ -81,11 +81,17 @@ fournissent leur propre habillage via
 - **Suivi** (détail d'une demande) : piste de progression
   (`.process-track-card`, `Demande::SUIVI_STEPS`). `REFUSEE` est un état
   terminal affiché à part, atteignable depuis n'importe quelle étape.
-- **Abonnements** : formule active (barre de progression du cycle de
-  facturation via `Abonnement::progressionCycle()`, services inclus) +
-  historique de facturation. « Renégocier »/« Changer de formule » sont
-  visibles mais désactivés (pas de workflow de changement de formule
-  construit).
+- **Abonnements** : tous les abonnements du client (ou de son entreprise), pas
+  seulement le dernier. Trois indicateurs (en cours, à renouveler, total mensuel),
+  onglets Tous / En cours / À renouveler / Terminés, et une carte par abonnement :
+  formule, montant, dates du cycle, barre de progression
+  (`Abonnement::progressionCycle()`), jours restants, services inclus et dernières
+  factures. États : Actif, Expire bientôt (15 jours), Expiré, Suspendu, Terminé.
+  Le bouton **Renouveler** apparaît dans les 30 jours précédant l'échéance, ou
+  après la fin : il crée une demande de formule « Renouvellement de ... » (devis,
+  paiement et contrat suivent le parcours habituel), sans doublon tant qu'une demande
+  de renouvellement est en cours, et alerte l'équipe. Tests :
+  `tests/Feature/Espaces/Client/AbonnementsTest.php`.
 - **Factures** : 3 indicateurs (réglé cette année, en attente, moyen de
   paiement le plus utilisé) + tableau. Paiement en ligne et export PDF
   affichés mais désactivés (phase 5).

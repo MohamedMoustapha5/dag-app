@@ -72,6 +72,7 @@ Route::middleware(['auth', 'verified', EnsureUserType::class.':CLIENT'])
         Route::post('demandes', [ClientDemandeController::class, 'store'])->name('espace-client.demandes.store');
         Route::get('demandes/{demande}', [ClientDemandeController::class, 'show'])->name('espace-client.demandes.show');
         Route::get('abonnements', ClientAbonnementController::class)->name('espace-client.abonnements');
+        Route::post('abonnements/{abonnement}/renouvellement', [ClientAbonnementController::class, 'renouveler'])->name('espace-client.abonnements.renouveler');
         Route::get('factures', ClientFactureController::class)->name('espace-client.factures');
         Route::get('factures/{facture}/pdf', [ClientFactureController::class, 'pdf'])->name('espace-client.factures.pdf');
         Route::get('contrats', ClientContratController::class)->name('espace-client.contrats');

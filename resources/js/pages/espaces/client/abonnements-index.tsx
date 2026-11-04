@@ -1,9 +1,20 @@
-import { Head, Link } from '@inertiajs/react';
-import { Check } from 'lucide-react';
-import espaceClient from '@/routes/espace-client';
+import { Head, Link, router } from '@inertiajs/react';
+import { Check, RefreshCw } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
+import espaceClient from '@/routes/espace-client';
+import abonnementsRoutes from '@/routes/espace-client/abonnements';
 
-type AbonnementActif = {
+type Etat = 'actif' | 'bientot' | 'expire' | 'suspendu' | 'termine';
+
+type FactureAbonnement = {
+    id: string;
+    echeance: string | null;
+    statut: string;
+};
+
+type Abonnement = {
+    id: string;
     formuleNom: string;
     servicesInclus: string[];
     montant: string;
@@ -11,47 +22,128 @@ type AbonnementActif = {
     cycleDebut: string | null;
     echeance: string | null;
     progression: number;
-};
-
-type FactureHistorique = {
-    id: string;
-    echeance: string | null;
-    moyenPaiement: string | null;
-    statut: string;
+    joursRestants: number | null;
+    etat: Etat;
+    peutRenouveler: boolean;
+    factures: FactureAbonnement[];
 };
 
 type Props = {
-    abonnement: AbonnementActif | null;
-    historiqueFactures: FactureHistorique[];
+    resume: { actifs: number; aRenouveler: number; mensuel: string };
+    abonnements: Abonnement[];
 };
 
-function formatDateCourte(dateIso: string | null): string {
+type Onglet = 'tous' | 'actifs' | 'a-renouveler' | 'termines';
+
+const ONGLETS: { value: Onglet; label: string }[] = [
+    { value: 'tous', label: 'Tous' },
+    { value: 'actifs', label: 'En cours' },
+    { value: 'a-renouveler', label: 'À renouveler' },
+    { value: 'termines', label: 'Terminés' },
+];
+
+const ETATS: Record<Etat, { label: string; chip: string; barre: string }> = {
+    actif: { label: 'Actif', chip: 'chip-green', barre: 'var(--dag-blue)' },
+    bientot: {
+        label: 'Expire bientôt',
+        chip: 'chip-orange',
+        barre: 'var(--dag-orange)',
+    },
+    expire: {
+        label: 'Expiré',
+        chip: 'chip-red',
+        barre: 'var(--dag-red)',
+    },
+    suspendu: {
+        label: 'Suspendu',
+        chip: 'chip-gray',
+        barre: 'var(--dag-text-muted)',
+    },
+    termine: {
+        label: 'Terminé',
+        chip: 'chip-gray',
+        barre: 'var(--dag-text-muted)',
+    },
+};
+
+function formatDate(dateIso: string | null): string {
     if (!dateIso) {
         return '—';
     }
-    const date = new Date(`${dateIso}T00:00:00`);
+
     return new Intl.DateTimeFormat('fr-FR', {
         day: 'numeric',
         month: 'short',
-    }).format(date);
+        year: 'numeric',
+    }).format(new Date(`${dateIso}T00:00:00`));
 }
 
 function formatMoisAnnee(dateIso: string | null): string {
     if (!dateIso) {
         return '—';
     }
-    const date = new Date(`${dateIso}T00:00:00`);
+
     const label = new Intl.DateTimeFormat('fr-FR', {
         month: 'long',
         year: 'numeric',
-    }).format(date);
+    }).format(new Date(`${dateIso}T00:00:00`));
+
     return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
-export default function AbonnementsIndex({
-    abonnement,
-    historiqueFactures,
-}: Props) {
+function libelleRestant(abonnement: Abonnement): string {
+    const jours = abonnement.joursRestants;
+
+    if (abonnement.etat === 'termine') {
+        return `Terminé le ${formatDate(abonnement.echeance)}`;
+    }
+    if (jours === null) {
+        return 'Échéance non définie';
+    }
+    if (jours < 0) {
+        return `Expiré depuis ${-jours} jour${-jours > 1 ? 's' : ''}`;
+    }
+    if (jours === 0) {
+        return "Se termine aujourd'hui";
+    }
+
+    return `${jours} jour${jours > 1 ? 's' : ''} restant${jours > 1 ? 's' : ''}`;
+}
+
+function classer(abonnement: Abonnement): Onglet {
+    if (abonnement.etat === 'termine') {
+        return 'termines';
+    }
+
+    return abonnement.peutRenouveler ? 'a-renouveler' : 'actifs';
+}
+
+export default function AbonnementsIndex({ resume, abonnements }: Props) {
+    const [onglet, setOnglet] = useState<Onglet>('tous');
+    const [enCours, setEnCours] = useState<string | null>(null);
+
+    const filtres = useMemo(
+        () =>
+            onglet === 'tous'
+                ? abonnements
+                : abonnements.filter(
+                      (abonnement) => classer(abonnement) === onglet,
+                  ),
+        [abonnements, onglet],
+    );
+
+    const renouveler = (abonnement: Abonnement) => {
+        router.post(
+            abonnementsRoutes.renouveler(abonnement.id).url,
+            {},
+            {
+                preserveScroll: true,
+                onStart: () => setEnCours(abonnement.id),
+                onFinish: () => setEnCours(null),
+            },
+        );
+    };
+
     return (
         <>
             <Head title="Abonnements" />
@@ -64,13 +156,32 @@ export default function AbonnementsIndex({
                 }}
             >
                 <div className="espace-hero-overlay" />
-                <div className="espace-hero-content">
-                    <h1>Abonnements</h1>
-                    <p>Formule active, montant négocié avec l'équipe DAG.</p>
+                <div
+                    style={{
+                        position: 'relative',
+                        zIndex: 1,
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        gap: 16,
+                        flexWrap: 'wrap',
+                        width: '100%',
+                    }}
+                >
+                    <div className="espace-hero-content">
+                        <h1>Abonnements</h1>
+                        <p>
+                            Tous vos abonnements, leur progression et leur
+                            renouvellement.
+                        </p>
+                    </div>
+                    <Link href={espaceClient.services()} className="btn-primary">
+                        + Souscrire une formule
+                    </Link>
                 </div>
             </div>
 
-            {!abonnement ? (
+            {abonnements.length === 0 ? (
                 <div
                     className="card"
                     style={{ padding: 40, textAlign: 'center' }}
@@ -79,7 +190,7 @@ export default function AbonnementsIndex({
                         className="muted"
                         style={{ fontSize: 13.5, marginBottom: 16 }}
                     >
-                        Vous n'avez pas d'abonnement actif.
+                        Vous n'avez pas encore d'abonnement.
                     </p>
                     <Link
                         href={espaceClient.services()}
@@ -89,235 +200,344 @@ export default function AbonnementsIndex({
                     </Link>
                 </div>
             ) : (
-                <div className="grid-3">
+                <>
                     <div
-                        className="card"
-                        style={{ padding: 28, gridColumn: 'span 2' }}
+                        className="grid-3 espace-stats-grid"
+                        style={{ marginBottom: 24 }}
                     >
                         <div
-                            style={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'flex-start',
-                                gap: 16,
-                                flexWrap: 'wrap',
-                            }}
+                            className="card espace-stat-card"
+                            style={{ padding: 22 }}
                         >
-                            <div>
-                                <div
-                                    style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: 10,
-                                    }}
-                                >
-                                    <h2
-                                        style={{
-                                            fontSize: 17,
-                                            color: 'var(--dag-navy)',
-                                        }}
-                                    >
-                                        Formule {abonnement.formuleNom}
-                                    </h2>
-                                    <span className="chip chip-green">
-                                        Actif
-                                    </span>
-                                </div>
-                                <p
-                                    className="muted"
-                                    style={{
-                                        fontSize: 13,
-                                        marginTop: 6,
-                                        maxWidth: 360,
-                                    }}
-                                >
-                                    {abonnement.servicesInclus.join(' + ')}.
-                                </p>
-                            </div>
-                            <div style={{ textAlign: 'right' }}>
-                                <strong
-                                    style={{
-                                        fontSize: 26,
-                                        fontWeight: 800,
-                                        color: 'var(--dag-navy)',
-                                    }}
-                                >
-                                    {abonnement.montant}
-                                </strong>
-                                <span
-                                    className="muted"
-                                    style={{ fontSize: 12.5 }}
-                                >
-                                    {' '}
-                                    FCFA/mois
-                                </span>
-                                <p
-                                    className="muted"
-                                    style={{ fontSize: 12, marginTop: 2 }}
-                                >
-                                    Négocié le{' '}
-                                    {formatDateCourte(
-                                        abonnement.dateSouscription,
-                                    )}
-                                </p>
-                            </div>
-                        </div>
-
-                        <div style={{ marginTop: 24 }}>
-                            <div
+                            <p className="muted" style={{ fontSize: 12.5 }}>
+                                Abonnements en cours
+                            </p>
+                            <strong
                                 style={{
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    fontSize: 12.5,
+                                    display: 'block',
+                                    fontSize: 24,
+                                    fontWeight: 800,
+                                    color: 'var(--dag-navy)',
                                 }}
-                                className="muted"
                             >
-                                <span>
-                                    Cycle en cours — débuté le{' '}
-                                    {formatDateCourte(abonnement.cycleDebut)}
-                                </span>
-                                <span>
-                                    Renouvellement le{' '}
-                                    {formatDateCourte(abonnement.echeance)}
-                                </span>
-                            </div>
-                            <div className="espace-formule-progress">
-                                <div
-                                    className="espace-formule-progress-bar"
-                                    style={{
-                                        width: `${abonnement.progression}%`,
-                                    }}
-                                />
-                            </div>
+                                {resume.actifs}
+                            </strong>
                         </div>
-
-                        <p
-                            style={{
-                                fontSize: 13,
-                                fontWeight: 600,
-                                marginTop: 20,
-                                marginBottom: 8,
-                            }}
-                        >
-                            Ce qui est inclus
-                        </p>
                         <div
-                            style={{
-                                display: 'grid',
-                                gridTemplateColumns:
-                                    'repeat(auto-fit, minmax(160px, 1fr))',
-                                gap: 4,
-                            }}
+                            className="card espace-stat-card"
+                            style={{ padding: 22 }}
                         >
-                            {abonnement.servicesInclus.map((service) => (
-                                <span
-                                    key={service}
-                                    className="espace-formule-check"
-                                >
-                                    <Check
-                                        size={14}
-                                        style={{ color: 'var(--dag-green)' }}
-                                    />
-                                    {service}
-                                </span>
-                            ))}
+                            <p className="muted" style={{ fontSize: 12.5 }}>
+                                À renouveler
+                            </p>
+                            <strong
+                                style={{
+                                    display: 'block',
+                                    fontSize: 24,
+                                    fontWeight: 800,
+                                    color:
+                                        resume.aRenouveler > 0
+                                            ? 'var(--dag-orange-ink)'
+                                            : 'var(--dag-navy)',
+                                }}
+                            >
+                                {resume.aRenouveler}
+                            </strong>
                         </div>
-
                         <div
-                            style={{
-                                display: 'flex',
-                                gap: 10,
-                                marginTop: 24,
-                                flexWrap: 'wrap',
-                            }}
+                            className="card espace-stat-card"
+                            style={{ padding: 22 }}
                         >
-                            <button
-                                type="button"
-                                className="btn-primary"
-                                disabled
-                                title="Disponible prochainement"
+                            <p className="muted" style={{ fontSize: 12.5 }}>
+                                Total mensuel
+                            </p>
+                            <strong
+                                style={{
+                                    display: 'block',
+                                    fontSize: 24,
+                                    fontWeight: 800,
+                                    color: 'var(--dag-navy)',
+                                }}
                             >
-                                Renégocier ma formule
-                            </button>
-                            <button
-                                type="button"
-                                className="btn-outline"
-                                disabled
-                                title="Disponible prochainement"
-                            >
-                                Changer de formule
-                            </button>
+                                {resume.mensuel} FCFA
+                            </strong>
                         </div>
                     </div>
 
-                    <div className="card" style={{ padding: 24 }}>
-                        <p
+                    <div className="account-tabs" style={{ marginBottom: 24 }}>
+                        {ONGLETS.map((item) => (
+                            <button
+                                key={item.value}
+                                type="button"
+                                className={`account-tab${onglet === item.value ? ' active' : ''}`}
+                                onClick={() => setOnglet(item.value)}
+                            >
+                                {item.label}
+                            </button>
+                        ))}
+                    </div>
+
+                    {filtres.length === 0 ? (
+                        <p className="data-table-empty">
+                            Aucun abonnement dans cette catégorie.
+                        </p>
+                    ) : (
+                        <div
                             style={{
-                                fontSize: 14,
-                                fontWeight: 600,
-                                marginBottom: 16,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 16,
                             }}
                         >
-                            Historique de facturation
-                        </p>
-                        {historiqueFactures.length === 0 ? (
-                            <p className="muted" style={{ fontSize: 13 }}>
-                                Aucune facture pour le moment.
-                            </p>
-                        ) : (
-                            <div
-                                style={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: 14,
-                                }}
-                            >
-                                {historiqueFactures.map((facture) => (
+                            {filtres.map((abonnement) => {
+                                const etat = ETATS[abonnement.etat];
+
+                                return (
                                     <div
-                                        key={facture.id}
-                                        style={{
-                                            display: 'flex',
-                                            justifyContent: 'space-between',
-                                            alignItems: 'center',
-                                        }}
+                                        key={abonnement.id}
+                                        className="card"
+                                        style={{ padding: 24 }}
                                     >
-                                        <div>
-                                            <p
+                                        <div
+                                            style={{
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'flex-start',
+                                                gap: 16,
+                                                flexWrap: 'wrap',
+                                            }}
+                                        >
+                                            <div>
+                                                <div
+                                                    style={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: 10,
+                                                        flexWrap: 'wrap',
+                                                    }}
+                                                >
+                                                    <h2
+                                                        style={{
+                                                            fontSize: 17,
+                                                            color: 'var(--dag-navy)',
+                                                        }}
+                                                    >
+                                                        Formule{' '}
+                                                        {abonnement.formuleNom}
+                                                    </h2>
+                                                    <span
+                                                        className={`chip ${etat.chip}`}
+                                                    >
+                                                        {etat.label}
+                                                    </span>
+                                                </div>
+                                                <p
+                                                    className="muted"
+                                                    style={{
+                                                        fontSize: 12.5,
+                                                        marginTop: 6,
+                                                    }}
+                                                >
+                                                    Souscrit le{' '}
+                                                    {formatDate(
+                                                        abonnement.dateSouscription,
+                                                    )}
+                                                </p>
+                                            </div>
+                                            <div style={{ textAlign: 'right' }}>
+                                                <strong
+                                                    style={{
+                                                        fontSize: 24,
+                                                        fontWeight: 800,
+                                                        color: 'var(--dag-navy)',
+                                                    }}
+                                                >
+                                                    {abonnement.montant}
+                                                </strong>
+                                                <span
+                                                    className="muted"
+                                                    style={{ fontSize: 12.5 }}
+                                                >
+                                                    {' '}
+                                                    FCFA/mois
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div style={{ marginTop: 20 }}>
+                                            <div
                                                 style={{
-                                                    fontSize: 13,
-                                                    fontWeight: 600,
+                                                    display: 'flex',
+                                                    justifyContent:
+                                                        'space-between',
+                                                    gap: 12,
+                                                    flexWrap: 'wrap',
+                                                    fontSize: 12.5,
+                                                }}
+                                                className="muted"
+                                            >
+                                                <span>
+                                                    Du{' '}
+                                                    {formatDate(
+                                                        abonnement.cycleDebut,
+                                                    )}{' '}
+                                                    au{' '}
+                                                    {formatDate(
+                                                        abonnement.echeance,
+                                                    )}
+                                                </span>
+                                                <span
+                                                    style={{
+                                                        fontWeight: 600,
+                                                        color:
+                                                            abonnement.etat ===
+                                                                'expire' ||
+                                                            abonnement.etat ===
+                                                                'bientot'
+                                                                ? etat.barre
+                                                                : undefined,
+                                                    }}
+                                                >
+                                                    {libelleRestant(abonnement)}
+                                                </span>
+                                            </div>
+                                            <div className="espace-formule-progress">
+                                                <div
+                                                    className="espace-formule-progress-bar"
+                                                    style={{
+                                                        width: `${abonnement.progression}%`,
+                                                        background: etat.barre,
+                                                    }}
+                                                />
+                                            </div>
+                                            <p
+                                                className="muted"
+                                                style={{
+                                                    fontSize: 12,
+                                                    marginTop: -8,
                                                 }}
                                             >
-                                                {formatMoisAnnee(
-                                                    facture.echeance,
-                                                )}
+                                                Cycle écoulé à{' '}
+                                                {abonnement.progression} %
                                             </p>
-                                            <span
-                                                className="muted"
-                                                style={{ fontSize: 12 }}
-                                            >
-                                                {facture.moyenPaiement ?? '—'}
-                                            </span>
                                         </div>
-                                        <span
-                                            className={`chip ${STATUT_CHIP[facture.statut] ?? 'chip-gray'}`}
+
+                                        {abonnement.servicesInclus.length >
+                                            0 && (
+                                            <div
+                                                style={{
+                                                    display: 'grid',
+                                                    gridTemplateColumns:
+                                                        'repeat(auto-fit, minmax(180px, 1fr))',
+                                                    gap: 4,
+                                                    marginTop: 16,
+                                                }}
+                                            >
+                                                {abonnement.servicesInclus.map(
+                                                    (service) => (
+                                                        <span
+                                                            key={service}
+                                                            className="espace-formule-check"
+                                                        >
+                                                            <Check
+                                                                size={14}
+                                                                style={{
+                                                                    color: 'var(--dag-green)',
+                                                                }}
+                                                            />
+                                                            {service}
+                                                        </span>
+                                                    ),
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {abonnement.factures.length > 0 && (
+                                            <div
+                                                style={{
+                                                    display: 'flex',
+                                                    gap: 8,
+                                                    flexWrap: 'wrap',
+                                                    marginTop: 18,
+                                                    alignItems: 'center',
+                                                }}
+                                            >
+                                                <span
+                                                    className="muted"
+                                                    style={{ fontSize: 12.5 }}
+                                                >
+                                                    Dernières factures :
+                                                </span>
+                                                {abonnement.factures.map(
+                                                    (facture) => (
+                                                        <span
+                                                            key={facture.id}
+                                                            style={{
+                                                                display:
+                                                                    'inline-flex',
+                                                                alignItems:
+                                                                    'center',
+                                                                gap: 6,
+                                                                fontSize: 12.5,
+                                                            }}
+                                                        >
+                                                            {formatMoisAnnee(
+                                                                facture.echeance,
+                                                            )}
+                                                            <span
+                                                                className={`chip ${STATUT_CHIP[facture.statut] ?? 'chip-gray'}`}
+                                                            >
+                                                                {STATUT_LABEL[
+                                                                    facture
+                                                                        .statut
+                                                                ] ??
+                                                                    facture.statut}
+                                                            </span>
+                                                        </span>
+                                                    ),
+                                                )}
+                                            </div>
+                                        )}
+
+                                        <div
+                                            style={{
+                                                display: 'flex',
+                                                gap: 10,
+                                                marginTop: 20,
+                                                flexWrap: 'wrap',
+                                            }}
                                         >
-                                            {STATUT_LABEL[facture.statut] ??
-                                                facture.statut}
-                                        </span>
+                                            {abonnement.peutRenouveler && (
+                                                <button
+                                                    type="button"
+                                                    className="btn-primary"
+                                                    disabled={
+                                                        enCours ===
+                                                        abonnement.id
+                                                    }
+                                                    onClick={() =>
+                                                        renouveler(abonnement)
+                                                    }
+                                                >
+                                                    <RefreshCw size={14} />{' '}
+                                                    {enCours === abonnement.id
+                                                        ? 'Envoi...'
+                                                        : 'Renouveler'}
+                                                </button>
+                                            )}
+                                            <Link
+                                                href={espaceClient.factures()}
+                                                className="btn-outline"
+                                            >
+                                                Mes factures
+                                            </Link>
+                                        </div>
                                     </div>
-                                ))}
-                            </div>
-                        )}
-                        <Link
-                            href={espaceClient.factures()}
-                            className="btn-outline btn-block"
-                            style={{ marginTop: 20 }}
-                        >
-                            Voir toutes mes factures
-                        </Link>
-                    </div>
-                </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </>
             )}
         </>
     );
