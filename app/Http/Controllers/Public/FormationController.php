@@ -72,7 +72,7 @@ class FormationController extends Controller
                 'programme' => $formation->programme,
                 'duree' => $formation->duree,
                 'prerequis' => $formation->prerequis,
-                'categorie' => $formation->categorie,
+                'categorie' => $formation->libelleCategorie(),
             ],
             'sessions' => $sessions,
         ]);
@@ -86,7 +86,7 @@ class FormationController extends Controller
         return [
             'formationId' => $formation->id,
             'nom' => $formation->nom,
-            'categorie' => $formation->categorie,
+            'categorie' => $formation->libelleCategorie(),
             'sessionId' => $session->id,
             'ville' => $session->ville,
             'mode' => $session->mode,

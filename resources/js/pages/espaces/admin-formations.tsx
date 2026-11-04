@@ -9,6 +9,11 @@ type Session = {
     id: string;
     formationId: string;
     formationNom: string;
+    categorie: string | null;
+    description: string;
+    programme: string | null;
+    duree: string | null;
+    prerequis: string | null;
     ville: string;
     mode: string;
     lieu: string | null;
@@ -478,6 +483,11 @@ function SessionModal({
 }) {
     const form = useForm<{
         formation_nom: string;
+        categorie: string;
+        description: string;
+        programme: string;
+        duree: string;
+        prerequis: string;
         ville: string;
         places: number;
         mode: string;
@@ -488,6 +498,11 @@ function SessionModal({
         image: File | null;
     }>({
         formation_nom: '',
+        categorie: session?.categorie ?? '',
+        description: mode === 'edit' ? (session?.description ?? '') : '',
+        programme: session?.programme ?? '',
+        duree: session?.duree ?? '',
+        prerequis: session?.prerequis ?? '',
         ville: session?.ville ?? '',
         places: session?.places ?? 15,
         mode: session?.mode ?? 'PRESENTIEL',
@@ -594,6 +609,120 @@ function SessionModal({
                                 </p>
                             )}
                         </div>
+                    )}
+
+                    {(mode === 'create' || mode === 'edit') && (
+                        <fieldset
+                            style={{
+                                border: '1px solid var(--dag-border)',
+                                borderRadius: 12,
+                                padding: '14px 16px 16px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 14,
+                            }}
+                        >
+                            <legend
+                                style={{
+                                    fontSize: 12.5,
+                                    fontWeight: 700,
+                                    padding: '0 6px',
+                                    color: 'var(--dag-navy)',
+                                }}
+                            >
+                                Contenu affiché sur la page de la formation
+                            </legend>
+                            <div
+                                style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: '1fr 1fr',
+                                    gap: 14,
+                                }}
+                            >
+                                <div>
+                                    <label htmlFor="categorie">Catégorie</label>
+                                    <input
+                                        id="categorie"
+                                        placeholder="Ex. Community management"
+                                        value={form.data.categorie}
+                                        onChange={(event) =>
+                                            form.setData(
+                                                'categorie',
+                                                event.target.value,
+                                            )
+                                        }
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="duree">Durée</label>
+                                    <input
+                                        id="duree"
+                                        placeholder="Ex. 3 semaines"
+                                        value={form.data.duree}
+                                        onChange={(event) =>
+                                            form.setData(
+                                                'duree',
+                                                event.target.value,
+                                            )
+                                        }
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label htmlFor="description">Description</label>
+                                <textarea
+                                    id="description"
+                                    rows={3}
+                                    placeholder="Présentation courte de la formation"
+                                    value={form.data.description}
+                                    onChange={(event) =>
+                                        form.setData(
+                                            'description',
+                                            event.target.value,
+                                        )
+                                    }
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="programme">Programme</label>
+                                <textarea
+                                    id="programme"
+                                    rows={5}
+                                    placeholder={
+                                        'Une ligne par étape.\nEx. Semaine 1 — Fondamentaux des réseaux sociaux'
+                                    }
+                                    value={form.data.programme}
+                                    onChange={(event) =>
+                                        form.setData(
+                                            'programme',
+                                            event.target.value,
+                                        )
+                                    }
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="prerequis">Prérequis</label>
+                                <input
+                                    id="prerequis"
+                                    placeholder="Ex. Aucun — niveau débutant"
+                                    value={form.data.prerequis}
+                                    onChange={(event) =>
+                                        form.setData(
+                                            'prerequis',
+                                            event.target.value,
+                                        )
+                                    }
+                                />
+                            </div>
+                            <p
+                                className="muted"
+                                style={{ fontSize: 11.5 }}
+                            >
+                                {mode === 'create'
+                                    ? 'Facultatif. Si la formation existe déjà, les champs remplis la mettent à jour.'
+                                    : 'Ces informations concernent la formation : elles s’appliquent à toutes ses sessions.'}
+                            </p>
+                        </fieldset>
                     )}
 
                     <div

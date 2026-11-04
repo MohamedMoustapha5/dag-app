@@ -181,6 +181,7 @@ Route::middleware(['auth:admin', EnsureMembreActif::class])
         Route::post('modeles-contrat', [AdminContratController::class, 'storeModele'])->name('espace-admin.modeles-contrat.store');
         Route::patch('modeles-contrat/{modeleContrat}', [AdminContratController::class, 'updateModele'])->name('espace-admin.modeles-contrat.update');
         Route::post('clauses', [AdminContratController::class, 'storeClause'])->name('espace-admin.clauses.store');
+        Route::patch('clauses/{clause}', [AdminContratController::class, 'updateClause'])->name('espace-admin.clauses.update');
         Route::delete('clauses/{clause}', [AdminContratController::class, 'destroyClause'])->name('espace-admin.clauses.destroy');
         Route::get('abonnements', [AdminAbonnementController::class, 'index'])->name('espace-admin.abonnements.index');
         Route::post('abonnements', [AdminAbonnementController::class, 'store'])->name('espace-admin.abonnements.store');

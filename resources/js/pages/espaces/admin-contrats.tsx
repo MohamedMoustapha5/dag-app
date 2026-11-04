@@ -1,4 +1,5 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
+import { X } from 'lucide-react';
 import { useState } from 'react';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
 import clausesAdmin from '@/routes/espace-admin/clauses';
@@ -13,7 +14,12 @@ const TYPE_LABEL: Record<string, string> = {
 };
 
 type Modele = { id: string; nom: string; type: string; statut: string };
-type ClauseItem = { id: string; titre: string; ordre: number };
+type ClauseItem = {
+    id: string;
+    titre: string;
+    contenu: string;
+    ordre: number;
+};
 type Contrat = {
     id: string;
     reference: string;
@@ -92,6 +98,10 @@ export default function AdminContrats({
             onSuccess: () => clauseForm.reset(),
         });
     };
+
+    const [clauseEnEdition, setClauseEnEdition] = useState<ClauseItem | null>(
+        null,
+    );
 
     const supprimerClause = (id: string) => {
         if (!confirm('Supprimer cette clause ?')) {
@@ -599,6 +609,22 @@ export default function AdminContrats({
                                                         textAlign: 'right',
                                                     }}
                                                 >
+                                                    {peutModifier && (
+                                                        <button
+                                                            type="button"
+                                                            className="link-action"
+                                                            style={{
+                                                                marginRight: 16,
+                                                            }}
+                                                            onClick={() =>
+                                                                setClauseEnEdition(
+                                                                    clause,
+                                                                )
+                                                            }
+                                                        >
+                                                            Modifier
+                                                        </button>
+                                                    )}
                                                     {peutSupprimer && (
                                                         <button
                                                             type="button"
@@ -625,6 +651,177 @@ export default function AdminContrats({
                     </div>
                 </>
             )}
+
+            {clauseEnEdition && (
+                <ClauseModal
+                    clause={clauseEnEdition}
+                    onClose={() => setClauseEnEdition(null)}
+                />
+            )}
         </>
+    );
+}
+
+function ClauseModal({
+    clause,
+    onClose,
+}: {
+    clause: ClauseItem;
+    onClose: () => void;
+}) {
+    const form = useForm({
+        titre: clause.titre,
+        contenu: clause.contenu,
+        ordre: clause.ordre,
+    });
+
+    const submit = (event: React.FormEvent) => {
+        event.preventDefault();
+        form.patch(clausesAdmin.update(clause.id).url, {
+            preserveScroll: true,
+            onSuccess: onClose,
+        });
+    };
+
+    return (
+        <div
+            className="modal-backdrop"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Modifier la clause"
+            onClick={(event) => {
+                if (event.target === event.currentTarget) {
+                    onClose();
+                }
+            }}
+        >
+            <div className="modal-panel" style={{ maxWidth: 620 }}>
+                <button
+                    type="button"
+                    className="modal-close"
+                    onClick={onClose}
+                    aria-label="Fermer"
+                >
+                    <X size={16} />
+                </button>
+
+                <h2 style={{ fontSize: 19, color: 'var(--dag-navy)' }}>
+                    Modifier la clause
+                </h2>
+                <p
+                    style={{
+                        marginTop: 8,
+                        marginBottom: 20,
+                        fontSize: 13.5,
+                        lineHeight: 1.6,
+                        color: 'var(--dag-text-muted)',
+                    }}
+                >
+                    La modification s'applique aux contrats générés à partir de
+                    maintenant ; les contrats déjà rédigés gardent leur texte.
+                </p>
+
+                <form
+                    onSubmit={submit}
+                    style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 16,
+                    }}
+                >
+                    <div
+                        style={{
+                            display: 'grid',
+                            gridTemplateColumns: '1fr 110px',
+                            gap: 14,
+                        }}
+                    >
+                        <div>
+                            <label htmlFor="clause-titre">Titre</label>
+                            <input
+                                id="clause-titre"
+                                value={form.data.titre}
+                                onChange={(event) =>
+                                    form.setData('titre', event.target.value)
+                                }
+                                required
+                            />
+                            {form.errors.titre && (
+                                <p
+                                    style={{
+                                        color: 'var(--dag-red)',
+                                        fontSize: 12,
+                                        marginTop: 4,
+                                    }}
+                                >
+                                    {form.errors.titre}
+                                </p>
+                            )}
+                        </div>
+                        <div>
+                            <label htmlFor="clause-ordre">Ordre</label>
+                            <input
+                                id="clause-ordre"
+                                type="number"
+                                min={0}
+                                value={form.data.ordre}
+                                onChange={(event) =>
+                                    form.setData(
+                                        'ordre',
+                                        Number(event.target.value),
+                                    )
+                                }
+                            />
+                        </div>
+                    </div>
+                    <div>
+                        <label htmlFor="clause-contenu">Contenu</label>
+                        <textarea
+                            id="clause-contenu"
+                            rows={8}
+                            value={form.data.contenu}
+                            onChange={(event) =>
+                                form.setData('contenu', event.target.value)
+                            }
+                            required
+                        />
+                        {form.errors.contenu && (
+                            <p
+                                style={{
+                                    color: 'var(--dag-red)',
+                                    fontSize: 12,
+                                    marginTop: 4,
+                                }}
+                            >
+                                {form.errors.contenu}
+                            </p>
+                        )}
+                    </div>
+
+                    <div
+                        style={{
+                            display: 'flex',
+                            justifyContent: 'flex-end',
+                            gap: 12,
+                        }}
+                    >
+                        <button
+                            type="button"
+                            className="btn-outline"
+                            onClick={onClose}
+                        >
+                            Annuler
+                        </button>
+                        <button
+                            type="submit"
+                            className="btn-primary"
+                            disabled={form.processing}
+                        >
+                            Enregistrer
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     );
 }

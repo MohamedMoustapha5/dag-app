@@ -139,3 +139,43 @@ test('a role without access to contrats cannot download a signed contrat pdf', f
         ->get(route('espace-admin.contrats.pdf', $contrat))
         ->assertForbidden();
 });
+
+test('a promotrice can edit a clause and the change only applies to contracts drafted afterwards', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $clause = Clause::create(['titre' => 'Confidentialité', 'contenu' => 'Texte initial.', 'ordre' => 1]);
+    $ancienContrat = Contrat::factory()->create(['contenu' => "1. Confidentialité\nTexte initial."]);
+
+    $this->actingAs($promotrice, 'admin')
+        ->patch(route('espace-admin.clauses.update', $clause), [
+            'titre' => 'Confidentialité renforcée',
+            'contenu' => 'Texte révisé.',
+            'ordre' => 3,
+        ])
+        ->assertRedirect();
+
+    $clause->refresh();
+    expect($clause->titre)->toBe('Confidentialité renforcée');
+    expect($clause->contenu)->toBe('Texte révisé.');
+    expect($clause->ordre)->toBe(3);
+    expect($ancienContrat->fresh()->contenu)->toContain('Texte initial.');
+
+    $this->actingAs($promotrice, 'admin')
+        ->get(route('espace-admin.contrats.index'))
+        ->assertInertia(fn ($page) => $page->where('clauses.0.contenu', 'Texte révisé.'));
+});
+
+test('a clause needs a title and a content, and a read-only role cannot edit it', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $marketing = MembreEquipe::factory()->create(['role' => MembreEquipeRole::CommunicationMarketing]);
+    $clause = Clause::create(['titre' => 'Durée', 'contenu' => 'Texte.', 'ordre' => 0]);
+
+    $this->actingAs($promotrice, 'admin')
+        ->patch(route('espace-admin.clauses.update', $clause), ['titre' => '', 'contenu' => ''])
+        ->assertSessionHasErrors(['titre', 'contenu']);
+
+    $this->actingAs($marketing, 'admin')
+        ->patch(route('espace-admin.clauses.update', $clause), ['titre' => 'Autre', 'contenu' => 'Autre.'])
+        ->assertForbidden();
+
+    expect($clause->fresh()->titre)->toBe('Durée');
+});

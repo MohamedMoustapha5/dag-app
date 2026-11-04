@@ -46,7 +46,7 @@ class AdminContratController extends Controller
             'peutSupprimer' => $membre->peut(Donnee::ContratsClauses, Action::Supprimer),
             'peutTelecharger' => $membre->peut(Donnee::ContratsClauses, Action::Telecharger),
             'modeles' => ModeleContrat::query()->orderBy('nom')->get(['id', 'nom', 'type', 'statut']),
-            'clauses' => Clause::query()->orderBy('ordre')->get(['id', 'titre', 'ordre']),
+            'clauses' => Clause::query()->orderBy('ordre')->get(['id', 'titre', 'contenu', 'ordre']),
             'contrats' => $contrats->map(fn (Contrat $contrat) => [
                 'id' => $contrat->id,
                 'reference' => $contrat->reference,
@@ -105,6 +105,30 @@ class AdminContratController extends Controller
         ]);
 
         Clause::create([...$data, 'ordre' => $data['ordre'] ?? 0]);
+
+        return back();
+    }
+
+    /**
+     * Editing a clause changes the text of the contracts drafted from now on;
+     * contracts already drafted keep the text they were generated with.
+     */
+    public function updateClause(Request $request, Clause $clause): RedirectResponse
+    {
+        $membre = $this->membre($request);
+        abort_unless($membre->peut(Donnee::ContratsClauses, Action::Modifier), 403);
+
+        $data = $request->validate([
+            'titre' => ['required', 'string', 'max:191'],
+            'contenu' => ['required', 'string'],
+            'ordre' => ['nullable', 'integer', 'min:0'],
+        ]);
+
+        $clause->update([...$data, 'ordre' => $data['ordre'] ?? 0]);
+
+        ActivityLog::record($membre, 'a modifié la clause', $clause, $clause->titre.'.');
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Clause mise à jour.']);
 
         return back();
     }

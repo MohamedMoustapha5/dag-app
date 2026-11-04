@@ -8,6 +8,7 @@ type Formation = {
     nom: string;
     description: string;
     categorie: string | null;
+    programme: string | null;
     duree: string | null;
     prerequis: string | null;
     statut: string;
@@ -43,6 +44,7 @@ export default function AdminFormationShow({
         nom: formation.nom,
         description: formation.description,
         categorie: formation.categorie ?? '',
+        programme: formation.programme ?? '',
         duree: formation.duree ?? '',
         prerequis: formation.prerequis ?? '',
         statut: formation.statut,
@@ -201,6 +203,21 @@ export default function AdminFormationShow({
                                 onChange={(event) =>
                                     editForm.setData(
                                         'prerequis',
+                                        event.target.value,
+                                    )
+                                }
+                            />
+                        </div>
+                        <div style={{ gridColumn: '1 / -1' }}>
+                            <label htmlFor="edit-programme">Programme</label>
+                            <textarea
+                                id="edit-programme"
+                                rows={5}
+                                placeholder={'Une ligne par étape.\nEx. Semaine 1 — Fondamentaux'}
+                                value={editForm.data.programme}
+                                onChange={(event) =>
+                                    editForm.setData(
+                                        'programme',
                                         event.target.value,
                                     )
                                 }

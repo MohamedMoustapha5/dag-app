@@ -290,3 +290,24 @@ test('the developpeur account appears once in the public team, with the team siz
             ->where('equipe.1.role', 'Développeur')
             ->where('stats.membresEquipe', 2));
 });
+
+test('every public formation displays a category badge, with a default when none was entered', function () {
+    $avec = Formation::factory()->create(['categorie' => 'Community management', 'statut' => 'PUBLIEE']);
+    $sans = Formation::factory()->create(['categorie' => null, 'statut' => 'PUBLIEE']);
+    FormationSession::factory()->for($avec)->create(['statut' => 'OUVERTE']);
+    FormationSession::factory()->for($sans)->create(['statut' => 'OUVERTE']);
+
+    $this->get(route('formations.show', $avec))
+        ->assertInertia(fn ($page) => $page->where('formation.categorie', 'Community management'));
+
+    $this->get(route('formations.show', $sans))
+        ->assertInertia(fn ($page) => $page->where('formation.categorie', 'Formation'));
+
+    $this->get(route('formations'))
+        ->assertInertia(function ($page) {
+            $categories = collect($page->toArray()['props']['sessions'])->pluck('categorie')->all();
+
+            expect($categories)->toContain('Community management', 'Formation');
+            expect(array_filter($categories, fn ($categorie) => $categorie === null || $categorie === ''))->toBe([]);
+        });
+});

@@ -10,6 +10,7 @@ use App\Models\Formation;
 use App\Models\FormationSession;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
@@ -38,6 +39,11 @@ class AdminFormationController extends Controller
                 'id' => $session->id,
                 'formationId' => $session->formation_id,
                 'formationNom' => $session->formation->nom,
+                'categorie' => $session->formation->categorie,
+                'description' => $session->formation->description,
+                'programme' => $session->formation->programme,
+                'duree' => $session->formation->duree,
+                'prerequis' => $session->formation->prerequis,
                 'ville' => $session->ville,
                 'mode' => $session->mode,
                 'lieu' => $session->lieu,
@@ -66,6 +72,11 @@ class AdminFormationController extends Controller
 
         $data = $request->validate([
             'formation_nom' => ['required', 'string', 'max:191'],
+            'categorie' => ['nullable', 'string', 'max:191'],
+            'description' => ['nullable', 'string'],
+            'programme' => ['nullable', 'string'],
+            'duree' => ['nullable', 'string', 'max:191'],
+            'prerequis' => ['nullable', 'string', 'max:500'],
             'ville' => ['required', 'string', 'max:191'],
             'mode' => ['required', Rule::in(['PRESENTIEL', 'EN_LIGNE', 'LES_DEUX'])],
             'lieu' => ['nullable', 'string', 'max:191'],
@@ -77,10 +88,22 @@ class AdminFormationController extends Controller
             'image' => ['nullable', 'image', 'max:5120'],
         ]);
 
+        // What the public formation page shows (categorie, description, programme,
+        // durée, prérequis): filled in when provided, whether the formation is new
+        // or already exists.
+        $contenu = array_filter(
+            Arr::only($data, ['categorie', 'description', 'programme', 'duree', 'prerequis']),
+            fn (?string $valeur) => $valeur !== null && trim($valeur) !== '',
+        );
+
         $formation = Formation::firstOrCreate(
             ['nom' => $data['formation_nom']],
-            ['description' => $data['formation_nom'], 'statut' => 'PUBLIEE'],
+            ['description' => $data['formation_nom'], 'statut' => 'PUBLIEE', ...$contenu],
         );
+
+        if (! $formation->wasRecentlyCreated && $contenu !== []) {
+            $formation->update($contenu);
+        }
 
         $imagePath = $this->storeImage($request);
 
@@ -121,6 +144,7 @@ class AdminFormationController extends Controller
                 'nom' => $formation->nom,
                 'description' => $formation->description,
                 'categorie' => $formation->categorie,
+                'programme' => $formation->programme,
                 'duree' => $formation->duree,
                 'prerequis' => $formation->prerequis,
                 'statut' => $formation->statut,
@@ -150,6 +174,7 @@ class AdminFormationController extends Controller
             'description' => ['required', 'string'],
             'categorie' => ['nullable', 'string', 'max:191'],
             'duree' => ['nullable', 'string', 'max:191'],
+            'programme' => ['nullable', 'string'],
             'prerequis' => ['nullable', 'string', 'max:500'],
             'statut' => ['required', Rule::in(['BROUILLON', 'PUBLIEE', 'EN_COURS', 'TERMINEE'])],
         ]);
@@ -196,6 +221,11 @@ class AdminFormationController extends Controller
         abort_unless($membre->peut(Donnee::Formations, Action::Modifier), 403);
 
         $data = $request->validate([
+            'categorie' => ['nullable', 'string', 'max:191'],
+            'description' => ['nullable', 'string'],
+            'programme' => ['nullable', 'string'],
+            'duree' => ['nullable', 'string', 'max:191'],
+            'prerequis' => ['nullable', 'string', 'max:500'],
             'ville' => ['required', 'string', 'max:191'],
             'mode' => ['required', Rule::in(['PRESENTIEL', 'EN_LIGNE', 'LES_DEUX'])],
             'lieu' => ['nullable', 'string', 'max:191'],
@@ -206,6 +236,19 @@ class AdminFormationController extends Controller
             'statut' => ['required', Rule::in(['BROUILLON', 'OUVERTE', 'COMPLETE', 'TERMINEE'])],
             'image' => ['nullable', 'image', 'max:5120'],
         ]);
+
+        // The content shown on the public page belongs to the formation, shared by
+        // all its sessions: a cleared field empties it, a blank description keeps
+        // the current one (it is mandatory).
+        $formationSession->formation->update([
+            'categorie' => $this->vide($data['categorie'] ?? null),
+            'programme' => $this->vide($data['programme'] ?? null),
+            'duree' => $this->vide($data['duree'] ?? null),
+            'prerequis' => $this->vide($data['prerequis'] ?? null),
+            ...($this->vide($data['description'] ?? null) !== null ? ['description' => $data['description']] : []),
+        ]);
+
+        $data = Arr::except($data, ['categorie', 'description', 'programme', 'duree', 'prerequis']);
 
         unset($data['image']);
 
@@ -220,6 +263,11 @@ class AdminFormationController extends Controller
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Session mise à jour.']);
 
         return back();
+    }
+
+    private function vide(?string $valeur): ?string
+    {
+        return $valeur === null || trim($valeur) === '' ? null : $valeur;
     }
 
     public function destroySession(Request $request, FormationSession $formationSession): RedirectResponse
