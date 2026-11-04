@@ -39,8 +39,8 @@ fournissent leur propre habillage via
   Paramètres), bloc « Besoin d'aide ? » en bas. Repliable en tiroir sur
   mobile (`<960px`, bouton hamburger dans l'en-tête).
 - **En-tête** séparé : barre de recherche (décorative, aucune recherche
-  réelle branchée), cloche de notification (idem, pas de système de
-  notifications construit), avatar avec initiales, nom + type de compte,
+  réelle branchée), cloche de notifications fonctionnelle (voir
+  `docs/11-phase-10-notifications.md`, section 4), avatar avec initiales, nom + type de compte,
   déconnexion.
 - Ce changement de layout concerne aussi les dashboards apprenant/admin
   (toujours minimalistes) : ils perdent la sidebar Teams, sans changement de
@@ -282,9 +282,8 @@ rapport avec le code — seule la suite Pest valide ces fichiers.
 - Paiement d'une demande ou d'une facture (devis → paiement en ligne) :
   phase 5.
 - Signature de contrat par photo importée : phase 6.
-- Recherche réelle dans la barre de recherche de l'en-tête, et notifications
-  réelles (la cloche est décorative) : aucune maquette ni demande explicite
-  pour ces deux fonctionnalités au-delà de leur présence visuelle.
+- Recherche réelle dans la barre de recherche de l'en-tête : aucune maquette ni
+  demande explicite au-delà de sa présence visuelle.
 - Un client ne peut pas annuler ou modifier une demande après l'avoir
   soumise — à faire si le besoin est confirmé.
 - Espace Organisation (3ᵉ visage du `Client`) : en attente de ses propres

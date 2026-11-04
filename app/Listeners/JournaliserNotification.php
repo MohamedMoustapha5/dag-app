@@ -32,7 +32,8 @@ class JournaliserNotification
     {
         $notification = $evenement->notification;
 
-        if (! $notification instanceof NotificationDag) {
+        // The bell of the espace is not a message sent outside the application.
+        if (! $notification instanceof NotificationDag || $evenement->channel === 'database') {
             return;
         }
 

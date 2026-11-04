@@ -58,11 +58,17 @@ abstract class NotificationDag extends Notification implements ShouldQueue
      */
     public function via(object $notifiable): array
     {
-        if (! $this->accepte($notifiable)) {
-            return [];
+        $canaux = [];
+
+        // The bell of the espace always receives it: the preferences only
+        // switch off the messages sent outside the application.
+        if (method_exists($notifiable, 'notifications')) {
+            $canaux[] = 'database';
         }
 
-        $canaux = [];
+        if (! $this->accepte($notifiable)) {
+            return $canaux;
+        }
 
         if (config('notifications.canaux.email') && $this->adresse($notifiable, 'mail') !== null) {
             $canaux[] = 'mail';
@@ -99,6 +105,26 @@ abstract class NotificationDag extends Notification implements ShouldQueue
         }
 
         return $mail->salutation('L\'équipe DAG — Digital Agency Group');
+    }
+
+    /**
+     * Content stored for the bell of the espace. The link is relative so it
+     * stays valid whichever host serves the application.
+     *
+     * @return array{evenement: string, titre: string, message: string, url: string|null}
+     */
+    public function toDatabase(object $notifiable): array
+    {
+        $url = $this->url($notifiable);
+        $chemin = $url !== null ? (string) parse_url($url, PHP_URL_PATH) : null;
+        $requete = $url !== null ? parse_url($url, PHP_URL_QUERY) : null;
+
+        return [
+            'evenement' => $this->evenement(),
+            'titre' => $this->titre(),
+            'message' => $this->message(),
+            'url' => $chemin !== null && $chemin !== '' ? $chemin.(is_string($requete) ? "?{$requete}" : '') : null,
+        ];
     }
 
     /**

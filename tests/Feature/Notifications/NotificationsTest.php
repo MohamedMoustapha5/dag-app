@@ -30,15 +30,15 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 
-test('a devis sent to a client notifies them by e-mail, unless they switched it off', function () {
+test('a devis sent to a client notifies them by e-mail, unless they switched it off, and always reaches the bell', function () {
     $client = Client::factory()->create();
     $demande = Demande::factory()->create(['client_id' => $client->id, 'montant_negocie' => 150000]);
 
-    expect((new DevisRecuNotification($demande))->via($client->user))->toBe(['mail']);
+    expect((new DevisRecuNotification($demande))->via($client->user))->toBe(['database', 'mail']);
 
     $client->user->update(['notif_devis' => false]);
 
-    expect((new DevisRecuNotification($demande))->via($client->user->fresh()))->toBe([]);
+    expect((new DevisRecuNotification($demande))->via($client->user->fresh()))->toBe(['database']);
 });
 
 test('the devis e-mail carries the amount, the message and a link to pay', function () {
@@ -72,13 +72,13 @@ test('the sms channel is wired but stays off until it is enabled and the recipie
     $demande = Demande::factory()->create(['client_id' => $client->id, 'montant_negocie' => 90000]);
     $notification = new DevisRecuNotification($demande);
 
-    expect($notification->via($client->user))->toBe(['mail']);
+    expect($notification->via($client->user))->toBe(['database', 'mail']);
 
     config(['notifications.canaux.sms' => true]);
-    expect($notification->via($client->user))->toBe(['mail', SmsChannel::class]);
+    expect($notification->via($client->user))->toBe(['database', 'mail', SmsChannel::class]);
 
     $client->update(['telephone' => null]);
-    expect($notification->via($client->user->fresh()))->toBe(['mail']);
+    expect($notification->via($client->user->fresh()))->toBe(['database', 'mail']);
 });
 
 test('a failing mail server never breaks the action that triggered the notification', function () {

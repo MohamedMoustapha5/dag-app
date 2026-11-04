@@ -84,13 +84,39 @@ Deux commandes tournent chaque jour (le planificateur doit être lancé :
 | `notifications:rappels-seances` | 08:00 | Rappelle leur séance du lendemain aux apprenants dont l'inscription est validée. Ne rappelle jamais deux fois la même séance. |
 | `notifications:relancer-contrats` | 09:00 | Relance les clients dont le contrat envoyé n'est pas signé depuis 3 jours (délai configurable), puis tous les 3 jours. La date de relance n'altère pas la date d'envoi du contrat. |
 
-## 4. Suivi côté administration
+## 4. Cloche de notifications (espaces client, apprenant et administrateur)
+
+Chaque notification envoyée par e-mail est aussi déposée dans la cloche de l'en-tête :
+
+- [x] Pastille avec le nombre de notifications non lues (« 99+ » au-delà)
+- [x] Panneau déroulant : les 15 dernières, les non lues surlignées, la date relative
+  (« Il y a 5 min »), message vide si aucune
+- [x] Un clic ouvre la page concernée (demande, facture, contrat, inscription…) et marque la
+  notification comme lue ; « Tout marquer comme lu » dans l'en-tête du panneau
+- [x] Mise à jour automatique toutes les 60 secondes, sans recharger la page
+- [x] Fermeture au clic extérieur ou avec Échap, panneau adapté au mobile
+- [x] Toujours reçue dans la cloche, même si le client a désactivé l'e-mail : les préférences
+  ne coupent que les messages envoyés hors de l'application
+- [x] Équipe : la cloche de l'espace administrateur reçoit les alertes (nouvelle demande,
+  paiement, contrat signé, renouvellement) selon les droits du rôle
+- [x] Cloisonnement : on ne peut lire ni ouvrir la notification d'un autre compte ; un lien
+  qui ne serait pas interne à l'application n'est jamais suivi
+
+Techniquement : canal `database` de Laravel (table `notifications`, identifiant de
+destinataire en texte car les comptes utilisent des identifiants numériques et l'équipe des
+UUID), donnée partagée `notifications` dans toutes les pages, composant
+`resources/js/components/espaces/cloche-notifications.tsx`, actions
+`NotificationCentreController` (routes `notifications.*` et `espace-admin.notifications.*`).
+Le journal des envois de Statistiques ne compte pas la cloche, seulement les e-mails, SMS et
+WhatsApp.
+
+## 5. Suivi côté administration
 
 Statistiques, onglet **Notifications** (réservé à la Directrice) : toutes les notifications
 envoyées ou en échec, avec date, destinataire, notification, canal et statut, une recherche,
 un filtre par statut et l'état des canaux (e-mail actif, SMS et WhatsApp à venir).
 
-## 5. Tests
+## 6. Tests
 
 `tests/Feature/Notifications/NotificationsTest.php` : préférences respectées, contenu de
 l'e-mail, journal des envois, canal SMS prêt mais inactif, panne d'envoi sans impact,

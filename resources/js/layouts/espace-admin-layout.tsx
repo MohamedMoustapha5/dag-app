@@ -1,7 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
     Award,
-    Bell,
     Briefcase,
     BookOpen,
     BarChart3,
@@ -23,6 +22,8 @@ import type { PropsWithChildren } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { deconnexion } from '@/routes/admin';
 import LanguageSwitcher from '@/components/public/language-switcher';
+import ClocheNotifications from '@/components/espaces/cloche-notifications';
+import notificationsAdmin from '@/routes/espace-admin/notifications';
 import espaceAdmin from '@/routes/espace-admin';
 import abonnementsAdmin from '@/routes/espace-admin/abonnements';
 import apprenantsAdmin from '@/routes/espace-admin/apprenants';
@@ -329,10 +330,10 @@ export default function EspaceAdminLayout({ children }: PropsWithChildren) {
 
                         <div className="espace-topbar-right">
                             <LanguageSwitcher />
-                            <span className="espace-notif">
-                                <Bell size={18} />
-                                <span className="espace-notif-dot" />
-                            </span>
+                            <ClocheNotifications
+                                urlLire={(id) => notificationsAdmin.lire(id).url}
+                                urlToutesLues={notificationsAdmin.toutesLues().url}
+                            />
                             <div className="espace-user">
                                 <span className="espace-avatar">
                                     {initiales}

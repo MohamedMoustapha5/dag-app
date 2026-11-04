@@ -1,6 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
-    Bell,
     Briefcase,
     FileSignature,
     FileText,
@@ -22,6 +21,8 @@ import type { PropsWithChildren } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { contact, logout } from '@/routes';
 import LanguageSwitcher from '@/components/public/language-switcher';
+import ClocheNotifications from '@/components/espaces/cloche-notifications';
+import notificationsEspace from '@/routes/notifications';
 import espaceClient from '@/routes/espace-client';
 import candidatures from '@/routes/espace-client/candidatures';
 import demandes from '@/routes/espace-client/demandes';
@@ -322,10 +323,10 @@ export default function EspaceClientLayout({ children }: PropsWithChildren) {
 
                         <div className="espace-topbar-right">
                             <LanguageSwitcher />
-                            <span className="espace-notif">
-                                <Bell size={18} />
-                                <span className="espace-notif-dot" />
-                            </span>
+                            <ClocheNotifications
+                                urlLire={(id) => notificationsEspace.lire(id).url}
+                                urlToutesLues={notificationsEspace.toutesLues().url}
+                            />
                             <div className="espace-user">
                                 <span className="espace-avatar">
                                     {initiales}

@@ -1,6 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
-    Bell,
     BookOpen,
     FileText,
     Folder,
@@ -18,6 +17,8 @@ import { useEffect, useRef, useState } from 'react';
 import { contact, logout } from '@/routes';
 import espaceApprenant from '@/routes/espace-apprenant';
 import LanguageSwitcher from '@/components/public/language-switcher';
+import ClocheNotifications from '@/components/espaces/cloche-notifications';
+import notificationsEspace from '@/routes/notifications';
 
 type NavItem = {
     label: string;
@@ -210,10 +211,10 @@ export default function EspaceApprenantLayout({ children }: PropsWithChildren) {
 
                         <div className="espace-topbar-right">
                             <LanguageSwitcher />
-                            <span className="espace-notif">
-                                <Bell size={18} />
-                                <span className="espace-notif-dot" />
-                            </span>
+                            <ClocheNotifications
+                                urlLire={(id) => notificationsEspace.lire(id).url}
+                                urlToutesLues={notificationsEspace.toutesLues().url}
+                            />
                             <div className="espace-user">
                                 <span className="espace-avatar">
                                     {initiales}

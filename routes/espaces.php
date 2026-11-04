@@ -36,6 +36,7 @@ use App\Http\Controllers\Espaces\ClientOffreController;
 use App\Http\Controllers\Espaces\ClientPaiementController;
 use App\Http\Controllers\Espaces\ClientParametreController;
 use App\Http\Controllers\Espaces\ClientServiceController;
+use App\Http\Controllers\Espaces\NotificationCentreController;
 use App\Http\Controllers\Espaces\PaiementEnLigneController;
 use App\Http\Controllers\PaiementWebhookController;
 use App\Http\Middleware\EnsureMembreActif;
@@ -147,6 +148,8 @@ Route::middleware(['auth:admin', EnsureMembreActif::class])
         Route::patch('equipe/{membreEquipe}', [AdminEquipeController::class, 'update'])->name('espace-admin.equipe.update');
         Route::put('equipe-droits', [AdminEquipeController::class, 'updateDroit'])->name('espace-admin.equipe.droits.update');
         Route::delete('equipe-droits/{role}', [AdminEquipeController::class, 'reinitialiserDroits'])->name('espace-admin.equipe.droits.reset');
+        Route::post('notifications/toutes-lues', [NotificationCentreController::class, 'toutesLues'])->name('espace-admin.notifications.toutes-lues');
+        Route::post('notifications/{notification}/lue', [NotificationCentreController::class, 'lire'])->name('espace-admin.notifications.lire');
         Route::get('entreprises', [AdminEntrepriseController::class, 'index'])->name('espace-admin.entreprises.index');
         Route::patch('entreprises/{entreprisePartenaire}', [AdminEntrepriseController::class, 'updateEntreprise'])->name('espace-admin.entreprises.update');
         Route::patch('offres/{offreEmploi}', [AdminEntrepriseController::class, 'updateOffre'])->name('espace-admin.offres.update');
@@ -206,6 +209,11 @@ Route::middleware(['auth:admin', EnsureMembreActif::class])
 | Online payment by the payer (client, entreprise or apprenant): initiation,
 | the simulation provider screen, and the provider's signed webhook.
 */
+Route::middleware(['auth', 'verified'])->prefix('notifications')->group(function () {
+    Route::post('toutes-lues', [NotificationCentreController::class, 'toutesLues'])->name('notifications.toutes-lues');
+    Route::post('{notification}/lue', [NotificationCentreController::class, 'lire'])->name('notifications.lire');
+});
+
 Route::middleware(['auth', 'verified'])->prefix('paiements')->group(function () {
     Route::post('factures/{facture}', [PaiementEnLigneController::class, 'initier'])->name('paiements.initier');
     Route::get('simulation/{paiement}', [PaiementEnLigneController::class, 'simulation'])->name('paiements.simulation');
