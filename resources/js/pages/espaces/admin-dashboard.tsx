@@ -12,6 +12,10 @@ import { useState } from 'react';
 import PaiementsChart from '@/components/espaces/paiements-chart';
 import RepartitionDonut from '@/components/espaces/repartition-donut';
 import ServicesRanking from '@/components/espaces/services-ranking';
+import {
+    phrasesSurveillance,
+    type Surveillance,
+} from '@/lib/abonnement-surveillance';
 import abonnementsAdmin from '@/routes/espace-admin/abonnements';
 import apprenantsAdmin from '@/routes/espace-admin/apprenants';
 import contratsAdmin from '@/routes/espace-admin/contrats';
@@ -29,6 +33,7 @@ type Props = {
         contrats: { aSigner: number; relances: number } | null;
         placement: { taux: number; apprenantsPlaces: number } | null;
     };
+    abonnementsASurveiller: Surveillance | null;
     paiements: {
         '7j': Point[];
         '30j': Point[];
@@ -70,6 +75,7 @@ const DONUT_COLORS = [
 export default function AdminDashboard({
     droits,
     kpis,
+    abonnementsASurveiller,
     paiements,
     repartitionCa,
     servicesPlusDemandes,
@@ -133,6 +139,43 @@ export default function AdminDashboard({
                     <p>Vue d'ensemble de l'activité DAG, en temps réel.</p>
                 </div>
             </div>
+
+            {abonnementsASurveiller &&
+                phrasesSurveillance(abonnementsASurveiller).length > 0 && (
+                    <Link
+                        href={abonnementsAdmin.index()}
+                        role="alert"
+                        className="card"
+                        style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            gap: 12,
+                            flexWrap: 'wrap',
+                            padding: '14px 20px',
+                            marginBottom: 24,
+                            borderLeft: '4px solid var(--dag-orange)',
+                            textDecoration: 'none',
+                        }}
+                    >
+                        <span style={{ fontSize: 14 }}>
+                            <strong>Abonnements à traiter : </strong>
+                            {phrasesSurveillance(abonnementsASurveiller).join(
+                                ', ',
+                            )}
+                            .
+                        </span>
+                        <span
+                            style={{
+                                fontSize: 13,
+                                fontWeight: 600,
+                                color: 'var(--dag-blue)',
+                            }}
+                        >
+                            Voir les abonnements
+                        </span>
+                    </Link>
+                )}
 
             {(kpis.chiffreAffaires ||
                 kpis.demandes ||

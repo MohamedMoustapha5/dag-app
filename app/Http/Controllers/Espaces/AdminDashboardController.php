@@ -6,6 +6,7 @@ use App\Concerns\SharesAdminEspaceProps;
 use App\Enums\Action;
 use App\Enums\Donnee;
 use App\Http\Controllers\Controller;
+use App\Models\Abonnement;
 use App\Models\Candidature;
 use App\Models\Contrat;
 use App\Models\Demande;
@@ -52,6 +53,7 @@ class AdminDashboardController extends Controller
             ] : null,
             'repartitionCa' => $finances ? $this->repartitionChiffreAffaires($debutMois) : null,
             'servicesPlusDemandes' => $demandes ? $this->servicesPlusDemandes($debutMois) : null,
+            'abonnementsASurveiller' => $membre->peut(Donnee::Abonnements, Action::Voir) ? Abonnement::resumeSurveillance() : null,
         ]);
     }
 

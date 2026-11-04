@@ -1,7 +1,13 @@
-import { Head, router, useForm } from '@inertiajs/react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import { X } from 'lucide-react';
 import { useState } from 'react';
+import CycleMois, { type MoisCycle } from '@/components/espaces/cycle-mois';
+import {
+    phrasesSurveillance,
+    type Surveillance,
+} from '@/lib/abonnement-surveillance';
 import abonnementsAdmin from '@/routes/espace-admin/abonnements';
+import demandesAdmin from '@/routes/espace-admin/demandes';
 import formulesAdmin from '@/routes/espace-admin/formules';
 
 type Formule = {
@@ -23,11 +29,21 @@ type Abonnement = {
     echeance: string | null;
     statut: string;
     progression: number;
+    joursRestants: number | null;
+    etat: 'actif' | 'bientot' | 'expire' | 'suspendu' | 'termine';
+    mois: MoisCycle[];
+    paiementDuMois: string | null;
+    demandeRenouvellement: {
+        id: string;
+        reference: string;
+        statut: string;
+    } | null;
 };
 
 type Client = { id: string; nom: string; type: string };
 
 type Props = {
+    resume: Surveillance;
     abonnements: Abonnement[];
     formules: Formule[];
     servicesDisponibles: string[];
@@ -45,6 +61,7 @@ const STATUT_LABEL: Record<string, string> = {
 };
 
 export default function AdminAbonnements({
+    resume,
     abonnements,
     formules,
     servicesDisponibles,
@@ -56,6 +73,15 @@ export default function AdminAbonnements({
     const [createFormuleOpen, setCreateFormuleOpen] = useState(false);
     const [editingFormule, setEditingFormule] = useState<Formule | null>(null);
     const [createAbonnementOpen, setCreateAbonnementOpen] = useState(false);
+    const [filtre, setFiltre] = useState<'tous' | 'a-traiter'>('tous');
+
+    const aTraiter = (abonnement: Abonnement) =>
+        abonnement.demandeRenouvellement !== null ||
+        abonnement.etat === 'bientot' ||
+        abonnement.etat === 'expire';
+    const abonnementsAffiches =
+        filtre === 'tous' ? abonnements : abonnements.filter(aTraiter);
+    const alertes = phrasesSurveillance(resume);
 
     const formulesPubliees = formules.filter(
         (formule) => formule.statut === 'PUBLIEE',
@@ -225,6 +251,22 @@ export default function AdminAbonnements({
                     <p style={{ fontSize: 14.5, fontWeight: 700 }}>
                         Abonnements ({abonnements.length})
                     </p>
+                    <div className="account-tabs">
+                        <button
+                            type="button"
+                            className={`account-tab${filtre === 'tous' ? ' active' : ''}`}
+                            onClick={() => setFiltre('tous')}
+                        >
+                            Tous
+                        </button>
+                        <button
+                            type="button"
+                            className={`account-tab${filtre === 'a-traiter' ? ' active' : ''}`}
+                            onClick={() => setFiltre('a-traiter')}
+                        >
+                            À traiter ({abonnements.filter(aTraiter).length})
+                        </button>
+                    </div>
                     {peutCreer &&
                         clients.length > 0 &&
                         formulesPubliees.length > 0 && (
@@ -238,9 +280,26 @@ export default function AdminAbonnements({
                             </button>
                         )}
                 </div>
-                {abonnements.length === 0 ? (
+                {alertes.length > 0 && (
+                    <div
+                        role="alert"
+                        className="card"
+                        style={{
+                            padding: '12px 16px',
+                            marginBottom: 16,
+                            borderLeft: '4px solid var(--dag-orange)',
+                            fontSize: 13.5,
+                        }}
+                    >
+                        <strong>À traiter : </strong>
+                        {alertes.join(', ')}.
+                    </div>
+                )}
+                {abonnementsAffiches.length === 0 ? (
                     <p className="data-table-empty">
-                        Aucun abonnement pour le moment.
+                        {abonnements.length === 0
+                            ? 'Aucun abonnement pour le moment.'
+                            : 'Rien à traiter pour le moment.'}
                     </p>
                 ) : (
                     <div className="data-table-wrap">
@@ -252,11 +311,12 @@ export default function AdminAbonnements({
                                     <th>Montant</th>
                                     <th>Échéance</th>
                                     <th>Cycle</th>
+                                    <th>Alerte</th>
                                     <th>Statut</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {abonnements.map((abonnement) => (
+                                {abonnementsAffiches.map((abonnement) => (
                                     <tr key={abonnement.id}>
                                         <td style={{ fontWeight: 600 }}>
                                             {abonnement.client}
@@ -271,15 +331,75 @@ export default function AdminAbonnements({
                                         </td>
                                         <td className="muted">
                                             {abonnement.echeance ?? '—'}
+                                            {abonnement.joursRestants !== null &&
+                                                abonnement.etat !== 'termine' && (
+                                                    <span
+                                                        style={{
+                                                            display: 'block',
+                                                            fontSize: 11.5,
+                                                        }}
+                                                    >
+                                                        {abonnement.joursRestants < 0
+                                                            ? `expiré depuis ${-abonnement.joursRestants} j`
+                                                            : `dans ${abonnement.joursRestants} j`}
+                                                    </span>
+                                                )}
                                         </td>
-                                        <td style={{ minWidth: 100 }}>
-                                            <div className="espace-formule-progress">
-                                                <div
-                                                    className="espace-formule-progress-bar"
-                                                    style={{
-                                                        width: `${abonnement.progression}%`,
-                                                    }}
+                                        <td style={{ minWidth: 160 }}>
+                                            {abonnement.mois.length > 0 ? (
+                                                <CycleMois
+                                                    mois={abonnement.mois}
+                                                    compact
+                                                    couleur={
+                                                        abonnement.etat === 'expire'
+                                                            ? 'var(--dag-red)'
+                                                            : abonnement.etat === 'bientot'
+                                                              ? 'var(--dag-orange)'
+                                                              : 'var(--dag-blue)'
+                                                    }
                                                 />
+                                            ) : (
+                                                <div className="espace-formule-progress">
+                                                    <div
+                                                        className="espace-formule-progress-bar"
+                                                        style={{
+                                                            width: `${abonnement.progression}%`,
+                                                        }}
+                                                    />
+                                                </div>
+                                            )}
+                                        </td>
+                                        <td>
+                                            <div
+                                                style={{
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    gap: 4,
+                                                    alignItems: 'flex-start',
+                                                }}
+                                            >
+                                                {abonnement.demandeRenouvellement && (
+                                                    <Link
+                                                        href={demandesAdmin.show(
+                                                            abonnement.demandeRenouvellement.id,
+                                                        )}
+                                                        className="chip chip-blue"
+                                                    >
+                                                        Renouvellement demandé
+                                                    </Link>
+                                                )}
+                                                {abonnement.etat === 'expire' && (
+                                                    <span className="chip chip-red">Expiré</span>
+                                                )}
+                                                {abonnement.etat === 'bientot' && (
+                                                    <span className="chip chip-orange">
+                                                        Expire bientôt
+                                                    </span>
+                                                )}
+                                                {!abonnement.demandeRenouvellement &&
+                                                    abonnement.etat === 'actif' && (
+                                                        <span className="muted">—</span>
+                                                    )}
                                             </div>
                                         </td>
                                         <td>

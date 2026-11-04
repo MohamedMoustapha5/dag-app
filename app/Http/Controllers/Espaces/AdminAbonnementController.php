@@ -26,9 +26,27 @@ class AdminAbonnementController extends Controller
         abort_unless($membre->peut(Donnee::Abonnements, Action::Voir), 403);
 
         $abonnements = Abonnement::query()
-            ->with(['client', 'entreprise', 'formule'])
+            ->with(['client', 'entreprise', 'formule', 'factures'])
             ->latest('date_souscription')
             ->get();
+
+        $lignes = [];
+        foreach ($abonnements as $abonnement) {
+            $lignes[] = $this->ligne($abonnement);
+        }
+
+        $resume = ['renouvellementsDemandes' => 0, 'bientot' => 0, 'expires' => 0];
+        foreach ($lignes as $ligne) {
+            if ($ligne['demandeRenouvellement'] !== null) {
+                $resume['renouvellementsDemandes']++;
+            }
+            if ($ligne['etat'] === 'bientot') {
+                $resume['bientot']++;
+            }
+            if ($ligne['etat'] === 'expire') {
+                $resume['expires']++;
+            }
+        }
 
         $formules = Formule::query()
             ->withCount('abonnements')
@@ -41,15 +59,8 @@ class AdminAbonnementController extends Controller
             'peutCreer' => $membre->peut(Donnee::Abonnements, Action::Creer),
             'peutModifier' => $membre->peut(Donnee::Abonnements, Action::Modifier),
             'peutSupprimer' => $membre->peut(Donnee::Abonnements, Action::Supprimer),
-            'abonnements' => $abonnements->map(fn (Abonnement $abonnement) => [
-                'id' => $abonnement->id,
-                'client' => $this->nomSouscripteur($abonnement),
-                'formule' => $abonnement->formule_id !== null ? $abonnement->formule->nom : '—',
-                'montant' => $abonnement->montant_negocie,
-                'echeance' => $abonnement->echeance?->toDateString(),
-                'statut' => $abonnement->statut,
-                'progression' => $abonnement->progressionCycle(),
-            ]),
+            'resume' => $resume,
+            'abonnements' => $lignes,
             'formules' => $formules->map(fn (Formule $formule) => [
                 'id' => $formule->id,
                 'nom' => $formule->nom,
@@ -132,6 +143,37 @@ class AdminAbonnementController extends Controller
         $formule->delete();
 
         return back();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function ligne(Abonnement $abonnement): array
+    {
+        $mois = $abonnement->moisDuCycle();
+        $paiementDuMois = null;
+        foreach ($mois as $segment) {
+            if ($segment['courant']) {
+                $paiementDuMois = $segment['facture'];
+            }
+        }
+
+        $demande = $abonnement->demandeRenouvellementEnCours();
+
+        return [
+            'id' => $abonnement->id,
+            'client' => $this->nomSouscripteur($abonnement),
+            'formule' => $abonnement->formule_id !== null ? $abonnement->formule->nom : '—',
+            'montant' => $abonnement->montant_negocie,
+            'echeance' => $abonnement->echeance?->toDateString(),
+            'statut' => $abonnement->statut,
+            'progression' => $abonnement->progressionCycle(),
+            'joursRestants' => $abonnement->joursRestants(),
+            'etat' => $abonnement->etatEcheance(),
+            'mois' => $mois,
+            'paiementDuMois' => $paiementDuMois,
+            'demandeRenouvellement' => $demande !== null ? ['id' => $demande->id, 'reference' => $demande->reference, 'statut' => $demande->statut] : null,
+        ];
     }
 
     private function nomSouscripteur(Abonnement $abonnement): string

@@ -1,7 +1,9 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { Check, RefreshCw } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import CycleMois, { type MoisCycle } from '@/components/espaces/cycle-mois';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
+import demandesClient from '@/routes/espace-client/demandes';
 import espaceClient from '@/routes/espace-client';
 import abonnementsRoutes from '@/routes/espace-client/abonnements';
 
@@ -25,6 +27,9 @@ type Abonnement = {
     joursRestants: number | null;
     etat: Etat;
     peutRenouveler: boolean;
+    demandeRenouvellement: string | null;
+    mois: MoisCycle[];
+    paiementDuMois: string | null;
     factures: FactureAbonnement[];
 };
 
@@ -64,6 +69,12 @@ const ETATS: Record<Etat, { label: string; chip: string; barre: string }> = {
         chip: 'chip-gray',
         barre: 'var(--dag-text-muted)',
     },
+};
+
+const PAIEMENT_MOIS: Record<string, { label: string; chip: string }> = {
+    PAYEE: { label: 'Payé ce mois', chip: 'chip-green' },
+    PARTIELLEMENT_PAYEE: { label: 'Paiement partiel', chip: 'chip-orange' },
+    EN_ATTENTE: { label: 'À payer ce mois', chip: 'chip-orange' },
 };
 
 function formatDate(dateIso: string | null): string {
@@ -291,6 +302,7 @@ export default function AbonnementsIndex({ resume, abonnements }: Props) {
                         >
                             {filtres.map((abonnement) => {
                                 const etat = ETATS[abonnement.etat];
+                                const paiement = PAIEMENT_MOIS[abonnement.paiementDuMois ?? ''] ?? null;
 
                                 return (
                                     <div
@@ -330,6 +342,13 @@ export default function AbonnementsIndex({ resume, abonnements }: Props) {
                                                     >
                                                         {etat.label}
                                                     </span>
+                                                    {paiement && (
+                                                        <span
+                                                            className={`chip ${paiement.chip}`}
+                                                        >
+                                                            {paiement.label}
+                                                        </span>
+                                                    )}
                                                 </div>
                                                 <p
                                                     className="muted"
@@ -401,21 +420,26 @@ export default function AbonnementsIndex({ resume, abonnements }: Props) {
                                                     {libelleRestant(abonnement)}
                                                 </span>
                                             </div>
-                                            <div className="espace-formule-progress">
-                                                <div
-                                                    className="espace-formule-progress-bar"
-                                                    style={{
-                                                        width: `${abonnement.progression}%`,
-                                                        background: etat.barre,
-                                                    }}
+                                            {abonnement.mois.length > 0 ? (
+                                                <CycleMois
+                                                    mois={abonnement.mois}
+                                                    couleur={etat.barre}
                                                 />
-                                            </div>
+                                            ) : (
+                                                <div className="espace-formule-progress">
+                                                    <div
+                                                        className="espace-formule-progress-bar"
+                                                        style={{
+                                                            width: `${abonnement.progression}%`,
+                                                            background:
+                                                                etat.barre,
+                                                        }}
+                                                    />
+                                                </div>
+                                            )}
                                             <p
                                                 className="muted"
-                                                style={{
-                                                    fontSize: 12,
-                                                    marginTop: -8,
-                                                }}
+                                                style={{ fontSize: 12 }}
                                             >
                                                 Cycle écoulé à{' '}
                                                 {abonnement.progression} %
@@ -507,7 +531,18 @@ export default function AbonnementsIndex({ resume, abonnements }: Props) {
                                                 flexWrap: 'wrap',
                                             }}
                                         >
-                                            {abonnement.peutRenouveler && (
+                                            {abonnement.demandeRenouvellement && (
+                                                <Link
+                                                    href={demandesClient.show(
+                                                        abonnement.demandeRenouvellement,
+                                                    )}
+                                                    className="btn-primary"
+                                                >
+                                                    Renouvellement demandé : suivre
+                                                </Link>
+                                            )}
+                                            {abonnement.peutRenouveler &&
+                                                !abonnement.demandeRenouvellement && (
                                                 <button
                                                     type="button"
                                                     className="btn-primary"

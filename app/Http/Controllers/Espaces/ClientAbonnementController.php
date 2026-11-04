@@ -16,12 +16,6 @@ use Inertia\Response;
 
 class ClientAbonnementController extends Controller
 {
-    /** Days before the end of a cycle from which a renewal is offered. */
-    private const JOURS_AVANT_RENOUVELLEMENT = 30;
-
-    /** Days before the end of a cycle from which the subscription is flagged as ending soon. */
-    private const JOURS_ALERTE = 15;
-
     public function __invoke(Request $request): Response
     {
         $client = $request->user('web')->client;
@@ -74,16 +68,12 @@ class ClientAbonnementController extends Controller
         $client = $request->user('web')->client;
 
         abort_unless($this->appartient($client, $abonnement), 404);
-        abort_unless($this->peutRenouveler($abonnement), 409, 'Cet abonnement ne peut pas être renouvelé pour le moment.');
+        abort_unless($abonnement->peutEtreRenouvele(), 409, 'Cet abonnement ne peut pas être renouvelé pour le moment.');
 
         $formule = $abonnement->formule;
         abort_if($formule === null, 409, "La formule de cet abonnement n'existe plus : contactez l'équipe DAG.");
 
-        $enCours = $client->demandes()
-            ->where('formule_id', $formule->id)
-            ->where('description', 'like', 'Renouvellement%')
-            ->whereIn('statut', ['EN_ETUDE', 'DEVIS_ENVOYE'])
-            ->first();
+        $enCours = $abonnement->demandeRenouvellementEnCours();
 
         if ($enCours !== null) {
             Inertia::flash('toast', ['type' => 'success', 'message' => 'Une demande de renouvellement est déjà en cours.']);
@@ -118,7 +108,14 @@ class ClientAbonnementController extends Controller
      */
     private function carte(Abonnement $abonnement): array
     {
-        $joursRestants = $this->joursRestants($abonnement);
+        $mois = $abonnement->moisDuCycle();
+        $paiementDuMois = null;
+        foreach ($mois as $segment) {
+            if ($segment['courant']) {
+                $paiementDuMois = $segment['facture'];
+            }
+        }
+        $demandeRenouvellement = $abonnement->demandeRenouvellementEnCours();
 
         $factures = [];
         foreach ($abonnement->factures->sortByDesc('echeance')->take(3) as $facture) {
@@ -138,56 +135,14 @@ class ClientAbonnementController extends Controller
             'cycleDebut' => $this->formatDate($abonnement->cycle_debut),
             'echeance' => $this->formatDate($abonnement->echeance),
             'progression' => $abonnement->statut === 'TERMINE' ? 100 : $abonnement->progressionCycle(),
-            'joursRestants' => $joursRestants,
-            'etat' => $this->etat($abonnement, $joursRestants),
-            'peutRenouveler' => $this->peutRenouveler($abonnement),
+            'joursRestants' => $abonnement->joursRestants(),
+            'etat' => $abonnement->etatEcheance(),
+            'peutRenouveler' => $abonnement->peutEtreRenouvele(),
+            'demandeRenouvellement' => $demandeRenouvellement?->id,
+            'mois' => $mois,
+            'paiementDuMois' => $paiementDuMois,
             'factures' => $factures,
         ];
-    }
-
-    private function joursRestants(Abonnement $abonnement): ?int
-    {
-        if ($abonnement->echeance === null) {
-            return null;
-        }
-
-        return (int) Carbon::today()->diffInDays($abonnement->echeance->copy()->startOfDay(), false);
-    }
-
-    private function etat(Abonnement $abonnement, ?int $joursRestants): string
-    {
-        if ($abonnement->statut === 'TERMINE') {
-            return 'termine';
-        }
-
-        if ($abonnement->statut === 'SUSPENDU') {
-            return 'suspendu';
-        }
-
-        if ($joursRestants !== null && $joursRestants < 0) {
-            return 'expire';
-        }
-
-        if ($joursRestants !== null && $joursRestants <= self::JOURS_ALERTE) {
-            return 'bientot';
-        }
-
-        return 'actif';
-    }
-
-    private function peutRenouveler(Abonnement $abonnement): bool
-    {
-        if ($abonnement->formule_id === null || ! in_array($abonnement->statut, ['ACTIF', 'TERMINE'], true)) {
-            return false;
-        }
-
-        if ($abonnement->statut === 'TERMINE') {
-            return true;
-        }
-
-        $joursRestants = $this->joursRestants($abonnement);
-
-        return $joursRestants !== null && $joursRestants <= self::JOURS_AVANT_RENOUVELLEMENT;
     }
 
     private function appartient(Client $client, Abonnement $abonnement): bool

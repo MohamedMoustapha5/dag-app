@@ -93,6 +93,26 @@ La page Statistiques regroupe trois onglets, affichés selon les droits du rôle
 - Les 100 documents les plus récents sont affichés ; la recherche et le filtre permettent
   d'affiner.
 
+## 6 bis. Suivi des abonnements et des renouvellements
+
+L'équipe est prévenue sans avoir à chercher :
+
+- [x] Alerte à la création d'une demande de renouvellement par un client (notification de
+  l'équipe ayant le droit de modifier les demandes)
+- [x] Page Abonnements : bandeau « À traiter » (renouvellements demandés, abonnements
+  expirés, abonnements arrivant à échéance), onglet « À traiter », colonne Alerte avec le
+  lien vers la demande de renouvellement, jours restants ou dépassés sous l'échéance
+- [x] Barre de cycle découpée par mois avec l'état du paiement de chaque mois
+- [x] Tableau de bord : bandeau d'alerte vers les abonnements, visible des seuls rôles ayant
+  accès aux abonnements
+- [ ] Prolongation automatique de l'échéance à la réception du paiement du renouvellement
+  (aujourd'hui l'équipe renouvelle l'abonnement depuis la demande)
+
+Côté client (`docs/05-phase-4-espace-client.md`), chaque abonnement affiche ses mois sur la
+barre de progression (le mois en cours en gras, une coche verte si payé, une horloge si en
+attente), un indicateur « Payé ce mois » et, après une demande, un lien de suivi à la place
+du bouton Renouveler. Tests : `tests/Feature/Espaces/Client/AbonnementsTest.php`.
+
 ## 7. Tests
 
 Un fichier par domaine dans `tests/Feature/Espaces/Admin/` (dont `EquipeTest`,
