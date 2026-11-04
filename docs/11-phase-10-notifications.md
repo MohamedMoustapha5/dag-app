@@ -104,7 +104,7 @@ Chaque notification envoyée par e-mail est aussi déposée dans la cloche de l'
 
 Techniquement : canal `database` de Laravel (table `notifications`, identifiant de
 destinataire en texte car les comptes utilisent des identifiants numériques et l'équipe des
-UUID), donnée partagée `notifications` dans toutes les pages, composant
+UUID), donnée partagée `cloche` dans toutes les pages (nom distinct de la donnée `notifications` des pages Statistiques et Paramètres), composant
 `resources/js/components/espaces/cloche-notifications.tsx`, actions
 `NotificationCentreController` (routes `notifications.*` et `espace-admin.notifications.*`).
 Le journal des envois de Statistiques ne compte pas la cloche, seulement les e-mails, SMS et

@@ -32,9 +32,9 @@ test('the client space shares the unread count and the latest notifications', fu
     $this->actingAs($client->user)
         ->get(route('espace-client.dashboard'))
         ->assertInertia(fn ($page) => $page
-            ->where('notifications.nonLues', 1)
-            ->has('notifications.recentes', 1)
-            ->where('notifications.recentes.0.lue', false));
+            ->where('cloche.nonLues', 1)
+            ->has('cloche.recentes', 1)
+            ->where('cloche.recentes.0.lue', false));
 });
 
 test('opening a notification marks it as read and goes to its page', function () {
@@ -81,7 +81,7 @@ test('the apprenant space also has its bell', function () {
 
     $this->actingAs($apprenant->user)
         ->get(route('espace-apprenant.dashboard'))
-        ->assertInertia(fn ($page) => $page->where('notifications.nonLues', 1));
+        ->assertInertia(fn ($page) => $page->where('cloche.nonLues', 1));
 });
 
 test('team members get the alerts in the admin bell and can open them', function () {
@@ -93,8 +93,8 @@ test('team members get the alerts in the admin bell and can open them', function
     $this->actingAs($membre, 'admin')
         ->get(route('espace-admin.dashboard'))
         ->assertInertia(fn ($page) => $page
-            ->where('notifications.nonLues', 1)
-            ->where('notifications.recentes.0.titre', 'Nouvelle demande'));
+            ->where('cloche.nonLues', 1)
+            ->where('cloche.recentes.0.titre', 'Nouvelle demande'));
 
     $notification = $membre->notifications()->firstOrFail();
 
@@ -108,7 +108,7 @@ test('team members get the alerts in the admin bell and can open them', function
     expect($membre->unreadNotifications()->count())->toBe(0);
 
     $this->actingAs($client->user, 'web')->get(route('espace-client.dashboard'))
-        ->assertInertia(fn ($page) => $page->where('notifications.nonLues', 0));
+        ->assertInertia(fn ($page) => $page->where('cloche.nonLues', 0));
 });
 
 test('a notification link pointing outside the application is never followed', function () {
@@ -126,4 +126,17 @@ test('a notification link pointing outside the application is never followed', f
 
     expect($reponse->headers->get('Location'))->not->toContain('exemple.test');
     expect($notification->fresh()->read_at)->not->toBeNull();
+});
+
+test('the bell stays available on pages that have their own notifications data', function () {
+    $directrice = MembreEquipe::factory()->create(['role' => MembreEquipeRole::Promotrice]);
+    $client = Client::factory()->create();
+
+    $this->actingAs($directrice, 'admin')
+        ->get(route('espace-admin.statistiques', ['onglet' => 'notifications']))
+        ->assertInertia(fn ($page) => $page->has('cloche.nonLues')->has('cloche.recentes'));
+
+    $this->actingAs($client->user, 'web')
+        ->get(route('espace-client.parametres'))
+        ->assertInertia(fn ($page) => $page->has('cloche.nonLues')->has('notifications'));
 });

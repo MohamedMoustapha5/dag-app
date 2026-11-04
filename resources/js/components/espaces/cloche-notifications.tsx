@@ -62,13 +62,13 @@ function depuis(dateIso: string | null): string {
  * silent refresh so a new notification appears without reloading.
  */
 export default function ClocheNotifications({ urlLire, urlToutesLues }: Props) {
-    const { notifications } = usePage<{
-        notifications: ClocheDonnees | null;
+    const { cloche } = usePage<{
+        cloche: ClocheDonnees | null;
     }>().props;
     const [ouvert, setOuvert] = useState(false);
     const conteneur = useRef<HTMLDivElement>(null);
 
-    usePoll(RAFRAICHISSEMENT_MS, { only: ['notifications'] });
+    usePoll(RAFRAICHISSEMENT_MS, { only: ['cloche'] });
 
     useEffect(() => {
         if (!ouvert) {
@@ -95,7 +95,7 @@ export default function ClocheNotifications({ urlLire, urlToutesLues }: Props) {
         };
     }, [ouvert]);
 
-    if (!notifications) {
+    if (!cloche) {
         return null;
     }
 
@@ -110,8 +110,8 @@ export default function ClocheNotifications({ urlLire, urlToutesLues }: Props) {
                 type="button"
                 className="espace-notif"
                 aria-label={
-                    notifications.nonLues > 0
-                        ? `Notifications : ${notifications.nonLues} non lue${notifications.nonLues > 1 ? 's' : ''}`
+                    cloche.nonLues > 0
+                        ? `Notifications : ${cloche.nonLues} non lue${cloche.nonLues > 1 ? 's' : ''}`
                         : 'Notifications'
                 }
                 aria-expanded={ouvert}
@@ -119,7 +119,7 @@ export default function ClocheNotifications({ urlLire, urlToutesLues }: Props) {
                 style={{ border: 'none', cursor: 'pointer' }}
             >
                 <Bell size={18} />
-                {notifications.nonLues > 0 && (
+                {cloche.nonLues > 0 && (
                     <span
                         style={{
                             position: 'absolute',
@@ -139,9 +139,9 @@ export default function ClocheNotifications({ urlLire, urlToutesLues }: Props) {
                             border: '2px solid #fff',
                         }}
                     >
-                        {notifications.nonLues > 99
+                        {cloche.nonLues > 99
                             ? '99+'
-                            : notifications.nonLues}
+                            : cloche.nonLues}
                     </span>
                 )}
             </button>
@@ -175,7 +175,7 @@ export default function ClocheNotifications({ urlLire, urlToutesLues }: Props) {
                         }}
                     >
                         <strong style={{ fontSize: 14.5 }}>Notifications</strong>
-                        {notifications.nonLues > 0 && (
+                        {cloche.nonLues > 0 && (
                             <button
                                 type="button"
                                 onClick={() =>
@@ -203,7 +203,7 @@ export default function ClocheNotifications({ urlLire, urlToutesLues }: Props) {
                     </div>
 
                     <div style={{ overflowY: 'auto' }}>
-                        {notifications.recentes.length === 0 ? (
+                        {cloche.recentes.length === 0 ? (
                             <p
                                 className="muted"
                                 style={{
@@ -215,7 +215,7 @@ export default function ClocheNotifications({ urlLire, urlToutesLues }: Props) {
                                 Aucune notification pour le moment.
                             </p>
                         ) : (
-                            notifications.recentes.map((notification) => (
+                            cloche.recentes.map((notification) => (
                                 <button
                                     key={notification.id}
                                     type="button"
