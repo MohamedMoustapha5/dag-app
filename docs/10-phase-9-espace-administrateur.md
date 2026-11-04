@@ -105,8 +105,16 @@ L'équipe est prévenue sans avoir à chercher :
 - [x] Barre de cycle découpée par mois avec l'état du paiement de chaque mois
 - [x] Tableau de bord : bandeau d'alerte vers les abonnements, visible des seuls rôles ayant
   accès aux abonnements
-- [ ] Prolongation automatique de l'échéance à la réception du paiement du renouvellement
-  (aujourd'hui l'équipe renouvelle l'abonnement depuis la demande)
+- [x] Renouvellement par l'équipe : le bouton **Renouveler** de la colonne Alerte, ou le
+  passage du statut à « Actif » pour un abonnement expiré, terminé ou en brouillon, lance un
+  nouveau cycle de même durée (un mois au minimum) avec une barre de progression remise à
+  zéro. Avant la fin du cycle, le nouveau cycle commence à l'ancienne échéance ; après la
+  fin, il commence le jour du renouvellement. La demande de renouvellement est alors close
+  (colonne `renouvele_le`), l'alerte disparaît et la facture réglée par le client est
+  rattachée à l'abonnement, ce qui affiche le mois comme payé. Réactiver un abonnement
+  suspendu non expiré ne touche pas ses dates.
+- [ ] Prolongation automatique de l'échéance dès la réception du paiement du renouvellement
+  (aujourd'hui, c'est l'équipe qui valide le renouvellement)
 
 Côté client (`docs/05-phase-4-espace-client.md`), chaque abonnement affiche ses mois sur la
 barre de progression (le mois en cours en gras, une coche verte si payé, une horloge si en

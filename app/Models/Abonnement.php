@@ -16,7 +16,7 @@ use Illuminate\Support\Collection;
  * @property Carbon|null $cycle_debut
  * @property Carbon|null $echeance
  */
-#[Fillable(['client_id', 'entreprise_id', 'formule_id', 'montant_negocie', 'date_souscription', 'cycle_debut', 'echeance', 'statut'])]
+#[Fillable(['client_id', 'entreprise_id', 'formule_id', 'montant_negocie', 'date_souscription', 'cycle_debut', 'echeance', 'renouvele_le', 'statut'])]
 class Abonnement extends Model
 {
     use HasUuids;
@@ -28,6 +28,7 @@ class Abonnement extends Model
             'date_souscription' => 'date',
             'cycle_debut' => 'date',
             'echeance' => 'date',
+            'renouvele_le' => 'datetime',
         ];
     }
 
@@ -81,7 +82,7 @@ class Abonnement extends Model
             return 0;
         }
 
-        $ecoule = $debut->diffInDays(Carbon::now(), true);
+        $ecoule = $debut->diffInDays(Carbon::today(), true);
 
         return min(100, max(0, (int) round($ecoule / $dureeCycle * 100)));
     }
@@ -96,6 +97,46 @@ class Abonnement extends Model
 
     /** Statuses of a renewal request that is still waiting for the team to renew the subscription. */
     private const STATUTS_RENOUVELLEMENT_OUVERT = ['EN_ETUDE', 'DEVIS_ENVOYE', 'PAYEE'];
+
+    /**
+     * Starts a new billing cycle of the same length as the previous one (one
+     * month at least). A subscription renewed before its end continues from
+     * the old end date; an expired or never started one restarts today. The
+     * renewal request is closed and the invoice the client paid for it is
+     * attached to the subscription so the new month shows as paid.
+     */
+    public function renouveler(): void
+    {
+        $aujourdhui = Carbon::today();
+        $ancienneEcheance = $this->echeance !== null ? Carbon::parse($this->echeance)->startOfDay() : null;
+        $ancienDebut = $this->cycle_debut !== null ? Carbon::parse($this->cycle_debut)->startOfDay() : null;
+
+        $mois = 1;
+        if ($ancienDebut !== null && $ancienneEcheance !== null) {
+            $mois = max(1, (int) round($ancienDebut->diffInMonths($ancienneEcheance)));
+        }
+
+        $debut = $ancienneEcheance !== null && $ancienneEcheance->greaterThan($aujourdhui) && $this->statut === 'ACTIF'
+            ? $ancienneEcheance->copy()
+            : $aujourdhui->copy();
+
+        $demande = $this->demandeRenouvellementEnCours();
+        $facture = $demande?->facture;
+
+        $this->update([
+            'statut' => 'ACTIF',
+            'cycle_debut' => $debut->toDateString(),
+            'echeance' => $debut->copy()->addMonthsNoOverflow($mois)->toDateString(),
+            'renouvele_le' => now(),
+        ]);
+
+        if ($facture !== null && $facture->abonnement_id === null) {
+            $facture->update([
+                'abonnement_id' => $this->id,
+                'echeance' => $facture->echeance ?? $debut->toDateString(),
+            ]);
+        }
+    }
 
     /**
      * What the team has to watch: renewal requests waiting for a renewed
@@ -197,6 +238,7 @@ class Abonnement extends Model
         $clientId = $this->client_id ?? ($this->entreprise_id !== null ? $this->entreprise->client_id : null);
 
         return Demande::query()
+            ->when($this->renouvele_le !== null, fn ($query) => $query->where('created_at', '>', $this->renouvele_le))
             ->where('formule_id', $this->formule_id)
             ->where('description', 'like', 'Renouvellement%')
             ->whereIn('statut', self::STATUTS_RENOUVELLEMENT_OUVERT)

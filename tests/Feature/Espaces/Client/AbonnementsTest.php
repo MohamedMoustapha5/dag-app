@@ -173,3 +173,83 @@ test('the admin subscriptions page flags renewal requests, expiring and expired 
             ->where('abonnementsASurveiller.renouvellementsDemandes', 1)
             ->where('abonnementsASurveiller.expires', 1));
 });
+
+test('activating an expired subscription after a renewal request starts a fresh cycle', function () {
+    $membre = MembreEquipe::factory()->create(['role' => MembreEquipeRole::ControleGestion]);
+    $client = Client::factory()->create();
+    $abonnement = abonnementPour($client, [
+        'cycle_debut' => now()->subMonths(2)->subDays(3)->toDateString(),
+        'echeance' => now()->subDays(3)->toDateString(),
+    ]);
+
+    $this->actingAs($client->user)->post(route('espace-client.abonnements.renouveler', $abonnement));
+    $demande = $client->demandes()->firstOrFail();
+    $facture = Facture::factory()->payee()->create(['client_id' => $client->id, 'demande_id' => $demande->id, 'type' => 'SERVICE']);
+    $demande->update(['statut' => 'PAYEE']);
+
+    $this->actingAs($membre, 'admin')
+        ->patch(route('espace-admin.abonnements.update', $abonnement), ['statut' => 'ACTIF'])
+        ->assertRedirect();
+
+    $abonnement->refresh();
+    expect($abonnement->cycle_debut->toDateString())->toBe(now()->toDateString())
+        ->and($abonnement->echeance->toDateString())->toBe(now()->addMonths(2)->toDateString())
+        ->and($abonnement->renouvele_le)->not->toBeNull()
+        ->and($facture->fresh()->abonnement_id)->toBe($abonnement->id);
+
+    $this->actingAs($client->user)
+        ->get(route('espace-client.abonnements'))
+        ->assertInertia(fn ($page) => $page
+            ->where('abonnements.0.etat', 'actif')
+            ->where('abonnements.0.demandeRenouvellement', null)
+            ->where('abonnements.0.peutRenouveler', false)
+            ->where('abonnements.0.progression', 0)
+            ->has('abonnements.0.mois', 2)
+            ->where('abonnements.0.paiementDuMois', 'PAYEE'));
+
+    $this->actingAs($membre, 'admin')
+        ->get(route('espace-admin.abonnements.index'))
+        ->assertInertia(fn ($page) => $page
+            ->where('resume.expires', 0)
+            ->where('resume.renouvellementsDemandes', 0));
+});
+
+test('renewing before the end continues from the old end date', function () {
+    $membre = MembreEquipe::factory()->create(['role' => MembreEquipeRole::ControleGestion]);
+    $abonnement = abonnementPour(Client::factory()->create(), [
+        'cycle_debut' => now()->subMonth()->addDays(10)->toDateString(),
+        'echeance' => now()->addDays(10)->toDateString(),
+    ]);
+    $ancienneEcheance = $abonnement->echeance->copy();
+
+    $this->actingAs($membre, 'admin')
+        ->post(route('espace-admin.abonnements.renouveler', $abonnement))
+        ->assertRedirect();
+
+    $abonnement->refresh();
+    expect($abonnement->cycle_debut->toDateString())->toBe($ancienneEcheance->toDateString())
+        ->and($abonnement->echeance->toDateString())->toBe($ancienneEcheance->copy()->addMonth()->toDateString())
+        ->and($abonnement->statut)->toBe('ACTIF');
+});
+
+test('reactivating a suspended subscription that has not expired keeps its cycle', function () {
+    $membre = MembreEquipe::factory()->create(['role' => MembreEquipeRole::ControleGestion]);
+    $abonnement = abonnementPour(Client::factory()->create(), ['statut' => 'SUSPENDU']);
+    $echeance = $abonnement->echeance->toDateString();
+
+    $this->actingAs($membre, 'admin')
+        ->patch(route('espace-admin.abonnements.update', $abonnement), ['statut' => 'ACTIF'])
+        ->assertRedirect();
+
+    expect($abonnement->fresh()->echeance->toDateString())->toBe($echeance)
+        ->and($abonnement->fresh()->renouvele_le)->toBeNull();
+});
+
+test('a draft subscription cannot be renewed before it is activated', function () {
+    $membre = MembreEquipe::factory()->create(['role' => MembreEquipeRole::ControleGestion]);
+    $abonnement = abonnementPour(Client::factory()->create(), ['statut' => 'BROUILLON']);
+
+    $this->actingAs($membre, 'admin')
+        ->post(route('espace-admin.abonnements.renouveler', $abonnement))
+        ->assertStatus(409);
+});

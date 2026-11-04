@@ -94,6 +94,21 @@ export default function AdminAbonnements({
         router.delete(formulesAdmin.destroy(formule.id).url);
     };
 
+    const renouvelerAbonnement = (abonnement: Abonnement) => {
+        if (
+            !confirm(
+                `Renouveler l'abonnement « ${abonnement.formule} » de ${abonnement.client} ? Un nouveau cycle démarre.`,
+            )
+        ) {
+            return;
+        }
+        router.post(
+            abonnementsAdmin.renouveler(abonnement.id).url,
+            {},
+            { preserveScroll: true },
+        );
+    };
+
     const changerStatutAbonnement = (id: string, statut: string) => {
         router.patch(
             abonnementsAdmin.update(id).url,
@@ -396,6 +411,25 @@ export default function AdminAbonnements({
                                                         Expire bientôt
                                                     </span>
                                                 )}
+                                                {peutModifier &&
+                                                    (abonnement.etat === 'bientot' ||
+                                                        abonnement.etat === 'expire' ||
+                                                        abonnement.demandeRenouvellement !==
+                                                            null) && (
+                                                        <button
+                                                            type="button"
+                                                            className="btn-primary"
+                                                            style={{
+                                                                padding: '5px 12px',
+                                                                fontSize: 12,
+                                                            }}
+                                                            onClick={() =>
+                                                                renouvelerAbonnement(abonnement)
+                                                            }
+                                                        >
+                                                            Renouveler
+                                                        </button>
+                                                    )}
                                                 {!abonnement.demandeRenouvellement &&
                                                     abonnement.etat === 'actif' && (
                                                         <span className="muted">—</span>

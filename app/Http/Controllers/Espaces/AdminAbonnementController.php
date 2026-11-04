@@ -111,9 +111,42 @@ class AdminAbonnementController extends Controller
             'echeance' => ['nullable', 'date', 'after_or_equal:cycle_debut'],
         ]);
 
+        $datesSaisies = $request->filled('cycle_debut') || $request->filled('echeance');
+        $reactivation = $data['statut'] === 'ACTIF'
+            && ! $datesSaisies
+            && (
+                in_array($abonnement->statut, ['BROUILLON', 'TERMINE'], true)
+                || $abonnement->echeance === null
+                || $abonnement->etatEcheance() === 'expire'
+            );
+
+        if ($reactivation) {
+            $abonnement->renouveler();
+
+            Inertia::flash('toast', ['type' => 'success', 'message' => 'Abonnement activé : nouveau cycle lancé.']);
+
+            return back();
+        }
+
         $abonnement->update($data);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Abonnement mis à jour.']);
+
+        return back();
+    }
+
+    /**
+     * Renews a subscription: a new cycle of the same length starts (from the
+     * old end date when it is still running, from today otherwise).
+     */
+    public function renouveler(Request $request, Abonnement $abonnement): RedirectResponse
+    {
+        abort_unless($this->membre($request)->peut(Donnee::Abonnements, Action::Modifier), 403);
+        abort_if($abonnement->statut === 'BROUILLON', 409, "Activez d'abord l'abonnement.");
+
+        $abonnement->renouveler();
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Abonnement renouvelé : nouveau cycle lancé.']);
 
         return back();
     }

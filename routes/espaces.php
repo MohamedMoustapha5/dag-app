@@ -189,6 +189,7 @@ Route::middleware(['auth:admin', EnsureMembreActif::class])
         Route::get('abonnements', [AdminAbonnementController::class, 'index'])->name('espace-admin.abonnements.index');
         Route::post('abonnements', [AdminAbonnementController::class, 'store'])->name('espace-admin.abonnements.store');
         Route::patch('abonnements/{abonnement}', [AdminAbonnementController::class, 'update'])->name('espace-admin.abonnements.update');
+        Route::post('abonnements/{abonnement}/renouvellement', [AdminAbonnementController::class, 'renouveler'])->name('espace-admin.abonnements.renouveler');
         Route::post('formules', [AdminAbonnementController::class, 'storeFormule'])->name('espace-admin.formules.store');
         Route::patch('formules/{formule}', [AdminAbonnementController::class, 'updateFormule'])->name('espace-admin.formules.update');
         Route::delete('formules/{formule}', [AdminAbonnementController::class, 'destroyFormule'])->name('espace-admin.formules.destroy');
