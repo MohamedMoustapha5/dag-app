@@ -14,6 +14,7 @@ type Demande = {
     montantNegocie: string | null;
     aContrat: boolean;
     contratStatut: string | null;
+    contratId: string | null;
     payee: boolean;
     updatedAt: string | null;
 };
@@ -22,6 +23,7 @@ type Props = {
     demandes: Demande[];
     peutModifier: boolean;
     peutGenererContrat: boolean;
+    peutEnvoyerContrat: boolean;
 };
 
 const STATUTS_DEVIS = ['BROUILLON', 'EN_ETUDE', 'DEVIS_ENVOYE'];
@@ -30,8 +32,17 @@ export default function AdminDemandes({
     demandes,
     peutModifier,
     peutGenererContrat,
+    peutEnvoyerContrat,
 }: Props) {
     const [devisPour, setDevisPour] = useState<Demande | null>(null);
+
+    const envoyerContrat = (contratId: string) => {
+        router.patch(
+            contratsAdmin.update(contratId).url,
+            { statut: 'ENVOYE' },
+            { preserveScroll: true },
+        );
+    };
 
     const genererContrat = (demande: Demande) => {
         router.post(contratsAdmin.store().url, { demande_id: demande.id });
@@ -169,6 +180,32 @@ export default function AdminDemandes({
                                                             }
                                                         >
                                                             Générer le contrat
+                                                        </button>
+                                                    )}
+                                                {demande.contratId && (
+                                                    <Link
+                                                        href={contratsAdmin.show(
+                                                            demande.contratId,
+                                                        )}
+                                                        className="link-action"
+                                                    >
+                                                        Voir le contrat
+                                                    </Link>
+                                                )}
+                                                {demande.contratId &&
+                                                    demande.contratStatut ===
+                                                        'BROUILLON' &&
+                                                    peutEnvoyerContrat && (
+                                                        <button
+                                                            type="button"
+                                                            className="link-action"
+                                                            onClick={() =>
+                                                                envoyerContrat(
+                                                                    demande.contratId as string,
+                                                                )
+                                                            }
+                                                        >
+                                                            Envoyer le contrat
                                                         </button>
                                                     )}
                                             </div>

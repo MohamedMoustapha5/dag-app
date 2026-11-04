@@ -2,6 +2,7 @@
 
 use App\Enums\MembreEquipeRole;
 use App\Models\Client;
+use App\Models\Contrat;
 use App\Models\Demande;
 use App\Models\Facture;
 use App\Models\MembreEquipe;
@@ -148,4 +149,27 @@ test('a demande is flagged as paid from its facture, whatever its progress statu
     $this->actingAs($promotrice, 'admin')
         ->get(route('espace-admin.demandes.show', $payeeEnCours))
         ->assertInertia(fn ($page) => $page->where('demande.payee', true)->where('peutGenererContrat', true));
+});
+
+test('the demandes list exposes the contract to open or send, according to the role rights', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $juriste = MembreEquipe::factory()->juriste()->create();
+    $demande = Demande::factory()->create(['statut' => 'PAYEE']);
+    $contrat = Contrat::factory()->create(['demande_id' => $demande->id, 'statut' => 'BROUILLON']);
+
+    $this->actingAs($promotrice, 'admin')
+        ->get(route('espace-admin.demandes.index'))
+        ->assertInertia(fn ($page) => $page
+            ->where('demandes.0.contratId', $contrat->id)
+            ->where('demandes.0.contratStatut', 'BROUILLON')
+            ->where('peutEnvoyerContrat', true));
+
+    $this->actingAs($promotrice, 'admin')
+        ->patch(route('espace-admin.contrats.update', $contrat), ['statut' => 'ENVOYE'])
+        ->assertRedirect();
+    expect($contrat->fresh()->statut)->toBe('ENVOYE');
+
+    $this->actingAs($juriste, 'admin')
+        ->get(route('espace-admin.demandes.index'))
+        ->assertInertia(fn ($page) => $page->where('peutEnvoyerContrat', true));
 });

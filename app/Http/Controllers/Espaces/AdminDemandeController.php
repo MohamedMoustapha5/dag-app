@@ -36,6 +36,7 @@ class AdminDemandeController extends Controller
             ...$this->adminEspaceProps($membre),
             'peutModifier' => $membre->peut(Donnee::DemandesClients, Action::Modifier),
             'peutGenererContrat' => $membre->peut(Donnee::ContratsClauses, Action::Creer),
+            'peutEnvoyerContrat' => $membre->peut(Donnee::ContratsClauses, Action::Modifier),
             'demandes' => $demandes->map(fn (Demande $demande) => [
                 'id' => $demande->id,
                 'reference' => $demande->reference,
@@ -45,6 +46,7 @@ class AdminDemandeController extends Controller
                 'montantNegocie' => $demande->montant_negocie,
                 'aContrat' => $demande->contrat_exists,
                 'contratStatut' => $demande->contrat !== null ? $demande->contrat->statut : null,
+                'contratId' => $demande->contrat !== null ? $demande->contrat->id : null,
                 'payee' => $demande->facture !== null && $demande->facture->statut === 'PAYEE',
                 'updatedAt' => $demande->updated_at?->toDateString(),
             ]),
