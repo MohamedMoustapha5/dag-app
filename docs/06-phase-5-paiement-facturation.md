@@ -1,9 +1,9 @@
 # Phase 5 — Paiement et facturation
 
-Statut : **terminée avec une passerelle de simulation**. Correspond à la ligne
+Statut : **partielle** : le parcours complet fonctionne avec une passerelle de simulation. Correspond à la ligne
 « Paiement et facturation » du plan (section 6 de `docs/00-analyse-et-plan.md`).
-Le parcours complet est opérationnel ; le branchement d'un prestataire réel
-(Orange Money, MTN MoMo, carte) attend l'ouverture d'un compte chez lui.
+Reste à faire : le branchement d'un prestataire réel (Orange Money, MTN MoMo, carte), qui
+attend l'ouverture d'un compte chez lui (voir `docs/12-services-externes-a-brancher.md`).
 
 ## 1. Parcours de bout en bout
 

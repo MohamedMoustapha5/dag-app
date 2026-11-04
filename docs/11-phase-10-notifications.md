@@ -1,9 +1,11 @@
 # Phase 10 — Notifications
 
-Statut : **terminée**. Correspond à la ligne « Notifications (e-mail d'abord,
+Statut : **partielle**. Correspond à la ligne « Notifications (e-mail d'abord,
 architecture prête pour WhatsApp/SMS) » du plan (section 6 de
 `docs/00-analyse-et-plan.md`). L'e-mail est actif ; le SMS et WhatsApp sont déjà
-branchés dans l'architecture et s'activent sans modifier le code métier.
+branchés dans l'architecture et s'activent sans modifier le code métier. Restent à obtenir
+et à brancher : le serveur d'e-mail professionnel, les adresses réelles de l'équipe, un
+fournisseur SMS et un compte WhatsApp Business (voir `docs/12-services-externes-a-brancher.md`).
 
 ## 1. Ce qui est notifié
 

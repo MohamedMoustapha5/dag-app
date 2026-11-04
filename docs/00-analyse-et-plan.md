@@ -74,7 +74,7 @@ matrice de droits par type de donnée est implémentée depuis la phase 2
 
 | Terminées | Partielles | À venir | Total |
 | --------- | ---------- | ------- | ----- |
-| 8         | 2          | 1       | 11    |
+| 6         | 4          | 1       | 11    |
 
 Légende : `[x]` fait, `[ ]` reste à faire. Une phase n'est cochée que lorsque tous ses
 points le sont. Chaque phase livrée a son fichier de documentation dans `docs/`.
@@ -112,18 +112,18 @@ Documentation : [`05-phase-4-espace-client.md`](05-phase-4-espace-client.md)
 - [x] Abonnements, factures, contrats
 - [x] Documents
 
-### Phase 5 — Paiement et facturation — terminée (passerelle simulée)
+### Phase 5 — Paiement et facturation — partielle (passerelle simulée)
 
 Documentation : [`06-phase-5-paiement-facturation.md`](06-phase-5-paiement-facturation.md)
+et [`12-services-externes-a-brancher.md`](12-services-externes-a-brancher.md) (comptes et clés à obtenir)
 
 - [x] Facture émise avec le devis
 - [x] Paiement en ligne : Orange Money, MTN MoMo, carte
 - [x] Webhook signé du prestataire
 - [x] Paiement manuel et confirmation par l'administration
 - [x] PDF de la facture payée (espaces client et apprenant)
-
-Le parcours complet fonctionne avec la passerelle de simulation ; le branchement d'un
-prestataire réel dépend de l'ouverture d'un compte et figure dans la phase 11.
+- [ ] Prestataire de paiement réel : compte marchand, clés API et adaptateur (le parcours
+  complet fonctionne en attendant avec la passerelle de simulation)
 
 ### Phase 6 — Contrats et signature — partielle
 
@@ -168,24 +168,25 @@ Documentation : [`10-phase-9-espace-administrateur.md`](10-phase-9-espace-admini
 - [x] Journal d'activité (réservé à la Directrice)
 - [x] Centre de documents : contrats signés, attestations et CV au même endroit
 
-### Phase 10 — Notifications — terminée
+### Phase 10 — Notifications — partielle (e-mail actif, SMS et WhatsApp prêts mais inactifs)
 
 Documentation : [`11-phase-10-notifications.md`](11-phase-10-notifications.md)
+et [`12-services-externes-a-brancher.md`](12-services-externes-a-brancher.md) (comptes et clés à obtenir)
 
 - [x] E-mails (devis, paiement, contrat, inscription, attestation, candidature)
 - [x] Alertes de l'équipe (nouvelle demande, paiement reçu, contrat signé)
 - [x] Rappels de séance et relances de contrats non signés
 - [x] Architecture prête pour WhatsApp et SMS (canaux, fournisseur, journal)
 - [x] Suivi des envois dans Statistiques
+- [ ] E-mail professionnel : serveur d'envoi (SMTP), SPF, DKIM et DMARC du domaine
+- [ ] Adresses réelles des membres de l'équipe
+- [ ] SMS réels : fournisseur, nom d'expéditeur validé, adaptateur
+- [ ] WhatsApp réel : compte Business vérifié, modèles de message approuvés, adaptateur
+- [ ] Consentement par canal (SMS, WhatsApp) et normalisation des numéros
 
 ### Phase 11 — Déploiement et recette finale — à venir
 
-Documentation : [`12-services-externes-a-brancher.md`](12-services-externes-a-brancher.md) (comptes, clés et validations à obtenir)
-
 - [ ] Configuration de production
-- [ ] E-mail professionnel (SMTP, SPF/DKIM/DMARC) et adresses réelles de l'équipe
-- [ ] Prestataire de paiement réel
-- [ ] SMS et WhatsApp réels (comptes, expéditeur, modèles de message)
 - [ ] Recette finale
 
 > La phase « Demandes partenaires Nova-Tech » a été annulée : elle ne figure plus au plan.
