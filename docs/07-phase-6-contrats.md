@@ -5,7 +5,23 @@ importée » du plan (section 6 de `docs/00-analyse-et-plan.md`). La gestion des
 contrats par l'administration, la signature par photo importée côté client et le PDF
 du contrat signé sont en place ; restent la relance et la contestation de signature.
 
-## 1. Réalisé
+## 1. Règle : le contrat est obligatoire
+
+Chaque service demandé et payé doit avoir un contrat signé par le client.
+
+- **Brouillon automatique** : dès que la facture d'une demande est entièrement payée
+  (paiement en ligne confirmé ou paiement manuel), le brouillon du contrat est généré
+  automatiquement (une seule fois), ce qui évite tout oubli. L'administration le relit,
+  puis l'envoie au client.
+- **Prestation bloquée sans signature** : une demande ne peut pas passer à « En cours »,
+  « Livrée » ou « Terminée » tant que son contrat n'est pas signé (message d'erreur sur le
+  formulaire de statut).
+- **Suivi** : la liste Demandes clients affiche, pour chaque demande payée, l'état du
+  contrat (À générer, À envoyer, En attente de signature, Signé).
+- **Côté client** : après paiement, la page de la demande explique que la signature du
+  contrat déclenche le démarrage de la prestation.
+
+## 2. Réalisé
 
 - Cycle de vie complet d'un contrat côté administration : création, envoi,
   suivi du statut, consultation.
@@ -21,7 +37,7 @@ du contrat signé sont en place ; restent la relance et la contestation de signa
 - Consultation des contrats côté client (page Contrats et page Documents).
 - PDF du contrat signé, téléchargeable par l'administration.
 
-## 2. Données
+## 3. Données
 
 | Table | Rôle |
 | ----- | ---- |
@@ -36,7 +52,7 @@ Le contrat porte déjà les champs de la signature électronique (nom du signata
 date, adresse IP, photo de signature, contestation, invalidation, relance), prêts
 pour la fonction de signature client.
 
-## 3. Règles
+## 4. Règles
 
 - Une demande ne peut avoir qu'un seul contrat : une seconde création renvoie une
   erreur 409.
@@ -45,7 +61,7 @@ pour la fonction de signature client.
 - Le PDF n'est délivré que pour un contrat signé (statut signé, actif ou terminé,
   ou date de signature renseignée) ; sinon erreur 409.
 
-## 4. PDF du contrat signé
+## 5. PDF du contrat signé
 
 Généré à la demande par `App\Support\ContratPdf` (vue `resources/views/pdf/contrat.blade.php`).
 
@@ -61,7 +77,7 @@ Généré à la demande par `App\Support\ContratPdf` (vue `resources/views/pdf/c
 
 Les images de marque (logo, cachet) sont dans `public/images/brand/`.
 
-## 5. Signature par le client
+## 6. Signature par le client
 
 1. Le client ouvre le contrat depuis « Contrats » (bouton « Lire et signer ») ou depuis
    sa demande ; il lit le texte intégral.
@@ -76,12 +92,12 @@ Règles : seul un contrat « Envoyé » peut être signé (409 sinon) ; un contr
 est invisible du client (404) ; un client ne peut lire, signer ni télécharger que ses
 propres contrats, ou ceux de l'entreprise partenaire liée à son compte.
 
-## 6. Reste à faire
+## 7. Reste à faire
 
 - Relance automatique d'un contrat envoyé et non signé, et gestion de la contestation de
   signature (les champs existent en base).
 
-## 7. Tests
+## 8. Tests
 
 `tests/Feature/Espaces/Admin/ContratTest.php` (création, statut, PDF signé, refus
 d'un contrat non signé, refus sans droit), `tests/Feature/Espaces/Client/ContratSignatureTest.php`

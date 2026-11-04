@@ -157,8 +157,8 @@ export default function AdminDemandeShow({
                                 className="muted"
                                 style={{ fontSize: 13, margin: '6px 0 12px' }}
                             >
-                                Demande payée : vous pouvez générer son contrat
-                                (facultatif).
+                                Demande payée : le contrat est obligatoire avant de
+                                démarrer la prestation.
                             </p>
                             <GenererContratButton
                                 demandeId={demande.id}
@@ -223,6 +223,17 @@ export default function AdminDemandeShow({
                                 ))}
                                 <option value="REFUSEE">Refusée</option>
                             </select>
+                            {form.errors.statut && (
+                                <p
+                                    style={{
+                                        color: 'var(--dag-red)',
+                                        fontSize: 12.5,
+                                        marginTop: 6,
+                                    }}
+                                >
+                                    {form.errors.statut}
+                                </p>
+                            )}
                         </div>
                         <div>
                             <label htmlFor="montant_negocie">

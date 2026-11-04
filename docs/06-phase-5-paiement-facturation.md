@@ -14,7 +14,7 @@ Le parcours complet est opérationnel ; le branchement d'un prestataire réel
 | 3. Paiement | Client | Choix du moyen de paiement, saisie du numéro mobile, confirmation. |
 | 4. Confirmation | Prestataire (ou administrateur) | Le paiement passe à « Confirmé », la facture à « Payé », la demande à « Payé ». |
 | 5. Facture | Client | Téléchargement du PDF de la facture acquittée. |
-| 6. Contrat | Administrateur | L'action « Générer le contrat » apparaît sur la demande payée. |
+| 6. Contrat | Système, puis administrateur et client | Le brouillon du contrat est généré automatiquement dès la facture soldée ; l'administration l'envoie, le client le signe, et la prestation peut alors démarrer (voir `docs/07-phase-6-contrats.md`). |
 
 Le même parcours de paiement existe pour l'apprenant sur ses factures de formation.
 Le PDF de la facture n'est proposé qu'aux espaces client et apprenant, jamais à

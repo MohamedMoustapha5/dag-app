@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\Clause;
+use App\Models\Contrat;
 use App\Models\Demande;
 use App\Models\ModeleContrat;
 
@@ -24,6 +25,27 @@ class ContratRedaction
             ->where('statut', 'ACTIF')
             ->latest()
             ->first();
+    }
+
+    /**
+     * Creates the draft prestation contract of a demande (invisible to the
+     * client until DAG sends it). Without an explicit modèle, the active
+     * one is used.
+     */
+    public static function brouillonPour(Demande $demande, ?ModeleContrat $modele = null): Contrat
+    {
+        $modele ??= self::modeleParDefaut('PRESTATION_SERVICE');
+
+        return Contrat::create([
+            'type' => 'PRESTATION_SERVICE',
+            'modele_contrat_id' => $modele?->id,
+            'client_id' => $demande->client_id,
+            'entreprise_id' => $demande->entreprise_id,
+            'demande_id' => $demande->id,
+            'contenu' => self::pour($demande, $modele),
+            'montant' => $demande->montant_negocie,
+            'statut' => 'BROUILLON',
+        ]);
     }
 
     public static function pour(Demande $demande, ?ModeleContrat $modele): string

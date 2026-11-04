@@ -13,6 +13,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -26,7 +27,7 @@ class AdminDemandeController extends Controller
         abort_unless($membre->peut(Donnee::DemandesClients, Action::Voir), 403);
 
         $demandes = Demande::query()
-            ->with(['client', 'entreprise', 'service', 'formule', 'facture'])
+            ->with(['client', 'entreprise', 'service', 'formule', 'facture', 'contrat'])
             ->withExists('contrat')
             ->latest('updated_at')
             ->get();
@@ -43,6 +44,7 @@ class AdminDemandeController extends Controller
                 'statut' => $demande->statut,
                 'montantNegocie' => $demande->montant_negocie,
                 'aContrat' => $demande->contrat_exists,
+                'contratStatut' => $demande->contrat !== null ? $demande->contrat->statut : null,
                 'payee' => $demande->facture !== null && $demande->facture->statut === 'PAYEE',
                 'updatedAt' => $demande->updated_at?->toDateString(),
             ]),
@@ -99,6 +101,15 @@ class AdminDemandeController extends Controller
             'statut' => ['required', Rule::in([...Demande::SUIVI_STEPS, 'REFUSEE'])],
             'montant_negocie' => ['nullable', 'numeric', 'min:0'],
         ]);
+
+        // The contract is mandatory: no prestation starts, is delivered or closed
+        // until the client has signed it.
+        if (in_array($data['statut'], ['EN_COURS', 'LIVREE', 'TERMINEE'], true)
+            && ($demande->contrat === null || ! $demande->contrat->estSigne())) {
+            throw ValidationException::withMessages([
+                'statut' => 'Le contrat doit être signé par le client avant de démarrer la prestation.',
+            ]);
+        }
 
         DB::transaction(function () use ($demande, $data, $paiements): void {
             $demande->update($data);

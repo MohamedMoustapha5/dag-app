@@ -13,6 +13,7 @@ type Demande = {
     statut: string;
     montantNegocie: string | null;
     aContrat: boolean;
+    contratStatut: string | null;
     payee: boolean;
     updatedAt: string | null;
 };
@@ -76,6 +77,7 @@ export default function AdminDemandes({
                                     <th>Client</th>
                                     <th>Service</th>
                                     <th>Statut</th>
+                                    <th>Contrat</th>
                                     <th>Montant</th>
                                     <th>Mise à jour</th>
                                     <th>Actions</th>
@@ -107,6 +109,9 @@ export default function AdminDemandes({
                                                 {STATUT_LABEL[demande.statut] ??
                                                     demande.statut}
                                             </span>
+                                        </td>
+                                        <td>
+                                            <EtatContrat demande={demande} />
                                         </td>
                                         <td className="muted">
                                             {demande.montantNegocie
@@ -184,6 +189,33 @@ export default function AdminDemandes({
             )}
         </>
     );
+}
+
+/**
+ * The contract is mandatory for every paid service: this shows where it
+ * stands so nothing is left without one.
+ */
+function EtatContrat({ demande }: { demande: Demande }) {
+    if (!demande.payee) {
+        return <span className="muted">—</span>;
+    }
+
+    const etats: Record<string, { label: string; chip: string }> = {
+        BROUILLON: { label: 'À envoyer', chip: 'chip-orange' },
+        ENVOYE: { label: 'En attente de signature', chip: 'chip-orange' },
+        SIGNE: { label: 'Signé', chip: 'chip-green' },
+        ACTIF: { label: 'Signé', chip: 'chip-green' },
+        TERMINE: { label: 'Terminé', chip: 'chip-green' },
+    };
+    const etat =
+        demande.contratStatut !== null
+            ? (etats[demande.contratStatut] ?? {
+                  label: demande.contratStatut,
+                  chip: 'chip-gray',
+              })
+            : { label: 'À générer', chip: 'chip-red' };
+
+    return <span className={`chip ${etat.chip}`}>{etat.label}</span>;
 }
 
 function DevisModal({

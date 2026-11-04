@@ -135,18 +135,9 @@ class AdminContratController extends Controller
 
         $modele = isset($data['modele_contrat_id'])
             ? ModeleContrat::where('id', $data['modele_contrat_id'])->first()
-            : ContratRedaction::modeleParDefaut('PRESTATION_SERVICE');
+            : null;
 
-        $contrat = Contrat::create([
-            'type' => 'PRESTATION_SERVICE',
-            'modele_contrat_id' => $modele?->id,
-            'client_id' => $demande->client_id,
-            'entreprise_id' => $demande->entreprise_id,
-            'demande_id' => $demande->id,
-            'contenu' => ContratRedaction::pour($demande, $modele),
-            'montant' => $demande->montant_negocie,
-            'statut' => 'BROUILLON',
-        ]);
+        $contrat = ContratRedaction::brouillonPour($demande, $modele);
 
         ActivityLog::record($this->membre($request), 'a généré le contrat', $contrat, "{$contrat->reference} pour la demande {$demande->reference}.");
 

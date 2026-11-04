@@ -1,12 +1,15 @@
 <?php
 
+use App\Models\ActivityLog;
 use App\Models\Apprenant;
 use App\Models\Client;
+use App\Models\Contrat;
 use App\Models\Demande;
 use App\Models\Facture;
 use App\Models\MembreEquipe;
 use App\Models\Paiement;
 use App\Models\Service;
+use App\Support\Paiements\PaiementService;
 
 test('a client starts an Orange Money payment and is sent to the simulation screen', function () {
     $client = Client::factory()->create();
@@ -294,4 +297,89 @@ test('moving a demande to devis envoyé from the status form also issues the fac
     expect($facture->demande_id)->toBe($demande->id);
     expect((float) $facture->montant)->toBe(700000.0);
     expect($facture->statut)->toBe('EN_ATTENTE');
+});
+
+test('a settled payment drafts the mandatory contract of the demande, once', function () {
+    $client = Client::factory()->create();
+    $demande = Demande::factory()->create(['client_id' => $client->id, 'statut' => 'DEVIS_ENVOYE', 'montant_negocie' => 90000]);
+    $facture = Facture::factory()->create(['client_id' => $client->id, 'demande_id' => $demande->id, 'montant' => 90000]);
+
+    expect($demande->contrat)->toBeNull();
+
+    $this->actingAs($client->user)->post(route('paiements.initier', $facture), ['moyen' => 'CARTE']);
+    $paiement = Paiement::firstOrFail();
+    $this->actingAs($client->user)->post(route('paiements.simulation.decision', $paiement), ['resultat' => 'succes']);
+
+    $contrat = Contrat::where('demande_id', $demande->id)->firstOrFail();
+    expect($contrat->statut)->toBe('BROUILLON');
+    expect((float) $contrat->montant)->toBe(90000.0);
+    expect(ActivityLog::where('action', 'contrat généré automatiquement')->count())->toBe(1);
+
+    // A second confirmation (replayed webhook) does not create another one.
+    app(PaiementService::class)->confirmer($paiement);
+    expect(Contrat::where('demande_id', $demande->id)->count())->toBe(1);
+});
+
+test('a manual payment settling the facture also drafts the contract', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $demande = Demande::factory()->create(['statut' => 'DEVIS_ENVOYE']);
+    $facture = Facture::factory()->create(['demande_id' => $demande->id, 'montant' => 50000]);
+
+    $this->actingAs($promotrice, 'admin')
+        ->post(route('espace-admin.factures.paiements.store', $facture), ['montant' => 50000, 'moyen' => 'ESPECES'])
+        ->assertRedirect();
+
+    expect(Contrat::where('demande_id', $demande->id)->count())->toBe(1);
+});
+
+test('a partial payment does not draft the contract yet', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $demande = Demande::factory()->create(['statut' => 'DEVIS_ENVOYE']);
+    $facture = Facture::factory()->create(['demande_id' => $demande->id, 'montant' => 50000]);
+
+    $this->actingAs($promotrice, 'admin')
+        ->post(route('espace-admin.factures.paiements.store', $facture), ['montant' => 20000, 'moyen' => 'ESPECES']);
+
+    expect(Contrat::count())->toBe(0);
+});
+
+test('the prestation cannot start, be delivered or closed without a signed contract', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $demande = Demande::factory()->create(['statut' => 'PAYEE']);
+
+    foreach (['EN_COURS', 'LIVREE', 'TERMINEE'] as $statut) {
+        $this->actingAs($promotrice, 'admin')
+            ->patch(route('espace-admin.demandes.update', $demande), ['statut' => $statut])
+            ->assertSessionHasErrors('statut');
+    }
+
+    $contrat = Contrat::factory()->create(['demande_id' => $demande->id, 'statut' => 'ENVOYE']);
+    $this->actingAs($promotrice, 'admin')
+        ->patch(route('espace-admin.demandes.update', $demande), ['statut' => 'EN_COURS'])
+        ->assertSessionHasErrors('statut');
+    expect($demande->fresh()->statut)->toBe('PAYEE');
+
+    $contrat->update(['statut' => 'SIGNE', 'date_signature' => now()]);
+    $this->actingAs($promotrice, 'admin')
+        ->patch(route('espace-admin.demandes.update', $demande), ['statut' => 'EN_COURS'])
+        ->assertSessionHasNoErrors();
+    expect($demande->fresh()->statut)->toBe('EN_COURS');
+});
+
+test('the demandes list tells where the contract of each paid demande stands', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $sansContrat = Demande::factory()->create(['statut' => 'PAYEE']);
+    Facture::factory()->payee()->create(['demande_id' => $sansContrat->id]);
+    $aSigner = Demande::factory()->create(['statut' => 'PAYEE']);
+    Facture::factory()->payee()->create(['demande_id' => $aSigner->id]);
+    Contrat::factory()->create(['demande_id' => $aSigner->id, 'statut' => 'ENVOYE']);
+
+    $this->actingAs($promotrice, 'admin')
+        ->get(route('espace-admin.demandes.index'))
+        ->assertInertia(function ($page) use ($sansContrat, $aSigner) {
+            $demandes = collect($page->toArray()['props']['demandes'])->keyBy('id');
+
+            expect($demandes[$sansContrat->id]['contratStatut'])->toBeNull();
+            expect($demandes[$aSigner->id]['contratStatut'])->toBe('ENVOYE');
+        });
 });

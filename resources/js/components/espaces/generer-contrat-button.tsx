@@ -9,9 +9,9 @@ type Props = {
 };
 
 /**
- * Optional action offered wherever a demande has been paid: drafts its
- * contract from the active model and the clause library. Nothing requires
- * it, so it is only ever a proposal.
+ * Action offered wherever a demande has been paid: drafts its contract from
+ * the active model and the clause library. The contract is mandatory for
+ * every paid service (it is also drafted automatically on payment).
  */
 export default function GenererContratButton({
     demandeId,
@@ -38,7 +38,7 @@ export default function GenererContratButton({
                     : undefined
             }
             disabled={enCours}
-            title="Facultatif : génère le contrat de cette demande"
+            title="Le contrat est obligatoire : génère celui de cette demande"
             onClick={generer}
         >
             {enCours ? 'Création…' : 'Générer le contrat'}

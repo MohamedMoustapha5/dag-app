@@ -162,6 +162,25 @@ export default function DemandesShow({
                 )}
             </div>
 
+            {facture?.statut === 'PAYEE' && !demande.contrat?.estSigne && (
+                <div
+                    className="card"
+                    style={{
+                        padding: 18,
+                        marginBottom: 20,
+                        background: 'var(--dag-blue-light)',
+                        borderColor: 'transparent',
+                    }}
+                >
+                    <p style={{ fontSize: 13.5, lineHeight: 1.6 }}>
+                        <strong>Paiement reçu.</strong>{' '}
+                        {demande.contrat?.envoye
+                            ? 'Votre contrat est prêt : lisez-le et signez-le ci-dessous pour que la prestation démarre.'
+                            : 'Votre contrat est en cours de préparation. Vous le recevrez ici pour signature ; la prestation démarre une fois qu\'il est signé.'}
+                    </p>
+                </div>
+            )}
+
             {(demande.contrat || demande.facture) && (
                 <div className="grid-3">
                     {demande.contrat && (

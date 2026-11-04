@@ -7,6 +7,7 @@ use App\Models\Demande;
 use App\Models\Facture;
 use App\Models\MembreEquipe;
 use App\Models\Paiement;
+use App\Support\ContratRedaction;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -201,6 +202,14 @@ class PaiementService
 
             if ($etapeActuelle !== false && $etapeActuelle < $etapePayee) {
                 $demande->update(['statut' => 'PAYEE']);
+            }
+
+            // Every paid service needs a contract: draft it right away so none is
+            // forgotten. DAG reviews it, then sends it to the client for signature.
+            if (! $demande->contrat()->exists()) {
+                $contrat = ContratRedaction::brouillonPour($demande);
+
+                ActivityLog::record(null, 'contrat généré automatiquement', $contrat, "{$contrat->reference} pour la demande {$demande->reference}.");
             }
         }
     }
