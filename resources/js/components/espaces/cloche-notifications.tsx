@@ -1,5 +1,6 @@
 import { router, usePage, usePoll } from '@inertiajs/react';
 import { Bell, CheckCheck } from 'lucide-react';
+import type { CSSProperties } from 'react';
 import { useEffect, useRef, useState } from 'react';
 
 export type NotificationEspace = {
@@ -67,6 +68,7 @@ export default function ClocheNotifications({ urlLire, urlToutesLues }: Props) {
     }>().props;
     const [ouvert, setOuvert] = useState(false);
     const conteneur = useRef<HTMLDivElement>(null);
+    const [hauteurBarre, setHauteurBarre] = useState(70);
 
     usePoll(RAFRAICHISSEMENT_MS, { only: ['cloche'] });
 
@@ -115,7 +117,15 @@ export default function ClocheNotifications({ urlLire, urlToutesLues }: Props) {
                         : 'Notifications'
                 }
                 aria-expanded={ouvert}
-                onClick={() => setOuvert((valeur) => !valeur)}
+                onClick={() => {
+                    // On a phone the panel spans the screen, just under the top bar.
+                    setHauteurBarre(
+                        Math.round(
+                            (conteneur.current?.getBoundingClientRect().bottom ?? 62) + 8,
+                        ),
+                    );
+                    setOuvert((valeur) => !valeur);
+                }}
                 style={{ border: 'none', cursor: 'pointer' }}
             >
                 <Bell size={18} />
@@ -150,20 +160,10 @@ export default function ClocheNotifications({ urlLire, urlToutesLues }: Props) {
                 <div
                     role="dialog"
                     aria-label="Notifications"
-                    className="card"
-                    style={{
-                        position: 'absolute',
-                        top: 46,
-                        right: 0,
-                        width: 'min(380px, calc(100vw - 32px))',
-                        maxHeight: 460,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        zIndex: 60,
-                        padding: 0,
-                        overflow: 'hidden',
-                        boxShadow: '0 12px 32px rgba(15, 23, 42, 0.18)',
-                    }}
+                    className="card cloche-panel"
+                    style={
+                        { '--cloche-top': `${hauteurBarre}px` } as CSSProperties
+                    }
                 >
                     <div
                         style={{
@@ -202,7 +202,7 @@ export default function ClocheNotifications({ urlLire, urlToutesLues }: Props) {
                         )}
                     </div>
 
-                    <div style={{ overflowY: 'auto' }}>
+                    <div style={{ overflowY: 'auto', minHeight: 0 }}>
                         {cloche.recentes.length === 0 ? (
                             <p
                                 className="muted"

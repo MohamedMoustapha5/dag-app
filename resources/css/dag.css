@@ -3132,6 +3132,29 @@
     color: var(--dag-text-muted);
     flex: none;
 }
+.dag .cloche-panel {
+    position: absolute;
+    top: 46px;
+    right: 0;
+    width: 380px;
+    max-height: 460px;
+    display: flex;
+    flex-direction: column;
+    z-index: 60;
+    padding: 0;
+    overflow: hidden;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.18);
+}
+@media (max-width: 640px) {
+    .dag .cloche-panel {
+        position: fixed;
+        top: var(--cloche-top, 70px);
+        left: 12px;
+        right: 12px;
+        width: auto;
+        max-height: calc(100dvh - var(--cloche-top, 70px) - 12px);
+    }
+}
 .dag .espace-notif-dot {
     position: absolute;
     top: 8px;
