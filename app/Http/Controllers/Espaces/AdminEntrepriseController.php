@@ -13,6 +13,8 @@ use App\Models\EntreprisePartenaire;
 use App\Models\Inscription;
 use App\Models\MembreEquipe;
 use App\Models\OffreEmploi;
+use App\Notifications\CandidatureTransmiseNotification;
+use App\Support\Notifications\Notifier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -117,6 +119,17 @@ class AdminEntrepriseController extends Controller
 
             return $apprenant;
         });
+
+        $candidature = $offreEmploi->candidatures()->where('apprenant_id', $apprenant->id)->first();
+
+        if ($candidature !== null) {
+            $entreprise = $offreEmploi->entreprise;
+
+            Notifier::envoyer(
+                $entreprise->client_id !== null ? $entreprise->client->user : $entreprise,
+                new CandidatureTransmiseNotification($candidature),
+            );
+        }
 
         ActivityLog::record($membre, 'a déposé une candidature', $offreEmploi, "{$apprenant->user->name} sur « {$offreEmploi->titre} ».");
 

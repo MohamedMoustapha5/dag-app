@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers\Espaces;
 
+use App\Enums\Action;
+use App\Enums\Donnee;
 use App\Http\Controllers\Controller;
 use App\Models\Demande;
 use App\Models\Formule;
 use App\Models\Service;
+use App\Support\Notifications\Notifier;
 use App\Support\Paiements\PaiementService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -70,6 +73,15 @@ class ClientDemandeController extends Controller
             'description' => $data['description'],
             'statut' => 'EN_ETUDE',
         ]);
+
+        Notifier::alerterEquipe(
+            Donnee::DemandesClients,
+            Action::Modifier,
+            'demande.nouvelle',
+            "Nouvelle demande — {$demande->reference}",
+            "{$request->user('web')->client->nom} a demandé : {$demande->libelleObjet()}.",
+            route('espace-admin.demandes.show', $demande),
+        );
 
         return to_route('espace-client.demandes.show', $demande);
     }

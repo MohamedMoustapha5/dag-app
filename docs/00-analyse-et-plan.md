@@ -74,7 +74,7 @@ matrice de droits par type de donnée est implémentée depuis la phase 2
 
 | Terminées | Partielles | À venir | Total |
 | --------- | ---------- | ------- | ----- |
-| 7         | 2          | 2       | 11    |
+| 8         | 2          | 1       | 11    |
 
 Légende : `[x]` fait, `[ ]` reste à faire. Une phase n'est cochée que lorsque tous ses
 points le sont. Chaque phase livrée a son fichier de documentation dans `docs/`.
@@ -134,7 +134,8 @@ Documentation : [`07-phase-6-contrats.md`](07-phase-6-contrats.md)
 - [x] Rédaction automatique du contrat (modèle actif et clauses)
 - [x] Envoi au client et signature par photo importée
 - [x] PDF du contrat signé (administration et client)
-- [ ] Relance et contestation de signature
+- [x] Relance automatique des contrats non signés (voir la phase 10)
+- [ ] Contestation de signature
 
 ### Phase 7 — Module Formation — partielle
 
@@ -167,10 +168,15 @@ Documentation : [`10-phase-9-espace-administrateur.md`](10-phase-9-espace-admini
 - [x] Journal d'activité (réservé à la Directrice)
 - [x] Centre de documents : contrats signés, attestations et CV au même endroit
 
-### Phase 10 — Notifications — à venir
+### Phase 10 — Notifications — terminée
 
-- [ ] E-mails (devis, paiement, contrat, attestation)
-- [ ] Architecture prête pour WhatsApp et SMS
+Documentation : [`11-phase-10-notifications.md`](11-phase-10-notifications.md)
+
+- [x] E-mails (devis, paiement, contrat, inscription, attestation, candidature)
+- [x] Alertes de l'équipe (nouvelle demande, paiement reçu, contrat signé)
+- [x] Rappels de séance et relances de contrats non signés
+- [x] Architecture prête pour WhatsApp et SMS (canaux, fournisseur, journal)
+- [x] Suivi des envois dans Statistiques
 
 ### Phase 11 — Déploiement et recette finale — à venir
 

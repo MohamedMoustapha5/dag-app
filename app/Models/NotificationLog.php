@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['user_id', 'evenement', 'canal', 'titre', 'message', 'statut', 'tentatives', 'envoye_at'])]
+#[Fillable(['user_id', 'destinataire', 'evenement', 'canal', 'titre', 'message', 'statut', 'tentatives', 'envoye_at'])]
 class NotificationLog extends Model
 {
     use HasUuids;

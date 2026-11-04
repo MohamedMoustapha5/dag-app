@@ -8,6 +8,8 @@ use App\Enums\Donnee;
 use App\Http\Controllers\Controller;
 use App\Models\FormationSession;
 use App\Models\Inscription;
+use App\Notifications\InscriptionDecisionNotification;
+use App\Support\Notifications\Notifier;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -75,6 +77,7 @@ class AdminInscriptionController extends Controller
         abort_unless($inscription->statut === 'EN_ATTENTE_PAIEMENT', 409);
 
         $inscription->update(['statut' => 'VALIDEE']);
+        Notifier::envoyer($inscription->apprenant->user, new InscriptionDecisionNotification($inscription, true));
 
         return response()->json(['statut' => $inscription->statut]);
     }
@@ -86,6 +89,7 @@ class AdminInscriptionController extends Controller
         abort_unless($inscription->statut === 'EN_ATTENTE_PAIEMENT', 409);
 
         $inscription->update(['statut' => 'ABANDONNEE']);
+        Notifier::envoyer($inscription->apprenant->user, new InscriptionDecisionNotification($inscription, false));
 
         return response()->json(['statut' => $inscription->statut]);
     }

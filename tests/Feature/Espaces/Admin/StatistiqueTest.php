@@ -65,7 +65,7 @@ test('the directrice sees the activity journal, newest first, with author filter
         ->get(route('espace-admin.statistiques', ['onglet' => 'journal']))
         ->assertInertia(fn ($page) => $page
             ->where('onglet', 'journal')
-            ->where('onglets', ['indicateurs', 'journal', 'documents'])
+            ->where('onglets', ['indicateurs', 'journal', 'notifications', 'documents'])
             ->where('journal.total', 3)
             ->where('journal.entrees.0.action', 'paiement en ligne confirmé')
             ->where('journal.entrees.0.auteur', null));

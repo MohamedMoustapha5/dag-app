@@ -11,8 +11,10 @@ use App\Models\Clause;
 use App\Models\Contrat;
 use App\Models\Demande;
 use App\Models\ModeleContrat;
+use App\Notifications\ContratASignerNotification;
 use App\Support\ContratPdf;
 use App\Support\ContratRedaction;
+use App\Support\Notifications\Notifier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
@@ -217,6 +219,10 @@ class AdminContratController extends Controller
         ]);
 
         $contrat->update($data);
+
+        if ($data['statut'] === 'ENVOYE') {
+            Notifier::envoyer(Notifier::utilisateurDe($contrat), new ContratASignerNotification($contrat));
+        }
 
         ActivityLog::record($this->membre($request), 'a changé le statut du contrat', $contrat, "{$contrat->reference} : {$contrat->libelleStatut()}.");
 

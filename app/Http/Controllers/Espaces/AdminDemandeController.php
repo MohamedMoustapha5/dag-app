@@ -8,6 +8,8 @@ use App\Enums\Donnee;
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\Demande;
+use App\Notifications\DevisRecuNotification;
+use App\Support\Notifications\Notifier;
 use App\Support\Paiements\PaiementService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -162,6 +164,8 @@ class AdminDemandeController extends Controller
 
             $paiements->emettreFacturePourDevis($demande, (float) $data['montant']);
         });
+
+        Notifier::envoyer(Notifier::utilisateurDe($demande), new DevisRecuNotification($demande));
 
         ActivityLog::record($this->membre($request), 'a envoyé un devis', $demande, "{$demande->reference} : ".number_format((float) $data['montant'], 0, ',', ' ').' FCFA.');
 

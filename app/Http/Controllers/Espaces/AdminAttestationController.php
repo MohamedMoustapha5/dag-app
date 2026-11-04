@@ -10,7 +10,9 @@ use App\Models\ActivityLog;
 use App\Models\Attestation;
 use App\Models\Inscription;
 use App\Models\Seance;
+use App\Notifications\AttestationDisponibleNotification;
 use App\Support\DocumentAssets;
+use App\Support\Notifications\Notifier;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
@@ -85,12 +87,14 @@ class AdminAttestationController extends Controller
             409
         );
 
-        Attestation::create([
+        $attestation = Attestation::create([
             'apprenant_id' => $inscription->apprenant_id,
             'formation_id' => $inscription->formation_id,
             'date_emission' => now()->toDateString(),
             'valide_par_id' => $this->membre($request)->id,
         ]);
+
+        Notifier::envoyer($inscription->apprenant->user, new AttestationDisponibleNotification($attestation));
 
         ActivityLog::record($this->membre($request), 'a validé une attestation', null, "{$inscription->apprenant->user->name} — {$inscription->formation->nom}.");
 

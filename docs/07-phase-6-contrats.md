@@ -3,7 +3,7 @@
 Statut : **partielle**. Correspond à la ligne « Contrats et signature par photo
 importée » du plan (section 6 de `docs/00-analyse-et-plan.md`). La gestion des
 contrats par l'administration, la signature par photo importée côté client et le PDF
-du contrat signé sont en place ; restent la relance et la contestation de signature.
+du contrat signé sont en place ; reste la contestation de signature.
 
 ## 1. Règle : le contrat est obligatoire
 
@@ -94,8 +94,10 @@ propres contrats, ou ceux de l'entreprise partenaire liée à son compte.
 
 ## 7. Reste à faire
 
-- Relance automatique d'un contrat envoyé et non signé, et gestion de la contestation de
-  signature (les champs existent en base).
+- Gestion de la contestation de signature (les champs existent en base).
+
+La relance automatique d'un contrat envoyé et non signé est livrée avec les notifications
+(`docs/11-phase-10-notifications.md`).
 
 ## 8. Tests
 

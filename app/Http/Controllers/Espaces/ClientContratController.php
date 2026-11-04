@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers\Espaces;
 
+use App\Enums\Action;
+use App\Enums\Donnee;
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\Contrat;
+use App\Notifications\ContratSigneNotification;
 use App\Support\ContratPdf;
+use App\Support\Notifications\Notifier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
@@ -92,6 +96,16 @@ class ClientContratController extends Controller
             'date_signature' => now(),
             'statut' => 'SIGNE',
         ]);
+
+        Notifier::envoyer($request->user('web'), new ContratSigneNotification($contrat));
+        Notifier::alerterEquipe(
+            Donnee::ContratsClauses,
+            Action::Modifier,
+            'contrat.signe',
+            "Contrat signé — {$contrat->reference}",
+            "{$data['nom']} a signé le contrat « {$contrat->libelleObjet()} ». La prestation peut démarrer.",
+            route('espace-admin.contrats.show', $contrat),
+        );
 
         ActivityLog::record(null, 'contrat signé par le client', $contrat, "{$contrat->reference} signé par {$data['nom']}.");
 

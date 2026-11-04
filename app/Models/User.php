@@ -48,6 +48,20 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     use HasFactory, HasTeams, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
 
     /**
+     * Phone number the short-message channels (SMS, WhatsApp) write to: the one
+     * on the client or apprenant profile, null when none was entered.
+     */
+    public function routeNotificationForSms(): ?string
+    {
+        return $this->client()->value('telephone') ?? $this->apprenant()->value('telephone');
+    }
+
+    public function routeNotificationForWhatsapp(): ?string
+    {
+        return $this->routeNotificationForSms();
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>

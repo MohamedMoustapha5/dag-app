@@ -19,6 +19,7 @@ use App\Models\Facture;
 use App\Models\Formation;
 use App\Models\FormationSession;
 use App\Models\MembreEquipe;
+use App\Models\NotificationLog;
 use App\Models\OffreEmploi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -52,6 +53,7 @@ class AdminStatistiqueController extends Controller
 
         if ($peutJournal) {
             $onglets[] = 'journal';
+            $onglets[] = 'notifications';
         }
 
         if ($typesDocuments !== []) {
@@ -87,6 +89,7 @@ class AdminStatistiqueController extends Controller
                 'facturesImpayeesCount' => Facture::query()->whereIn('statut', ['EN_ATTENTE', 'PARTIELLEMENT_PAYEE'])->count(),
             ] : null,
             'journal' => $onglet === 'journal' ? $this->journal($request) : null,
+            'notifications' => $onglet === 'notifications' ? $this->notifications($request) : null,
             'documents' => $onglet === 'documents' ? $this->documents($request, $typesDocuments) : null,
         ]);
     }
@@ -132,6 +135,53 @@ class AdminStatistiqueController extends Controller
             'membres' => MembreEquipe::query()->orderBy('name')->get(['id', 'name'])
                 ->map(fn (MembreEquipe $membre) => ['id' => $membre->id, 'nom' => $membre->name]),
             'filtres' => ['q' => $recherche, 'auteur' => $auteur],
+        ];
+    }
+
+    /**
+     * Every notification DAG sent (or failed to send), whatever the channel.
+     * Reserved to the Directrice, like the journal.
+     *
+     * @return array<string, mixed>
+     */
+    private function notifications(Request $request): array
+    {
+        $recherche = trim((string) $request->query('q', ''));
+        $statut = (string) $request->query('statut', '');
+
+        $entrees = NotificationLog::query()
+            ->when($recherche !== '', fn ($query) => $query->where(
+                fn ($sous) => $sous->where('titre', 'like', "%{$recherche}%")
+                    ->orWhere('destinataire', 'like', "%{$recherche}%")
+                    ->orWhere('evenement', 'like', "%{$recherche}%")
+            ))
+            ->when(in_array($statut, ['ENVOYE', 'ECHEC'], true), fn ($query) => $query->where('statut', $statut))
+            ->latest()
+            ->orderByDesc('id')
+            ->paginate(self::PAR_PAGE_JOURNAL)
+            ->withQueryString();
+
+        return [
+            'entrees' => $entrees->getCollection()->map(fn (NotificationLog $entree) => [
+                'id' => $entree->id,
+                'destinataire' => $entree->destinataire,
+                'canal' => $entree->canal,
+                'evenement' => $entree->evenement,
+                'titre' => $entree->titre,
+                'statut' => $entree->statut,
+                'date' => $entree->created_at?->format('d/m/Y H:i'),
+            ])->values(),
+            'page' => $entrees->currentPage(),
+            'dernierePage' => $entrees->lastPage(),
+            'total' => $entrees->total(),
+            'precedente' => $entrees->previousPageUrl(),
+            'suivante' => $entrees->nextPageUrl(),
+            'canauxActifs' => [
+                'email' => (bool) config('notifications.canaux.email'),
+                'sms' => (bool) config('notifications.canaux.sms'),
+                'whatsapp' => (bool) config('notifications.canaux.whatsapp'),
+            ],
+            'filtres' => ['q' => $recherche, 'statut' => $statut],
         ];
     }
 

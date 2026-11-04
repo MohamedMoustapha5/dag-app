@@ -11,6 +11,9 @@ import {
 import DocumentsAdmin, {
     type DocumentsData,
 } from '@/components/espaces/documents-admin';
+import NotificationsEnvoyees, {
+    type NotificationsData,
+} from '@/components/espaces/notifications-envoyees';
 import JournalActivite, {
     type JournalData,
 } from '@/components/espaces/journal-activite';
@@ -20,6 +23,7 @@ import { statistiques } from '@/routes/espace-admin';
 const ONGLET_LABEL: Record<string, string> = {
     indicateurs: 'Indicateurs',
     journal: "Journal d'activité",
+    notifications: 'Notifications',
     documents: 'Documents',
 };
 
@@ -42,6 +46,7 @@ type Props = {
     onglet: string;
     onglets: string[];
     journal: JournalData | null;
+    notifications: NotificationsData | null;
     documents: DocumentsData | null;
 };
 
@@ -52,6 +57,7 @@ export default function AdminStatistiques({
     onglet,
     onglets,
     journal,
+    notifications,
     documents,
 }: Props) {
     const formatMontant = (montant: number) =>
@@ -101,6 +107,10 @@ export default function AdminStatistiques({
                         </Link>
                     ))}
                 </nav>
+            )}
+
+            {onglet === 'notifications' && notifications && (
+                <NotificationsEnvoyees notifications={notifications} />
             )}
 
             {onglet === 'journal' && journal && (

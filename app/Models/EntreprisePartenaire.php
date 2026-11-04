@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Notifications\Notifiable;
 
 /**
  * A partner company record for recruitment/placement. Most are created
@@ -21,7 +22,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class EntreprisePartenaire extends Model
 {
     /** @use HasFactory<EntreprisePartenaireFactory> */
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, Notifiable;
 
     protected $table = 'entreprises_partenaires';
 

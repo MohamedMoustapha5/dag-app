@@ -2,12 +2,16 @@
 
 namespace App\Support\Paiements;
 
+use App\Enums\Action;
+use App\Enums\Donnee;
 use App\Models\ActivityLog;
 use App\Models\Demande;
 use App\Models\Facture;
 use App\Models\MembreEquipe;
 use App\Models\Paiement;
+use App\Notifications\PaiementConfirmeNotification;
 use App\Support\ContratRedaction;
+use App\Support\Notifications\Notifier;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -138,6 +142,7 @@ class PaiementService
             ]);
 
             $this->appliquerAFacture($verrouille->facture, (float) $verrouille->montant, $verrouille->moyen);
+            $this->notifierPaiement($verrouille->facture, (float) $verrouille->montant);
 
             ActivityLog::record(
                 $par,
@@ -177,11 +182,31 @@ class PaiementService
             ]);
 
             $this->appliquerAFacture($facture, $montant, $moyen);
+            $this->notifierPaiement($facture, $montant);
 
             ActivityLog::record($par, 'a enregistré un paiement', $facture, $facture->reference.' : '.number_format($montant, 0, ',', ' ').' FCFA ('.$moyen.').');
 
             return $paiement;
         });
+    }
+
+    /**
+     * Tells the payer their payment was received, and the team that money came in.
+     */
+    private function notifierPaiement(Facture $facture, float $montant): void
+    {
+        $facture->refresh();
+
+        Notifier::envoyer(Notifier::utilisateurDe($facture), new PaiementConfirmeNotification($facture, $montant));
+
+        Notifier::alerterEquipe(
+            Donnee::FacturesPaiements,
+            Action::Voir,
+            'paiement.recu',
+            "Paiement reçu — {$facture->reference}",
+            number_format($montant, 0, ',', ' ')." FCFA reçus pour {$facture->libelleObjet()}.",
+            route('espace-admin.factures.show', $facture),
+        );
     }
 
     private function appliquerAFacture(Facture $facture, float $montant, string $moyen): void
