@@ -180,8 +180,12 @@ Documentation : [`11-phase-10-notifications.md`](11-phase-10-notifications.md)
 
 ### Phase 11 — Déploiement et recette finale — à venir
 
+Documentation : [`12-services-externes-a-brancher.md`](12-services-externes-a-brancher.md) (comptes, clés et validations à obtenir)
+
 - [ ] Configuration de production
+- [ ] E-mail professionnel (SMTP, SPF/DKIM/DMARC) et adresses réelles de l'équipe
 - [ ] Prestataire de paiement réel
+- [ ] SMS et WhatsApp réels (comptes, expéditeur, modèles de message)
 - [ ] Recette finale
 
 > La phase « Demandes partenaires Nova-Tech » a été annulée : elle ne figure plus au plan.

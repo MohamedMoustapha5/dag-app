@@ -58,6 +58,9 @@ Un membre dont le rôle n'a pas le droit correspondant ne reçoit rien.
 
 ### Brancher un fournisseur SMS ou WhatsApp
 
+Ce qu'il faut obtenir (comptes, validations, modèles de message, budget) est détaillé dans
+`docs/12-services-externes-a-brancher.md`. Côté code :
+
 1. Créer une classe implémentant `PasserelleMessage` (appel à l'API du fournisseur).
 2. La déclarer dans `config/notifications.php`, clé `messagerie.fournisseurs`, puis la choisir
    avec `NOTIFICATIONS_SMS_FOURNISSEUR` ou `NOTIFICATIONS_WHATSAPP_FOURNISSEUR`.
