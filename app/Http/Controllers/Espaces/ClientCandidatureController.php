@@ -47,6 +47,9 @@ class ClientCandidatureController extends Controller
     {
         Gate::authorize('update', $candidature);
 
+        // A placement is recorded by DAG: the entreprise can no longer reopen it.
+        abort_if($candidature->statut === 'PLACEE', 409, 'Cette candidature a déjà abouti à un placement.');
+
         $data = $request->validate([
             'statut' => ['required', Rule::in(['RETENUE', 'REFUSEE'])],
         ]);
@@ -76,11 +79,12 @@ class ClientCandidatureController extends Controller
                 'offreTitre' => $candidature->offre->titre,
                 'deposeeParDag' => $candidature->deposee_par_id !== null,
             ],
+            // Contact details follow the same sharing consent as the CV.
             'apprenant' => [
                 'nom' => $apprenant->user->name,
-                'email' => $apprenant->user->email,
-                'telephone' => $apprenant->telephone,
-                'ville' => $apprenant->ville,
+                'email' => $apprenant->consentement_cv ? $apprenant->user->email : null,
+                'telephone' => $apprenant->consentement_cv ? $apprenant->telephone : null,
+                'ville' => $apprenant->consentement_cv ? $apprenant->ville : null,
             ],
             'formations' => $apprenant->inscriptions->map(fn ($inscription) => [
                 'nom' => $inscription->formation->nom,

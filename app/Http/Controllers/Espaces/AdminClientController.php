@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\Apprenant;
 use App\Models\Client;
+use App\Support\SuppressionCompte;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -76,9 +77,14 @@ class AdminClientController extends Controller
         abort_unless($membre->peut(Donnee::DemandesClients, Action::Supprimer), 403);
 
         $nom = $client->nom;
-        $client->user->delete();
+        $anonymise = SuppressionCompte::fermer($client->user);
 
-        ActivityLog::record($membre, 'a supprimé le compte client', null, "Compte de {$nom}.");
+        ActivityLog::record(
+            $membre,
+            $anonymise ? 'a anonymisé le compte client' : 'a supprimé le compte client',
+            null,
+            $anonymise ? "Compte de {$nom} : données personnelles effacées, factures et contrats conservés." : "Compte de {$nom}.",
+        );
 
         return back();
     }

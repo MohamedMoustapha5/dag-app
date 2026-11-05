@@ -33,9 +33,41 @@ class Contrat extends Model
         'TERMINE' => 'Terminé', 'REFUSE' => 'Refusé', 'RESILIE' => 'Résilié',
     ];
 
+    /**
+     * The statuses DAG staff may move a contrat to, by current status.
+     * "Signé" is never set by hand: only the client's own signature
+     * (ClientContratController::signer) records it, with its evidence. Once
+     * signed, a contrat can no longer go back to draft or to signature, so
+     * that evidence can't be overwritten by a second signature.
+     *
+     * @var array<string, list<string>>
+     */
+    private const TRANSITIONS = [
+        'BROUILLON' => ['ENVOYE'],
+        'ENVOYE' => ['BROUILLON', 'REFUSE'],
+        'SIGNE' => ['ACTIF', 'RESILIE'],
+        'ACTIF' => ['TERMINE', 'RESILIE'],
+        'REFUSE' => ['BROUILLON'],
+        'TERMINE' => [],
+        'RESILIE' => [],
+    ];
+
     public function libelleStatut(): string
     {
         return self::STATUT_LABELS[$this->statut];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function statutsAccessibles(): array
+    {
+        return self::TRANSITIONS[$this->statut] ?? [];
+    }
+
+    public function peutPasserA(string $statut): bool
+    {
+        return in_array($statut, $this->statutsAccessibles(), true);
     }
 
     protected function casts(): array

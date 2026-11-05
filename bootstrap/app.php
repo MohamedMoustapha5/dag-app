@@ -16,7 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
+        $middleware->encryptCookies(except: ['appearance', 'sidebar_state', 'dag_lang']);
 
         $middleware->redirectGuestsTo(
             fn (Request $request) => $request->is('espace-admin*')
@@ -25,6 +25,10 @@ return Application::configure(basePath: dirname(__DIR__))
         );
 
         $middleware->validateCsrfTokens(except: ['webhooks/*']);
+
+        // Only APP_URL's host (and its subdomains) is accepted, so a forged Host
+        // header can't make password-reset links point to another domain.
+        $middleware->trustHosts();
 
         $middleware->web(append: [
             HandleAppearance::class,

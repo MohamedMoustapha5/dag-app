@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -81,14 +82,21 @@ class ApprenantInscriptionController extends Controller
             'Les inscriptions à cette session ne sont pas ouvertes.'
         );
 
-        abort_if($formationSession->placesRestantes() <= 0, 409, 'Cette session est complète.');
+        // The session row is locked while counting the seats, so two apprenants
+        // enrolling at the same moment can't both take the last one.
+        $inscription = DB::transaction(function () use ($apprenant, $formationSession): Inscription {
+            $verrouillee = FormationSession::whereKey($formationSession->id)->lockForUpdate()->firstOrFail();
 
-        $inscription = Inscription::create([
-            'apprenant_id' => $apprenant->id,
-            'formation_id' => $formationSession->formation_id,
-            'formation_session_id' => $formationSession->id,
-            'statut' => 'EN_ATTENTE_PAIEMENT',
-        ]);
+            abort_if($verrouillee->placesRestantes() <= 0, 409, 'Cette session est complète.');
+            abort_if($this->dejaInscrit($apprenant, $verrouillee), 409, 'Vous êtes déjà inscrit à cette session.');
+
+            return Inscription::create([
+                'apprenant_id' => $apprenant->id,
+                'formation_id' => $verrouillee->formation_id,
+                'formation_session_id' => $verrouillee->id,
+                'statut' => 'EN_ATTENTE_PAIEMENT',
+            ]);
+        });
 
         Notifier::alerterEquipe(
             Donnee::Formations,

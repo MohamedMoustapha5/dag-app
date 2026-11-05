@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection as BaseCollection;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -117,7 +118,13 @@ class ApprenantDossierController extends Controller
         ]);
 
         if ($request->hasFile('cv')) {
+            $ancienCv = $apprenant->cv_path;
             $data['cv_path'] = $request->file('cv')->store('apprenants-cv');
+
+            // The replaced CV is personal data no longer used anywhere.
+            if ($ancienCv !== null) {
+                Storage::disk('local')->delete($ancienCv);
+            }
         }
 
         unset($data['cv']);

@@ -10,6 +10,7 @@ type Props = {
         objet: string;
         type: string;
         statut: string;
+        statutsAccessibles: string[];
         montant: string | null;
         contenu: string | null;
         codeVerification: string;
@@ -153,7 +154,7 @@ export default function AdminContratShow({
                 </div>
             )}
 
-            {peutModifier && (
+            {peutModifier && contrat.statutsAccessibles.length > 0 && (
                 <form
                     onSubmit={submit}
                     className="card"
@@ -176,14 +177,25 @@ export default function AdminContratShow({
                                 form.setData('statut', event.target.value)
                             }
                         >
-                            <option value="BROUILLON">Brouillon</option>
-                            <option value="ENVOYE">Envoyé</option>
-                            <option value="SIGNE">Signé</option>
-                            <option value="ACTIF">Actif</option>
-                            <option value="TERMINE">Terminé</option>
-                            <option value="REFUSE">Refusé</option>
-                            <option value="RESILIE">Résilié</option>
+                            {[contrat.statut, ...contrat.statutsAccessibles].map(
+                                (statut) => (
+                                    <option key={statut} value={statut}>
+                                        {STATUT_LABEL[statut] ?? statut}
+                                    </option>
+                                ),
+                            )}
                         </select>
+                        {form.errors.statut && (
+                            <p
+                                style={{
+                                    color: 'var(--dag-red)',
+                                    fontSize: 12,
+                                    marginTop: 4,
+                                }}
+                            >
+                                {form.errors.statut}
+                            </p>
+                        )}
                     </div>
                     <button
                         type="submit"

@@ -15,6 +15,7 @@ use App\Http\Controllers\Espaces\AdminFactureController;
 use App\Http\Controllers\Espaces\AdminFormationController;
 use App\Http\Controllers\Espaces\AdminGrilleTarifaireController;
 use App\Http\Controllers\Espaces\AdminInscriptionController;
+use App\Http\Controllers\Espaces\AdminMotDePasseController;
 use App\Http\Controllers\Espaces\AdminSeanceController;
 use App\Http\Controllers\Espaces\AdminServiceController;
 use App\Http\Controllers\Espaces\AdminStatistiqueController;
@@ -63,7 +64,7 @@ use Illuminate\Support\Facades\Route;
 | EnsurePartenaireValide on top of the regular CLIENT type check.
 */
 
-Route::middleware(['auth', 'verified', EnsureUserType::class.':CLIENT'])
+Route::middleware(['auth', 'auth.session', 'verified', EnsureUserType::class.':CLIENT'])
     ->prefix('espace-client')
     ->group(function () {
         Route::get('/', ClientDashboardController::class)->name('espace-client.dashboard');
@@ -98,7 +99,7 @@ Route::middleware(['auth', 'verified', EnsureUserType::class.':CLIENT'])
         });
     });
 
-Route::middleware(['auth', 'verified', EnsureUserType::class.':APPRENANT'])
+Route::middleware(['auth', 'auth.session', 'verified', EnsureUserType::class.':APPRENANT'])
     ->prefix('espace-apprenant')
     ->group(function () {
         Route::get('/', ApprenantDashboardController::class)->name('espace-apprenant.dashboard');
@@ -128,10 +129,12 @@ Route::prefix('espace-admin')->group(function () {
     Route::post('deconnexion', [AdminAuthController::class, 'destroy'])->middleware('auth:admin')->name('admin.deconnexion');
 });
 
-Route::middleware(['auth:admin', EnsureMembreActif::class])
+Route::middleware(['auth:admin', 'auth.session', EnsureMembreActif::class])
     ->prefix('espace-admin')
     ->group(function () {
         Route::get('/', AdminDashboardController::class)->name('espace-admin.dashboard');
+        Route::get('mot-de-passe', [AdminMotDePasseController::class, 'edit'])->name('espace-admin.mot-de-passe');
+        Route::put('mot-de-passe', [AdminMotDePasseController::class, 'update'])->middleware('throttle:6,1')->name('espace-admin.mot-de-passe.update');
         Route::get('services', [AdminServiceController::class, 'index'])->name('espace-admin.services.index');
         Route::post('services', [AdminServiceController::class, 'store'])->name('espace-admin.services.store');
         Route::patch('services/{service}', [AdminServiceController::class, 'update'])->name('espace-admin.services.update');

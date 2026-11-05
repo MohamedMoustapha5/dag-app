@@ -13,6 +13,7 @@ use App\Models\Candidature;
 use App\Models\CandidatureSpontanee;
 use App\Models\Inscription;
 use App\Models\OffreEmploi;
+use App\Support\SuppressionCompte;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -151,20 +152,29 @@ class AdminApprenantController extends Controller
     }
 
     /**
-     * Supprime le compte d'un apprenant et, en cascade, son dossier, ses
-     * inscriptions, candidatures et attestations. Ses factures et contrats
-     * sont conservés mais ne sont plus rattachés à un compte.
+     * Ferme le compte d'un apprenant. S'il a des factures, contrats ou
+     * attestations, le compte est anonymisé et ces pièces restent rattachées
+     * à son dossier ; sinon il est supprimé avec son dossier (voir
+     * SuppressionCompte).
      */
     public function destroy(Request $request, Apprenant $apprenant): RedirectResponse
     {
         abort_unless($this->membre($request)->peut(Donnee::DossiersApprenants, Action::Supprimer), 403);
 
         $nom = $apprenant->user->name;
-        $apprenant->user->delete();
+        $anonymise = SuppressionCompte::fermer($apprenant->user);
 
-        ActivityLog::record($this->membre($request), 'a supprimé le compte apprenant', null, "Compte de {$nom}.");
+        ActivityLog::record(
+            $this->membre($request),
+            $anonymise ? 'a anonymisé le compte apprenant' : 'a supprimé le compte apprenant',
+            null,
+            $anonymise ? "Compte de {$nom} : données personnelles effacées, factures, contrats et attestations conservés." : "Compte de {$nom}.",
+        );
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => 'Compte apprenant supprimé.']);
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => $anonymise ? 'Compte apprenant anonymisé : ses pièces comptables et attestations sont conservées.' : 'Compte apprenant supprimé.',
+        ]);
 
         return back();
     }

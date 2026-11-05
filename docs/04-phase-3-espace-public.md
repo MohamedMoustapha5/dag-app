@@ -55,9 +55,8 @@ graphique DAG d'octobre 2026).
 Les composants partagés (répétés sur chaque page publique) vivent dans
 `resources/js/components/public/` :
 
-- `topbar.tsx` — logo, navigation, sélecteur de langue (cosmétique, FR/EN non
-  branché — aucune donnée du cahier des charges ne requiert l'i18n à ce
-  stade), actions (connexion/inscription ou lien vers l'espace si connecté),
+- `topbar.tsx` — logo, navigation, sélecteur de langue (FR/EN fonctionnel, voir la
+  section 5 ter), actions (connexion/inscription ou lien vers l'espace si connecté),
   menu mobile (hamburger + panneau) piloté par un état React plutôt que par
   manipulation DOM (contrairement au `script.js` original).
 - `site-footer.tsx` — navigation, coordonnées, mentions légales.
@@ -251,9 +250,36 @@ pages protégées de l'espace client ou apprenant.
 
 Tests : `tests/Feature/Espaces/LoginWallTest.php`.
 
+## 5 ter. Langue française et anglaise
+
+Le sélecteur FR / EN fonctionne sur le site public, la connexion, les espaces client,
+apprenant et administrateur.
+
+- [x] Choix mémorisé dans un cookie (`dag_lang`, un an) : il survit au rechargement et à la
+  navigation, et l'attribut `lang` de la page suit la langue
+- [x] Traduction de tout le texte de l'interface, des champs (indications, infobulles), du
+  titre de l'onglet et des boîtes de confirmation, y compris ce que React affiche après coup
+  (navigation, fenêtres, données actualisées, notifications de la cloche, messages de
+  confirmation du serveur)
+- [x] Retour au français instantané, sans recharger
+- [x] Textes variables couverts par des motifs (« Il y a 5 min », « Paiement reçu — FAC-1 »,
+  « 50 000 / mois », « Novembre 2026 », dates avec mois en toutes lettres)
+- [x] Contenu du catalogue fourni avec l'application (services, formations, formules, offres,
+  grille tarifaire) traduit
+- [ ] Contenu saisi ensuite par l'équipe (nouveau service, nouvelle formation) : reste dans la
+  langue de saisie tant qu'on n'ajoute pas sa traduction
+- [ ] E-mails et PDF (contrats, factures, attestations) : restent en français
+
+Fonctionnement : `resources/js/lib/i18n/`. Les textes restent écrits en français dans les
+pages ; un traducteur remplace le texte par sa version anglaise (dictionnaire par zone dans
+`en/`, motifs pour les parties variables) tant que l'anglais est actif, et remet le français
+au retour. Pour traduire un nouveau texte, l'ajouter au dictionnaire de la zone concernée.
+Tests : `resources/js/lib/i18n/traduire.test.ts` (`npx vitest run`).
+
 ## 6. Hors périmètre (volontairement)
 
-- i18n réelle (le sélecteur FR/EN est un gabarit visuel, non fonctionnel).
+- Contenu rédigé par l'équipe après coup (nouveaux services, formations, offres) : il
+  s'affiche tel qu'il a été saisi en anglais tant qu'aucune traduction n'est ajoutée.
 - Candidature à une offre de stage/emploi (compte Apprenant authentifié →
   phase 7).
 - Traitement des `ContactMessage`/`AuditRequest` côté équipe DAG → phase 9

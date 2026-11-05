@@ -60,14 +60,24 @@ class AdminInscriptionController extends Controller
 
             foreach ($formationSession->inscriptions as $inscription) {
                 fputcsv($out, [
-                    $inscription->apprenant->user->name,
-                    $inscription->apprenant->user->email,
+                    $this->celluleSure($inscription->apprenant->user->name),
+                    $this->celluleSure($inscription->apprenant->user->email),
                     $inscription->statut,
                 ]);
             }
 
             fclose($out);
         }, $nomFichier, ['Content-Type' => 'text/csv']);
+    }
+
+    /**
+     * Names are typed by the apprenants themselves: a value starting with
+     * =, +, - or @ would run as a formula when the export is opened in a
+     * spreadsheet, so it is prefixed with a quote to stay plain text.
+     */
+    private function celluleSure(string $valeur): string
+    {
+        return preg_match('/^[=+\-@\t\r]/', $valeur) === 1 ? "'".$valeur : $valeur;
     }
 
     public function valider(Request $request, Inscription $inscription): JsonResponse

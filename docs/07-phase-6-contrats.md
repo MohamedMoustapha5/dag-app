@@ -75,7 +75,9 @@ Généré à la demande par `App\Support\ContratPdf` (vue `resources/views/pdf/c
   (cachet et signature de la directrice).
 - Pied de page répété : référence, code de vérification, numérotation « Page X sur Y ».
 
-Les images de marque (logo, cachet) sont dans `public/images/brand/`.
+Le logo est dans `public/images/brand/`. Le cachet et la signature de la directrice
+sont dans `resources/brand/`, hors du dossier public : servis publiquement, ils
+permettraient à n'importe qui de fabriquer de faux documents.
 
 ## 6. Signature par le client
 

@@ -19,6 +19,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -189,6 +190,7 @@ class AdminContratController extends Controller
                 'objet' => $contrat->libelleObjet(),
                 'type' => $contrat->type,
                 'statut' => $contrat->statut,
+                'statutsAccessibles' => $contrat->statutsAccessibles(),
                 'montant' => $contrat->montant,
                 'contenu' => $contrat->contenu,
                 'codeVerification' => $contrat->code_verification,
@@ -215,8 +217,16 @@ class AdminContratController extends Controller
         abort_unless($membre->peut(Donnee::ContratsClauses, Action::Modifier), 403);
 
         $data = $request->validate([
-            'statut' => ['required', Rule::in(['BROUILLON', 'ENVOYE', 'SIGNE', 'ACTIF', 'TERMINE', 'REFUSE', 'RESILIE'])],
+            'statut' => ['required', Rule::in(array_keys(Contrat::STATUT_LABELS))],
         ]);
+
+        if (! $contrat->peutPasserA($data['statut'])) {
+            throw ValidationException::withMessages([
+                'statut' => $data['statut'] === 'SIGNE'
+                    ? 'Seule la signature du client fait passer un contrat à « Signé ».'
+                    : "Un contrat « {$contrat->libelleStatut()} » ne peut pas passer à « ".Contrat::STATUT_LABELS[$data['statut']].' ».',
+            ]);
+        }
 
         $contrat->update($data);
 

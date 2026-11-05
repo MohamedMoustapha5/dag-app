@@ -1,5 +1,10 @@
 import { Check, ChevronDown } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import {
+    changerLangue,
+    ecouterLangue,
+    langueActive,
+} from '@/lib/i18n/langue';
 
 const LANGUAGES = [
     { code: 'FR', label: 'Français', flag: '🇫🇷' },
@@ -8,8 +13,11 @@ const LANGUAGES = [
 
 export default function LanguageSwitcher() {
     const [isOpen, setIsOpen] = useState(false);
-    const [active, setActive] =
-        useState<(typeof LANGUAGES)[number]['code']>('FR');
+    const active = useSyncExternalStore(
+        ecouterLangue,
+        () => langueActive().toUpperCase() as (typeof LANGUAGES)[number]['code'],
+        () => 'FR' as const,
+    );
     const rootRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -42,7 +50,11 @@ export default function LanguageSwitcher() {
         LANGUAGES.find((language) => language.code === active) ?? LANGUAGES[0];
 
     return (
-        <div ref={rootRef} className={`lang-dropdown${isOpen ? ' open' : ''}`}>
+        <div
+            ref={rootRef}
+            translate="no"
+            className={`lang-dropdown${isOpen ? ' open' : ''}`}
+        >
             <button
                 type="button"
                 className="lang-dropdown-trigger"
@@ -70,7 +82,9 @@ export default function LanguageSwitcher() {
                             aria-selected={language.code === active}
                             className={`lang-dropdown-option${language.code === active ? ' active' : ''}`}
                             onClick={() => {
-                                setActive(language.code);
+                                changerLangue(
+                                    language.code === 'EN' ? 'en' : 'fr',
+                                );
                                 setIsOpen(false);
                             }}
                         >

@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 
 /**
  * Notification sent by the payment provider when a payment is settled.
- * The body is JSON {"reference": "...", "statut": "success"|"failed"}
+ * The body is JSON {"reference": "...", "statut": "success"|"failed", "montant": 12345}
  * signed with HMAC SHA-256 in the X-Signature header; each provider's
  * own payload format is mapped to this one by its gateway adapter.
  */
@@ -28,11 +28,20 @@ class PaiementWebhookController extends Controller
         $data = $request->validate([
             'reference' => ['required', 'string'],
             'statut' => ['required', 'in:success,failed'],
+            'montant' => ['required', 'numeric'],
         ]);
 
         $paiement = Paiement::where('reference_transaction', $data['reference'])->first();
 
         abort_if($paiement === null, 404, 'Paiement inconnu.');
+
+        // A signed notification for another amount than the one requested is
+        // never credited: the provider-side amount is the money actually paid.
+        abort_if(
+            $data['statut'] === 'success' && round((float) $data['montant'], 2) !== round((float) $paiement->montant, 2),
+            422,
+            'Montant différent du paiement attendu.'
+        );
 
         if ($data['statut'] === 'success') {
             $paiements->confirmer($paiement);

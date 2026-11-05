@@ -52,7 +52,7 @@ class FortifyServiceProvider extends ServiceProvider
         $this->configureAuthentication();
         $this->configureViews();
         $this->configureRateLimiting();
-        $this->configurePasswordResetThrottling();
+        $this->configureUnthrottledFortifyRoutes();
     }
 
     /**
@@ -65,9 +65,9 @@ class FortifyServiceProvider extends ServiceProvider
     }
 
     /**
-     * Reject accounts that are not allowed to log in: a deactivated membre
-     * de l'équipe (section 6.9), or an entreprise partenaire whose account
-     * DAG has not yet validated or has deactivated (section 6.6).
+     * Reject accounts that are not allowed to log in. Team members sign in
+     * on their own guard (AdminAuthController); here, a client account DAG
+     * has deactivated is refused.
      */
     private function configureAuthentication(): void
     {
@@ -75,6 +75,10 @@ class FortifyServiceProvider extends ServiceProvider
             $user = User::where('email', $request->email)->first();
 
             if (! $user || ! Hash::check($request->password, $user->password)) {
+                return null;
+            }
+
+            if ($user->client?->statut === 'INACTIF') {
                 return null;
             }
 
@@ -126,10 +130,19 @@ class FortifyServiceProvider extends ServiceProvider
             return Limit::perMinute(5)->by($request->session()->get('login.id'));
         });
 
+        // Per email+IP against guessing one account's password, and per IP alone
+        // so cycling through many emails (credential stuffing) is slowed too.
         RateLimiter::for('login', function (Request $request) {
             $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())).'|'.$request->ip());
 
-            return Limit::perMinute(5)->by($throttleKey);
+            return [
+                Limit::perMinute(5)->by($throttleKey),
+                Limit::perMinute(30)->by('ip:'.$request->ip()),
+            ];
+        });
+
+        RateLimiter::for('register', function (Request $request) {
+            return Limit::perHour(10)->by($request->ip());
         });
 
         RateLimiter::for('passkeys', function (Request $request) {
@@ -153,17 +166,20 @@ class FortifyServiceProvider extends ServiceProvider
 
     /**
      * Fortify registers the password-reset-request route ("password.email")
-     * without a throttle slot in config/fortify.php, unlike login/two-factor/
-     * passkeys. Web routes load lazily (after every provider's boot() has
-     * already run), so attach the limiter when the route is matched instead,
-     * which is guaranteed to run before its middleware pipeline is built.
+     * and the registration route ("register.store") without a throttle slot
+     * in config/fortify.php, unlike login/two-factor/passkeys. Web routes
+     * load lazily (after every provider's boot() has already run), so attach
+     * the limiter when the route is matched instead, which is guaranteed to
+     * run before its middleware pipeline is built.
      */
-    private function configurePasswordResetThrottling(): void
+    private function configureUnthrottledFortifyRoutes(): void
     {
         Route::matched(function (RouteMatched $event): void {
-            if ($event->route->getName() === 'password.email') {
-                $event->route->middleware('throttle:password-reset');
-            }
+            match ($event->route->getName()) {
+                'password.email' => $event->route->middleware('throttle:password-reset'),
+                'register.store' => $event->route->middleware('throttle:register'),
+                default => null,
+            };
         });
     }
 

@@ -85,6 +85,26 @@ export default function Profile({
                                 />
                             </div>
 
+                            <div className="grid gap-2">
+                                <Label htmlFor="current_password">
+                                    Mot de passe actuel
+                                </Label>
+
+                                <Input
+                                    id="current_password"
+                                    type="password"
+                                    className="mt-1 block w-full"
+                                    name="current_password"
+                                    autoComplete="current-password"
+                                    placeholder="Requis pour changer d'adresse e-mail"
+                                />
+
+                                <InputError
+                                    className="mt-2"
+                                    message={errors.current_password}
+                                />
+                            </div>
+
                             {mustVerifyEmail &&
                                 auth.user.email_verified_at === null && (
                                     <div>

@@ -19,6 +19,7 @@ class AdminGrilleTarifaireController extends Controller
     public function index(Request $request): Response
     {
         $membre = $this->membre($request);
+        abort_unless($membre->peut(Donnee::Catalogue, Action::Voir), 403);
 
         $lignes = LigneTarifaire::query()
             ->orderBy('categorie_ordre')

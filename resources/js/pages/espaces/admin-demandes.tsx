@@ -22,6 +22,7 @@ type Demande = {
 type Props = {
     demandes: Demande[];
     peutModifier: boolean;
+    peutEnvoyerDevis: boolean;
     peutGenererContrat: boolean;
     peutEnvoyerContrat: boolean;
 };
@@ -30,7 +31,7 @@ const STATUTS_DEVIS = ['BROUILLON', 'EN_ETUDE', 'DEVIS_ENVOYE'];
 
 export default function AdminDemandes({
     demandes,
-    peutModifier,
+    peutEnvoyerDevis,
     peutGenererContrat,
     peutEnvoyerContrat,
 }: Props) {
@@ -148,7 +149,7 @@ export default function AdminDemandes({
                                                 >
                                                     Voir
                                                 </Link>
-                                                {peutModifier &&
+                                                {peutEnvoyerDevis &&
                                                     STATUTS_DEVIS.includes(
                                                         demande.statut,
                                                     ) && (

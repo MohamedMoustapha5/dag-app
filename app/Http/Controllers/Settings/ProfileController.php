@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Settings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\ProfileDeleteRequest;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
+use App\Support\SuppressionCompte;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -30,13 +31,21 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user('web')->fill($request->validated());
+        $user = $request->user('web');
 
-        if ($request->user('web')->isDirty('email')) {
-            $request->user('web')->email_verified_at = null;
+        $user->fill($request->safe()->only(['name', 'email']));
+
+        $emailChange = $user->isDirty('email');
+
+        if ($emailChange) {
+            $user->email_verified_at = null;
         }
 
-        $request->user('web')->save();
+        $user->save();
+
+        if ($emailChange) {
+            $user->sendEmailVerificationNotification();
+        }
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Profile updated.')]);
 
@@ -52,7 +61,7 @@ class ProfileController extends Controller
 
         Auth::logout();
 
-        $user->delete();
+        SuppressionCompte::fermer($user);
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

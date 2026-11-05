@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Facture;
 use App\Models\Paiement;
 use App\Support\Paiements\PaiementService;
+use App\Support\Paiements\SimulationPasserelle;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -104,7 +105,7 @@ class PaiementEnLigneController extends Controller
     private function autoriserSimulation(Request $request, Paiement $paiement): void
     {
         abort_unless($paiement->facture->appartientA($request->user('web')), 404);
-        abort_unless($this->paiements->passerelle()->ecranLocal() && ! app()->isProduction(), 404);
+        abort_unless($this->paiements->passerelle()->ecranLocal() && SimulationPasserelle::autorisee(), 404);
     }
 
     private function retour(Request $request): string

@@ -40,7 +40,12 @@ export default function Parametres({ client, profil, notifications }: Props) {
         nom: profil.nom,
         telephone: profil.telephone ?? '',
         email: profil.email,
+        current_password: '',
     });
+
+    const emailModifie =
+        infosForm.data.email.trim().toLowerCase() !==
+        profil.email.toLowerCase();
 
     const notifForm = useForm({
         notif_devis: notifications.devis,
@@ -50,7 +55,9 @@ export default function Parametres({ client, profil, notifications }: Props) {
 
     const submitInfos = (event: React.FormEvent) => {
         event.preventDefault();
-        infosForm.patch(parametresRoutes.update().url);
+        infosForm.patch(parametresRoutes.update().url, {
+            onFinish: () => infosForm.reset('current_password'),
+        });
     };
 
     const submitNotifications = (event: React.FormEvent) => {
@@ -201,6 +208,52 @@ export default function Parametres({ client, profil, notifications }: Props) {
                                         </p>
                                     )}
                                 </div>
+                                {emailModifie && (
+                                    <div>
+                                        <label htmlFor="email_current_password">
+                                            Mot de passe actuel
+                                        </label>
+                                        <input
+                                            id="email_current_password"
+                                            type="password"
+                                            autoComplete="current-password"
+                                            value={
+                                                infosForm.data.current_password
+                                            }
+                                            onChange={(event) =>
+                                                infosForm.setData(
+                                                    'current_password',
+                                                    event.target.value,
+                                                )
+                                            }
+                                        />
+                                        <p
+                                            className="muted"
+                                            style={{
+                                                fontSize: 12,
+                                                marginTop: 4,
+                                            }}
+                                        >
+                                            Requis pour changer d'adresse
+                                            e-mail. Un lien de vérification
+                                            sera envoyé à la nouvelle adresse.
+                                        </p>
+                                        {infosForm.errors.current_password && (
+                                            <p
+                                                style={{
+                                                    color: 'var(--dag-red)',
+                                                    fontSize: 12,
+                                                    marginTop: 4,
+                                                }}
+                                            >
+                                                {
+                                                    infosForm.errors
+                                                        .current_password
+                                                }
+                                            </p>
+                                        )}
+                                    </div>
+                                )}
                                 <button
                                     type="submit"
                                     className="btn-primary"

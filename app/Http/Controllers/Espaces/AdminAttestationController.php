@@ -76,9 +76,17 @@ class AdminAttestationController extends Controller
             'inscription_id' => ['required', 'uuid', 'exists:inscriptions,id'],
         ]);
 
-        $inscription = Inscription::with(['apprenant.user', 'formation'])
+        $inscription = Inscription::with(['apprenant.user', 'formation', 'formationSession.seances'])
             ->where('id', $data['inscription_id'])
             ->firstOrFail();
+
+        // Same eligibility as the "en attente" list: a validated enrolment
+        // whose formation is over. A direct request can't certify anyone else.
+        abort_unless(
+            in_array($inscription->statut, ['VALIDEE', 'FORMEE'], true) && $this->formationTerminee($inscription),
+            409,
+            "Cette inscription n'ouvre pas droit à une attestation."
+        );
 
         abort_if(
             Attestation::where('apprenant_id', $inscription->apprenant_id)

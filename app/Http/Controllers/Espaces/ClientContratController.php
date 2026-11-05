@@ -13,6 +13,7 @@ use App\Support\Notifications\Notifier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -89,13 +90,23 @@ class ClientContratController extends Controller
 
         abort_if($chemin === false, 500, "La signature n'a pas pu être enregistrée.");
 
-        $contrat->update([
+        // Conditional on ENVOYE so two simultaneous submissions can't both sign
+        // and leave the evidence of the first one overwritten by the second.
+        $signe = Contrat::whereKey($contrat->id)->where('statut', 'ENVOYE')->update([
             'photo_signature' => $chemin,
             'signataire_nom' => $data['nom'],
             'ip_signature' => $request->ip(),
             'date_signature' => now(),
             'statut' => 'SIGNE',
         ]);
+
+        if ($signe === 0) {
+            Storage::delete($chemin);
+
+            abort(409, "Ce contrat n'est pas ouvert à la signature.");
+        }
+
+        $contrat->refresh();
 
         Notifier::envoyer($request->user('web'), new ContratSigneNotification($contrat));
         Notifier::alerterEquipe(

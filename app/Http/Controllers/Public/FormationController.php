@@ -43,6 +43,8 @@ class FormationController extends Controller
 
     public function show(Formation $formation): Response
     {
+        abort_unless($formation->statut === 'PUBLIEE', 404);
+
         $sessionModels = $formation->sessions()
             ->whereIn('statut', ['OUVERTE', 'COMPLETE'])
             ->orderBy('date_debut')

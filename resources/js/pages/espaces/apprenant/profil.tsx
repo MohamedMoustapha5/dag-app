@@ -46,7 +46,12 @@ export default function ApprenantProfil({
         telephone: profil.telephone ?? '',
         ville: profil.ville ?? '',
         date_naissance: profil.dateNaissance ?? '',
+        current_password: '',
     });
+
+    const emailModifie =
+        infosForm.data.email.trim().toLowerCase() !==
+        profil.email.toLowerCase();
 
     const notifForm = useForm({
         notif_seances: notifications.seances,
@@ -56,7 +61,9 @@ export default function ApprenantProfil({
 
     const submitInfos = (event: React.FormEvent) => {
         event.preventDefault();
-        infosForm.patch(profilRoutes.update().url);
+        infosForm.patch(profilRoutes.update().url, {
+            onFinish: () => infosForm.reset('current_password'),
+        });
     };
 
     const submitNotifications = (event: React.FormEvent) => {
@@ -205,6 +212,52 @@ export default function ApprenantProfil({
                                         </p>
                                     )}
                                 </div>
+                                {emailModifie && (
+                                    <div>
+                                        <label htmlFor="email_current_password">
+                                            Mot de passe actuel
+                                        </label>
+                                        <input
+                                            id="email_current_password"
+                                            type="password"
+                                            autoComplete="current-password"
+                                            value={
+                                                infosForm.data.current_password
+                                            }
+                                            onChange={(event) =>
+                                                infosForm.setData(
+                                                    'current_password',
+                                                    event.target.value,
+                                                )
+                                            }
+                                        />
+                                        <p
+                                            className="muted"
+                                            style={{
+                                                fontSize: 12,
+                                                marginTop: 4,
+                                            }}
+                                        >
+                                            Requis pour changer d'adresse
+                                            e-mail. Un lien de vérification
+                                            sera envoyé à la nouvelle adresse.
+                                        </p>
+                                        {infosForm.errors.current_password && (
+                                            <p
+                                                style={{
+                                                    color: 'var(--dag-red)',
+                                                    fontSize: 12,
+                                                    marginTop: 4,
+                                                }}
+                                            >
+                                                {
+                                                    infosForm.errors
+                                                        .current_password
+                                                }
+                                            </p>
+                                        )}
+                                    </div>
+                                )}
                                 <div className="form-row-2">
                                     <div>
                                         <label htmlFor="ville">Ville</label>

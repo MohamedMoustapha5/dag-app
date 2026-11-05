@@ -8,6 +8,7 @@ use App\Enums\Donnee;
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\CandidatureSpontanee;
+use App\Support\SuppressionCompte;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -35,20 +36,26 @@ class AdminCandidatExterneController extends Controller
 
     /**
      * Deletes the received dossier, its CV file and, if DAG turned it into
-     * an external apprenant dossier, that dossier's account too.
+     * an external apprenant dossier, that dossier's account too. When that
+     * account holds legal records it is anonymised instead (see
+     * SuppressionCompte) and the dossier row stays, emptied of its data.
      */
     public function destroy(Request $request, CandidatureSpontanee $candidatureSpontanee): RedirectResponse
     {
         abort_unless($this->membre($request)->peut(Donnee::DossiersApprenants, Action::Supprimer), 403);
 
-        if ($candidatureSpontanee->apprenant_id !== null) {
-            $candidatureSpontanee->apprenant->user->delete();
-        }
+        $nom = $candidatureSpontanee->nom;
 
         Storage::disk('local')->delete($candidatureSpontanee->cv_path);
-        $candidatureSpontanee->delete();
 
-        ActivityLog::record($this->membre($request), 'a supprimé un dossier reçu', null, "Dossier de {$candidatureSpontanee->nom}.");
+        $anonymise = $candidatureSpontanee->apprenant_id !== null
+            && SuppressionCompte::fermer($candidatureSpontanee->apprenant->user);
+
+        if (! $anonymise) {
+            $candidatureSpontanee->delete();
+        }
+
+        ActivityLog::record($this->membre($request), 'a supprimé un dossier reçu', null, "Dossier de {$nom}.");
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Dossier supprimé.']);
 

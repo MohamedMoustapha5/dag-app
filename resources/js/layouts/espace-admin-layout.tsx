@@ -6,6 +6,7 @@ import {
     BarChart3,
     FileText,
     FileSignature,
+    KeyRound,
     LayoutDashboard,
     LayoutGrid,
     LogOut,
@@ -24,7 +25,7 @@ import { deconnexion } from '@/routes/admin';
 import LanguageSwitcher from '@/components/public/language-switcher';
 import ClocheNotifications from '@/components/espaces/cloche-notifications';
 import notificationsAdmin from '@/routes/espace-admin/notifications';
-import espaceAdmin from '@/routes/espace-admin';
+import espaceAdmin, { motDePasse } from '@/routes/espace-admin';
 import abonnementsAdmin from '@/routes/espace-admin/abonnements';
 import apprenantsAdmin from '@/routes/espace-admin/apprenants';
 import attestationsAdmin from '@/routes/espace-admin/attestations';
@@ -347,6 +348,14 @@ export default function EspaceAdminLayout({ children }: PropsWithChildren) {
                                     </p>
                                 </div>
                             </div>
+                            <Link
+                                href={motDePasse()}
+                                className="btn-ghost"
+                                aria-label="Mon mot de passe"
+                                title="Mon mot de passe"
+                            >
+                                <KeyRound size={16} />
+                            </Link>
                             <Link
                                 href={deconnexion()}
                                 method="post"

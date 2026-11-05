@@ -36,8 +36,10 @@ Route::get('offres-emploi', OffreEmploiController::class)->name('offres-emploi')
 Route::get('a-propos', AProposController::class)->name('a-propos');
 
 Route::get('contact', [ContactController::class, 'index'])->name('contact');
-Route::post('contact', [ContactController::class, 'store'])->name('contact.store');
+Route::middleware('throttle:formulaires-publics')->group(function () {
+    Route::post('contact', [ContactController::class, 'store'])->name('contact.store');
 
-Route::post('audit-gratuit', [AuditRequestController::class, 'store'])->name('audit-requests.store');
+    Route::post('audit-gratuit', [AuditRequestController::class, 'store'])->name('audit-requests.store');
 
-Route::post('candidatures-spontanees', [CandidatureSpontaneeController::class, 'store'])->name('candidatures-spontanees.store');
+    Route::post('candidatures-spontanees', [CandidatureSpontaneeController::class, 'store'])->name('candidatures-spontanees.store');
+});

@@ -15,7 +15,7 @@ class CandidatureSpontaneeController extends Controller
             'nom' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255'],
             'telephone' => ['required', 'string', 'max:30'],
-            'portfolio' => ['nullable', 'url', 'max:255'],
+            'portfolio' => ['nullable', 'url:http,https', 'max:255'],
             'message' => ['nullable', 'string', 'max:2000'],
             'cv' => ['required', 'file', 'mimes:pdf,doc,docx', 'max:5120'],
         ]);

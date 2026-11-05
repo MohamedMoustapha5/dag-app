@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\MembreEquipeRole;
 use App\Models\ActivityLog;
 use App\Models\Apprenant;
 use App\Models\Client;
@@ -9,7 +10,10 @@ use App\Models\Facture;
 use App\Models\MembreEquipe;
 use App\Models\Paiement;
 use App\Models\Service;
+use App\Notifications\AlerteEquipeNotification;
 use App\Support\Paiements\PaiementService;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Testing\TestResponse;
 
 test('a client starts an Orange Money payment and is sent to the simulation screen', function () {
     $client = Client::factory()->create();
@@ -158,7 +162,7 @@ test('the provider webhook confirms a payment when the signature is valid, once'
         'statut' => 'EN_ATTENTE', 'reference_transaction' => 'REF-123',
     ]);
 
-    $corps = json_encode(['reference' => 'REF-123', 'statut' => 'success']);
+    $corps = json_encode(['reference' => 'REF-123', 'statut' => 'success', 'montant' => 60000]);
     $signature = hash_hmac('sha256', $corps, 'secret-de-test');
 
     foreach ([1, 2] as $_) {
@@ -382,4 +386,72 @@ test('the demandes list tells where the contract of each paid demande stands', f
             expect($demandes[$sansContrat->id]['contratStatut'])->toBeNull();
             expect($demandes[$aSigner->id]['contratStatut'])->toBe('ENVOYE');
         });
+});
+
+/**
+ * Posts a provider notification signed with the test secret.
+ *
+ * @param  array<string, mixed>  $donnees
+ */
+function notifierPrestataire(array $donnees): TestResponse
+{
+    config(['paiements.webhook_secret' => 'secret-de-test']);
+    $corps = (string) json_encode($donnees);
+
+    return test()->call('POST', route('paiements.webhook'), [], [], [], [
+        'CONTENT_TYPE' => 'application/json',
+        'HTTP_X_SIGNATURE' => hash_hmac('sha256', $corps, 'secret-de-test'),
+        'HTTP_ACCEPT' => 'application/json',
+    ], $corps);
+}
+
+test('a payment left pending past the delay is closed when a new one starts, and is never credited afterwards', function () {
+    Notification::fake();
+    $controle = MembreEquipe::factory()->create(['role' => MembreEquipeRole::ControleGestion]);
+    $client = Client::factory()->create();
+    $facture = Facture::factory()->create(['client_id' => $client->id, 'montant' => 50000]);
+    $ancien = Paiement::create([
+        'facture_id' => $facture->id, 'montant' => 50000, 'moyen' => 'OM',
+        'statut' => 'EN_ATTENTE', 'reference_transaction' => 'REF-ANCIEN',
+    ]);
+    $ancien->forceFill(['created_at' => now()->subMinutes(20)])->save();
+
+    $this->actingAs($client->user)
+        ->post(route('paiements.initier', $facture), ['moyen' => 'CARTE'])
+        ->assertRedirect();
+
+    expect($ancien->fresh()->statut)->toBe('ECHEC');
+    expect(Paiement::where('statut', 'EN_ATTENTE')->count())->toBe(1);
+
+    notifierPrestataire(['reference' => 'REF-ANCIEN', 'statut' => 'success', 'montant' => 50000])->assertOk();
+
+    expect($ancien->fresh()->statut)->toBe('ECHEC');
+    expect((float) $facture->fresh()->montant_paye)->toBe(0.0);
+    expect(ActivityLog::where('action', 'paiement en ligne reçu après expiration')->exists())->toBeTrue();
+    Notification::assertSentTo($controle, AlerteEquipeNotification::class);
+});
+
+test('the provider webhook refuses a success for another amount than the one requested', function () {
+    $facture = Facture::factory()->create(['montant' => 60000]);
+    $paiement = Paiement::create([
+        'facture_id' => $facture->id, 'montant' => 60000, 'moyen' => 'OM',
+        'statut' => 'EN_ATTENTE', 'reference_transaction' => 'REF-MONTANT',
+    ]);
+
+    notifierPrestataire(['reference' => 'REF-MONTANT', 'statut' => 'success', 'montant' => 100])->assertStatus(422);
+
+    expect($paiement->fresh()->statut)->toBe('EN_ATTENTE');
+    expect((float) $facture->fresh()->montant_paye)->toBe(0.0);
+});
+
+test('the simulation provider is refused outside the local and testing environments', function () {
+    app()->detectEnvironment(fn () => 'staging');
+    $client = Client::factory()->create();
+    $facture = Facture::factory()->create(['client_id' => $client->id]);
+
+    $this->actingAs($client->user)
+        ->post(route('paiements.initier', $facture), ['moyen' => 'CARTE'])
+        ->assertStatus(503);
+
+    expect(Paiement::where('statut', 'EN_ATTENTE')->exists())->toBeFalse();
 });

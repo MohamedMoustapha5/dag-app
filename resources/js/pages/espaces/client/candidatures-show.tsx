@@ -13,7 +13,7 @@ type Props = {
     };
     apprenant: {
         nom: string;
-        email: string;
+        email: string | null;
         telephone: string | null;
         ville: string | null;
     };
@@ -111,7 +111,7 @@ export default function CandidaturesShow({
                             <dt className="muted" style={{ fontSize: 12 }}>
                                 Email
                             </dt>
-                            <dd>{apprenant.email}</dd>
+                            <dd>{apprenant.email ?? '—'}</dd>
                         </div>
                         <div>
                             <dt className="muted" style={{ fontSize: 12 }}>
@@ -126,6 +126,16 @@ export default function CandidaturesShow({
                             <dd>{apprenant.ville ?? '—'}</dd>
                         </div>
                     </dl>
+                    {apprenant.email === null && (
+                        <p
+                            className="muted"
+                            style={{ fontSize: 12.5, marginTop: 12 }}
+                        >
+                            Le candidat n'a pas autorisé le partage de ses
+                            coordonnées : passez par l'équipe DAG pour le
+                            contacter.
+                        </p>
+                    )}
                 </div>
 
                 <div className="card" style={{ padding: 24 }}>

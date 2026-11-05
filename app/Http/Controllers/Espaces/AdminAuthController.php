@@ -36,12 +36,17 @@ class AdminAuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
+        // One key per email+IP against guessing a password, one per IP alone
+        // against trying many staff emails from the same machine.
         $cle = 'admin-login:'.Str::lower($credentials['email']).'|'.$request->ip();
+        $cleIp = 'admin-login-ip:'.$request->ip();
 
-        if (RateLimiter::tooManyAttempts($cle, 5)) {
-            throw ValidationException::withMessages([
-                'email' => 'Trop de tentatives. Réessayez dans '.RateLimiter::availableIn($cle).' secondes.',
-            ]);
+        foreach ([$cle => 5, $cleIp => 20] as $compteur => $maximum) {
+            if (RateLimiter::tooManyAttempts($compteur, $maximum)) {
+                throw ValidationException::withMessages([
+                    'email' => 'Trop de tentatives. Réessayez dans '.RateLimiter::availableIn($compteur).' secondes.',
+                ]);
+            }
         }
 
         $connecte = Auth::guard('admin')->attempt(
@@ -51,6 +56,7 @@ class AdminAuthController extends Controller
 
         if (! $connecte) {
             RateLimiter::hit($cle);
+            RateLimiter::hit($cleIp, 600);
 
             throw ValidationException::withMessages([
                 'email' => 'Identifiants incorrects ou compte désactivé.',

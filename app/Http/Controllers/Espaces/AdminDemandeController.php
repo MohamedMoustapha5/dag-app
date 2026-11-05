@@ -37,6 +37,8 @@ class AdminDemandeController extends Controller
         return Inertia::render('espaces/admin-demandes', [
             ...$this->adminEspaceProps($membre),
             'peutModifier' => $membre->peut(Donnee::DemandesClients, Action::Modifier),
+            'peutEnvoyerDevis' => $membre->peut(Donnee::DemandesClients, Action::Modifier)
+                && $membre->peut(Donnee::FacturesPaiements, Action::Creer),
             'peutGenererContrat' => $membre->peut(Donnee::ContratsClauses, Action::Creer),
             'peutEnvoyerContrat' => $membre->peut(Donnee::ContratsClauses, Action::Modifier),
             'demandes' => $demandes->map(fn (Demande $demande) => [
@@ -106,6 +108,23 @@ class AdminDemandeController extends Controller
             'montant_negocie' => ['nullable', 'numeric', 'min:0'],
         ]);
 
+        // "Payée" reflects money actually received: only a settled facture
+        // (PaiementService) moves a demande there, never a manual change.
+        if ($data['statut'] === 'PAYEE' && $demande->statut !== 'PAYEE' && $demande->facture?->statut !== 'PAYEE') {
+            throw ValidationException::withMessages([
+                'statut' => 'Une demande passe à « Payée » quand sa facture est réglée, pas à la main.',
+            ]);
+        }
+
+        // Issuing or re-pricing the facture is a finance action, gated by the
+        // factures right on top of the demandes one.
+        if ($data['statut'] === 'DEVIS_ENVOYE' && (float) ($data['montant_negocie'] ?? $demande->montant_negocie) > 0
+            && ! $membre->peut(Donnee::FacturesPaiements, Action::Creer)) {
+            throw ValidationException::withMessages([
+                'statut' => 'Fixer le montant facturé demande le droit de créer des factures.',
+            ]);
+        }
+
         // The contract is mandatory: no prestation starts, is delivered or closed
         // until the client has signed it.
         if (in_array($data['statut'], ['EN_COURS', 'LIVREE', 'TERMINEE'], true)
@@ -136,6 +155,8 @@ class AdminDemandeController extends Controller
     {
         $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::DemandesClients, Action::Modifier), 403);
+        // Sending the devis issues (or re-prices) the facture the client pays.
+        abort_unless($membre->peut(Donnee::FacturesPaiements, Action::Creer), 403, 'Envoyer un devis demande le droit de créer des factures.');
         abort_unless(
             in_array($demande->statut, ['BROUILLON', 'EN_ETUDE', 'DEVIS_ENVOYE'], true),
             409,

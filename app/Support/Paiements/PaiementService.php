@@ -14,6 +14,7 @@ use App\Support\ContratRedaction;
 use App\Support\Notifications\Notifier;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 /**
  * Single place where money is applied to a facture: manual payments
@@ -93,47 +94,79 @@ class PaiementService
     }
 
     /**
-     * Starts an online payment of the whole remaining balance.
+     * Starts an online payment of the whole remaining balance. The facture is
+     * locked while checking it so two concurrent clicks cannot open two
+     * payments for the same balance, and an older attempt left pending past
+     * the waiting delay is closed as failed: it can no longer be confirmed
+     * and credited on top of the new one.
      *
      * @throws ValidationException
      */
     public function initier(Facture $facture, string $moyen, ?string $telephone): Paiement
     {
-        if (! in_array($facture->statut, ['EN_ATTENTE', 'PARTIELLEMENT_PAYEE'], true) || $this->soldeRestant($facture) <= 0) {
-            throw ValidationException::withMessages(['moyen' => 'Cette facture est déjà réglée.']);
-        }
+        $paiement = DB::transaction(function () use ($facture, $moyen): Paiement {
+            $verrouillee = Facture::where('id', $facture->id)->lockForUpdate()->firstOrFail();
 
-        if ($this->paiementEnAttente($facture)) {
-            throw ValidationException::withMessages([
-                'moyen' => 'Un paiement est déjà en attente de confirmation pour cette facture.',
+            if (! in_array($verrouillee->statut, ['EN_ATTENTE', 'PARTIELLEMENT_PAYEE'], true) || $this->soldeRestant($verrouillee) <= 0) {
+                throw ValidationException::withMessages(['moyen' => 'Cette facture est déjà réglée.']);
+            }
+
+            if ($this->paiementEnAttente($verrouillee)) {
+                throw ValidationException::withMessages([
+                    'moyen' => 'Un paiement est déjà en attente de confirmation pour cette facture.',
+                ]);
+            }
+
+            $verrouillee->paiements()->where('statut', 'EN_ATTENTE')->update(['statut' => 'ECHEC']);
+
+            return Paiement::create([
+                'facture_id' => $verrouillee->id,
+                'montant' => $this->soldeRestant($verrouillee),
+                'moyen' => $moyen,
+                'statut' => 'EN_ATTENTE',
             ]);
+        });
+
+        // A provider that refuses the payment must not leave it pending, or it
+        // would block any new attempt until the waiting delay runs out.
+        try {
+            $reference = $this->passerelle()->initier($paiement, $telephone);
+        } catch (Throwable $erreur) {
+            $paiement->update(['statut' => 'ECHEC']);
+
+            throw $erreur;
         }
 
-        $paiement = Paiement::create([
-            'facture_id' => $facture->id,
-            'montant' => $this->soldeRestant($facture),
-            'moyen' => $moyen,
-            'statut' => 'EN_ATTENTE',
-        ]);
-
-        $paiement->update([
-            'reference_transaction' => $this->passerelle()->initier($paiement, $telephone),
-        ]);
+        $paiement->update(['reference_transaction' => $reference]);
 
         return $paiement;
     }
 
     /**
-     * Idempotent: only a paiement still EN_ATTENTE can be confirmed.
+     * Idempotent: only a paiement still EN_ATTENTE can be confirmed. The
+     * facture is locked too, so two payments settled at the same moment
+     * both count instead of one overwriting the other's amount.
+     *
+     * A provider confirming a payment already closed as failed (it expired
+     * while a newer attempt was opened) is not credited: the team is alerted
+     * to reconcile or refund it by hand.
      */
     public function confirmer(Paiement $paiement, ?MembreEquipe $par = null): void
     {
         DB::transaction(function () use ($paiement, $par): void {
             $verrouille = Paiement::where('id', $paiement->id)->lockForUpdate()->firstOrFail();
 
+            if ($verrouille->statut === 'ECHEC' && $par === null) {
+                $this->signalerPaiementTardif($verrouille);
+
+                return;
+            }
+
             if ($verrouille->statut !== 'EN_ATTENTE') {
                 return;
             }
+
+            $facture = Facture::where('id', $verrouille->facture_id)->lockForUpdate()->firstOrFail();
 
             $verrouille->update([
                 'statut' => 'CONFIRME',
@@ -141,16 +174,33 @@ class PaiementService
                 'valide_par_id' => $par?->id,
             ]);
 
-            $this->appliquerAFacture($verrouille->facture, (float) $verrouille->montant, $verrouille->moyen);
-            $this->notifierPaiement($verrouille->facture, (float) $verrouille->montant);
+            $this->appliquerAFacture($facture, (float) $verrouille->montant, $verrouille->moyen);
+            $this->notifierPaiement($facture, (float) $verrouille->montant);
 
             ActivityLog::record(
                 $par,
                 $par === null ? 'paiement en ligne confirmé' : 'a confirmé un paiement',
-                $verrouille->facture,
-                $verrouille->facture->reference.' : '.number_format((float) $verrouille->montant, 0, ',', ' ').' FCFA ('.$verrouille->moyen.').'
+                $facture,
+                $facture->reference.' : '.number_format((float) $verrouille->montant, 0, ',', ' ').' FCFA ('.$verrouille->moyen.').'
             );
         });
+    }
+
+    private function signalerPaiementTardif(Paiement $paiement): void
+    {
+        $facture = $paiement->facture;
+        $montant = number_format((float) $paiement->montant, 0, ',', ' ');
+
+        ActivityLog::record(null, 'paiement en ligne reçu après expiration', $facture, "{$facture->reference} : {$montant} FCFA ({$paiement->reference_transaction}), non crédité.");
+
+        Notifier::alerterEquipe(
+            Donnee::FacturesPaiements,
+            Action::Modifier,
+            'paiement.tardif',
+            "Paiement à rapprocher — {$facture->reference}",
+            "Le prestataire confirme {$montant} FCFA ({$paiement->reference_transaction}) sur une tentative déjà expirée : vérifiez et remboursez ou enregistrez-le à la main.",
+            route('espace-admin.factures.show', $facture),
+        );
     }
 
     public function echouer(Paiement $paiement): void
@@ -166,11 +216,27 @@ class PaiementService
 
     /**
      * A payment received outside the platform (cash, transfer, mobile
-     * money received directly) recorded by DAG staff.
+     * money received directly) recorded by DAG staff. It can never exceed
+     * what is still owed on the facture.
+     *
+     * @throws ValidationException
      */
     public function enregistrerManuel(Facture $facture, float $montant, string $moyen, ?string $reference, MembreEquipe $par): Paiement
     {
         return DB::transaction(function () use ($facture, $montant, $moyen, $reference, $par): Paiement {
+            $facture = Facture::where('id', $facture->id)->lockForUpdate()->firstOrFail();
+            $solde = $this->soldeRestant($facture);
+
+            if ($solde <= 0) {
+                throw ValidationException::withMessages(['montant' => 'Cette facture est déjà réglée.']);
+            }
+
+            if ($montant > $solde) {
+                throw ValidationException::withMessages([
+                    'montant' => 'Le montant dépasse le solde restant ('.number_format($solde, 0, ',', ' ').' FCFA).',
+                ]);
+            }
+
             $paiement = Paiement::create([
                 'facture_id' => $facture->id,
                 'montant' => $montant,
