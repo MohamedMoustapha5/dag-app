@@ -120,3 +120,28 @@ test('a paid facture tells whether its demande already has a contrat, so the con
             ->where('facture.aContrat', false)
             ->where('peutGenererContrat', true));
 });
+
+test('a manual payment cannot exceed the remaining balance of the facture', function () {
+    $membre = MembreEquipe::factory()->create(['role' => MembreEquipeRole::ControleGestion]);
+    $facture = Facture::factory()->create(['montant' => 100000, 'montant_paye' => 60000, 'statut' => 'PARTIELLEMENT_PAYEE']);
+
+    $this->actingAs($membre, 'admin')->post(route('espace-admin.factures.paiements.store', $facture), [
+        'montant' => 50000,
+        'moyen' => 'ESPECES',
+    ])->assertSessionHasErrors(['montant' => 'Le montant dépasse le solde restant (40 000 FCFA).']);
+
+    expect((float) $facture->fresh()->montant_paye)->toBe(60000.0);
+    expect($facture->paiements()->count())->toBe(0);
+});
+
+test('no manual payment can be recorded on a facture already settled', function () {
+    $membre = MembreEquipe::factory()->create(['role' => MembreEquipeRole::ControleGestion]);
+    $facture = Facture::factory()->payee()->create();
+
+    $this->actingAs($membre, 'admin')->post(route('espace-admin.factures.paiements.store', $facture), [
+        'montant' => 1000,
+        'moyen' => 'ESPECES',
+    ])->assertSessionHasErrors(['montant' => 'Cette facture est déjà réglée.']);
+
+    expect($facture->paiements()->count())->toBe(0);
+});

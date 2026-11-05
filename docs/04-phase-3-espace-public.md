@@ -279,7 +279,7 @@ Tests : `resources/js/lib/i18n/traduire.test.ts` (`npx vitest run`).
 ## 6. Hors périmètre (volontairement)
 
 - Contenu rédigé par l'équipe après coup (nouveaux services, formations, offres) : il
-  s'affiche tel qu'il a été saisi en anglais tant qu'aucune traduction n'est ajoutée.
+  s'affiche tel qu'il a été saisi tant qu'aucune traduction n'est ajoutée.
 - Candidature à une offre de stage/emploi (compte Apprenant authentifié →
   phase 7).
 - Traitement des `ContactMessage`/`AuditRequest` côté équipe DAG → phase 9
