@@ -1,9 +1,11 @@
-import { Head, router, useForm, useHttp } from '@inertiajs/react';
+import { Head, Link, router, useForm, useHttp } from '@inertiajs/react';
 import { X } from 'lucide-react';
 import { useState } from 'react';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
 import inscriptionsAdmin from '@/routes/espace-admin/inscriptions';
 import sessionsAdmin from '@/routes/espace-admin/sessions';
+import ChampFraisInscription from '@/components/espaces/champ-frais-inscription';
+import { libelleFraisInscription } from '@/lib/frais-inscription';
 
 type Session = {
     id: string;
@@ -21,6 +23,7 @@ type Session = {
     dateDebut: string | null;
     dateFin: string | null;
     places: number;
+    prix: string | null;
     inscritsCount: number;
     statut: string;
     image: string | null;
@@ -40,6 +43,29 @@ type Inscrit = {
     statut: string;
     presence: number;
     seancesTotal: number;
+    /** Registration fee facture, null for an enrolment made before fees existed. */
+    paiement: {
+        statut: string;
+        montant: string;
+        montantPaye: string;
+        reference: string;
+        url: string | null;
+    } | null;
+    validable: boolean;
+};
+
+const PAIEMENT_LABEL: Record<string, string> = {
+    EN_ATTENTE: 'À régler',
+    PARTIELLEMENT_PAYEE: 'Partiellement payé',
+    PAYEE: 'Payé',
+    EN_ECHEC: 'Annulé',
+};
+
+const PAIEMENT_CHIP: Record<string, string> = {
+    EN_ATTENTE: 'chip-orange',
+    PARTIELLEMENT_PAYEE: 'chip-blue',
+    PAYEE: 'chip-green',
+    EN_ECHEC: 'chip-gray',
 };
 
 type Roster = {
@@ -134,7 +160,15 @@ export default function AdminFormations({
                 ? inscriptionsAdmin.valider(inscriptionId)
                 : inscriptionsAdmin.refuser(inscriptionId);
 
-        await submit(route);
+        try {
+            await submit(route);
+        } catch {
+            alert(
+                decision === 'valider'
+                    ? "L'inscription ne peut pas être validée : les frais d'inscription ne sont pas encore réglés."
+                    : "L'inscription ne peut pas être refusée : un paiement a déjà été reçu, remboursez-le d'abord.",
+            );
+        }
 
         if (expanded) {
             const data = (await submit(
@@ -239,6 +273,20 @@ export default function AdminFormations({
                                         <td className="muted">
                                             {session.inscritsCount}/
                                             {session.places}
+                                            <br />
+                                            <span
+                                                style={{
+                                                    fontSize: 12,
+                                                    color:
+                                                        session.prix === null
+                                                            ? 'var(--dag-orange-ink)'
+                                                            : undefined,
+                                                }}
+                                            >
+                                                {libelleFraisInscription(
+                                                    session.prix,
+                                                )}
+                                            </span>
                                         </td>
                                         <td>
                                             <span
@@ -358,6 +406,7 @@ export default function AdminFormations({
                                                 <th>Apprenant</th>
                                                 <th>E-mail</th>
                                                 <th>Statut</th>
+                                                <th>Frais d'inscription</th>
                                                 <th>Présence</th>
                                                 <th />
                                             </tr>
@@ -387,6 +436,13 @@ export default function AdminFormations({
                                                                     inscrit.statut}
                                                             </span>
                                                         </td>
+                                                        <td>
+                                                            <PaiementInscrit
+                                                                paiement={
+                                                                    inscrit.paiement
+                                                                }
+                                                            />
+                                                        </td>
                                                         <td className="muted">
                                                             {inscrit.presence}/
                                                             {
@@ -414,6 +470,22 @@ export default function AdminFormations({
                                                                         <button
                                                                             type="button"
                                                                             className="link-action"
+                                                                            disabled={
+                                                                                !inscrit.validable
+                                                                            }
+                                                                            title={
+                                                                                inscrit.validable
+                                                                                    ? undefined
+                                                                                    : "Confirmez d'abord le paiement des frais d'inscription"
+                                                                            }
+                                                                            style={
+                                                                                inscrit.validable
+                                                                                    ? undefined
+                                                                                    : {
+                                                                                          opacity: 0.45,
+                                                                                          cursor: 'not-allowed',
+                                                                                      }
+                                                                            }
                                                                             onClick={() =>
                                                                                 traiterInscription(
                                                                                     inscrit.id,
@@ -422,8 +494,7 @@ export default function AdminFormations({
                                                                             }
                                                                         >
                                                                             Valider
-                                                                            le
-                                                                            paiement
+                                                                            l'inscription
                                                                         </button>
                                                                         <button
                                                                             type="button"
@@ -472,6 +543,42 @@ export default function AdminFormations({
     );
 }
 
+/**
+ * Registration fee of one enrolment: amount, payment state and, for a role
+ * allowed to see factures, the link where the payment is confirmed.
+ */
+function PaiementInscrit({ paiement }: { paiement: Inscrit['paiement'] }) {
+    if (paiement === null) {
+        return <span className="muted">—</span>;
+    }
+
+    return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <span style={{ fontWeight: 600 }}>
+                {libelleFraisInscription(paiement.montant)}
+            </span>
+            <span
+                className={`chip ${PAIEMENT_CHIP[paiement.statut] ?? 'chip-gray'}`}
+                style={{ alignSelf: 'flex-start' }}
+            >
+                {PAIEMENT_LABEL[paiement.statut] ?? paiement.statut}
+            </span>
+            {paiement.url &&
+                ['EN_ATTENTE', 'PARTIELLEMENT_PAYEE'].includes(
+                    paiement.statut,
+                ) && (
+                    <Link
+                        href={paiement.url}
+                        className="link-action"
+                        style={{ fontSize: 12 }}
+                    >
+                        Confirmer le paiement →
+                    </Link>
+                )}
+        </div>
+    );
+}
+
 function SessionModal({
     mode,
     session,
@@ -490,6 +597,7 @@ function SessionModal({
         prerequis: string;
         ville: string;
         places: number;
+        prix: string;
         mode: string;
         date_debut: string;
         date_fin: string;
@@ -505,6 +613,7 @@ function SessionModal({
         prerequis: session?.prerequis ?? '',
         ville: session?.ville ?? '',
         places: session?.places ?? 15,
+        prix: session?.prix ? String(Math.round(Number(session.prix))) : '',
         mode: session?.mode ?? 'PRESENTIEL',
         date_debut: session?.dateDebut ?? '',
         date_fin: session?.dateFin ?? '',
@@ -714,10 +823,7 @@ function SessionModal({
                                     }
                                 />
                             </div>
-                            <p
-                                className="muted"
-                                style={{ fontSize: 11.5 }}
-                            >
+                            <p className="muted" style={{ fontSize: 11.5 }}>
                                 {mode === 'create'
                                     ? 'Facultatif. Si la formation existe déjà, les champs remplis la mettent à jour.'
                                     : 'Ces informations concernent la formation : elles s’appliquent à toutes ses sessions.'}
@@ -771,6 +877,13 @@ function SessionModal({
                             />
                         </div>
                     </div>
+
+                    <ChampFraisInscription
+                        id="prix"
+                        valeur={form.data.prix}
+                        erreur={form.errors.prix}
+                        onChange={(valeur) => form.setData('prix', valeur)}
+                    />
 
                     <div>
                         <label htmlFor="mode">Mode</label>

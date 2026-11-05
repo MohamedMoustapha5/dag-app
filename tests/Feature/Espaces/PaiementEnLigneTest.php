@@ -14,6 +14,7 @@ use App\Notifications\AlerteEquipeNotification;
 use App\Support\Paiements\PaiementService;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Testing\TestResponse;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 test('a client starts an Orange Money payment and is sent to the simulation screen', function () {
     $client = Client::factory()->create();
@@ -445,13 +446,13 @@ test('the provider webhook refuses a success for another amount than the one req
 });
 
 test('the simulation provider is refused outside the local and testing environments', function () {
+    $facture = Facture::factory()->create();
+    // Called on the service: switching the environment over HTTP would also
+    // re-enable CSRF checks, which the test runner otherwise skips.
     app()->detectEnvironment(fn () => 'staging');
-    $client = Client::factory()->create();
-    $facture = Facture::factory()->create(['client_id' => $client->id]);
 
-    $this->actingAs($client->user)
-        ->post(route('paiements.initier', $facture), ['moyen' => 'CARTE'])
-        ->assertStatus(503);
+    expect(fn () => app(PaiementService::class)->initier($facture, 'CARTE', null))
+        ->toThrow(HttpException::class, 'La passerelle de simulation est désactivée dans cet environnement.');
 
     expect(Paiement::where('statut', 'EN_ATTENTE')->exists())->toBeFalse();
 });

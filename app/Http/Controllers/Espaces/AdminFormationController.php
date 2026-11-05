@@ -51,6 +51,7 @@ class AdminFormationController extends Controller
                 'dateDebut' => $session->date_debut?->toDateString(),
                 'dateFin' => $session->date_fin?->toDateString(),
                 'places' => $session->places,
+                'prix' => $session->prix,
                 'inscritsCount' => $session->places - $session->placesRestantes(),
                 'statut' => $session->statut,
                 'image' => $session->image,
@@ -84,9 +85,10 @@ class AdminFormationController extends Controller
             'date_debut' => ['nullable', 'date'],
             'date_fin' => ['nullable', 'date', 'after_or_equal:date_debut'],
             'places' => ['required', 'integer', 'min:1'],
+            'prix' => ['nullable', 'required_if:statut,OUVERTE', 'numeric', 'min:1', 'max:100000000'],
             'statut' => ['required', Rule::in(['BROUILLON', 'OUVERTE', 'COMPLETE', 'TERMINEE'])],
             'image' => ['nullable', 'image', 'max:5120'],
-        ]);
+        ], $this->messagesPrix());
 
         // What the public formation page shows (categorie, description, programme,
         // durée, prérequis): filled in when provided, whether the formation is new
@@ -119,6 +121,7 @@ class AdminFormationController extends Controller
             'date_debut' => $data['date_debut'] ?? null,
             'date_fin' => $data['date_fin'] ?? null,
             'places' => $data['places'],
+            'prix' => $data['prix'] ?? null,
             'statut' => $data['statut'],
             'image' => $imagePath,
         ]);
@@ -156,6 +159,7 @@ class AdminFormationController extends Controller
                 'dateDebut' => $session->date_debut?->toDateString(),
                 'dateFin' => $session->date_fin?->toDateString(),
                 'places' => $session->places,
+                'prix' => $session->prix,
                 'placesRestantes' => $session->placesRestantes(),
                 'statut' => $session->statut,
                 'seancesCount' => $session->seances_count,
@@ -199,8 +203,9 @@ class AdminFormationController extends Controller
             'date_debut' => ['nullable', 'date'],
             'date_fin' => ['nullable', 'date', 'after_or_equal:date_debut'],
             'places' => ['required', 'integer', 'min:1'],
+            'prix' => ['nullable', 'numeric', 'min:1', 'max:100000000'],
             'image' => ['nullable', 'image', 'max:5120'],
-        ]);
+        ], $this->messagesPrix());
 
         unset($data['image']);
 
@@ -233,9 +238,10 @@ class AdminFormationController extends Controller
             'date_debut' => ['nullable', 'date'],
             'date_fin' => ['nullable', 'date', 'after_or_equal:date_debut'],
             'places' => ['required', 'integer', 'min:1'],
+            'prix' => ['nullable', 'required_if:statut,OUVERTE', 'numeric', 'min:1', 'max:100000000'],
             'statut' => ['required', Rule::in(['BROUILLON', 'OUVERTE', 'COMPLETE', 'TERMINEE'])],
             'image' => ['nullable', 'image', 'max:5120'],
-        ]);
+        ], $this->messagesPrix());
 
         // The content shown on the public page belongs to the formation, shared by
         // all its sessions: a cleared field empties it, a blank description keeps
@@ -263,6 +269,22 @@ class AdminFormationController extends Controller
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Session mise à jour.']);
 
         return back();
+    }
+
+    /**
+     * The registration fee is what the apprenant is billed when enrolling:
+     * a session cannot open to enrolments without one.
+     *
+     * @return array<string, string>
+     */
+    private function messagesPrix(): array
+    {
+        return [
+            'prix.required_if' => "Indiquez les frais d'inscription avant d'ouvrir la session aux inscriptions.",
+            'prix.numeric' => "Les frais d'inscription doivent être un montant en FCFA.",
+            'prix.min' => "Les frais d'inscription doivent être d'au moins 1 FCFA.",
+            'prix.max' => "Les frais d'inscription sont trop élevés.",
+        ];
     }
 
     private function vide(?string $valeur): ?string

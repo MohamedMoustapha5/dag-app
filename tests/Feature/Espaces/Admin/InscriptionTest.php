@@ -120,3 +120,23 @@ test('exporting the roster streams a csv file', function () {
     $response->assertOk();
     $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
 });
+
+test('a name typed as a spreadsheet formula is exported as plain text', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $session = FormationSession::factory()->create();
+    $apprenant = Apprenant::factory()->create();
+    $apprenant->user->update(['name' => '=HYPERLINK("http://evil.example","Clic")']);
+    Inscription::create([
+        'apprenant_id' => $apprenant->id,
+        'formation_id' => $session->formation_id,
+        'formation_session_id' => $session->id,
+        'statut' => 'VALIDEE',
+    ]);
+
+    $csv = $this->actingAs($promotrice, 'admin')
+        ->get(route('espace-admin.sessions.export', $session))
+        ->streamedContent();
+
+    expect($csv)->toContain('"\'=HYPERLINK(')
+        ->not->toContain("\n\"=HYPERLINK(");
+});

@@ -54,7 +54,7 @@ class ClientParametreController extends Controller
             'current_password.current_password' => 'Le mot de passe actuel est incorrect.',
         ]);
 
-        $client->update(['nom' => $data['nom'], 'telephone' => $data['telephone']]);
+        $client->update(['nom' => $data['nom'], 'telephone' => $data['telephone'] ?? null]);
 
         $user->fill(['name' => $data['nom'], 'email' => Str::lower($data['email'])]);
 

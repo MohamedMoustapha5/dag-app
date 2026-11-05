@@ -179,3 +179,40 @@ test('a clause needs a title and a content, and a read-only role cannot edit it'
 
     expect($clause->fresh()->titre)->toBe('Durée');
 });
+
+test('staff can never mark a contrat as signed by hand', function () {
+    $juriste = MembreEquipe::factory()->juriste()->create();
+    $contrat = Contrat::factory()->create(['statut' => 'ENVOYE', 'date_signature' => null]);
+
+    $this->actingAs($juriste, 'admin')
+        ->patch(route('espace-admin.contrats.update', $contrat), ['statut' => 'SIGNE'])
+        ->assertSessionHasErrors(['statut' => 'Seule la signature du client fait passer un contrat à « Signé ».']);
+
+    expect($contrat->fresh()->statut)->toBe('ENVOYE');
+    expect($contrat->fresh()->estSigne())->toBeFalse();
+});
+
+test('a signed contrat cannot be sent back to signature, which would overwrite its evidence', function (string $statut) {
+    $juriste = MembreEquipe::factory()->juriste()->create();
+    $contrat = Contrat::factory()->create(['statut' => 'SIGNE', 'date_signature' => now(), 'signataire_nom' => 'Aïcha N.']);
+
+    $this->actingAs($juriste, 'admin')
+        ->patch(route('espace-admin.contrats.update', $contrat), ['statut' => $statut])
+        ->assertSessionHasErrors('statut');
+
+    expect($contrat->fresh()->statut)->toBe('SIGNE');
+})->with(['ENVOYE', 'BROUILLON']);
+
+test('a signed contrat can still move on to actif then terminé', function () {
+    $juriste = MembreEquipe::factory()->juriste()->create();
+    $contrat = Contrat::factory()->create(['statut' => 'SIGNE', 'date_signature' => now()]);
+
+    $this->actingAs($juriste, 'admin')
+        ->patch(route('espace-admin.contrats.update', $contrat), ['statut' => 'ACTIF'])
+        ->assertSessionHasNoErrors();
+    $this->actingAs($juriste, 'admin')
+        ->patch(route('espace-admin.contrats.update', $contrat), ['statut' => 'TERMINE'])
+        ->assertSessionHasNoErrors();
+
+    expect($contrat->fresh()->statut)->toBe('TERMINE');
+});

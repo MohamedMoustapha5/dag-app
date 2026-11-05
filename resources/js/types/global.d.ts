@@ -15,6 +15,8 @@ declare module '@inertiajs/core' {
             sidebarOpen: boolean;
             currentTeam: Team | null;
             teams: Team[];
+            /** The signed-in account's own espace ("Mon espace"), null for a guest. */
+            espaceUrl: string | null;
             [key: string]: unknown;
         };
     }

@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import apprenantsAdmin from '@/routes/espace-admin/apprenants';
 import candidatsExternesAdmin from '@/routes/espace-admin/candidats-externes';
 import offresAdmin from '@/routes/espace-admin/offres';
+import { correspond } from '@/lib/recherche';
 
 type Apprenant = {
     id: string;
@@ -64,8 +65,6 @@ export default function AdminApprenants({
     >({});
 
     const liste = useMemo(() => {
-        const terme = recherche.trim().toLowerCase();
-
         return apprenants.filter((apprenant) => {
             if (filtre === 'formes' && !apprenant.estForme) {
                 return false;
@@ -75,11 +74,11 @@ export default function AdminApprenants({
                 return false;
             }
 
-            return (
-                terme === '' ||
-                apprenant.nom.toLowerCase().includes(terme) ||
-                apprenant.email.toLowerCase().includes(terme) ||
-                (apprenant.ville ?? '').toLowerCase().includes(terme)
+            return correspond(
+                recherche,
+                apprenant.nom,
+                apprenant.email,
+                apprenant.ville,
             );
         });
     }, [apprenants, filtre, recherche]);

@@ -14,7 +14,8 @@ import {
 } from 'lucide-react';
 import type { PropsWithChildren } from 'react';
 import { useEffect, useRef, useState } from 'react';
-import { contact, logout } from '@/routes';
+import { logout } from '@/routes';
+import supportApprenant from '@/routes/espace-apprenant/support';
 import espaceApprenant from '@/routes/espace-apprenant';
 import LanguageSwitcher from '@/components/public/language-switcher';
 import ClocheNotifications from '@/components/espaces/cloche-notifications';
@@ -177,7 +178,9 @@ export default function EspaceApprenantLayout({ children }: PropsWithChildren) {
                                 Notre équipe est disponible pour vous
                                 accompagner.
                             </p>
-                            <Link href={contact()}>Contacter le support →</Link>
+                            <Link href={supportApprenant.index()}>
+                                Contacter le support →
+                            </Link>
                         </div>
                     </div>
 
@@ -212,8 +215,12 @@ export default function EspaceApprenantLayout({ children }: PropsWithChildren) {
                         <div className="espace-topbar-right">
                             <LanguageSwitcher />
                             <ClocheNotifications
-                                urlLire={(id) => notificationsEspace.lire(id).url}
-                                urlToutesLues={notificationsEspace.toutesLues().url}
+                                urlLire={(id) =>
+                                    notificationsEspace.lire(id).url
+                                }
+                                urlToutesLues={
+                                    notificationsEspace.toutesLues().url
+                                }
                             />
                             <div className="espace-user">
                                 <span className="espace-avatar">

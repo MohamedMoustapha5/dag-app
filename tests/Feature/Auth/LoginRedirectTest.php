@@ -80,3 +80,32 @@ test('a membre equipe can log out of the admin', function () {
 
     $this->assertGuest('admin');
 });
+
+test('a client account DAG has deactivated cannot sign in', function () {
+    $client = Client::factory()->create(['statut' => 'INACTIF']);
+
+    $this->post(route('login.store'), [
+        'email' => $client->user->email,
+        'password' => 'password',
+    ])->assertSessionHasErrors('email');
+
+    $this->assertGuest();
+});
+
+test('the admin login slows down an address trying many staff emails', function () {
+    foreach (range(1, 20) as $tentative) {
+        $this->post(route('admin.connexion.store'), [
+            'email' => "inconnu{$tentative}@dag.cm",
+            'password' => 'mauvais',
+        ]);
+    }
+
+    $membre = MembreEquipe::factory()->create();
+
+    $this->post(route('admin.connexion.store'), [
+        'email' => $membre->email,
+        'password' => 'password',
+    ])->assertSessionHasErrors('email');
+
+    $this->assertGuest('admin');
+});

@@ -144,6 +144,7 @@ test('validating an attestation records who validated it and the pdf is then dow
         'formation_session_id' => $session->id,
         'statut' => 'FORMEE',
     ]);
+    Seance::create(['formation_session_id' => $session->id, 'titre' => 'Séance 1', 'date' => '2026-01-10']);
 
     $this->actingAs($promotrice, 'admin')
         ->post(route('espace-admin.attestations.store'), ['inscription_id' => $inscription->id])
@@ -176,3 +177,27 @@ test('an apprenant can download only their own validated attestation', function 
         ->get(route('espace-apprenant.attestations.pdf', $attestation))
         ->assertNotFound();
 });
+
+test('no attestation can be issued for an enrolment that is not completed', function (string $statut, string $dateSeance) {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $apprenant = Apprenant::factory()->create();
+    $formation = Formation::factory()->create();
+    $session = FormationSession::factory()->for($formation)->create();
+    $inscription = Inscription::create([
+        'apprenant_id' => $apprenant->id,
+        'formation_id' => $formation->id,
+        'formation_session_id' => $session->id,
+        'statut' => $statut,
+    ]);
+    Seance::create(['formation_session_id' => $session->id, 'titre' => 'Séance 1', 'date' => $dateSeance]);
+
+    $this->actingAs($promotrice, 'admin')
+        ->post(route('espace-admin.attestations.store'), ['inscription_id' => $inscription->id])
+        ->assertStatus(409);
+
+    expect(Attestation::count())->toBe(0);
+})->with([
+    'abandoned enrolment' => ['ABANDONNEE', '2026-01-10'],
+    'awaiting payment' => ['EN_ATTENTE_PAIEMENT', '2026-01-10'],
+    'formation still running' => ['VALIDEE', '2099-01-10'],
+]);

@@ -177,13 +177,14 @@ export default function AdminContratShow({
                                 form.setData('statut', event.target.value)
                             }
                         >
-                            {[contrat.statut, ...contrat.statutsAccessibles].map(
-                                (statut) => (
-                                    <option key={statut} value={statut}>
-                                        {STATUT_LABEL[statut] ?? statut}
-                                    </option>
-                                ),
-                            )}
+                            {[
+                                contrat.statut,
+                                ...contrat.statutsAccessibles,
+                            ].map((statut) => (
+                                <option key={statut} value={statut}>
+                                    {STATUT_LABEL[statut] ?? statut}
+                                </option>
+                            ))}
                         </select>
                         {form.errors.statut && (
                             <p

@@ -3,15 +3,28 @@
 namespace App\Http\Controllers;
 
 use App\Models\TeamInvitation;
+use App\Support\EspaceRedirect;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class DashboardController extends Controller
 {
-    public function __invoke(Request $request): Response
+    /**
+     * The starter kit's team dashboard. A DAG account (client, apprenant)
+     * has its own espace and never lands here: any link or bookmark to this
+     * page sends it straight to that espace.
+     */
+    public function __invoke(Request $request): Response|RedirectResponse
     {
-        $email = strtolower($request->user('web')->email);
+        $user = $request->user('web');
+
+        if ($user->type !== null) {
+            return redirect(EspaceRedirect::pathFor($user));
+        }
+
+        $email = strtolower($user->email);
 
         $pendingInvitations = TeamInvitation::query()
             ->with(['inviter', 'team'])

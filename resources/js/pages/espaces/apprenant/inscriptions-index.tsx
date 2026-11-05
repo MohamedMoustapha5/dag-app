@@ -2,6 +2,7 @@ import { Head, Link } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
 import espaceApprenant from '@/routes/espace-apprenant';
+import { libelleFraisInscription } from '@/lib/frais-inscription';
 
 type Inscription = {
     id: string;
@@ -13,6 +14,8 @@ type Inscription = {
     statut: string;
     progression: number;
     semainesAvantDebut: number | null;
+    fraisInscription: string | null;
+    paiement: string | null;
 };
 
 type Props = {
@@ -172,6 +175,12 @@ export default function ApprenantInscriptionsIndex({ inscriptions }: Props) {
                                                 ? ` · ${inscription.mode}`
                                                 : ''}
                                         </p>
+                                        {inscription.fraisInscription !==
+                                            null && (
+                                            <EtatFrais
+                                                inscription={inscription}
+                                            />
+                                        )}
                                     </div>
 
                                     {classe === 'terminees' && (
@@ -256,5 +265,55 @@ export default function ApprenantInscriptionsIndex({ inscriptions }: Props) {
                 </div>
             )}
         </>
+    );
+}
+
+const ETAT_FRAIS: Record<string, { label: string; chip: string }> = {
+    EN_ATTENTE: { label: 'À régler', chip: 'chip-orange' },
+    PARTIELLEMENT_PAYEE: { label: 'Partiellement réglés', chip: 'chip-blue' },
+    PAYEE: { label: 'Réglés', chip: 'chip-green' },
+    EN_ECHEC: { label: 'Annulés', chip: 'chip-gray' },
+};
+
+/**
+ * Registration fee of an enrolment and what the apprenant has to do next:
+ * pay it, or wait for DAG to validate the seat once it is paid.
+ */
+function EtatFrais({ inscription }: { inscription: Inscription }) {
+    const etat = ETAT_FRAIS[inscription.paiement ?? ''] ?? null;
+    const aRegler =
+        inscription.paiement === 'EN_ATTENTE' ||
+        inscription.paiement === 'PARTIELLEMENT_PAYEE';
+
+    return (
+        <div
+            style={{
+                marginTop: 10,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                flexWrap: 'wrap',
+                fontSize: 13,
+            }}
+        >
+            <span>
+                Frais d'inscription :{' '}
+                <strong>
+                    {libelleFraisInscription(inscription.fraisInscription)}
+                </strong>
+            </span>
+            {etat && <span className={`chip ${etat.chip}`}>{etat.label}</span>}
+            {aRegler && inscription.statut === 'EN_ATTENTE_PAIEMENT' && (
+                <Link href={espaceApprenant.factures()} className="link-action">
+                    Payer maintenant →
+                </Link>
+            )}
+            {inscription.paiement === 'PAYEE' &&
+                inscription.statut === 'EN_ATTENTE_PAIEMENT' && (
+                    <span className="muted">
+                        Paiement reçu : l'équipe DAG valide votre inscription.
+                    </span>
+                )}
+        </div>
     );
 }

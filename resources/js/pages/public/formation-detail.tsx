@@ -2,6 +2,7 @@ import { Head, Link } from '@inertiajs/react';
 import PublicLayout from '@/layouts/public-layout';
 import { formations } from '@/routes';
 import inscriptions from '@/routes/espace-apprenant/inscriptions';
+import { libelleFraisInscription } from '@/lib/frais-inscription';
 
 type Formation = {
     id: string;
@@ -22,6 +23,7 @@ type Session = {
     dateDebut: string | null;
     dateFin: string | null;
     placesRestantes: number;
+    prix: string | null;
     statut: string;
 };
 
@@ -191,15 +193,52 @@ export default function FormationDetail({
                                                 place(s) restante(s)
                                             </span>
                                         </div>
-                                        <Link
-                                            href={inscriptions.create(
-                                                session.id,
-                                            )}
-                                            className="btn-primary btn-block"
-                                            style={{ marginTop: 16 }}
+                                        <p
+                                            style={{
+                                                marginTop: 14,
+                                                fontSize: 13,
+                                                color: 'var(--dag-text-muted)',
+                                            }}
                                         >
-                                            S'inscrire
-                                        </Link>
+                                            Frais d'inscription
+                                            <strong
+                                                style={{
+                                                    display: 'block',
+                                                    fontSize: 20,
+                                                    color: 'var(--dag-navy)',
+                                                }}
+                                            >
+                                                {libelleFraisInscription(
+                                                    session.prix,
+                                                )}
+                                            </strong>
+                                        </p>
+                                        {session.prix !== null &&
+                                        session.statut === 'OUVERTE' &&
+                                        session.placesRestantes > 0 ? (
+                                            <Link
+                                                href={inscriptions.create(
+                                                    session.id,
+                                                )}
+                                                className="btn-primary btn-block"
+                                                style={{ marginTop: 12 }}
+                                            >
+                                                S'inscrire
+                                            </Link>
+                                        ) : (
+                                            <span
+                                                className="btn-outline btn-block"
+                                                style={{
+                                                    marginTop: 12,
+                                                    opacity: 0.6,
+                                                    cursor: 'not-allowed',
+                                                }}
+                                            >
+                                                {session.placesRestantes <= 0
+                                                    ? 'Session complète'
+                                                    : 'Inscriptions bientôt ouvertes'}
+                                            </span>
+                                        )}
                                     </div>
                                 ))}
                             </div>

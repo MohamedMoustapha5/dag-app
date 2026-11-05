@@ -173,3 +173,42 @@ test('the demandes list exposes the contract to open or send, according to the r
         ->get(route('espace-admin.demandes.index'))
         ->assertInertia(fn ($page) => $page->where('peutEnvoyerContrat', true));
 });
+
+test('a demande cannot be marked as paid by hand while its facture is unpaid', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $demande = Demande::factory()->create(['statut' => 'DEVIS_ENVOYE']);
+    Facture::factory()->create(['demande_id' => $demande->id, 'client_id' => null]);
+
+    $this->actingAs($promotrice, 'admin')
+        ->patch(route('espace-admin.demandes.update', $demande), ['statut' => 'PAYEE'])
+        ->assertSessionHasErrors(['statut' => 'Une demande passe à « Payée » quand sa facture est réglée, pas à la main.']);
+
+    expect($demande->fresh()->statut)->toBe('DEVIS_ENVOYE');
+});
+
+test('a role without the factures right cannot set the amount billed to the client', function () {
+    $marketing = MembreEquipe::factory()->create(['role' => MembreEquipeRole::CommunicationMarketing]);
+    $demande = Demande::factory()->create(['statut' => 'EN_ETUDE']);
+
+    $this->actingAs($marketing, 'admin')
+        ->post(route('espace-admin.demandes.devis', $demande), ['montant' => 150000])
+        ->assertForbidden();
+
+    $this->actingAs($marketing, 'admin')
+        ->patch(route('espace-admin.demandes.update', $demande), ['statut' => 'DEVIS_ENVOYE', 'montant_negocie' => 150000])
+        ->assertSessionHasErrors(['statut' => 'Fixer le montant facturé demande le droit de créer des factures.']);
+
+    expect($demande->fresh()->statut)->toBe('EN_ETUDE');
+    expect(Facture::count())->toBe(0);
+});
+
+test('a role without the factures right can still move a demande through the other steps', function () {
+    $marketing = MembreEquipe::factory()->create(['role' => MembreEquipeRole::CommunicationMarketing]);
+    $demande = Demande::factory()->create(['statut' => 'EN_ETUDE']);
+
+    $this->actingAs($marketing, 'admin')
+        ->patch(route('espace-admin.demandes.update', $demande), ['statut' => 'REFUSEE'])
+        ->assertSessionHasNoErrors();
+
+    expect($demande->fresh()->statut)->toBe('REFUSEE');
+});

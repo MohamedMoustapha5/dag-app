@@ -40,8 +40,8 @@ export default function AdminMotDePasse() {
 
             <h1 style={{ fontSize: 22, marginBottom: 6 }}>Mon mot de passe</h1>
             <p className="muted" style={{ fontSize: 13.5, marginBottom: 24 }}>
-                Changer votre mot de passe déconnecte toutes vos autres
-                sessions ouvertes.
+                Changer votre mot de passe déconnecte toutes vos autres sessions
+                ouvertes.
             </p>
 
             <form
@@ -87,7 +87,9 @@ export default function AdminMotDePasse() {
                     className="btn-primary"
                     style={{ alignSelf: 'flex-start' }}
                 >
-                    {form.processing ? 'Enregistrement…' : 'Changer le mot de passe'}
+                    {form.processing
+                        ? 'Enregistrement…'
+                        : 'Changer le mot de passe'}
                 </button>
             </form>
         </>

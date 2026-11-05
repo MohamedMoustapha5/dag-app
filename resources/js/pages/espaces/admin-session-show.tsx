@@ -3,6 +3,7 @@ import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
 import formationsAdmin from '@/routes/espace-admin/formations';
 import seancesAdmin from '@/routes/espace-admin/seances';
 import sessionsAdmin from '@/routes/espace-admin/sessions';
+import ChampFraisInscription from '@/components/espaces/champ-frais-inscription';
 
 type Session = {
     id: string;
@@ -15,6 +16,7 @@ type Session = {
     dateDebut: string | null;
     dateFin: string | null;
     places: number;
+    prix: string | null;
     statut: string;
     image: string | null;
 };
@@ -46,6 +48,7 @@ export default function AdminSessionShow({
         date_debut: string;
         date_fin: string;
         places: number;
+        prix: string;
         statut: string;
         image: File | null;
     }>({
@@ -56,6 +59,7 @@ export default function AdminSessionShow({
         date_debut: session.dateDebut ?? '',
         date_fin: session.dateFin ?? '',
         places: session.places,
+        prix: session.prix ? String(Math.round(Number(session.prix))) : '',
         statut: session.statut,
         image: null,
     });
@@ -238,6 +242,14 @@ export default function AdminSessionShow({
                                 }
                             />
                         </div>
+                        <ChampFraisInscription
+                            id="prix"
+                            valeur={editForm.data.prix}
+                            erreur={editForm.errors.prix}
+                            onChange={(valeur) =>
+                                editForm.setData('prix', valeur)
+                            }
+                        />
                         <div>
                             <label htmlFor="statut">Statut</label>
                             <select

@@ -15,6 +15,7 @@ import { useMemo, useState } from 'react';
 import PublicLayout from '@/layouts/public-layout';
 import { contact, grilleTarifaire } from '@/routes';
 import espaceClientDemandes from '@/routes/espace-client/demandes';
+import { correspond } from '@/lib/recherche';
 
 type Service = {
     id: string;
@@ -58,12 +59,12 @@ export default function Catalogue({ services }: CatalogueProps) {
             const matchesCategory =
                 activeCategory === ALL_CATEGORIES ||
                 service.categorie === activeCategory;
-            const matchesSearch =
-                search.trim() === '' ||
-                service.nom.toLowerCase().includes(search.toLowerCase()) ||
-                (service.description ?? '')
-                    .toLowerCase()
-                    .includes(search.toLowerCase());
+            const matchesSearch = correspond(
+                search,
+                service.nom,
+                service.categorie,
+                service.description,
+            );
             return matchesCategory && matchesSearch;
         });
     }, [services, activeCategory, search]);

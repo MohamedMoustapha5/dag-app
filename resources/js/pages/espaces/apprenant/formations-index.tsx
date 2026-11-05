@@ -11,7 +11,8 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import formationsRoutes from '@/routes/formations';
+import { libelleFraisInscription } from '@/lib/frais-inscription';
+import { correspond } from '@/lib/recherche';
 
 type Session = {
     formationId: string;
@@ -26,6 +27,9 @@ type Session = {
     dateFin: string | null;
     places: number;
     placesRestantes: number;
+    prix: string | null;
+    peutSInscrire: boolean;
+    inscriptionUrl: string;
     statut: string;
     image: string | null;
 };
@@ -72,12 +76,12 @@ export default function ApprenantFormationsIndex({ sessions }: Props) {
     const filteredSessions = useMemo(
         () =>
             sessions.filter((session) => {
-                const matchesSearch =
-                    search.trim() === '' ||
-                    session.nom.toLowerCase().includes(search.toLowerCase()) ||
-                    session.categorie
-                        .toLowerCase()
-                        .includes(search.toLowerCase());
+                const matchesSearch = correspond(
+                    search,
+                    session.nom,
+                    session.categorie,
+                    session.ville,
+                );
                 const matchesCategory =
                     activeCategory === ALL_CATEGORIES ||
                     session.categorie === activeCategory;
@@ -234,15 +238,7 @@ export default function ApprenantFormationsIndex({ sessions }: Props) {
                                 <span className="training-session-level">
                                     {session.categorie}
                                 </span>
-                                <h3>
-                                    <Link
-                                        href={formationsRoutes.show(
-                                            session.formationId,
-                                        )}
-                                    >
-                                        {session.nom}
-                                    </Link>
-                                </h3>
+                                <h3>{session.nom}</h3>
                                 <div className="training-session-meta">
                                     {session.ville && (
                                         <span>
@@ -270,15 +266,49 @@ export default function ApprenantFormationsIndex({ sessions }: Props) {
                                         restante(s)
                                     </span>
                                 </div>
-                                <div className="training-session-footer">
-                                    <Link
-                                        href={formationsRoutes.show(
-                                            session.formationId,
-                                        )}
-                                        className="btn-primary"
-                                    >
-                                        Voir la session
-                                    </Link>
+                                <div
+                                    className="training-session-footer"
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between',
+                                        gap: 12,
+                                        flexWrap: 'wrap',
+                                    }}
+                                >
+                                    <div>
+                                        <p
+                                            className="muted"
+                                            style={{ fontSize: 11.5 }}
+                                        >
+                                            Frais d'inscription
+                                        </p>
+                                        <p
+                                            style={{
+                                                fontSize: 16,
+                                                fontWeight: 800,
+                                                color: 'var(--dag-navy)',
+                                            }}
+                                        >
+                                            {libelleFraisInscription(
+                                                session.prix,
+                                            )}
+                                        </p>
+                                    </div>
+                                    {session.peutSInscrire ? (
+                                        <Link
+                                            href={session.inscriptionUrl}
+                                            className="btn-primary"
+                                        >
+                                            S'inscrire
+                                        </Link>
+                                    ) : (
+                                        <span className="chip chip-gray">
+                                            {session.placesRestantes <= 0
+                                                ? 'Complet'
+                                                : 'Inscriptions bientôt'}
+                                        </span>
+                                    )}
                                 </div>
                             </div>
                         </div>

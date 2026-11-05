@@ -2,6 +2,8 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
 import formationsAdmin from '@/routes/espace-admin/formations';
 import sessionsAdmin from '@/routes/espace-admin/sessions';
+import ChampFraisInscription from '@/components/espaces/champ-frais-inscription';
+import { libelleFraisInscription } from '@/lib/frais-inscription';
 
 type Formation = {
     id: string;
@@ -22,6 +24,7 @@ type Session = {
     dateFin: string | null;
     places: number;
     placesRestantes: number;
+    prix: string | null;
     statut: string;
     seancesCount: number;
     image: string | null;
@@ -58,6 +61,7 @@ export default function AdminFormationShow({
         date_debut: string;
         date_fin: string;
         places: number;
+        prix: string;
         image: File | null;
     }>({
         ville: '',
@@ -67,6 +71,7 @@ export default function AdminFormationShow({
         date_debut: '',
         date_fin: '',
         places: 15,
+        prix: '',
         image: null,
     });
 
@@ -213,7 +218,9 @@ export default function AdminFormationShow({
                             <textarea
                                 id="edit-programme"
                                 rows={5}
-                                placeholder={'Une ligne par étape.\nEx. Semaine 1 — Fondamentaux'}
+                                placeholder={
+                                    'Une ligne par étape.\nEx. Semaine 1 — Fondamentaux'
+                                }
                                 value={editForm.data.programme}
                                 onChange={(event) =>
                                     editForm.setData(
@@ -307,6 +314,12 @@ export default function AdminFormationShow({
                                         <td className="muted">
                                             {session.placesRestantes} /{' '}
                                             {session.places}
+                                            <br />
+                                            <span style={{ fontSize: 12 }}>
+                                                {libelleFraisInscription(
+                                                    session.prix,
+                                                )}
+                                            </span>
                                         </td>
                                         <td className="muted">
                                             {session.seancesCount}
@@ -474,6 +487,14 @@ export default function AdminFormationShow({
                                 }
                             />
                         </div>
+                        <ChampFraisInscription
+                            id="session-prix"
+                            valeur={sessionForm.data.prix}
+                            erreur={sessionForm.errors.prix}
+                            onChange={(valeur) =>
+                                sessionForm.setData('prix', valeur)
+                            }
+                        />
                         <div style={{ gridColumn: '1 / -1' }}>
                             <label htmlFor="session-image">
                                 Image (optionnel)

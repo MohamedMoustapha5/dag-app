@@ -1,6 +1,8 @@
 <?php
 
 use App\Models\User;
+use Illuminate\Auth\Notifications\VerifyEmail;
+use Illuminate\Support\Facades\Notification;
 
 test('profile page is displayed', function () {
     $user = User::factory()->create();
@@ -20,6 +22,7 @@ test('profile information can be updated', function () {
         ->patch(route('profile.update'), [
             'name' => 'Test User',
             'email' => 'test@example.com',
+            'current_password' => 'password',
         ]);
 
     $response
@@ -31,6 +34,36 @@ test('profile information can be updated', function () {
     expect($user->name)->toBe('Test User');
     expect($user->email)->toBe('test@example.com');
     expect($user->email_verified_at)->toBeNull();
+});
+
+test('changing the email address requires the current password', function (?string $motDePasse, string $erreur) {
+    $user = User::factory()->create(['email' => 'ancien@example.com']);
+
+    $this->actingAs($user)
+        ->patch(route('profile.update'), [
+            'name' => $user->name,
+            'email' => 'pirate@example.com',
+            'current_password' => $motDePasse,
+        ])
+        ->assertSessionHasErrors(['current_password' => $erreur]);
+
+    expect($user->refresh()->email)->toBe('ancien@example.com');
+})->with([
+    'missing' => [null, 'Saisissez votre mot de passe actuel pour changer d\'adresse e-mail.'],
+    'wrong' => ['mauvais', 'Le mot de passe actuel est incorrect.'],
+]);
+
+test('a new email address receives a verification link', function () {
+    Notification::fake();
+    $user = User::factory()->create();
+
+    $this->actingAs($user)->patch(route('profile.update'), [
+        'name' => $user->name,
+        'email' => 'nouvelle@example.com',
+        'current_password' => 'password',
+    ]);
+
+    Notification::assertSentTo($user, VerifyEmail::class);
 });
 
 test('email verification status is unchanged when the email address is unchanged', function () {

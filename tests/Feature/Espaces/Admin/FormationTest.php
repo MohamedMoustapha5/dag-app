@@ -21,6 +21,7 @@ test('a promotrice can quick-create a session, which creates its formation on fi
         'ville' => 'Douala',
         'mode' => 'PRESENTIEL',
         'places' => 15,
+        'prix' => 75000,
         'statut' => 'OUVERTE',
     ])->assertRedirect();
 
@@ -36,6 +37,7 @@ test('a promotrice can quick-create a session, which creates its formation on fi
         'ville' => 'Yaoundé',
         'mode' => 'EN_LIGNE',
         'places' => 10,
+        'prix' => 75000,
         'statut' => 'OUVERTE',
     ])->assertRedirect();
 
@@ -62,6 +64,7 @@ test('a promotrice can add a session to an existing formation and manage its sea
         'ville' => 'Douala',
         'mode' => 'PRESENTIEL',
         'places' => 20,
+        'prix' => 75000,
     ])->assertRedirect();
 
     $session = FormationSession::where('formation_id', $formation->id)->firstOrFail();
@@ -98,6 +101,7 @@ test('a promotrice can publish a formation and open a session', function () {
         'ville' => $session->ville,
         'mode' => $session->mode,
         'places' => $session->places,
+        'prix' => 75000,
         'statut' => 'OUVERTE',
     ])->assertRedirect();
     expect($session->fresh()->statut)->toBe('OUVERTE');
@@ -141,6 +145,7 @@ test('a role without creer access cannot quick-create a session or delete one', 
         'ville' => 'Douala',
         'mode' => 'PRESENTIEL',
         'places' => 10,
+        'prix' => 75000,
         'statut' => 'OUVERTE',
     ])->assertForbidden();
 
@@ -162,6 +167,7 @@ test('creating a session also records the content shown on the public formation 
         'ville' => 'Douala',
         'mode' => 'PRESENTIEL',
         'places' => 15,
+        'prix' => 75000,
         'statut' => 'OUVERTE',
     ])->assertRedirect();
 
@@ -190,6 +196,7 @@ test('filling the content when adding a session to an existing formation updates
         'ville' => 'Douala',
         'mode' => 'PRESENTIEL',
         'places' => 10,
+        'prix' => 75000,
         'statut' => 'OUVERTE',
     ])->assertRedirect();
 
@@ -201,6 +208,7 @@ test('filling the content when adding a session to an existing formation updates
         'ville' => 'Yaoundé',
         'mode' => 'PRESENTIEL',
         'places' => 10,
+        'prix' => 75000,
         'statut' => 'OUVERTE',
     ])->assertRedirect();
 
@@ -257,6 +265,7 @@ test('editing a session shows and updates the formation content shared by all it
         'ville' => $session->ville,
         'mode' => $session->mode,
         'places' => $session->places,
+        'prix' => 75000,
         'statut' => $session->statut,
     ])->assertRedirect();
 

@@ -1,6 +1,9 @@
 <?php
 
 use App\Enums\TeamRole;
+use App\Models\Apprenant;
+use App\Models\Client;
+use App\Models\MembreEquipe;
 use App\Models\Team;
 use App\Models\TeamInvitation;
 use App\Models\User;
@@ -132,4 +135,32 @@ test('dashboard does not include or delete other users invitations', function ()
     $this->assertDatabaseHas('team_invitations', [
         'id' => $invitation->id,
     ]);
+});
+
+test('a DAG account never sees the starter kit dashboard and lands in its own espace', function (string $type, string $espace) {
+    $user = $type === 'client' ? Client::factory()->create()->user : Apprenant::factory()->create()->user;
+
+    $this->actingAs($user)
+        ->get(route('dashboard', ['current_team' => $user->currentTeam ?? $user->personalTeam()]))
+        ->assertRedirect(route($espace, absolute: false));
+})->with([
+    'client' => ['client', 'espace-client.dashboard'],
+    'apprenant' => ['apprenant', 'espace-apprenant.dashboard'],
+]);
+
+test('the public site "Mon espace" button leads to the signed-in account espace', function () {
+    $client = Client::factory()->create();
+    $membre = MembreEquipe::factory()->create();
+
+    $this->get(route('contact'))->assertInertia(fn (Assert $page) => $page->where('espaceUrl', null));
+
+    $this->actingAs($client->user)
+        ->get(route('contact'))
+        ->assertInertia(fn (Assert $page) => $page->where('espaceUrl', route('espace-client.dashboard', absolute: false)));
+
+    auth()->guard('web')->logout();
+
+    $this->actingAs($membre, 'admin')
+        ->get(route('contact'))
+        ->assertInertia(fn (Assert $page) => $page->where('espaceUrl', route('espace-admin.dashboard', absolute: false)));
 });

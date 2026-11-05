@@ -22,7 +22,7 @@ const NAV_LINKS = [
 ];
 
 export default function TopBar() {
-    const { auth, currentTeam } = usePage().props;
+    const { espaceUrl } = usePage().props;
     const { url } = usePage();
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -37,8 +37,6 @@ export default function TopBar() {
     useEffect(() => {
         setIsMenuOpen(false);
     }, [url]);
-
-    const dashboardUrl = currentTeam ? `/${currentTeam.slug}/dashboard` : '/';
 
     return (
         <header className={`topbar${isScrolled ? ' is-scrolled' : ''}`}>
@@ -66,8 +64,8 @@ export default function TopBar() {
                 <div className="topbar-actions">
                     <LanguageSwitcher />
 
-                    {auth.user ? (
-                        <Link href={dashboardUrl} className="btn-ghost">
+                    {espaceUrl ? (
+                        <Link href={espaceUrl} className="btn-ghost">
                             Mon espace
                         </Link>
                     ) : (
@@ -130,9 +128,9 @@ export default function TopBar() {
                             </Link>
                         ))}
                         <div className="mobile-menu-divider" />
-                        {auth.user ? (
+                        {espaceUrl ? (
                             <Link
-                                href={dashboardUrl}
+                                href={espaceUrl}
                                 className="btn-primary btn-block"
                             >
                                 Mon espace

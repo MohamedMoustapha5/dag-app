@@ -51,6 +51,9 @@ class ApprenantFormationController extends Controller
             'dateFin' => $session->date_fin?->toDateString(),
             'places' => $session->places,
             'placesRestantes' => $session->placesRestantes(),
+            'prix' => $session->prix,
+            'peutSInscrire' => $session->prix !== null && $session->statut === 'OUVERTE' && $session->placesRestantes() > 0,
+            'inscriptionUrl' => route('espace-apprenant.inscriptions.create', $session),
             'statut' => $session->statut,
             'image' => $formation->image,
         ];

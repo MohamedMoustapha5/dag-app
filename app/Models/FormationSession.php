@@ -15,7 +15,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $date_debut
  * @property Carbon|null $date_fin
  */
-#[Fillable(['formation_id', 'ville', 'mode', 'lieu', 'formateur', 'date_debut', 'date_fin', 'places', 'image', 'statut'])]
+#[Fillable(['formation_id', 'ville', 'mode', 'lieu', 'formateur', 'date_debut', 'date_fin', 'places', 'prix', 'image', 'statut'])]
 class FormationSession extends Model
 {
     /** @use HasFactory<FormationSessionFactory> */
@@ -26,7 +26,20 @@ class FormationSession extends Model
         return [
             'date_debut' => 'date',
             'date_fin' => 'date',
+            'prix' => 'decimal:2',
         ];
+    }
+
+    /**
+     * Whether an apprenant can enrol right now: the session is open, its
+     * formation published, its registration fee set and a seat is left.
+     */
+    public function accepteInscriptions(): bool
+    {
+        return $this->statut === 'OUVERTE'
+            && $this->formation->statut === 'PUBLIEE'
+            && $this->prix !== null
+            && $this->placesRestantes() > 0;
     }
 
     /** @return BelongsTo<Formation, $this> */

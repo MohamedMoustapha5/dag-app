@@ -1,8 +1,11 @@
 <?php
 
+use App\Enums\Donnee;
 use App\Enums\MembreEquipeRole;
+use App\Enums\NiveauDroit;
 use App\Models\LigneTarifaire;
 use App\Models\MembreEquipe;
+use App\Support\DroitsMatrix;
 
 test('the index page exposes the actions allowed for the current role', function () {
     $juriste = MembreEquipe::factory()->juriste()->create();
@@ -78,4 +81,13 @@ test('a read-only role cannot create, modify or delete', function () {
     ])->assertForbidden();
 
     $this->actingAs($juriste, 'admin')->delete(route('espace-admin.grille-tarifaire.destroy', $ligne))->assertForbidden();
+});
+
+test('a role whose catalogue right was removed cannot open the grille tarifaire', function () {
+    DroitsMatrix::definir(MembreEquipeRole::Juriste, Donnee::Catalogue, NiveauDroit::Aucun);
+    $juriste = MembreEquipe::factory()->juriste()->create();
+
+    $this->actingAs($juriste, 'admin')
+        ->get(route('espace-admin.grille-tarifaire.index'))
+        ->assertForbidden();
 });

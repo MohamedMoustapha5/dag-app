@@ -57,7 +57,7 @@ test('the demande form preselects the chosen formule', function () {
         ->assertInertia(fn ($page) => $page->where('formuleSelectionnee', $formule->id));
 });
 
-test('an apprenant enrols in an open session and waits for payment', function () {
+test('an apprenant enrols in an open session and is sent to pay the registration fee', function () {
     $apprenant = Apprenant::factory()->create();
     $session = FormationSession::factory()->create();
 
@@ -68,7 +68,7 @@ test('an apprenant enrols in an open session and waits for payment', function ()
 
     $this->actingAs($apprenant->user)
         ->post(route('espace-apprenant.inscriptions.store', $session))
-        ->assertRedirect(route('espace-apprenant.inscriptions'));
+        ->assertRedirect(route('espace-apprenant.factures'));
 
     expect(Inscription::where('apprenant_id', $apprenant->id)->where('formation_session_id', $session->id)->value('statut'))
         ->toBe('EN_ATTENTE_PAIEMENT');

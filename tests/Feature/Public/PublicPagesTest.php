@@ -2,7 +2,6 @@
 
 use App\Models\AuditRequest;
 use App\Models\CandidatureSpontanee;
-use App\Models\ContactMessage;
 use App\Models\EntreprisePartenaire;
 use App\Models\Formation;
 use App\Models\FormationSession;
@@ -11,7 +10,10 @@ use App\Models\LigneTarifaire;
 use App\Models\MembreEquipe;
 use App\Models\OffreEmploi;
 use App\Models\Service;
+use App\Models\TicketSupport;
+use App\Notifications\AlerteEquipeNotification;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 
 test('the home page renders with published catalogue stats and the active team', function () {
@@ -142,7 +144,10 @@ test('the contact page renders', function () {
     $this->get(route('contact'))->assertOk()->assertInertia(fn ($page) => $page->component('public/contact'));
 });
 
-test('submitting the contact form creates a contact message', function () {
+test('submitting the contact form opens a support ticket the team is alerted about', function () {
+    Notification::fake();
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+
     $response = $this->post(route('contact.store'), [
         'nom' => 'Karim Benali',
         'email' => 'karim@example.com',
@@ -151,7 +156,12 @@ test('submitting the contact form creates a contact message', function () {
     ]);
 
     $response->assertRedirect();
-    expect(ContactMessage::where('email', 'karim@example.com')->exists())->toBeTrue();
+    $ticket = TicketSupport::where('email', 'karim@example.com')->firstOrFail();
+    expect($ticket->origine)->toBe('PUBLIC');
+    expect($ticket->user_id)->toBeNull();
+    expect($ticket->statut)->toBe('OUVERT');
+    expect($ticket->messages()->sole()->contenu)->toBe('Bonjour, je souhaite un devis pour un site vitrine.');
+    Notification::assertSentTo($promotrice, AlerteEquipeNotification::class);
 });
 
 test('the contact form rejects invalid input', function () {
@@ -163,7 +173,7 @@ test('the contact form rejects invalid input', function () {
     ]);
 
     $response->assertSessionHasErrors(['nom', 'email', 'sujet', 'message']);
-    expect(ContactMessage::count())->toBe(0);
+    expect(TicketSupport::count())->toBe(0);
 });
 
 test('submitting the free audit form creates an audit request', function () {
@@ -310,4 +320,40 @@ test('every public formation displays a category badge, with a default when none
             expect($categories)->toContain('Community management', 'Formation');
             expect(array_filter($categories, fn ($categorie) => $categorie === null || $categorie === ''))->toBe([]);
         });
+});
+
+test('a formation that is not published has no public page', function () {
+    $brouillon = Formation::factory()->create(['statut' => 'BROUILLON']);
+
+    $this->get(route('formations.show', $brouillon))->assertNotFound();
+});
+
+test('the public forms are rate limited per visitor', function () {
+    $message = [
+        'nom' => 'Karim Benali',
+        'email' => 'karim@example.com',
+        'sujet' => 'Demande de devis',
+        'message' => 'Bonjour.',
+    ];
+
+    foreach (range(1, 5) as $_) {
+        $this->post(route('contact.store'), $message)->assertRedirect();
+    }
+
+    $this->post(route('contact.store'), $message)->assertTooManyRequests();
+    expect(TicketSupport::count())->toBe(5);
+});
+
+test('the portfolio of a spontaneous application must be a web address', function () {
+    Storage::fake('local');
+
+    $this->post(route('candidatures-spontanees.store'), [
+        'nom' => 'Brice Kamga',
+        'email' => 'brice@example.com',
+        'telephone' => '+237699000000',
+        'portfolio' => 'data:text/html,<script>alert(1)</script>',
+        'cv' => UploadedFile::fake()->create('cv.pdf', 200, 'application/pdf'),
+    ])->assertSessionHasErrors('portfolio');
+
+    expect(CandidatureSpontanee::count())->toBe(0);
 });

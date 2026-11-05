@@ -286,6 +286,21 @@ class PaiementService
             'moyen_paiement' => $moyen,
         ]);
 
+        // A settled registration fee is the first step only: the team still
+        // validates the seat (AdminInscriptionController::valider).
+        if ($soldee && $facture->inscription_id !== null && $facture->inscription?->statut === 'EN_ATTENTE_PAIEMENT') {
+            $inscription = $facture->inscription;
+
+            Notifier::alerterEquipe(
+                Donnee::Formations,
+                Action::Valider,
+                'inscription.payee',
+                "Inscription à valider — {$inscription->formation->nom}",
+                "{$inscription->apprenant->user->name} a réglé ses frais d'inscription ({$facture->reference}). Validez sa place.",
+                $inscription->formation_session_id !== null ? route('espace-admin.sessions.show', $inscription->formation_session_id) : null,
+            );
+        }
+
         if ($soldee && $facture->demande_id !== null) {
             $demande = $facture->demande;
             $etapeActuelle = array_search($demande->statut, Demande::SUIVI_STEPS, true);

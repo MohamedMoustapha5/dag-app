@@ -10,7 +10,6 @@ import {
     LogOut,
     Menu,
     Receipt,
-    Search,
     Settings,
     Shield,
     Users,
@@ -19,9 +18,11 @@ import {
 } from 'lucide-react';
 import type { PropsWithChildren } from 'react';
 import { useEffect, useRef, useState } from 'react';
-import { contact, logout } from '@/routes';
+import { logout } from '@/routes';
+import supportClient from '@/routes/espace-client/support';
 import LanguageSwitcher from '@/components/public/language-switcher';
 import ClocheNotifications from '@/components/espaces/cloche-notifications';
+import RechercheEspace from '@/components/espaces/recherche-espace';
 import notificationsEspace from '@/routes/notifications';
 import espaceClient from '@/routes/espace-client';
 import candidatures from '@/routes/espace-client/candidatures';
@@ -281,7 +282,9 @@ export default function EspaceClientLayout({ children }: PropsWithChildren) {
                                 Notre équipe est disponible pour vous
                                 accompagner.
                             </p>
-                            <Link href={contact()}>Contacter le support →</Link>
+                            <Link href={supportClient.index()}>
+                                Contacter le support →
+                            </Link>
                         </div>
                     </div>
 
@@ -313,19 +316,20 @@ export default function EspaceClientLayout({ children }: PropsWithChildren) {
                             className="espace-topbar-logo"
                         />
 
-                        <div className="espace-search">
-                            <Search size={16} />
-                            <input
-                                type="text"
-                                placeholder="Rechercher un service, une formation, une demande..."
-                            />
-                        </div>
+                        <RechercheEspace
+                            url={espaceClient.recherche().url}
+                            placeholder="Rechercher un service, une demande, une facture…"
+                        />
 
                         <div className="espace-topbar-right">
                             <LanguageSwitcher />
                             <ClocheNotifications
-                                urlLire={(id) => notificationsEspace.lire(id).url}
-                                urlToutesLues={notificationsEspace.toutesLues().url}
+                                urlLire={(id) =>
+                                    notificationsEspace.lire(id).url
+                                }
+                                urlToutesLues={
+                                    notificationsEspace.toutesLues().url
+                                }
                             />
                             <div className="espace-user">
                                 <span className="espace-avatar">

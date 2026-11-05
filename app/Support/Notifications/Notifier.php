@@ -12,6 +12,7 @@ use App\Models\MembreEquipe;
 use App\Models\User;
 use App\Notifications\AlerteEquipeNotification;
 use App\Notifications\NotificationDag;
+use Illuminate\Notifications\AnonymousNotifiable;
 use Throwable;
 
 /**
@@ -21,7 +22,7 @@ use Throwable;
  */
 class Notifier
 {
-    public static function envoyer(User|MembreEquipe|EntreprisePartenaire|null $destinataire, NotificationDag $notification): void
+    public static function envoyer(User|MembreEquipe|EntreprisePartenaire|AnonymousNotifiable|null $destinataire, NotificationDag $notification): void
     {
         if ($destinataire === null) {
             return;

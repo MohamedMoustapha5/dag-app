@@ -13,6 +13,7 @@ import {
 import type { LucideIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import demandes from '@/routes/espace-client/demandes';
+import { correspond } from '@/lib/recherche';
 
 type Service = {
     id: string;
@@ -55,12 +56,12 @@ export default function ServicesIndex({ services }: Props) {
             const matchesCategory =
                 activeCategory === ALL_CATEGORIES ||
                 service.categorie === activeCategory;
-            const matchesSearch =
-                search.trim() === '' ||
-                service.nom.toLowerCase().includes(search.toLowerCase()) ||
-                (service.description ?? '')
-                    .toLowerCase()
-                    .includes(search.toLowerCase());
+            const matchesSearch = correspond(
+                search,
+                service.nom,
+                service.categorie,
+                service.description,
+            );
             return matchesCategory && matchesSearch;
         });
     }, [services, activeCategory, search]);

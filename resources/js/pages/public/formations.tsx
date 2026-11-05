@@ -15,6 +15,8 @@ import { Fragment, useMemo, useState } from 'react';
 import CandidatureSpontaneeModal from '@/components/public/candidature-spontanee-modal';
 import PublicLayout from '@/layouts/public-layout';
 import formationsRoutes from '@/routes/formations';
+import { libelleFraisInscription } from '@/lib/frais-inscription';
+import { correspond } from '@/lib/recherche';
 
 type Session = {
     formationId: string;
@@ -29,6 +31,7 @@ type Session = {
     dateFin: string | null;
     places: number;
     placesRestantes: number;
+    prix: string | null;
     statut: string;
     image: string | null;
 };
@@ -111,12 +114,12 @@ export default function Formations({ sessions, stats }: FormationsProps) {
     const filteredSessions = useMemo(
         () =>
             sessions.filter((session) => {
-                const matchesSearch =
-                    search.trim() === '' ||
-                    session.nom.toLowerCase().includes(search.toLowerCase()) ||
-                    session.categorie
-                        .toLowerCase()
-                        .includes(search.toLowerCase());
+                const matchesSearch = correspond(
+                    search,
+                    session.nom,
+                    session.categorie,
+                    session.ville,
+                );
                 const matchesCategory =
                     activeCategory === ALL_CATEGORIES ||
                     session.categorie === activeCategory;
@@ -425,7 +428,35 @@ export default function Formations({ sessions, stats }: FormationsProps) {
                                             restante(s)
                                         </span>
                                     </div>
-                                    <div className="training-session-footer">
+                                    <div
+                                        className="training-session-footer"
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'space-between',
+                                            gap: 12,
+                                            flexWrap: 'wrap',
+                                        }}
+                                    >
+                                        <div>
+                                            <p
+                                                className="muted"
+                                                style={{ fontSize: 11.5 }}
+                                            >
+                                                Frais d'inscription
+                                            </p>
+                                            <p
+                                                style={{
+                                                    fontSize: 16,
+                                                    fontWeight: 800,
+                                                    color: 'var(--dag-navy)',
+                                                }}
+                                            >
+                                                {libelleFraisInscription(
+                                                    session.prix,
+                                                )}
+                                            </p>
+                                        </div>
                                         <Link
                                             href={formationsRoutes.show(
                                                 session.formationId,

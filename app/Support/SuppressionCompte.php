@@ -8,6 +8,7 @@ use App\Models\Client;
 use App\Models\Contrat;
 use App\Models\Facture;
 use App\Models\NotificationLog;
+use App\Models\TicketSupport;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -30,6 +31,9 @@ class SuppressionCompte
      */
     public static function fermer(User $user): bool
     {
+        // Support threads are personal exchanges, not legal records.
+        TicketSupport::where('user_id', $user->id)->delete();
+
         if (! self::aDesPiecesAConserver($user)) {
             self::supprimerFichiers($user);
             $user->delete();

@@ -136,10 +136,28 @@ test('an external dossier is not listed among the accounts apprenants created th
             ->where('apprenants.0.id', $propre->id));
 });
 
-test('an admin can delete an apprenant account while their factures are kept', function () {
+test('closing an apprenant account that holds factures anonymises it and keeps the factures attached', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $apprenant = Apprenant::factory()->create(['telephone' => '690000000', 'ville' => 'Douala']);
+    $facture = Facture::factory()->create(['type' => 'FORMATION', 'client_id' => null, 'apprenant_id' => $apprenant->id]);
+    $email = $apprenant->user->email;
+
+    $this->actingAs($promotrice, 'admin')
+        ->delete(route('espace-admin.apprenants.destroy', $apprenant))
+        ->assertRedirect();
+
+    $apprenant->refresh();
+    expect($facture->fresh()->apprenant_id)->toBe($apprenant->id);
+    expect($apprenant->user->name)->toBe('Compte supprimé');
+    expect($apprenant->user->email)->not->toBe($email);
+    expect($apprenant->telephone)->toBeNull();
+    expect($apprenant->ville)->toBeNull();
+    expect(User::where('email', $email)->exists())->toBeFalse();
+});
+
+test('closing an apprenant account without any legal record deletes it', function () {
     $promotrice = MembreEquipe::factory()->promotrice()->create();
     $apprenant = Apprenant::factory()->create();
-    $facture = Facture::factory()->create(['type' => 'FORMATION', 'client_id' => null, 'apprenant_id' => $apprenant->id]);
     $userId = $apprenant->user_id;
 
     $this->actingAs($promotrice, 'admin')
@@ -148,7 +166,6 @@ test('an admin can delete an apprenant account while their factures are kept', f
 
     expect(Apprenant::count())->toBe(0);
     expect(User::find($userId))->toBeNull();
-    expect($facture->fresh()->apprenant_id)->toBeNull();
 });
 
 test('a lecture-only role cannot delete an apprenant account', function () {

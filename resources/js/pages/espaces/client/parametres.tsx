@@ -235,8 +235,8 @@ export default function Parametres({ client, profil, notifications }: Props) {
                                             }}
                                         >
                                             Requis pour changer d'adresse
-                                            e-mail. Un lien de vérification
-                                            sera envoyé à la nouvelle adresse.
+                                            e-mail. Un lien de vérification sera
+                                            envoyé à la nouvelle adresse.
                                         </p>
                                         {infosForm.errors.current_password && (
                                             <p

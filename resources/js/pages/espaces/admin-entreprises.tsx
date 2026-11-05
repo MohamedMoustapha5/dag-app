@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
 import entreprisesAdmin from '@/routes/espace-admin/entreprises';
 import offresAdmin from '@/routes/espace-admin/offres';
+import { correspond } from '@/lib/recherche';
 
 type Entreprise = {
     id: string;
@@ -62,8 +63,9 @@ export default function AdminEntreprises({
     const [offrePourPostuler, setOffrePourPostuler] = useState<Offre | null>(
         null,
     );
-    const [offrePourProlonger, setOffrePourProlonger] =
-        useState<Offre | null>(null);
+    const [offrePourProlonger, setOffrePourProlonger] = useState<Offre | null>(
+        null,
+    );
 
     const changerStatutEntreprise = (id: string, statut: string) => {
         router.patch(
@@ -285,13 +287,13 @@ export default function AdminEntreprises({
                                                 {offre.expiree
                                                     ? 'Expirée'
                                                     : offre.statut === 'PUBLIEE'
-                                                    ? 'Publiée'
-                                                    : offre.statut ===
-                                                        'BROUILLON'
-                                                      ? 'En attente de publication'
-                                                      : (STATUT_LABEL[
-                                                            offre.statut
-                                                        ] ?? offre.statut)}
+                                                      ? 'Publiée'
+                                                      : offre.statut ===
+                                                          'BROUILLON'
+                                                        ? 'En attente de publication'
+                                                        : (STATUT_LABEL[
+                                                              offre.statut
+                                                          ] ?? offre.statut)}
                                             </span>
                                         </td>
                                         <td style={{ textAlign: 'right' }}>
@@ -320,7 +322,7 @@ export default function AdminEntreprises({
                                                         offre.postulable
                                                             ? undefined
                                                             : offre.expiree
-                                                              ? 'Date limite dépassée : prolongez l\'offre pour postuler'
+                                                              ? "Date limite dépassée : prolongez l'offre pour postuler"
                                                               : 'Seule une offre publiée accepte des candidatures'
                                                     }
                                                     onClick={() =>
@@ -457,16 +459,22 @@ function ProlongerModal({
                         color: 'var(--dag-text-muted)',
                     }}
                 >
-                    « {offre.titre} » — {offre.entrepriseNom}. La date limite
-                    ({offre.dateLimite}) est dépassée : choisissez-en une
+                    « {offre.titre} » — {offre.entrepriseNom}. La date limite (
+                    {offre.dateLimite}) est dépassée : choisissez-en une
                     nouvelle pour rouvrir les candidatures.
                 </p>
                 <form
                     onSubmit={submit}
-                    style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
+                    style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 16,
+                    }}
                 >
                     <div>
-                        <label htmlFor="date-limite">Nouvelle date limite</label>
+                        <label htmlFor="date-limite">
+                            Nouvelle date limite
+                        </label>
                         <input
                             id="date-limite"
                             type="date"
@@ -533,16 +541,12 @@ function PostulerModal({
     const form = useForm({ apprenant_id: '', candidature_spontanee_id: '' });
 
     const liste = useMemo(() => {
-        const terme = recherche.trim().toLowerCase();
-
         return apprenants.filter(
             (apprenant) =>
                 (filtre === 'tous' ||
                     (filtre === 'formes' && apprenant.estForme) ||
                     (filtre === 'externes' && apprenant.externe)) &&
-                (terme === '' ||
-                    apprenant.nom.toLowerCase().includes(terme) ||
-                    (apprenant.ville ?? '').toLowerCase().includes(terme)),
+                correspond(recherche, apprenant.nom, apprenant.ville),
         );
     }, [apprenants, recherche, filtre]);
 
@@ -601,7 +605,8 @@ function PostulerModal({
                     }}
                 >
                     {offre.titre} — {offre.entrepriseNom}. Choisissez un dossier
-                    parmi tous les candidats : apprenants DAG, anciens apprenants et dossiers reçus de candidats externes.
+                    parmi tous les candidats : apprenants DAG, anciens
+                    apprenants et dossiers reçus de candidats externes.
                 </p>
 
                 <form

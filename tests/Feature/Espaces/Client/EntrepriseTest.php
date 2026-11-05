@@ -203,3 +203,31 @@ test('an entreprise partner sees which candidatures DAG submitted and can reject
 
     expect($candidature->fresh()->statut)->toBe('REFUSEE');
 });
+
+test('a candidate who did not consent to sharing keeps their contact details hidden from the entreprise', function () {
+    $client = clientPartenaireValide();
+    $offre = OffreEmploi::factory()->create(['entreprise_id' => $client->entreprisePartenaire->id]);
+    $apprenant = Apprenant::factory()->create(['consentement_cv' => false, 'telephone' => '690000000', 'ville' => 'Douala']);
+    $candidature = Candidature::factory()->create(['offre_id' => $offre->id, 'apprenant_id' => $apprenant->id]);
+
+    $this->actingAs($client->user)
+        ->get(route('espace-client.candidatures.show', $candidature))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('apprenant.nom', $apprenant->user->name)
+            ->where('apprenant.email', null)
+            ->where('apprenant.telephone', null)
+            ->where('apprenant.ville', null));
+});
+
+test('an entreprise cannot reopen a candidature DAG has recorded as a placement', function () {
+    $client = clientPartenaireValide();
+    $offre = OffreEmploi::factory()->create(['entreprise_id' => $client->entreprisePartenaire->id]);
+    $candidature = Candidature::factory()->create(['offre_id' => $offre->id, 'statut' => 'PLACEE']);
+
+    $this->actingAs($client->user)
+        ->patch(route('espace-client.candidatures.update', $candidature), ['statut' => 'REFUSEE'])
+        ->assertStatus(409);
+
+    expect($candidature->fresh()->statut)->toBe('PLACEE');
+});

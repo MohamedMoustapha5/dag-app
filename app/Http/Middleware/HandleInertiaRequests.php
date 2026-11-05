@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\EspaceRedirect;
 use App\Support\Notifications\Cloche;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -45,9 +46,31 @@ class HandleInertiaRequests extends Middleware
                 'user' => $user,
             ],
             'cloche' => fn () => Cloche::pour($request->is('espace-admin*') ? $request->user('admin') : $user),
+            'espaceUrl' => fn () => $this->espaceUrl($request),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'currentTeam' => fn () => $user?->currentTeam ? $user->toUserTeam($user->currentTeam) : null,
             'teams' => fn () => $user?->toUserTeams(includeCurrent: true) ?? [],
         ];
+    }
+
+    /**
+     * Where the "Mon espace" button of the public site leads: the signed-in
+     * account's own espace (client, apprenant, or the admin for a team
+     * member), or nowhere when nobody is signed in.
+     */
+    private function espaceUrl(Request $request): ?string
+    {
+        $user = $request->user('web');
+
+        if ($user !== null && $user->type !== null) {
+            return EspaceRedirect::pathFor($user);
+        }
+
+        if ($request->user('admin') !== null) {
+            return route('espace-admin.dashboard', absolute: false);
+        }
+
+        // Starter-kit accounts without a DAG type keep their team dashboard.
+        return $user?->currentTeam !== null ? route('dashboard', ['current_team' => $user->currentTeam->slug], absolute: false) : null;
     }
 }

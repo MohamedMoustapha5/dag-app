@@ -18,6 +18,7 @@ class FormationSessionFactory extends Factory
             'ville' => 'Douala',
             'mode' => 'PRESENTIEL',
             'places' => 15,
+            'prix' => 75000,
             'statut' => 'OUVERTE',
         ];
     }

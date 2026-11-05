@@ -23,6 +23,7 @@ use App\Models\NotificationLog;
 use App\Models\OffreEmploi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -214,7 +215,9 @@ class AdminStatistiqueController extends Controller
      */
     private function documents(Request $request, array $types): array
     {
-        $recherche = mb_strtolower(trim((string) $request->query('q', '')));
+        $recherche = trim((string) $request->query('q', ''));
+        // Compared without case or accents, like the database-backed tabs.
+        $terme = Str::lower(Str::ascii($recherche));
         $filtre = (string) $request->query('type', '');
 
         $tous = [
@@ -225,13 +228,13 @@ class AdminStatistiqueController extends Controller
 
         $comptes = array_count_values(array_column($tous, 'type'));
 
-        $liste = array_values(array_filter($tous, function (array $document) use ($filtre, $types, $recherche): bool {
+        $liste = array_values(array_filter($tous, function (array $document) use ($filtre, $types, $terme): bool {
             if ($filtre !== '' && in_array($filtre, $types, true) && $document['type'] !== $filtre) {
                 return false;
             }
 
-            return $recherche === ''
-                || str_contains(mb_strtolower($document['titre'].' '.$document['partie'].' '.($document['reference'] ?? '')), $recherche);
+            return $terme === ''
+                || str_contains(Str::lower(Str::ascii($document['titre'].' '.$document['partie'].' '.($document['reference'] ?? ''))), $terme);
         }));
 
         usort($liste, fn (array $a, array $b): int => strcmp($b['date'], $a['date']));

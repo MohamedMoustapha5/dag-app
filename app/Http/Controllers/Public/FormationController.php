@@ -62,6 +62,7 @@ class FormationController extends Controller
                 'dateDebut' => $session->date_debut?->toDateString(),
                 'dateFin' => $session->date_fin?->toDateString(),
                 'placesRestantes' => $session->placesRestantes(),
+                'prix' => $session->prix,
                 'statut' => $session->statut,
             ];
         }
@@ -98,6 +99,7 @@ class FormationController extends Controller
             'dateFin' => $session->date_fin?->toDateString(),
             'places' => $session->places,
             'placesRestantes' => $session->placesRestantes(),
+            'prix' => $session->prix,
             'statut' => $session->statut,
             'image' => $formation->image,
         ];

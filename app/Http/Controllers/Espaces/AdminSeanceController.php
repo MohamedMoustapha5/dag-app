@@ -40,6 +40,7 @@ class AdminSeanceController extends Controller
                 'dateDebut' => $formationSession->date_debut?->toDateString(),
                 'dateFin' => $formationSession->date_fin?->toDateString(),
                 'places' => $formationSession->places,
+                'prix' => $formationSession->prix,
                 'statut' => $formationSession->statut,
                 'image' => $formationSession->image,
             ],

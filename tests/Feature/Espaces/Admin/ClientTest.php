@@ -5,9 +5,12 @@ use App\Enums\MembreEquipeRole;
 use App\Enums\NiveauDroit;
 use App\Models\Apprenant;
 use App\Models\Client;
+use App\Models\Contrat;
 use App\Models\Demande;
 use App\Models\DroitRole;
+use App\Models\Facture;
 use App\Models\MembreEquipe;
+use App\Support\SuppressionCompte;
 use Illuminate\Support\Facades\Cache;
 
 test('a membre with voir can list the client accounts', function () {
@@ -85,4 +88,36 @@ test('the comptes page hides apprenant accounts from a role without access to do
     $this->actingAs($membre, 'admin')
         ->get(route('espace-admin.clients.index'))
         ->assertInertia(fn ($page) => $page->where('apprenants', null));
+});
+
+test('closing a client account that holds factures or contrats anonymises it instead of deleting it', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $client = Client::factory()->create(['nom' => 'Aïcha N.', 'telephone' => '690000000']);
+    $facture = Facture::factory()->create(['client_id' => $client->id]);
+    $contrat = Contrat::factory()->create(['client_id' => $client->id]);
+    $email = $client->user->email;
+
+    $this->actingAs($promotrice, 'admin')
+        ->delete(route('espace-admin.clients.destroy', $client))
+        ->assertRedirect();
+
+    $client->refresh();
+    expect($client->nom)->toBe('Compte supprimé');
+    expect($client->telephone)->toBeNull();
+    expect($client->statut)->toBe('INACTIF');
+    expect($client->user->email)->not->toBe($email);
+    expect($facture->fresh()->client_id)->toBe($client->id);
+    expect($contrat->fresh()->client_id)->toBe($client->id);
+});
+
+test('an anonymised client can no longer sign in with their former credentials', function () {
+    $client = Client::factory()->create();
+    Facture::factory()->create(['client_id' => $client->id]);
+    $email = $client->user->email;
+
+    SuppressionCompte::fermer($client->user);
+
+    $this->post(route('login.store'), ['email' => $email, 'password' => 'password'])
+        ->assertSessionHasErrors('email');
+    $this->assertGuest();
 });

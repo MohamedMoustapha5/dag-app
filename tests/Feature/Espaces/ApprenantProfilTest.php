@@ -22,6 +22,7 @@ test('an apprenant can update their name and email', function () {
     $response = $this->actingAs($apprenant->user)->patch(route('espace-apprenant.profil.update'), [
         'nom' => 'Nouveau Nom',
         'email' => 'nouveau@example.com',
+        'current_password' => 'password',
     ]);
 
     $response->assertRedirect(route('espace-apprenant.profil'));

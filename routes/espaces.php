@@ -19,6 +19,7 @@ use App\Http\Controllers\Espaces\AdminMotDePasseController;
 use App\Http\Controllers\Espaces\AdminSeanceController;
 use App\Http\Controllers\Espaces\AdminServiceController;
 use App\Http\Controllers\Espaces\AdminStatistiqueController;
+use App\Http\Controllers\Espaces\AdminSupportController;
 use App\Http\Controllers\Espaces\ApprenantDashboardController;
 use App\Http\Controllers\Espaces\ApprenantDossierController;
 use App\Http\Controllers\Espaces\ApprenantFactureController;
@@ -36,9 +37,11 @@ use App\Http\Controllers\Espaces\ClientFactureController;
 use App\Http\Controllers\Espaces\ClientOffreController;
 use App\Http\Controllers\Espaces\ClientPaiementController;
 use App\Http\Controllers\Espaces\ClientParametreController;
+use App\Http\Controllers\Espaces\ClientRechercheController;
 use App\Http\Controllers\Espaces\ClientServiceController;
 use App\Http\Controllers\Espaces\NotificationCentreController;
 use App\Http\Controllers\Espaces\PaiementEnLigneController;
+use App\Http\Controllers\Espaces\SupportController;
 use App\Http\Controllers\PaiementWebhookController;
 use App\Http\Middleware\EnsureMembreActif;
 use App\Http\Middleware\EnsurePartenaireValide;
@@ -69,6 +72,7 @@ Route::middleware(['auth', 'auth.session', 'verified', EnsureUserType::class.':C
     ->group(function () {
         Route::get('/', ClientDashboardController::class)->name('espace-client.dashboard');
         Route::get('services', ClientServiceController::class)->name('espace-client.services');
+        Route::get('recherche', ClientRechercheController::class)->middleware('throttle:60,1')->name('espace-client.recherche');
         Route::get('demandes', [ClientDemandeController::class, 'index'])->name('espace-client.demandes.index');
         Route::get('demandes/creer', [ClientDemandeController::class, 'create'])->name('espace-client.demandes.create');
         Route::post('demandes', [ClientDemandeController::class, 'store'])->name('espace-client.demandes.store');
@@ -86,6 +90,11 @@ Route::middleware(['auth', 'auth.session', 'verified', EnsureUserType::class.':C
         Route::patch('parametres', [ClientParametreController::class, 'update'])->name('espace-client.parametres.update');
         Route::patch('parametres/notifications', [ClientParametreController::class, 'updateNotifications'])->name('espace-client.parametres.notifications');
         Route::get('paiements', ClientPaiementController::class)->name('espace-client.paiements');
+        Route::get('support', [SupportController::class, 'index'])->name('espace-client.support.index');
+        Route::post('support', [SupportController::class, 'store'])->middleware('throttle:10,1')->name('espace-client.support.store');
+        Route::get('support/{ticket}', [SupportController::class, 'show'])->name('espace-client.support.show');
+        Route::post('support/{ticket}/messages', [SupportController::class, 'repondre'])->middleware('throttle:20,1')->name('espace-client.support.repondre');
+        Route::patch('support/{ticket}/cloture', [SupportController::class, 'clore'])->name('espace-client.support.clore');
 
         Route::middleware(EnsurePartenaireValide::class)->group(function () {
             Route::get('offres', [ClientOffreController::class, 'index'])->name('espace-client.offres.index');
@@ -117,6 +126,11 @@ Route::middleware(['auth', 'auth.session', 'verified', EnsureUserType::class.':A
         Route::get('profil', [ApprenantProfilController::class, 'edit'])->name('espace-apprenant.profil');
         Route::patch('profil', [ApprenantProfilController::class, 'update'])->name('espace-apprenant.profil.update');
         Route::patch('profil/notifications', [ApprenantProfilController::class, 'updateNotifications'])->name('espace-apprenant.profil.notifications');
+        Route::get('support', [SupportController::class, 'index'])->name('espace-apprenant.support.index');
+        Route::post('support', [SupportController::class, 'store'])->middleware('throttle:10,1')->name('espace-apprenant.support.store');
+        Route::get('support/{ticket}', [SupportController::class, 'show'])->name('espace-apprenant.support.show');
+        Route::post('support/{ticket}/messages', [SupportController::class, 'repondre'])->middleware('throttle:20,1')->name('espace-apprenant.support.repondre');
+        Route::patch('support/{ticket}/cloture', [SupportController::class, 'clore'])->name('espace-apprenant.support.clore');
     });
 
 /*
@@ -206,6 +220,10 @@ Route::middleware(['auth:admin', 'auth.session', EnsureMembreActif::class])
         Route::get('candidats-externes/{candidatureSpontanee}/cv', [AdminCandidatExterneController::class, 'cv'])->name('espace-admin.candidats-externes.cv');
         Route::delete('candidats-externes/{candidatureSpontanee}', [AdminCandidatExterneController::class, 'destroy'])->name('espace-admin.candidats-externes.destroy');
         Route::get('statistiques', AdminStatistiqueController::class)->name('espace-admin.statistiques');
+        Route::get('support', [AdminSupportController::class, 'index'])->name('espace-admin.support.index');
+        Route::get('support/{ticket}', [AdminSupportController::class, 'show'])->name('espace-admin.support.show');
+        Route::post('support/{ticket}/messages', [AdminSupportController::class, 'repondre'])->name('espace-admin.support.repondre');
+        Route::patch('support/{ticket}', [AdminSupportController::class, 'update'])->name('espace-admin.support.update');
     });
 
 /*

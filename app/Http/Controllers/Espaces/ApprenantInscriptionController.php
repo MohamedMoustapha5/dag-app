@@ -6,6 +6,7 @@ use App\Enums\Action;
 use App\Enums\Donnee;
 use App\Http\Controllers\Controller;
 use App\Models\Apprenant;
+use App\Models\Facture;
 use App\Models\FormationSession;
 use App\Models\Inscription;
 use App\Models\Presence;
@@ -26,7 +27,7 @@ class ApprenantInscriptionController extends Controller
         $apprenant = $request->user('web')->apprenant;
 
         $inscriptions = $apprenant->inscriptions()
-            ->with(['formation', 'formationSession.seances'])
+            ->with(['formation', 'formationSession.seances', 'facture'])
             ->latest()
             ->get();
 
@@ -37,8 +38,10 @@ class ApprenantInscriptionController extends Controller
     }
 
     /**
-     * Confirmation screen of an enrolment, reached from the public "S'inscrire"
-     * button (after signing in as an apprenant when needed).
+     * Confirmation screen of an enrolment, reached from the "S'inscrire"
+     * button of the espace catalogue or of the public formation page (after
+     * signing in as an apprenant when needed). It states the registration
+     * fee the apprenant is about to be billed.
      */
     public function create(Request $request, FormationSession $formationSession): Response|RedirectResponse
     {
@@ -62,6 +65,7 @@ class ApprenantInscriptionController extends Controller
                 'dateDebut' => $this->formatDate($formationSession->date_debut),
                 'dateFin' => $this->formatDate($formationSession->date_fin),
                 'placesRestantes' => $formationSession->placesRestantes(),
+                'prix' => $formationSession->prix,
                 'ouverte' => $formationSession->statut === 'OUVERTE' && $formationSession->formation->statut === 'PUBLIEE',
             ],
         ]);
@@ -82,37 +86,56 @@ class ApprenantInscriptionController extends Controller
             'Les inscriptions à cette session ne sont pas ouvertes.'
         );
 
+        abort_if($formationSession->prix === null, 409, "Les frais d'inscription de cette session ne sont pas encore publiés.");
+
         // The session row is locked while counting the seats, so two apprenants
-        // enrolling at the same moment can't both take the last one.
+        // enrolling at the same moment can't both take the last one. The
+        // registration fee is billed in the same step, at the session's price.
         $inscription = DB::transaction(function () use ($apprenant, $formationSession): Inscription {
             $verrouillee = FormationSession::whereKey($formationSession->id)->lockForUpdate()->firstOrFail();
 
             abort_if($verrouillee->placesRestantes() <= 0, 409, 'Cette session est complète.');
             abort_if($this->dejaInscrit($apprenant, $verrouillee), 409, 'Vous êtes déjà inscrit à cette session.');
 
-            return Inscription::create([
+            $inscription = Inscription::create([
                 'apprenant_id' => $apprenant->id,
                 'formation_id' => $verrouillee->formation_id,
                 'formation_session_id' => $verrouillee->id,
+                'montant_negocie' => $verrouillee->prix,
                 'statut' => 'EN_ATTENTE_PAIEMENT',
             ]);
+
+            Facture::create([
+                'type' => 'FORMATION',
+                'client_id' => null,
+                'apprenant_id' => $apprenant->id,
+                'inscription_id' => $inscription->id,
+                'montant' => $verrouillee->prix,
+                'montant_paye' => 0,
+                'echeance' => $verrouillee->date_debut,
+                'statut' => 'EN_ATTENTE',
+            ]);
+
+            return $inscription;
         });
+
+        $montant = number_format((float) $inscription->montant_negocie, 0, ',', ' ');
 
         Notifier::alerterEquipe(
             Donnee::Formations,
             Action::Valider,
             'inscription.nouvelle',
             "Nouvelle inscription — {$formationSession->formation->nom}",
-            "{$apprenant->user->name} demande à s'inscrire à la session de {$formationSession->ville}. Elle attend la validation du paiement.",
+            "{$apprenant->user->name} s'est inscrit à la session de {$formationSession->ville} ({$montant} FCFA de frais d'inscription, en attente de paiement).",
             route('espace-admin.sessions.show', $formationSession),
         );
 
         Inertia::flash('toast', [
             'type' => 'success',
-            'message' => 'Inscription enregistrée : l\'équipe DAG vous contacte pour le paiement et valide votre place.',
+            'message' => "Inscription enregistrée : réglez les frais d'inscription ({$montant} FCFA) pour que l'équipe DAG valide votre place.",
         ]);
 
-        return to_route('espace-apprenant.inscriptions');
+        return to_route('espace-apprenant.factures');
     }
 
     private function dejaInscrit(Apprenant $apprenant, FormationSession $session): bool
@@ -148,6 +171,8 @@ class ApprenantInscriptionController extends Controller
             'statut' => $inscription->statut,
             'progression' => $this->progression($inscription, $seances),
             'semainesAvantDebut' => $this->semainesAvantDebut($dateDebut),
+            'fraisInscription' => $inscription->facture?->montant,
+            'paiement' => $inscription->facture?->statut,
         ];
     }
 

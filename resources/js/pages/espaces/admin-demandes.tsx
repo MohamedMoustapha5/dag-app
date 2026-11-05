@@ -354,7 +354,15 @@ function DevisModal({
                             required
                         />
                         {form.errors.montant && (
-                            <p style={{ color: 'var(--dag-red)', fontSize: 12, marginTop: 4 }}>{form.errors.montant}</p>
+                            <p
+                                style={{
+                                    color: 'var(--dag-red)',
+                                    fontSize: 12,
+                                    marginTop: 4,
+                                }}
+                            >
+                                {form.errors.montant}
+                            </p>
                         )}
                     </div>
                     <div>
@@ -370,7 +378,15 @@ function DevisModal({
                             }
                         />
                         {form.errors.message && (
-                            <p style={{ color: 'var(--dag-red)', fontSize: 12, marginTop: 4 }}>{form.errors.message}</p>
+                            <p
+                                style={{
+                                    color: 'var(--dag-red)',
+                                    fontSize: 12,
+                                    marginTop: 4,
+                                }}
+                            >
+                                {form.errors.message}
+                            </p>
                         )}
                     </div>
 
