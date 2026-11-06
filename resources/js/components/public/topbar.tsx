@@ -22,7 +22,8 @@ const NAV_LINKS = [
 ];
 
 export default function TopBar() {
-    const { espaceUrl } = usePage().props;
+    // Set whenever an account (client, apprenant or team member) is signed in.
+    const connecte = usePage().props.espaceUrl !== null;
     const { url } = usePage();
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -64,11 +65,9 @@ export default function TopBar() {
                 <div className="topbar-actions">
                     <LanguageSwitcher />
 
-                    {espaceUrl ? (
-                        <Link href={espaceUrl} className="btn-ghost">
-                            Mon espace
-                        </Link>
-                    ) : (
+                    {/* Sign-in buttons are for visitors only; a signed-in
+                        account gets no button here. */}
+                    {!connecte && (
                         <>
                             <Link href={login()} className="btn-ghost">
                                 Se connecter
@@ -127,21 +126,16 @@ export default function TopBar() {
                                 {link.label}
                             </Link>
                         ))}
-                        <div className="mobile-menu-divider" />
-                        {espaceUrl ? (
-                            <Link
-                                href={espaceUrl}
-                                className="btn-primary btn-block"
-                            >
-                                Mon espace
-                            </Link>
-                        ) : (
-                            <Link
-                                href={register()}
-                                className="btn-primary btn-block"
-                            >
-                                Démarrer un projet
-                            </Link>
+                        {!connecte && (
+                            <>
+                                <div className="mobile-menu-divider" />
+                                <Link
+                                    href={register()}
+                                    className="btn-primary btn-block"
+                                >
+                                    Démarrer un projet
+                                </Link>
+                            </>
                         )}
                     </div>
                 </div>

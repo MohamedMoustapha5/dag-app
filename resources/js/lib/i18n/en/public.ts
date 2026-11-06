@@ -66,7 +66,6 @@ export const publicEn: Record<string, string> = {
     CGV: 'Terms of sale',
     Accueil: 'Home',
     Abonnement: 'Subscription',
-    'Mon espace': 'My area',
     'Se connecter': 'Log in',
     'Créer un compte': 'Create an account',
     "S'inscrire": 'Sign up',
@@ -115,14 +114,15 @@ export const publicEn: Record<string, string> = {
     'Les visages derrière vos projets': 'The faces behind your projects',
     'Une équipe basée à Douala, qui suit chaque demande du premier contact jusqu’à la livraison.':
         'A team based in Douala that follows every request from first contact to delivery.',
-    'Une équipe basée à Douala, qui suit chaque demande du premier contact jusqu\'à la livraison.':
+    "Une équipe basée à Douala, qui suit chaque demande du premier contact jusqu'à la livraison.":
         'A team based in Douala that follows every request from first contact to delivery.',
     'Envie de travailler avec nous ?': 'Want to work with us?',
-    'Parlons de votre projet, ou découvrez nos services et nos formules d\'abonnement.':
+    "Parlons de votre projet, ou découvrez nos services et nos formules d'abonnement.":
         'Let’s talk about your project, or discover our services and subscription plans.',
     'Voir nos services': 'See our services',
     "Formules d'abonnement — DAG": 'Subscription plans — DAG',
-    'Un accompagnement continu, à prix fixe': 'Ongoing support at a fixed price',
+    'Un accompagnement continu, à prix fixe':
+        'Ongoing support at a fixed price',
     'Choisissez la formule qui correspond à votre rythme de croissance, sans engagement caché.':
         'Choose the plan that matches your growth pace, with no hidden commitment.',
     'Voir la grille tarifaire': 'See the price list',
@@ -137,7 +137,8 @@ export const publicEn: Record<string, string> = {
     'Tous les services sont proposés, gérés et facturés par DAG. Un seul interlocuteur, du devis à la livraison.':
         'All services are offered, managed and invoiced by DAG. One point of contact, from quote to delivery.',
     'Demander un devis': 'Request a quote',
-    'Rechercher un service, une catégorie...': 'Search a service or category...',
+    'Rechercher un service, une catégorie...':
+        'Search a service or category...',
     'Rechercher un service': 'Search a service',
     'Effacer la recherche': 'Clear search',
     'Filtrer par catégorie': 'Filter by category',
@@ -237,7 +238,7 @@ export const publicEn: Record<string, string> = {
     'Orange Money, MTN MoMo ou carte — contrat généré et signé numériquement.':
         'Orange Money, MTN MoMo or card — contract generated and signed digitally.',
     'Suivez la réalisation': 'Follow the progress',
-    'Votre espace client centralise l\'avancement, les documents et les échanges.':
+    "Votre espace client centralise l'avancement, les documents et les échanges.":
         'Your client area centralises progress, documents and exchanges.',
     'Présentiel à Douala ou en ligne, dates et places disponibles dans le catalogue.':
         'In person in Douala or online, dates and available places in the catalogue.',
@@ -301,7 +302,7 @@ export const publicEn: Record<string, string> = {
     'Paiement simplifié': 'Simplified payment',
     'Payez comme vous le faites déjà,': 'Pay the way you already do,',
     'en FCFA': 'in FCFA',
-    'Orange Money, MTN Mobile Money ou carte bancaire — aucun compte à l\'étranger nécessaire. Dès le paiement confirmé, votre contrat est généré et envoyé automatiquement.':
+    "Orange Money, MTN Mobile Money ou carte bancaire — aucun compte à l'étranger nécessaire. Dès le paiement confirmé, votre contrat est généré et envoyé automatiquement.":
         'Orange Money, MTN Mobile Money or bank card — no foreign account needed. As soon as the payment is confirmed, your contract is generated and sent automatically.',
     'Voir les formules et tarifs →': 'See plans and prices →',
     Paiement: 'Payment',
@@ -325,8 +326,7 @@ export const publicEn: Record<string, string> = {
         'Contact us directly, or request a free audit of your page without creating an account.',
     'Audit gratuit': 'Free audit',
     'Offres de stage & emploi — DAG': 'Internship & job offers — DAG',
-    'Rejoignez une entreprise partenaire de DAG':
-        'Join a DAG partner company',
+    'Rejoignez une entreprise partenaire de DAG': 'Join a DAG partner company',
     'Stages et emplois proposés par nos entreprises partenaires, pour nos apprenants formés.':
         'Internships and jobs offered by our partner companies for our trained learners.',
     'Aucune offre ouverte pour le moment.': 'No open offer at the moment.',
