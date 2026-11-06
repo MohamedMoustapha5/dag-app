@@ -1400,7 +1400,9 @@
     color: var(--dag-text);
     padding: 0;
 }
-.dag .catalogue-search-bar input:not([type='checkbox']):not([type='radio']):focus {
+.dag
+    .catalogue-search-bar
+    input:not([type='checkbox']):not([type='radio']):focus {
     outline: none;
     box-shadow: none;
 }
@@ -1693,6 +1695,18 @@
     right: 0;
     height: 4px;
     background: linear-gradient(90deg, var(--dag-blue), var(--dag-orange));
+}
+.dag .auth-logo {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 22px;
+}
+.dag .auth-logo img {
+    display: block;
+    height: 48px;
+    width: auto;
+    max-width: 100%;
+    object-fit: contain;
 }
 .dag .auth-shell-photo {
     background-color: var(--dag-navy);
@@ -2624,6 +2638,12 @@
     }
     .dag .auth-card {
         padding: 26px;
+    }
+    .dag .auth-logo {
+        margin-bottom: 16px;
+    }
+    .dag .auth-logo img {
+        height: 40px;
     }
     .dag .auth-shell-photo {
         /* background-attachment:fixed se comporte mal sur Safari iOS

@@ -11,18 +11,10 @@ export default function AuthSimpleLayout({
         <div className="dag">
             <div className="auth-shell auth-shell-photo">
                 <div className="auth-card">
-                    <Link
-                        href={home()}
-                        style={{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            marginBottom: 24,
-                        }}
-                    >
+                    <Link href={home()} className="auth-logo">
                         <img
-                            src="/images/brand/dag-logo.jpg"
+                            src="/images/brand/dag-logo-pdf.png"
                             alt="DAG — Digital Agency Group"
-                            style={{ height: 56, width: 'auto' }}
                         />
                     </Link>
 
