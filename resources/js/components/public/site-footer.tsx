@@ -10,10 +10,14 @@ import {
     abonnement,
     aPropos,
     catalogue,
+    conditionsUtilisation,
+    conditionsVente,
     contact,
     formations,
     home,
+    mentionsLegales,
     offresEmploi,
+    politiqueConfidentialite,
 } from '@/routes';
 import espaceApprenant from '@/routes/espace-apprenant';
 import espaceClient from '@/routes/espace-client';
@@ -171,10 +175,12 @@ export default function SiteFooter() {
                     Douala, Cameroun
                 </span>
                 <div className="site-footer-legal">
-                    <Link href={contact()}>Mentions légales</Link>
-                    <Link href={contact()}>Confidentialité</Link>
-                    <Link href={contact()}>CGU</Link>
-                    <Link href={contact()}>CGV</Link>
+                    <Link href={mentionsLegales()}>Mentions légales</Link>
+                    <Link href={politiqueConfidentialite()}>
+                        Confidentialité
+                    </Link>
+                    <Link href={conditionsUtilisation()}>CGU</Link>
+                    <Link href={conditionsVente()}>CGV</Link>
                 </div>
             </div>
         </footer>

@@ -11,6 +11,7 @@ use App\Models\MembreEquipe;
 use App\Models\OffreEmploi;
 use App\Models\Service;
 use App\Models\TicketSupport;
+use App\Models\User;
 use App\Notifications\AlerteEquipeNotification;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Notification;
@@ -45,6 +46,21 @@ test('the a propos page renders with published catalogue stats and the active te
         ->where('stats.services', 1)
         ->has('equipe', 1));
 });
+
+test('the legal pages stay readable, even when signed in', function (string $route, string $component) {
+    $this->get(route($route))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->component($component));
+
+    $this->actingAs(User::factory()->create())
+        ->get(route($route))
+        ->assertOk();
+})->with([
+    'terms of use' => ['conditions-utilisation', 'public/conditions-utilisation'],
+    'privacy policy' => ['politique-confidentialite', 'public/politique-confidentialite'],
+    'terms of sale' => ['conditions-vente', 'public/conditions-vente'],
+    'legal notice' => ['mentions-legales', 'public/mentions-legales'],
+]);
 
 test('the catalogue page only lists published services', function () {
     $published = Service::factory()->create(['statut' => 'PUBLIE', 'nom' => 'Audit SEO']);

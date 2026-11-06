@@ -41,6 +41,15 @@ Route::middleware(GarderDansSonEspace::class)->group(function () {
     Route::get('contact', [ContactController::class, 'index'])->name('contact');
 });
 
+/*
+| Documents juridiques : consultables par tous, y compris un utilisateur
+| connecté, puisqu'ils encadrent son compte.
+*/
+Route::inertia('conditions-generales-utilisation', 'public/conditions-utilisation')->name('conditions-utilisation');
+Route::inertia('politique-de-confidentialite', 'public/politique-confidentialite')->name('politique-confidentialite');
+Route::inertia('conditions-generales-vente', 'public/conditions-vente')->name('conditions-vente');
+Route::inertia('mentions-legales', 'public/mentions-legales')->name('mentions-legales');
+
 Route::middleware('throttle:formulaires-publics')->group(function () {
     Route::post('contact', [ContactController::class, 'store'])->name('contact.store');
 

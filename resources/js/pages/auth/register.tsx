@@ -1,7 +1,11 @@
 import { Form, Head, Link } from '@inertiajs/react';
 import AuthPasswordField from '@/components/public/auth-password-field';
 import TeamInvitationAlert from '@/components/team-invitation-alert';
-import { contact, login } from '@/routes';
+import {
+    conditionsUtilisation,
+    login,
+    politiqueConfidentialite,
+} from '@/routes';
 import { store } from '@/routes/register';
 import type { TeamInvitationContext } from '@/types';
 
@@ -58,7 +62,9 @@ export default function Register({
                                 name="compte_type"
                                 required
                                 tabIndex={1}
-                                defaultValue={intention?.compteType ?? 'particulier'}
+                                defaultValue={
+                                    intention?.compteType ?? 'particulier'
+                                }
                             >
                                 <option value="particulier">Particulier</option>
                                 <option value="entreprise">Entreprise</option>
@@ -202,13 +208,21 @@ export default function Register({
                             />
                             <span>
                                 J'accepte les{' '}
-                                <Link href={contact()} target="_blank">
+                                <a
+                                    href={conditionsUtilisation.url()}
+                                    target="_blank"
+                                    rel="noopener"
+                                >
                                     conditions générales d'utilisation
-                                </Link>{' '}
+                                </a>{' '}
                                 et reconnais avoir pris connaissance de la{' '}
-                                <Link href={contact()} target="_blank">
+                                <a
+                                    href={politiqueConfidentialite.url()}
+                                    target="_blank"
+                                    rel="noopener"
+                                >
                                     politique de confidentialité
-                                </Link>{' '}
+                                </a>{' '}
                                 de DAG.
                             </span>
                         </label>
