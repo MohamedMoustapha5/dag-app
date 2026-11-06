@@ -2,16 +2,13 @@ import { Head, Link } from '@inertiajs/react';
 import {
     ChevronDown,
     LayoutGrid,
-    PenTool,
     Search,
-    Sparkles,
-    TrendingUp,
-    Users,
+    GraduationCap,
     X,
 } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { libelleFraisInscription } from '@/lib/frais-inscription';
+import { iconeCategorie } from '@/lib/icone-categorie';
 import { correspond } from '@/lib/recherche';
 
 type Session = {
@@ -41,13 +38,8 @@ type Props = {
 const ALL_CATEGORIES = 'Toutes les catégories';
 const ALL_VILLES = 'Toutes les villes';
 
-const CATEGORY_ICONS: Record<string, LucideIcon> = {
-    [ALL_CATEGORIES]: LayoutGrid,
-    'Community management': Users,
-    'Création de contenu': PenTool,
-    'Stratégie & publicité': TrendingUp,
-};
-const DEFAULT_CATEGORY_ICON = Sparkles;
+// Icon of a category not matched by any keyword (see iconeCategorie).
+const DEFAULT_CATEGORY_ICON = GraduationCap;
 
 export default function ApprenantFormationsIndex({ sessions }: Props) {
     const [search, setSearch] = useState('');
@@ -157,7 +149,9 @@ export default function ApprenantFormationsIndex({ sessions }: Props) {
             >
                 {categories.map((category) => {
                     const Icon =
-                        CATEGORY_ICONS[category] ?? DEFAULT_CATEGORY_ICON;
+                        category === ALL_CATEGORIES
+                            ? LayoutGrid
+                            : iconeCategorie(category, DEFAULT_CATEGORY_ICON);
 
                     return (
                         <button

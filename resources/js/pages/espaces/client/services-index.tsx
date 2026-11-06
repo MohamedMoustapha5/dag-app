@@ -2,17 +2,15 @@ import { Head, Link } from '@inertiajs/react';
 import {
     ArrowRight,
     ChevronDown,
-    Code2,
     LayoutGrid,
-    Megaphone,
     RotateCcw,
     Search,
-    Sparkles,
+    Briefcase,
     X,
 } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import demandes from '@/routes/espace-client/demandes';
+import { iconeCategorie } from '@/lib/icone-categorie';
 import { correspond } from '@/lib/recherche';
 
 type Service = {
@@ -31,12 +29,8 @@ type SortOrder = 'catalogue' | 'nom-asc' | 'nom-desc';
 
 const ALL_CATEGORIES = 'Toutes les catégories';
 
-const CATEGORY_ICONS: Record<string, LucideIcon> = {
-    [ALL_CATEGORIES]: LayoutGrid,
-    'Création & communication': Megaphone,
-    'Technique & digital': Code2,
-};
-const DEFAULT_CATEGORY_ICON = Sparkles;
+// Icon of a category not matched by any keyword (see iconeCategorie).
+const DEFAULT_CATEGORY_ICON = Briefcase;
 
 export default function ServicesIndex({ services }: Props) {
     const [search, setSearch] = useState('');
@@ -151,7 +145,9 @@ export default function ServicesIndex({ services }: Props) {
             >
                 {categories.map((category) => {
                     const Icon =
-                        CATEGORY_ICONS[category] ?? DEFAULT_CATEGORY_ICON;
+                        category === ALL_CATEGORIES
+                            ? LayoutGrid
+                            : iconeCategorie(category, DEFAULT_CATEGORY_ICON);
 
                     return (
                         <button

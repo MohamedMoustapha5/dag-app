@@ -3,19 +3,16 @@ import {
     ArrowRight,
     ChevronDown,
     LayoutGrid,
-    PenTool,
     Search,
-    Sparkles,
-    TrendingUp,
-    Users,
+    GraduationCap,
     X,
 } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
 import { Fragment, useMemo, useState } from 'react';
 import CandidatureSpontaneeModal from '@/components/public/candidature-spontanee-modal';
 import PublicLayout from '@/layouts/public-layout';
 import formationsRoutes from '@/routes/formations';
 import { libelleFraisInscription } from '@/lib/frais-inscription';
+import { iconeCategorie } from '@/lib/icone-categorie';
 import { correspond } from '@/lib/recherche';
 
 type Session = {
@@ -48,13 +45,8 @@ const ALL_CATEGORIES = 'Toutes les catégories';
 const ALL_VILLES = 'Toutes les villes';
 const ALL_PERIODES = 'Toutes les périodes';
 
-const CATEGORY_ICONS: Record<string, LucideIcon> = {
-    [ALL_CATEGORIES]: LayoutGrid,
-    'Community management': Users,
-    'Création de contenu': PenTool,
-    'Stratégie & publicité': TrendingUp,
-};
-const DEFAULT_CATEGORY_ICON = Sparkles;
+// Icon of a category not matched by any keyword (see iconeCategorie).
+const DEFAULT_CATEGORY_ICON = GraduationCap;
 
 const PROCESS_STEPS = [
     'Inscription',
@@ -283,7 +275,12 @@ export default function Formations({ sessions, stats }: FormationsProps) {
                 >
                     {categories.map((category) => {
                         const Icon =
-                            CATEGORY_ICONS[category] ?? DEFAULT_CATEGORY_ICON;
+                            category === ALL_CATEGORIES
+                                ? LayoutGrid
+                                : iconeCategorie(
+                                      category,
+                                      DEFAULT_CATEGORY_ICON,
+                                  );
 
                         return (
                             <button
