@@ -1,6 +1,6 @@
 import { Head, Link, useForm } from '@inertiajs/react';
-import { Headphones, MessageSquare, Plus, X } from 'lucide-react';
-import { useState } from 'react';
+import { Headphones, MessageSquare } from 'lucide-react';
+import CoordonneesDag from '@/components/coordonnees-dag';
 import { formaterDateSupport, SUPPORT_STATUT_CHIP } from './support-format';
 
 export type TicketResume = {
@@ -17,19 +17,43 @@ export type TicketResume = {
 export type SupportListeProps = {
     tickets: TicketResume[];
     categories: { value: string; label: string }[];
+    expediteur: { nom: string; email: string };
     urls: { creer: string };
 };
 
+function Erreur({ message }: { message?: string }) {
+    if (!message) {
+        return null;
+    }
+
+    return (
+        <p style={{ color: 'var(--dag-red)', fontSize: 12, marginTop: 4 }}>
+            {message}
+        </p>
+    );
+}
+
 /**
- * "Besoin d'aide ?" page of the client and apprenant espaces: the account
- * holder's support requests and the form to open a new one.
+ * "Besoin d'aide ?" page of the client and apprenant espaces, laid out like
+ * the public contact page: the request form next to DAG's contact details,
+ * then the account holder's past requests.
  */
 export default function SupportListe({
     tickets,
     categories,
+    expediteur,
     urls,
 }: SupportListeProps) {
-    const [formulaireOuvert, setFormulaireOuvert] = useState(false);
+    const form = useForm({
+        categorie: categories[0]?.value ?? 'AUTRE',
+        sujet: '',
+        message: '',
+    });
+
+    const submit = (event: React.FormEvent) => {
+        event.preventDefault();
+        form.post(urls.creer);
+    };
 
     return (
         <>
@@ -43,35 +67,125 @@ export default function SupportListe({
                 }}
             >
                 <div className="espace-hero-overlay" />
-                <div
-                    style={{
-                        position: 'relative',
-                        zIndex: 1,
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        gap: 16,
-                        flexWrap: 'wrap',
-                        width: '100%',
-                    }}
-                >
-                    <div className="espace-hero-content">
-                        <h1>Support</h1>
-                        <p>
-                            Posez votre question à l'équipe DAG et suivez la
-                            réponse ici, sans quitter votre espace.
-                        </p>
-                    </div>
-                    <button
-                        type="button"
-                        className="btn-primary"
-                        onClick={() => setFormulaireOuvert(true)}
-                    >
-                        <Plus size={16} />
-                        Nouvelle demande
-                    </button>
+                <div className="espace-hero-content">
+                    <h1>Besoin d'aide ?</h1>
+                    <p>
+                        Notre équipe vous répond sous 48h ouvrées, ici dans
+                        votre espace et par e-mail.
+                    </p>
                 </div>
             </div>
+
+            <div className="split-layout" style={{ marginTop: 24 }}>
+                <div className="card" style={{ padding: 32 }}>
+                    <form
+                        onSubmit={submit}
+                        style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 16,
+                        }}
+                    >
+                        <div className="form-row-2">
+                            <div>
+                                <label htmlFor="support-nom">Nom complet</label>
+                                <input
+                                    id="support-nom"
+                                    type="text"
+                                    value={expediteur.nom}
+                                    readOnly
+                                    disabled
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="support-email">E-mail</label>
+                                <input
+                                    id="support-email"
+                                    type="email"
+                                    value={expediteur.email}
+                                    readOnly
+                                    disabled
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <label htmlFor="support-categorie">Sujet</label>
+                            <select
+                                id="support-categorie"
+                                value={form.data.categorie}
+                                onChange={(event) =>
+                                    form.setData(
+                                        'categorie',
+                                        event.target.value,
+                                    )
+                                }
+                            >
+                                {categories.map((categorie) => (
+                                    <option
+                                        key={categorie.value}
+                                        value={categorie.value}
+                                    >
+                                        {categorie.label}
+                                    </option>
+                                ))}
+                            </select>
+                            <Erreur message={form.errors.categorie} />
+                        </div>
+                        <div>
+                            <label htmlFor="support-sujet">Objet</label>
+                            <input
+                                id="support-sujet"
+                                type="text"
+                                maxLength={191}
+                                value={form.data.sujet}
+                                onChange={(event) =>
+                                    form.setData('sujet', event.target.value)
+                                }
+                                placeholder="Ex. : facture DAG-F-2026-0012 en double"
+                            />
+                            <Erreur message={form.errors.sujet} />
+                        </div>
+                        <div>
+                            <label htmlFor="support-message">Message</label>
+                            <textarea
+                                id="support-message"
+                                rows={5}
+                                maxLength={5000}
+                                value={form.data.message}
+                                onChange={(event) =>
+                                    form.setData('message', event.target.value)
+                                }
+                                placeholder="Décrivez votre besoin..."
+                            />
+                            <Erreur message={form.errors.message} />
+                        </div>
+                        <button
+                            type="submit"
+                            className="btn-primary btn-block"
+                            disabled={form.processing}
+                        >
+                            {form.processing ? 'Envoi…' : 'Envoyer le message'}
+                        </button>
+                        <p className="form-consent">
+                            Vous suivez la réponse dans « Mes demandes »
+                            ci-dessous et recevez une notification à chaque
+                            message de l'équipe DAG.
+                        </p>
+                    </form>
+                </div>
+
+                <CoordonneesDag />
+            </div>
+
+            <h2
+                style={{
+                    fontSize: 17,
+                    color: 'var(--dag-navy)',
+                    margin: '36px 0 14px',
+                }}
+            >
+                Mes demandes
+            </h2>
 
             <div className="data-table-wrap">
                 {tickets.length === 0 ? (
@@ -81,18 +195,14 @@ export default function SupportListe({
                             display: 'flex',
                             flexDirection: 'column',
                             alignItems: 'center',
-                            gap: 12,
+                            gap: 10,
                         }}
                     >
                         <Headphones size={28} />
-                        <p>Vous n'avez pas encore contacté le support.</p>
-                        <button
-                            type="button"
-                            className="btn-primary"
-                            onClick={() => setFormulaireOuvert(true)}
-                        >
-                            Poser une question
-                        </button>
+                        <p>
+                            Vous n'avez pas encore contacté le support : votre
+                            première demande apparaîtra ici.
+                        </p>
                     </div>
                 ) : (
                     <table className="data-table">
@@ -155,153 +265,6 @@ export default function SupportListe({
                     </table>
                 )}
             </div>
-
-            {formulaireOuvert && (
-                <NouvelleDemande
-                    categories={categories}
-                    url={urls.creer}
-                    onClose={() => setFormulaireOuvert(false)}
-                />
-            )}
         </>
-    );
-}
-
-function NouvelleDemande({
-    categories,
-    url,
-    onClose,
-}: {
-    categories: SupportListeProps['categories'];
-    url: string;
-    onClose: () => void;
-}) {
-    const form = useForm({
-        categorie: categories[0]?.value ?? 'AUTRE',
-        sujet: '',
-        message: '',
-    });
-
-    const submit = (event: React.FormEvent) => {
-        event.preventDefault();
-        form.post(url, { onSuccess: onClose });
-    };
-
-    const erreur = (message?: string) =>
-        message && (
-            <p
-                style={{
-                    color: 'var(--dag-red)',
-                    fontSize: 12,
-                    marginTop: 4,
-                }}
-            >
-                {message}
-            </p>
-        );
-
-    return (
-        <div
-            className="modal-backdrop"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Nouvelle demande de support"
-            onClick={(event) => {
-                if (event.target === event.currentTarget) {
-                    onClose();
-                }
-            }}
-        >
-            <div className="modal-panel">
-                <button
-                    type="button"
-                    className="modal-close"
-                    onClick={onClose}
-                    aria-label="Fermer"
-                >
-                    <X size={16} />
-                </button>
-
-                <h2 style={{ fontSize: 19, color: 'var(--dag-navy)' }}>
-                    Contacter le support
-                </h2>
-                <p
-                    style={{
-                        marginTop: 8,
-                        marginBottom: 24,
-                        fontSize: 13.5,
-                        lineHeight: 1.6,
-                        color: 'var(--dag-text-muted)',
-                    }}
-                >
-                    L'équipe DAG vous répond dans cet espace ; vous êtes aussi
-                    prévenu par e-mail.
-                </p>
-
-                <form
-                    onSubmit={submit}
-                    style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 16,
-                    }}
-                >
-                    <div>
-                        <label htmlFor="support-categorie">Catégorie</label>
-                        <select
-                            id="support-categorie"
-                            value={form.data.categorie}
-                            onChange={(event) =>
-                                form.setData('categorie', event.target.value)
-                            }
-                        >
-                            {categories.map((categorie) => (
-                                <option
-                                    key={categorie.value}
-                                    value={categorie.value}
-                                >
-                                    {categorie.label}
-                                </option>
-                            ))}
-                        </select>
-                        {erreur(form.errors.categorie)}
-                    </div>
-                    <div>
-                        <label htmlFor="support-sujet">Objet</label>
-                        <input
-                            id="support-sujet"
-                            value={form.data.sujet}
-                            maxLength={191}
-                            placeholder="Ex. : facture DAG-F-2026-0012 en double"
-                            onChange={(event) =>
-                                form.setData('sujet', event.target.value)
-                            }
-                        />
-                        {erreur(form.errors.sujet)}
-                    </div>
-                    <div>
-                        <label htmlFor="support-message">Message</label>
-                        <textarea
-                            id="support-message"
-                            rows={6}
-                            maxLength={5000}
-                            value={form.data.message}
-                            onChange={(event) =>
-                                form.setData('message', event.target.value)
-                            }
-                        />
-                        {erreur(form.errors.message)}
-                    </div>
-                    <button
-                        type="submit"
-                        className="btn-primary"
-                        disabled={form.processing}
-                        style={{ alignSelf: 'flex-end' }}
-                    >
-                        {form.processing ? 'Envoi…' : 'Envoyer'}
-                    </button>
-                </form>
-            </div>
-        </div>
     );
 }

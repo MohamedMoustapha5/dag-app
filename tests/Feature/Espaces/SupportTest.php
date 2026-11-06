@@ -19,6 +19,8 @@ test('a client opens a support request from their espace and the team is alerted
         ->assertInertia(fn ($page) => $page
             ->component('espaces/client/support-index')
             ->where('client.nom', 'Aïcha N.')
+            ->where('expediteur.nom', 'Aïcha N.')
+            ->where('expediteur.email', $client->user->email)
             ->has('tickets', 0));
 
     $this->actingAs($client->user)

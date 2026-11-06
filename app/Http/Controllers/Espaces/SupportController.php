@@ -47,6 +47,10 @@ class SupportController extends Controller
                 'dernierMessage' => $ticket->dernier_message_at?->toIso8601String(),
                 'url' => route($this->espace($user).'.support.show', $ticket),
             ]),
+            'expediteur' => [
+                'nom' => $user->client !== null ? $user->client->nom : $user->name,
+                'email' => $user->email,
+            ],
             'urls' => ['creer' => route($this->espace($user).'.support.store')],
         ]);
     }
