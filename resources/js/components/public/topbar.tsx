@@ -22,8 +22,6 @@ const NAV_LINKS = [
 ];
 
 export default function TopBar() {
-    // Set whenever an account (client, apprenant or team member) is signed in.
-    const connecte = usePage().props.espaceUrl !== null;
     const { url } = usePage();
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -65,23 +63,13 @@ export default function TopBar() {
                 <div className="topbar-actions">
                     <LanguageSwitcher />
 
-                    {/* Sign-in buttons are for visitors only; a signed-in
-                        account gets no button here. */}
-                    {!connecte && (
-                        <>
-                            <Link href={login()} className="btn-ghost">
-                                Se connecter
-                            </Link>
-                            <Link href={register()} className="btn-primary">
-                                <span className="btn-label-full">
-                                    Créer un compte
-                                </span>
-                                <span className="btn-label-short">
-                                    S'inscrire
-                                </span>
-                            </Link>
-                        </>
-                    )}
+                    <Link href={login()} className="btn-ghost">
+                        Se connecter
+                    </Link>
+                    <Link href={register()} className="btn-primary">
+                        <span className="btn-label-full">Créer un compte</span>
+                        <span className="btn-label-short">S'inscrire</span>
+                    </Link>
 
                     <button
                         type="button"
@@ -126,17 +114,13 @@ export default function TopBar() {
                                 {link.label}
                             </Link>
                         ))}
-                        {!connecte && (
-                            <>
-                                <div className="mobile-menu-divider" />
-                                <Link
-                                    href={register()}
-                                    className="btn-primary btn-block"
-                                >
-                                    Démarrer un projet
-                                </Link>
-                            </>
-                        )}
+                        <div className="mobile-menu-divider" />
+                        <Link
+                            href={register()}
+                            className="btn-primary btn-block"
+                        >
+                            Démarrer un projet
+                        </Link>
                     </div>
                 </div>
             </div>
