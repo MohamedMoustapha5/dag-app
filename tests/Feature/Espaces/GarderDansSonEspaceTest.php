@@ -15,7 +15,7 @@ test('a signed-in client opening a public page lands on its counterpart in the c
     'home' => ['home', 'espace-client.dashboard'],
     'catalogue' => ['catalogue', 'espace-client.services'],
     'grille tarifaire' => ['grille-tarifaire', 'espace-client.services'],
-    'abonnement' => ['abonnement', 'espace-client.abonnements'],
+    'abonnement' => ['abonnement', 'espace-client.formules'],
     'contact' => ['contact', 'espace-client.support.index'],
     'formations' => ['formations', 'espace-client.dashboard'],
     'à propos' => ['a-propos', 'espace-client.dashboard'],

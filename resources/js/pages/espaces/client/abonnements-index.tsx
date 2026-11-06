@@ -186,7 +186,10 @@ export default function AbonnementsIndex({ resume, abonnements }: Props) {
                             renouvellement.
                         </p>
                     </div>
-                    <Link href={espaceClient.services()} className="btn-primary">
+                    <Link
+                        href={espaceClient.formules()}
+                        className="btn-primary"
+                    >
                         + Souscrire une formule
                     </Link>
                 </div>
@@ -204,7 +207,7 @@ export default function AbonnementsIndex({ resume, abonnements }: Props) {
                         Vous n'avez pas encore d'abonnement.
                     </p>
                     <Link
-                        href={espaceClient.services()}
+                        href={espaceClient.formules()}
                         className="btn-primary"
                     >
                         Découvrir nos formules
@@ -302,7 +305,10 @@ export default function AbonnementsIndex({ resume, abonnements }: Props) {
                         >
                             {filtres.map((abonnement) => {
                                 const etat = ETATS[abonnement.etat];
-                                const paiement = PAIEMENT_MOIS[abonnement.paiementDuMois ?? ''] ?? null;
+                                const paiement =
+                                    PAIEMENT_MOIS[
+                                        abonnement.paiementDuMois ?? ''
+                                    ] ?? null;
 
                                 return (
                                     <div
@@ -538,28 +544,32 @@ export default function AbonnementsIndex({ resume, abonnements }: Props) {
                                                     )}
                                                     className="btn-primary"
                                                 >
-                                                    Renouvellement demandé : suivre
+                                                    Renouvellement demandé :
+                                                    suivre
                                                 </Link>
                                             )}
                                             {abonnement.peutRenouveler &&
                                                 !abonnement.demandeRenouvellement && (
-                                                <button
-                                                    type="button"
-                                                    className="btn-primary"
-                                                    disabled={
-                                                        enCours ===
+                                                    <button
+                                                        type="button"
+                                                        className="btn-primary"
+                                                        disabled={
+                                                            enCours ===
+                                                            abonnement.id
+                                                        }
+                                                        onClick={() =>
+                                                            renouveler(
+                                                                abonnement,
+                                                            )
+                                                        }
+                                                    >
+                                                        <RefreshCw size={14} />{' '}
+                                                        {enCours ===
                                                         abonnement.id
-                                                    }
-                                                    onClick={() =>
-                                                        renouveler(abonnement)
-                                                    }
-                                                >
-                                                    <RefreshCw size={14} />{' '}
-                                                    {enCours === abonnement.id
-                                                        ? 'Envoi...'
-                                                        : 'Renouveler'}
-                                                </button>
-                                            )}
+                                                            ? 'Envoi...'
+                                                            : 'Renouveler'}
+                                                    </button>
+                                                )}
                                             <Link
                                                 href={espaceClient.factures()}
                                                 className="btn-outline"

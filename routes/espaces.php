@@ -34,6 +34,7 @@ use App\Http\Controllers\Espaces\ClientDashboardController;
 use App\Http\Controllers\Espaces\ClientDemandeController;
 use App\Http\Controllers\Espaces\ClientDocumentController;
 use App\Http\Controllers\Espaces\ClientFactureController;
+use App\Http\Controllers\Espaces\ClientFormuleController;
 use App\Http\Controllers\Espaces\ClientOffreController;
 use App\Http\Controllers\Espaces\ClientPaiementController;
 use App\Http\Controllers\Espaces\ClientParametreController;
@@ -78,6 +79,7 @@ Route::middleware(['auth', 'auth.session', 'verified', EnsureUserType::class.':C
         Route::post('demandes', [ClientDemandeController::class, 'store'])->name('espace-client.demandes.store');
         Route::get('demandes/{demande}', [ClientDemandeController::class, 'show'])->name('espace-client.demandes.show');
         Route::get('abonnements', ClientAbonnementController::class)->name('espace-client.abonnements');
+        Route::get('formules', ClientFormuleController::class)->name('espace-client.formules');
         Route::post('abonnements/{abonnement}/renouvellement', [ClientAbonnementController::class, 'renouveler'])->name('espace-client.abonnements.renouveler');
         Route::get('factures', ClientFactureController::class)->name('espace-client.factures');
         Route::get('factures/{facture}/pdf', [ClientFactureController::class, 'pdf'])->name('espace-client.factures.pdf');

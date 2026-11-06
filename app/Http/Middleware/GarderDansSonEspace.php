@@ -25,7 +25,7 @@ class GarderDansSonEspace
         'client' => [
             'catalogue' => 'espace-client.services',
             'grille-tarifaire' => 'espace-client.services',
-            'abonnement' => 'espace-client.abonnements',
+            'abonnement' => 'espace-client.formules',
             'contact' => 'espace-client.support.index',
         ],
         'apprenant' => [

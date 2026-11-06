@@ -253,3 +253,22 @@ test('a draft subscription cannot be renewed before it is activated', function (
         ->post(route('espace-admin.abonnements.renouveler', $abonnement))
         ->assertStatus(409);
 });
+
+test('a client browses the published formules inside the client espace, the subscribed one flagged', function () {
+    $client = Client::factory()->create();
+    $abonnement = abonnementPour($client);
+    $autre = Formule::factory()->create(['nom' => 'Premium']);
+    Formule::factory()->create(['nom' => 'En préparation', 'statut' => 'BROUILLON']);
+
+    $this->actingAs($client->user)
+        ->get(route('espace-client.formules'))
+        ->assertOk()
+        ->assertInertia(function ($page) use ($abonnement, $autre) {
+            $page->component('espaces/client/formules-index');
+            $formules = collect($page->toArray()['props']['formules'])->keyBy('id');
+
+            expect($formules)->toHaveCount(2);
+            expect($formules[$abonnement->formule_id]['souscrite'])->toBeTrue();
+            expect($formules[$autre->id]['souscrite'])->toBeFalse();
+        });
+});
