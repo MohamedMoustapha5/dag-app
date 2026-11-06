@@ -271,12 +271,15 @@ export default function EspaceAdminLayout({ children }: PropsWithChildren) {
                     >
                         <Link
                             href={espaceAdmin.dashboard()}
-                            className="espace-sidebar-logo"
+                            className="espace-sidebar-logo espace-sidebar-logo-admin"
                         >
                             <img
                                 src="/images/brand/dag-logo.jpg"
                                 alt="DAG — Digital Agency Group"
                             />
+                            <span className="espace-sidebar-badge-admin">
+                                Admin
+                            </span>
                         </Link>
 
                         <nav className="espace-nav">
