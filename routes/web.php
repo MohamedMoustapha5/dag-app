@@ -4,9 +4,10 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Teams\TeamInvitationController;
 use App\Http\Middleware\EnsureTeamMembership;
+use App\Http\Middleware\GarderDansSonEspace;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', HomeController::class)->name('home');
+Route::get('/', HomeController::class)->middleware(GarderDansSonEspace::class)->name('home');
 
 Route::prefix('{current_team}')
     ->middleware(['auth', 'verified', EnsureTeamMembership::class])

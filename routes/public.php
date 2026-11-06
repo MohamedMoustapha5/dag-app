@@ -9,6 +9,7 @@ use App\Http\Controllers\Public\FormationController;
 use App\Http\Controllers\Public\FormuleController;
 use App\Http\Controllers\Public\GrilleTarifaireController;
 use App\Http\Controllers\Public\OffreEmploiController;
+use App\Http\Middleware\GarderDansSonEspace;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -19,23 +20,27 @@ use Illuminate\Support\Facades\Route;
 | Section 6.1 du cahier des charges : catalogue, formations, formules et
 | contact sont consultables par un visiteur sans compte. Les formulaires
 | (audit gratuit, contact, candidature spontanée) n'exigent pas de compte
-| non plus.
+| non plus. Un client ou un apprenant connecté, lui, est renvoyé vers la
+| page équivalente de son espace (GarderDansSonEspace).
 */
 
-Route::get('catalogue', CatalogueController::class)->name('catalogue');
+Route::middleware(GarderDansSonEspace::class)->group(function () {
+    Route::get('catalogue', CatalogueController::class)->name('catalogue');
 
-Route::get('formations', [FormationController::class, 'index'])->name('formations');
-Route::get('formations/{formation}', [FormationController::class, 'show'])->name('formations.show');
+    Route::get('formations', [FormationController::class, 'index'])->name('formations');
+    Route::get('formations/{formation}', [FormationController::class, 'show'])->name('formations.show');
 
-Route::get('abonnement', FormuleController::class)->name('abonnement');
+    Route::get('abonnement', FormuleController::class)->name('abonnement');
 
-Route::get('grille-tarifaire', GrilleTarifaireController::class)->name('grille-tarifaire');
+    Route::get('grille-tarifaire', GrilleTarifaireController::class)->name('grille-tarifaire');
 
-Route::get('offres-emploi', OffreEmploiController::class)->name('offres-emploi');
+    Route::get('offres-emploi', OffreEmploiController::class)->name('offres-emploi');
 
-Route::get('a-propos', AProposController::class)->name('a-propos');
+    Route::get('a-propos', AProposController::class)->name('a-propos');
 
-Route::get('contact', [ContactController::class, 'index'])->name('contact');
+    Route::get('contact', [ContactController::class, 'index'])->name('contact');
+});
+
 Route::middleware('throttle:formulaires-publics')->group(function () {
     Route::post('contact', [ContactController::class, 'store'])->name('contact.store');
 
