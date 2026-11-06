@@ -24,7 +24,7 @@ certains services, un petit adaptateur.
 
 ### À fournir
 
-- L'adresse d'expédition de DAG (par exemple `contact@dag.cm`), sur un nom de domaine que
+- L'adresse d'expédition de DAG (par exemple `contact@agencydag.com`), sur un nom de domaine que
   DAG contrôle.
 - Un service d'envoi SMTP : celui de l'hébergeur du domaine, ou un service spécialisé
   d'envoi transactionnel (plusieurs existent, avec une offre gratuite pour de petits volumes :
@@ -41,7 +41,7 @@ MAIL_HOST=<hôte SMTP>
 MAIL_PORT=<587 ou 465>
 MAIL_USERNAME=<identifiant>
 MAIL_PASSWORD=<mot de passe>
-MAIL_FROM_ADDRESS="contact@dag.cm"
+MAIL_FROM_ADDRESS="contact@agencydag.com"
 MAIL_FROM_NAME="DAG — Digital Agency Group"
 APP_URL=https://<domaine public de la plateforme>
 NOTIFICATIONS_QUEUE=database

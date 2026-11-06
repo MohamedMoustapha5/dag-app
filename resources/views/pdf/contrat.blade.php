@@ -41,7 +41,7 @@
             <div class="societe">
                 DAG — Digital Agency Group<br>
                 Siège : Douala, Cameroun<br>
-                contact@dag.cm
+                contact@agencydag.com
             </div>
         </td>
         <td width="48%" style="vertical-align: top;">

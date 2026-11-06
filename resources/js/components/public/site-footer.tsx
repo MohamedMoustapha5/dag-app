@@ -154,8 +154,11 @@ export default function SiteFooter() {
                             >
                                 WhatsApp
                             </a>
-                            <a href="mailto:contact@dag.cm" className="navlink">
-                                contact@dag.cm
+                            <a
+                                href="mailto:contact@agencydag.com"
+                                className="navlink"
+                            >
+                                contact@agencydag.com
                             </a>
                         </nav>
                     </div>

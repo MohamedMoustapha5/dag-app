@@ -138,7 +138,7 @@
 <div class="pied">
     <table width="100%">
         <tr>
-            <td>contact@dag.cm</td>
+            <td>contact@agencydag.com</td>
             <td class="c">DAG — Digital Agency Group</td>
             <td class="r">Douala, Cameroun</td>
         </tr>

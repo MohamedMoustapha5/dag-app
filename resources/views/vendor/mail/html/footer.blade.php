@@ -4,7 +4,7 @@
 <tr>
 <td class="content-cell" align="center">
 {{ Illuminate\Mail\Markdown::parse($slot) }}
-<p>DAG — Digital Agency Group · Douala, Cameroun · contact@dag.cm</p>
+<p>DAG — Digital Agency Group · Douala, Cameroun · contact@agencydag.com</p>
 </td>
 </tr>
 </table>

@@ -157,7 +157,7 @@ Composants partagés ajustés en même temps :
   `02-phase-2-...md`), 5 icônes sociales (`lucide-react`), 4 liens légaux en
   pied de page (Mentions légales / Confidentialité / CGU / CGV).
 - `contact-fab.tsx` : coordonnées réelles (`+237 6 99 00 00 00`,
-  `contact@dag.cm`), titre « Contactez DAG ».
+  `contact@agencydag.com`), titre « Contactez DAG ».
 
 ## 3. Formulaires sans compte
 

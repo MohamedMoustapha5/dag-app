@@ -20,8 +20,8 @@ const CONTACT_CHANNELS = [
     },
     {
         key: 'email',
-        label: 'contact@dag.cm',
-        href: 'mailto:contact@dag.cm',
+        label: 'contact@agencydag.com',
+        href: 'mailto:contact@agencydag.com',
         icon: Mail,
         iconBg: 'var(--dag-orange-bg)',
         iconColor: 'var(--dag-orange-ink)',

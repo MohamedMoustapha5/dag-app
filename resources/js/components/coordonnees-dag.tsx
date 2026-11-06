@@ -22,8 +22,8 @@ const COORDONNEES = [
     {
         key: 'email',
         titre: 'E-mail',
-        valeur: 'contact@dag.cm',
-        href: 'mailto:contact@dag.cm',
+        valeur: 'contact@agencydag.com',
+        href: 'mailto:contact@agencydag.com',
         icon: Mail,
         iconBg: 'var(--dag-orange-bg)',
         iconColor: 'var(--dag-orange-ink)',

@@ -1051,7 +1051,7 @@ export default function Home({ stats, equipe }: HomeProps) {
                             Téléphone
                         </a>
                         <a
-                            href="mailto:contact@dag.cm"
+                            href="mailto:contact@agencydag.com"
                             className="btn-ghost btn-ghost-dark"
                         >
                             E-mail
