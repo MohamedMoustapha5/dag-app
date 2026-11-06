@@ -1,7 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
-import { Check, Rocket, Sparkles, TrendingUp } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
+import { Check } from 'lucide-react';
 import PublicLayout from '@/layouts/public-layout';
+import { iconeFormule } from '@/lib/icone-formule';
 import { grilleTarifaire } from '@/routes';
 import espaceClientDemandes from '@/routes/espace-client/demandes';
 
@@ -17,13 +17,6 @@ type Formule = {
 type AbonnementProps = {
     formules: Formule[];
 };
-
-const FORMULE_ICONS: Record<string, LucideIcon> = {
-    Essentiel: Rocket,
-    Croissance: TrendingUp,
-    Premium: Sparkles,
-};
-const DEFAULT_FORMULE_ICON = Sparkles;
 
 export default function Abonnement({ formules }: AbonnementProps) {
     return (
@@ -54,8 +47,7 @@ export default function Abonnement({ formules }: AbonnementProps) {
             <section className="section-gap container">
                 <div className="grid-3">
                     {formules.map((formule) => {
-                        const Icon =
-                            FORMULE_ICONS[formule.nom] ?? DEFAULT_FORMULE_ICON;
+                        const Icon = iconeFormule(formule.nom);
 
                         return (
                             <div

@@ -1,12 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
-import {
-    Check,
-    CheckCircle2,
-    Rocket,
-    Sparkles,
-    TrendingUp,
-} from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
+import { Check, CheckCircle2 } from 'lucide-react';
+import { iconeFormule } from '@/lib/icone-formule';
 import espaceClient from '@/routes/espace-client';
 import espaceClientDemandes from '@/routes/espace-client/demandes';
 
@@ -23,13 +17,6 @@ type Formule = {
 type Props = {
     formules: Formule[];
 };
-
-const FORMULE_ICONS: Record<string, LucideIcon> = {
-    Essentiel: Rocket,
-    Croissance: TrendingUp,
-    Premium: Sparkles,
-};
-const DEFAULT_FORMULE_ICON = Sparkles;
 
 /**
  * The subscription formules inside the client espace, laid out like the
@@ -78,8 +65,7 @@ export default function FormulesIndex({ formules }: Props) {
 
             <div className="grid-3" style={{ marginTop: 24 }}>
                 {formules.map((formule) => {
-                    const Icon =
-                        FORMULE_ICONS[formule.nom] ?? DEFAULT_FORMULE_ICON;
+                    const Icon = iconeFormule(formule.nom);
                     const misEnAvant = formule.populaire && !formule.souscrite;
 
                     return (
