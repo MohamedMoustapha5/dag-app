@@ -401,7 +401,7 @@ class DemoWorkflowSeeder extends Seeder
 
     private function journalEtNotifications(): void
     {
-        $promotrice = MembreEquipe::where('email', 'marie.d@dag.cm')->first();
+        $promotrice = MembreEquipe::where('email', 'afsamandou15@gmail.com')->first();
         $juriste = MembreEquipe::where('email', 'fatou.m@dag.cm')->first();
         $communication = MembreEquipe::where('email', 'jules.k@dag.cm')->first();
 

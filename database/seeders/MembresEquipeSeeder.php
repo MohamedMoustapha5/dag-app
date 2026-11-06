@@ -16,7 +16,7 @@ class MembresEquipeSeeder extends Seeder
     public function run(): void
     {
         $membres = [
-            ['name' => 'Afsa Maira', 'email' => 'marie.d@dag.cm', 'role' => MembreEquipeRole::Promotrice],
+            ['name' => 'Afsa Maira', 'email' => 'afsamandou15@gmail.com', 'role' => MembreEquipeRole::Promotrice],
             ['name' => 'Pascal', 'email' => 'fatou.m@dag.cm', 'role' => MembreEquipeRole::Juriste],
             ['name' => 'Senghor', 'email' => 'jules.k@dag.cm', 'role' => MembreEquipeRole::CommunicationMarketing],
             ['name' => 'Layana D.', 'email' => 'herve.n@dag.cm', 'role' => MembreEquipeRole::ControleGestion],

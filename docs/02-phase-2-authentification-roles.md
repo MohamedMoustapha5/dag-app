@@ -143,7 +143,7 @@ Puis, dans le navigateur :
 - `/login` avec un compte de démo (mot de passe `password`) :
     - `aicha.n@exemple.com` → `/espace-client`
     - `stephanie.a@mail.com` → `/espace-apprenant`
-    - `marie.d@dag.cm` (Promotrice) ou `fatou.m@dag.cm` (Juriste) → `/espace-admin`,
+    - `afsamandou15@gmail.com` (Promotrice) ou `fatou.m@dag.cm` (Juriste) → `/espace-admin`,
       avec le détail des droits du rôle affiché.
     - Essayer de visiter `/espace-admin` en étant connecté comme `aicha.n@exemple.com`
       → 403.
