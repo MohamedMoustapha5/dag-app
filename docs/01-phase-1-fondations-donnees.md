@@ -133,7 +133,7 @@ Comptes de démo utiles pour la suite (mot de passe `password`) :
 | Rôle                     | E-mail               |
 | ------------------------ | -------------------- |
 | Promotrice (accès total) | afsamandou15@gmail.com       |
-| Juriste                  | fatou.m@dag.cm       |
+| Juriste                  | ndoumnkambenoitpascal@gmail.com       |
 | Client actif             | aicha.n@exemple.com  |
 | Apprenante               | stephanie.a@mail.com |
 
