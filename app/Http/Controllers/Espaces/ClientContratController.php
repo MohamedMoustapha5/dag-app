@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Espaces;
 use App\Enums\Action;
 use App\Enums\Donnee;
 use App\Http\Controllers\Controller;
+use App\Jobs\ConstruireDocumentPdf;
 use App\Models\ActivityLog;
 use App\Models\Contrat;
 use App\Notifications\ContratSigneNotification;
@@ -107,6 +108,11 @@ class ClientContratController extends Controller
         }
 
         $contrat->refresh();
+
+        // The signed PDF is built now (the conditional update above bypasses the
+        // model events), so the document kept as evidence is the one produced at
+        // the moment of signature.
+        ConstruireDocumentPdf::dispatch($contrat);
 
         Notifier::envoyer($request->user('web'), new ContratSigneNotification($contrat));
         Notifier::alerterEquipe(

@@ -7,15 +7,28 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Response;
 
 /**
- * Renders the receipt-style PDF of a fully paid facture. Only the client
- * and apprenant spaces expose it; the admin side does not.
+ * Receipt-style PDF of a fully paid facture. Only the client and apprenant
+ * spaces expose it; the admin side does not. It is rendered on the first
+ * download and then served from the private storage (DocumentArchive).
  */
 class FacturePdf
 {
+    public const DOSSIER = 'factures';
+
     public static function telecharger(Facture $facture): Response
     {
         abort_unless($facture->statut === 'PAYEE', 403, 'Seule une facture payée peut être téléchargée.');
 
+        return DocumentArchive::telecharger(
+            $facture,
+            self::DOSSIER,
+            "facture-{$facture->reference}.pdf",
+            fn (): string => self::generer($facture),
+        );
+    }
+
+    public static function generer(Facture $facture): string
+    {
         $facture->load(['client.user', 'entreprise', 'apprenant.user', 'demande.service', 'demande.formule', 'abonnement.formule', 'inscription.formation', 'paiements']);
 
         [$destinataire, $contact] = self::destinataire($facture);
@@ -29,7 +42,7 @@ class FacturePdf
             'datePaiement' => self::datePaiement($facture),
             'signature' => DocumentAssets::signatureDirectrice(),
             'cachet' => DocumentAssets::cachet(),
-        ])->setPaper('a4')->download("facture-{$facture->reference}.pdf");
+        ])->setPaper('a4')->output();
     }
 
     /**

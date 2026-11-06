@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Concerns\GeneratesReference;
+use App\Jobs\ConstruireDocumentPdf;
 use Database\Factories\ContratFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -91,6 +92,14 @@ class Contrat extends Model
         static::creating(function (self $contrat) {
             if (empty($contrat->code_verification)) {
                 $contrat->code_verification = Str::upper(Str::random(3).'-'.random_int(100, 999).Str::random(1));
+            }
+        });
+
+        // The signed PDF is built at the moment of signature, and never again:
+        // the document kept as evidence is the one the client signed.
+        static::updated(function (self $contrat) {
+            if ($contrat->wasChanged('statut') && $contrat->statut === 'SIGNE' && $contrat->fichier_pdf === null) {
+                ConstruireDocumentPdf::dispatch($contrat);
             }
         });
     }

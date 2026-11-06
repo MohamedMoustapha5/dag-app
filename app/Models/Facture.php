@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Concerns\GeneratesReference;
+use App\Jobs\ConstruireDocumentPdf;
+use App\Support\DocumentArchive;
 use Database\Factories\FactureFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -33,6 +35,30 @@ class Facture extends Model
     public static function referencePrefix(): string
     {
         return 'DAG-F';
+    }
+
+    protected static function booted(): void
+    {
+        // The PDF (a receipt) is built as soon as the facture is fully paid. It
+        // shows the amounts and the status: if one of them changes afterwards,
+        // it is rebuilt, or dropped when the facture is no longer paid.
+        static::created(function (self $facture) {
+            if ($facture->statut === 'PAYEE') {
+                ConstruireDocumentPdf::dispatch($facture);
+            }
+        });
+
+        static::updated(function (self $facture) {
+            if (! $facture->wasChanged(['montant', 'montant_paye', 'statut', 'moyen_paiement', 'echeance'])) {
+                return;
+            }
+
+            if ($facture->statut === 'PAYEE') {
+                ConstruireDocumentPdf::dispatch($facture, remplacer: $facture->fichier_pdf !== null);
+            } elseif ($facture->fichier_pdf !== null) {
+                DocumentArchive::oublier($facture);
+            }
+        });
     }
 
     /** @return BelongsTo<Client, $this> */

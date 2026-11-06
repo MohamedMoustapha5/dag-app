@@ -7,6 +7,7 @@ use App\Models\Attestation;
 use App\Models\Inscription;
 use App\Models\Presence;
 use App\Models\Seance;
+use App\Support\AttestationPdf;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -78,7 +79,7 @@ class ApprenantDossierController extends Controller
     {
         abort_unless($attestation->apprenant_id === $request->user('web')->apprenant->id, 404);
 
-        return AdminAttestationController::genererPdf($attestation);
+        return AttestationPdf::telecharger($attestation);
     }
 
     /**

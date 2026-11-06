@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Storage;
  */
 class ContratPdf
 {
+    public const DOSSIER = 'contrats';
+
     private const TYPES = [
         'PRESTATION_SERVICE' => 'Contrat de prestation de service',
         'ABONNEMENT' => "Contrat d'abonnement",
@@ -21,7 +23,27 @@ class ContratPdf
         'CONTRAT_PARTENAIRE' => 'Contrat partenaire',
     ];
 
+    /**
+     * The signed contract is rendered once (at signature, see archiver()) and
+     * served from the private storage afterwards: the evidence the client
+     * signed stays the same document, even if brand assets change later.
+     */
     public static function telecharger(Contrat $contrat): Response
+    {
+        return DocumentArchive::telecharger(
+            $contrat,
+            self::DOSSIER,
+            "contrat-{$contrat->reference}.pdf",
+            fn (): string => self::generer($contrat),
+        );
+    }
+
+    public static function archiver(Contrat $contrat): void
+    {
+        DocumentArchive::archiver($contrat, self::DOSSIER, fn (): string => self::generer($contrat));
+    }
+
+    public static function generer(Contrat $contrat): string
     {
         $contrat->load(['client', 'apprenant.user', 'entreprise', 'demande', 'abonnement.formule', 'candidature.offre']);
 
@@ -46,7 +68,7 @@ class ContratPdf
             $pdf->getDomPDF()->getFontMetrics()->getFont('helvetica'), 8, [0.36, 0.42, 0.51]
         );
 
-        return $pdf->download("contrat-{$contrat->reference}.pdf");
+        return $pdf->output();
     }
 
     /**

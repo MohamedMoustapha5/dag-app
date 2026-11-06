@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Concerns\GeneratesReference;
+use App\Jobs\ConstruireDocumentPdf;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
@@ -23,6 +24,12 @@ class Attestation extends Model
     public static function referencePrefix(): string
     {
         return 'DAG-ATT';
+    }
+
+    protected static function booted(): void
+    {
+        // The certificate PDF is built as soon as DAG validates it.
+        static::created(fn (self $attestation) => ConstruireDocumentPdf::dispatch($attestation));
     }
 
     /** @return BelongsTo<Apprenant, $this> */

@@ -11,9 +11,8 @@ use App\Models\Attestation;
 use App\Models\Inscription;
 use App\Models\Seance;
 use App\Notifications\AttestationDisponibleNotification;
-use App\Support\DocumentAssets;
+use App\Support\AttestationPdf;
 use App\Support\Notifications\Notifier;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -118,26 +117,7 @@ class AdminAttestationController extends Controller
     {
         abort_unless($this->membre($request)->peut(Donnee::DossiersApprenants, Action::Telecharger), 403);
 
-        return self::genererPdf($attestation);
-    }
-
-    /**
-     * Shared by the admin and the apprenant downloads: the PDF is rendered
-     * on demand from the validated attestation, never stored.
-     */
-    public static function genererPdf(Attestation $attestation): HttpResponse
-    {
-        $attestation->load(['apprenant.user', 'formation']);
-
-        return Pdf::loadView('pdf.attestation', [
-            'attestation' => $attestation,
-            'apprenant' => $attestation->apprenant->user->name,
-            'formation' => $attestation->formation->nom,
-            'duree' => $attestation->formation->duree,
-            'dateEmission' => Carbon::parse($attestation->date_emission)->format('d/m/Y'),
-            'signature' => DocumentAssets::signatureDirectrice(),
-            'cachet' => DocumentAssets::cachet(),
-        ])->setPaper('a4', 'landscape')->download("attestation-{$attestation->reference}.pdf");
+        return AttestationPdf::telecharger($attestation);
     }
 
     /**
