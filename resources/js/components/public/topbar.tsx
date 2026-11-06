@@ -42,7 +42,7 @@ export default function TopBar() {
             <div className="topbar-inner">
                 <Link href={home()} className="topbar-logo">
                     <img
-                        src="/images/brand/dag-logo.jpg"
+                        src="/images/brand/dag-logo-pdf.png"
                         alt="DAG — Digital Agency Group"
                     />
                 </Link>
