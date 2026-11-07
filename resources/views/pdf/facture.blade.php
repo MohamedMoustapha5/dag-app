@@ -39,7 +39,7 @@
 <div class="page">
     <table class="entete" width="100%">
         <tr>
-            <td width="50%"><img src="{{ public_path('images/brand/dag-logo-pdf.png') }}" style="width: 190px;" alt="DAG — Digital Agency Group"></td>
+            <td width="50%"><img src="{{ public_path('images/brand/pdf/dag-logo-fond-blanc.png') }}" style="width: 190px;" alt="DAG — Digital Agency Group"></td>
             <td width="50%">
                 <div class="titre">FACTURE</div>
                 <div class="meta">

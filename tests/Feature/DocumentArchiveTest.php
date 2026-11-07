@@ -119,3 +119,16 @@ test('a stored document whose file went missing is rebuilt on download', functio
     expect($reponse->getContent())->toStartWith('%PDF');
     Storage::disk('local')->assertExists("documents/factures/{$facture->id}.pdf");
 });
+
+test('the archiver command stores the PDF of every downloadable document still missing one', function () {
+    $payee = Facture::factory()->payee()->create();
+    Facture::query()->whereKey($payee->id)->toBase()->update(['fichier_pdf' => null]);
+    Storage::disk('local')->delete("documents/factures/{$payee->id}.pdf");
+    $impayee = Facture::factory()->create(['montant' => 80000, 'montant_paye' => 0]);
+
+    $this->artisan('documents:archiver')->assertSuccessful();
+
+    expect($payee->fresh()->fichier_pdf)->toBe("documents/factures/{$payee->id}.pdf");
+    expect(Storage::disk('local')->get("documents/factures/{$payee->id}.pdf"))->toStartWith('%PDF');
+    expect($impayee->fresh()->fichier_pdf)->toBeNull();
+});

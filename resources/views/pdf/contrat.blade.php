@@ -37,7 +37,7 @@
 <table width="100%">
     <tr>
         <td width="52%" style="vertical-align: top;">
-            <img src="{{ public_path('images/brand/dag-logo-pdf.png') }}" style="width: 175px;" alt="DAG — Digital Agency Group">
+            <img src="{{ public_path('images/brand/pdf/dag-logo-fond-blanc.png') }}" style="width: 175px;" alt="DAG — Digital Agency Group">
             <div class="societe">
                 DAG — Digital Agency Group<br>
                 Siège : Douala, Cameroun<br>

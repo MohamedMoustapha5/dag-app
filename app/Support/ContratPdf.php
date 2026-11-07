@@ -135,6 +135,6 @@ class ContratPdf
 
         $mime = Storage::disk('local')->mimeType($chemin) ?: 'image/png';
 
-        return "data:{$mime};base64,".base64_encode(Storage::disk('local')->get($chemin));
+        return DocumentAssets::dataUri((string) Storage::disk('local')->get($chemin), $mime);
     }
 }

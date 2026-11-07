@@ -27,7 +27,7 @@
 </head>
 <body>
     <img class="abs fond" src="{{ public_path('images/brand/pdf/attestation-fond.svg') }}" alt="">
-    <img class="abs logo" src="{{ public_path('images/brand/dag-logo-pdf.png') }}" alt="DAG — Digital Agency Group">
+    <img class="abs logo" src="{{ public_path('images/brand/pdf/dag-logo-fond-attestation.png') }}" alt="DAG — Digital Agency Group">
 
     <div class="abs titre">Attestation</div>
     <div class="abs sous-titre">DE FORMATION</div>
