@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import AuditRequestModal from '@/components/public/audit-request-modal';
+import Compteur from '@/components/public/compteur';
 import PublicLayout from '@/layouts/public-layout';
 import { abonnement, catalogue, contact, formations } from '@/routes';
 
@@ -210,7 +211,7 @@ export default function Home({ stats, equipe }: HomeProps) {
                 }}
             >
                 <div className="hero-full-overlay" />
-                <div className="hero-full-content home-hero-content container">
+                <div className="hero-full-content home-hero-content anim-entree container">
                     <span className="badge">Bienvenue chez DAG</span>
                     <h1>
                         L'accélérateur digital de <span>votre activité</span>.
@@ -235,15 +236,15 @@ export default function Home({ stats, equipe }: HomeProps) {
                     </div>
                     <div className="home-hero-stats">
                         <div className="home-hero-stat">
-                            <strong>{stats.services}</strong>
+                            <Compteur valeur={stats.services} />
                             <span>Services au catalogue</span>
                         </div>
                         <div className="home-hero-stat">
-                            <strong>100%</strong>
+                            <Compteur valeur={100} suffixe="%" />
                             <span>Contrats numériques</span>
                         </div>
                         <div className="home-hero-stat">
-                            <strong>3</strong>
+                            <Compteur valeur={3} />
                             <span>Moyens de paiement</span>
                         </div>
                     </div>
@@ -712,7 +713,10 @@ export default function Home({ stats, equipe }: HomeProps) {
                         </Link>
                     </div>
 
-                    <div className="grid-3" style={{ marginTop: 32 }}>
+                    <div
+                        className="grid-3 anim-cascade"
+                        style={{ marginTop: 32 }}
+                    >
                         {FORMATION_STEPS.map((step) => (
                             <div
                                 key={step.titre}

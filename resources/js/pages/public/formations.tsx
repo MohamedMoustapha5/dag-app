@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { Fragment, useMemo, useState } from 'react';
 import CandidatureSpontaneeModal from '@/components/public/candidature-spontanee-modal';
+import Compteur from '@/components/public/compteur';
 import PublicLayout from '@/layouts/public-layout';
 import formationsRoutes from '@/routes/formations';
 import { libelleFraisInscription } from '@/lib/frais-inscription';
@@ -135,10 +136,10 @@ export default function Formations({ sessions, stats }: FormationsProps) {
         <PublicLayout>
             <Head title="Formations — DAG" />
 
-            <section className="training-hero-wrap reveal container">
+            <section className="training-hero-wrap container">
                 <div className="training-hero">
                     <div className="training-hero-overlay" />
-                    <div className="training-hero-content">
+                    <div className="training-hero-content anim-entree">
                         <span className="badge">Module formation</span>
                         <h1>Formations & placement en entreprise</h1>
                         <p>
@@ -159,11 +160,14 @@ export default function Formations({ sessions, stats }: FormationsProps) {
                             </div>
                             <div className="training-hero-stats">
                                 <div>
-                                    <strong>{stats.placesMoyennes}</strong>
+                                    <Compteur valeur={stats.placesMoyennes} />
                                     <span>places / session</span>
                                 </div>
                                 <div>
-                                    <strong>{stats.tauxPlacement}%</strong>
+                                    <Compteur
+                                        valeur={stats.tauxPlacement}
+                                        suffixe="%"
+                                    />
                                     <span>taux de placement</span>
                                 </div>
                             </div>
@@ -173,7 +177,7 @@ export default function Formations({ sessions, stats }: FormationsProps) {
             </section>
 
             <section className="section-gap reveal container">
-                <div className="process-track-card">
+                <div className="process-track-card anim-cascade">
                     {PROCESS_STEPS.map((step, index) => {
                         const isLast = index === PROCESS_STEPS.length - 1;
                         return (
@@ -364,7 +368,7 @@ export default function Formations({ sessions, stats }: FormationsProps) {
                     </p>
                 ) : (
                     <div
-                        className="training-session-grid"
+                        className="training-session-grid anim-cascade"
                         style={{ marginTop: 22 }}
                     >
                         {filteredSessions.map((session) => (

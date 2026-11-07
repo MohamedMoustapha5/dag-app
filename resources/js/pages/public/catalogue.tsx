@@ -90,7 +90,7 @@ export default function Catalogue({ services }: CatalogueProps) {
         <PublicLayout>
             <Head title="Catalogue de services — DAG" />
 
-            <section className="service-catalogue-intro reveal container">
+            <section className="service-catalogue-intro container">
                 <div
                     className="service-catalogue-hero"
                     style={{
@@ -99,7 +99,7 @@ export default function Catalogue({ services }: CatalogueProps) {
                         backgroundPosition: 'center 30%',
                     }}
                 >
-                    <div className="service-catalogue-hero-content">
+                    <div className="service-catalogue-hero-content anim-entree">
                         <span className="badge">
                             {services.length} services
                         </span>
@@ -237,7 +237,10 @@ export default function Catalogue({ services }: CatalogueProps) {
                         Aucun service ne correspond à votre recherche.
                     </p>
                 ) : (
-                    <div className="catalogue-grid" style={{ marginTop: 22 }}>
+                    <div
+                        className="catalogue-grid anim-cascade"
+                        style={{ marginTop: 22 }}
+                    >
                         {sortedServices.map((service) => (
                             <div key={service.id} className="card photo-card">
                                 <div className="photo-card-media">

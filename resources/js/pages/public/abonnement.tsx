@@ -23,10 +23,10 @@ export default function Abonnement({ formules }: AbonnementProps) {
         <PublicLayout>
             <Head title="Formules d'abonnement — DAG" />
 
-            <section className="subscription-hero-wrap reveal container">
+            <section className="subscription-hero-wrap container">
                 <div className="subscription-hero">
                     <div className="subscription-hero-overlay" />
-                    <div className="subscription-hero-content">
+                    <div className="subscription-hero-content anim-entree">
                         <span className="badge">Abonnement</span>
                         <h1>Un accompagnement continu, à prix fixe</h1>
                         <p>
@@ -45,7 +45,7 @@ export default function Abonnement({ formules }: AbonnementProps) {
             </section>
 
             <section className="section-gap container">
-                <div className="grid-3">
+                <div className="grid-3 anim-cascade">
                     {formules.map((formule) => {
                         const Icon = iconeFormule(formule.nom);
 

@@ -1,4 +1,5 @@
 import { Head, Link } from '@inertiajs/react';
+import Compteur from '@/components/public/compteur';
 import PublicLayout from '@/layouts/public-layout';
 import { catalogue, contact } from '@/routes';
 
@@ -52,21 +53,20 @@ const EQUIPE_PHOTOS: Record<string, string> = {
 
 export default function APropos({ stats, equipe }: AProposProps) {
     const equipeAffichee = equipe.map((membre) => ({
-            nom: membre.nom,
-            role: membre.role,
-            tagline:
-                EQUIPE_TAGLINES[membre.role] ??
-                'Accompagne vos projets au quotidien.',
-            photo:
-                EQUIPE_PHOTOS[membre.role] ??
-                '/images/photos/man-laptop-smile.jpg',
+        nom: membre.nom,
+        role: membre.role,
+        tagline:
+            EQUIPE_TAGLINES[membre.role] ??
+            'Accompagne vos projets au quotidien.',
+        photo:
+            EQUIPE_PHOTOS[membre.role] ?? '/images/photos/man-laptop-smile.jpg',
     }));
 
     return (
         <PublicLayout>
             <Head title="À propos — DAG" />
 
-            <section className="contact-hero-wrap reveal container">
+            <section className="contact-hero-wrap container">
                 <div
                     className="contact-hero"
                     style={{
@@ -75,7 +75,7 @@ export default function APropos({ stats, equipe }: AProposProps) {
                     }}
                 >
                     <div className="contact-hero-overlay" />
-                    <div className="contact-hero-content">
+                    <div className="contact-hero-content anim-entree">
                         <span className="badge">À propos de DAG</span>
                         <h1>
                             L'agence qui simplifie votre transformation digitale
@@ -142,12 +142,13 @@ export default function APropos({ stats, equipe }: AProposProps) {
             </section>
 
             <section className="section-gap reveal container">
-                <div className="grid-4">
+                <div className="grid-4 anim-cascade">
                     <div
                         className="card"
                         style={{ padding: 24, textAlign: 'center' }}
                     >
-                        <strong
+                        <Compteur
+                            valeur={stats.services}
                             style={{
                                 display: 'block',
                                 fontFamily: "'Sora',sans-serif",
@@ -155,9 +156,7 @@ export default function APropos({ stats, equipe }: AProposProps) {
                                 fontWeight: 800,
                                 color: 'var(--dag-blue)',
                             }}
-                        >
-                            {stats.services}
-                        </strong>
+                        />
                         <span
                             className="muted"
                             style={{ fontSize: 13, marginTop: 6 }}
@@ -169,7 +168,8 @@ export default function APropos({ stats, equipe }: AProposProps) {
                         className="card"
                         style={{ padding: 24, textAlign: 'center' }}
                     >
-                        <strong
+                        <Compteur
+                            valeur={stats.partenariats}
                             style={{
                                 display: 'block',
                                 fontFamily: "'Sora',sans-serif",
@@ -177,9 +177,7 @@ export default function APropos({ stats, equipe }: AProposProps) {
                                 fontWeight: 800,
                                 color: 'var(--dag-blue)',
                             }}
-                        >
-                            {stats.partenariats}
-                        </strong>
+                        />
                         <span
                             className="muted"
                             style={{ fontSize: 13, marginTop: 6 }}
@@ -191,7 +189,9 @@ export default function APropos({ stats, equipe }: AProposProps) {
                         className="card"
                         style={{ padding: 24, textAlign: 'center' }}
                     >
-                        <strong
+                        <Compteur
+                            valeur={stats.contratsEnLigne}
+                            suffixe="%"
                             style={{
                                 display: 'block',
                                 fontFamily: "'Sora',sans-serif",
@@ -199,9 +199,7 @@ export default function APropos({ stats, equipe }: AProposProps) {
                                 fontWeight: 800,
                                 color: 'var(--dag-blue)',
                             }}
-                        >
-                            {stats.contratsEnLigne}%
-                        </strong>
+                        />
                         <span
                             className="muted"
                             style={{ fontSize: 13, marginTop: 6 }}
@@ -213,7 +211,8 @@ export default function APropos({ stats, equipe }: AProposProps) {
                         className="card"
                         style={{ padding: 24, textAlign: 'center' }}
                     >
-                        <strong
+                        <Compteur
+                            valeur={stats.membresEquipe}
                             style={{
                                 display: 'block',
                                 fontFamily: "'Sora',sans-serif",
@@ -221,9 +220,7 @@ export default function APropos({ stats, equipe }: AProposProps) {
                                 fontWeight: 800,
                                 color: 'var(--dag-blue)',
                             }}
-                        >
-                            {stats.membresEquipe}
-                        </strong>
+                        />
                         <span
                             className="muted"
                             style={{ fontSize: 13, marginTop: 6 }}
@@ -298,7 +295,7 @@ export default function APropos({ stats, equipe }: AProposProps) {
                 </p>
 
                 <div
-                    className="grid-3 team-grid"
+                    className="grid-3 team-grid anim-cascade"
                     style={{ marginTop: 32, width: '100%' }}
                 >
                     {equipeAffichee.map((membre) => (
