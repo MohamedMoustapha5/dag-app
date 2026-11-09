@@ -1,7 +1,7 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import CoordonneesDag from '@/components/coordonnees-dag';
 import PublicLayout from '@/layouts/public-layout';
-import { contact } from '@/routes';
+import { politiqueConfidentialite } from '@/routes';
 import contactRoutes from '@/routes/contact';
 
 const SUJETS = [
@@ -167,7 +167,7 @@ export default function Contact() {
                             </button>
                             <p className="form-consent">
                                 En envoyant ce formulaire, vous acceptez la{' '}
-                                <Link href={contact()}>
+                                <Link href={politiqueConfidentialite()}>
                                     politique de confidentialité
                                 </Link>{' '}
                                 de DAG.
