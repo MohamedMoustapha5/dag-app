@@ -186,6 +186,9 @@ et [`12-services-externes-a-brancher.md`](12-services-externes-a-brancher.md) (c
 
 ### Phase 11 — Déploiement et recette finale — à venir
 
+- [x] Logs de production sans données sensibles : masquage des mots de passe, jetons,
+  n° CNI, e-mails, téléphones et cartes sur tous les canaux, traces sans arguments,
+  erreurs SQL sans valeurs, rotation quotidienne sur 14 jours (voir `.env.example`)
 - [ ] Configuration de production
 - [ ] Recette finale
 
