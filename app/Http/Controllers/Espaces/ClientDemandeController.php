@@ -121,6 +121,7 @@ class ClientDemandeController extends Controller
                     'montantPaye' => $demande->facture->montant_paye,
                     'solde' => (string) $paiements->soldeRestant($demande->facture),
                     'paiementEnAttente' => $paiements->paiementEnAttente($demande->facture),
+                    'attendSignatureContrat' => $paiements->attendSignatureContrat($demande->facture),
                 ] : null,
             ],
             'moyensPaiement' => $paiements->moyens(),

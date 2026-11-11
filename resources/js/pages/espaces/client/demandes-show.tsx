@@ -34,6 +34,7 @@ type Props = {
             montantPaye: string;
             solde: string;
             paiementEnAttente: boolean;
+            attendSignatureContrat: boolean;
         } | null;
     };
     moyensPaiement: MoyenPaiement[];
@@ -156,29 +157,21 @@ export default function DemandesShow({
                     </p>
                 )}
                 {demande.messageDevis && (
-                    <p className="muted" style={{ marginTop: 8, fontSize: 13.5 }}>
+                    <p
+                        className="muted"
+                        style={{ marginTop: 8, fontSize: 13.5 }}
+                    >
                         Message de l'équipe : {demande.messageDevis}
                     </p>
                 )}
             </div>
 
-            {facture?.statut === 'PAYEE' && !demande.contrat?.estSigne && (
-                <div
-                    className="card"
-                    style={{
-                        padding: 18,
-                        marginBottom: 20,
-                        background: 'var(--dag-blue-light)',
-                        borderColor: 'transparent',
-                    }}
-                >
-                    <p style={{ fontSize: 13.5, lineHeight: 1.6 }}>
-                        <strong>Paiement reçu.</strong>{' '}
-                        {demande.contrat?.envoye
-                            ? 'Votre contrat est prêt : lisez-le et signez-le ci-dessous pour que la prestation démarre.'
-                            : 'Votre contrat est en cours de préparation. Vous le recevrez ici pour signature ; la prestation démarre une fois qu\'il est signé.'}
-                    </p>
-                </div>
+            {!suivi.refusee && (
+                <ProchaineEtape
+                    demande={demande}
+                    aPayer={aPayer}
+                    onPayer={() => setPaiementOuvert(true)}
+                />
             )}
 
             {(demande.contrat || demande.facture) && (
@@ -249,7 +242,15 @@ export default function DemandesShow({
                                 {demande.facture.montant} FCFA payés
                             </p>
                             {aPayer &&
-                                (demande.facture.paiementEnAttente ? (
+                                (demande.facture.attendSignatureContrat ? (
+                                    <p
+                                        className="muted"
+                                        style={{ fontSize: 12, marginTop: 12 }}
+                                    >
+                                        Le paiement s'ouvre après la signature
+                                        du contrat.
+                                    </p>
+                                ) : demande.facture.paiementEnAttente ? (
                                     <p
                                         className="muted"
                                         style={{ fontSize: 12, marginTop: 12 }}
@@ -279,7 +280,8 @@ export default function DemandesShow({
                                     className="link-action"
                                     style={{ display: 'block', marginTop: 12 }}
                                 >
-                                    <Download size={14} /> Télécharger la facture
+                                    <Download size={14} /> Télécharger la
+                                    facture
                                 </a>
                             )}
                         </div>
@@ -300,5 +302,104 @@ export default function DemandesShow({
                 />
             )}
         </>
+    );
+}
+
+/**
+ * Tells the client what to do next: the contract sent with the devis is
+ * signed first (step 1), then the facture is paid (step 2).
+ */
+function ProchaineEtape({
+    demande,
+    aPayer,
+    onPayer,
+}: {
+    demande: Props['demande'];
+    aPayer: boolean;
+    onPayer: () => void;
+}) {
+    const contrat = demande.contrat;
+    const facture = demande.facture;
+
+    let etape: string | null = null;
+    let message: string;
+    let action: React.ReactNode = null;
+
+    if (facture === null) {
+        return null;
+    }
+
+    if (facture.statut === 'PAYEE') {
+        message = contrat?.estSigne
+            ? "Contrat signé et paiement reçu : l'équipe DAG lance votre prestation. Vous suivez son avancement ici."
+            : "Paiement reçu. L'équipe DAG vous tient informé de la suite ici.";
+    } else if (facture.attendSignatureContrat) {
+        etape = 'Étape 1 sur 2 — Signez votre contrat';
+        if (contrat?.envoye) {
+            message =
+                "Lisez le contrat qui accompagne votre devis, puis signez-le. Le paiement de la facture s'ouvre juste après la signature.";
+            action = (
+                <Link
+                    href={contratsRoutes.show(contrat.id)}
+                    className="btn-primary"
+                    style={{ padding: '8px 18px', fontSize: 13 }}
+                >
+                    Lire et signer le contrat
+                </Link>
+            );
+        } else {
+            message =
+                "Votre contrat est en cours de finalisation par l'équipe DAG. Vous le recevrez ici pour signature, puis vous pourrez régler la facture.";
+        }
+    } else if (aPayer) {
+        etape = 'Étape 2 sur 2 — Réglez votre facture';
+        message = facture.paiementEnAttente
+            ? 'Votre paiement est en attente de confirmation par le prestataire.'
+            : "Votre contrat est signé. Réglez la facture pour que l'équipe DAG lance la prestation.";
+        action = facture.paiementEnAttente ? null : (
+            <button
+                type="button"
+                className="btn-primary"
+                style={{ padding: '8px 18px', fontSize: 13 }}
+                onClick={onPayer}
+            >
+                Payer {facture.solde} FCFA
+            </button>
+        );
+    } else {
+        return null;
+    }
+
+    return (
+        <div
+            className="card"
+            style={{
+                padding: 18,
+                marginBottom: 20,
+                background: 'var(--dag-blue-light)',
+                borderColor: 'transparent',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 16,
+                flexWrap: 'wrap',
+            }}
+        >
+            <div style={{ flex: '1 1 280px' }}>
+                {etape && (
+                    <p
+                        style={{
+                            fontWeight: 600,
+                            fontSize: 14,
+                            marginBottom: 4,
+                        }}
+                    >
+                        {etape}
+                    </p>
+                )}
+                <p style={{ fontSize: 13.5, lineHeight: 1.6 }}>{message}</p>
+            </div>
+            {action}
+        </div>
     );
 }

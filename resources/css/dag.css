@@ -4219,6 +4219,129 @@
     font-size: 12.5px;
     color: var(--dag-text-muted);
 }
+.dag .inscription-dossier {
+    padding: 28px;
+    margin-top: 24px;
+}
+.dag .inscription-dossier h2 {
+    font-size: 16px;
+    color: var(--dag-navy);
+    margin-bottom: 6px;
+}
+.dag .inscription-dossier > p {
+    font-size: 13px;
+    color: var(--dag-text-muted);
+    margin-bottom: 18px;
+    line-height: 1.6;
+}
+.dag .pieces-dossier {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.dag .pieces-dossier-ligne {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 14px;
+    border: 1px dashed var(--dag-border);
+    border-radius: var(--dag-radius-sm);
+    background: var(--dag-bg);
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+.dag .pieces-dossier-ligne.prete {
+    border-style: solid;
+    border-color: var(--dag-green);
+    background: var(--dag-green-bg);
+}
+.dag .pieces-dossier-ligne.en-erreur {
+    border-style: solid;
+    border-color: var(--dag-red);
+    background: var(--dag-red-bg);
+}
+.dag .pieces-dossier-icone {
+    flex: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--dag-blue-light);
+    color: var(--dag-blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.dag .pieces-dossier-ligne.prete .pieces-dossier-icone {
+    background: #fff;
+    color: var(--dag-green);
+}
+.dag .pieces-dossier-texte {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.dag .pieces-dossier-libelle {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--dag-text);
+}
+.dag .pieces-dossier-fichier {
+    font-size: 12px;
+    color: var(--dag-text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.dag .pieces-dossier-erreur {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--dag-red);
+}
+.dag .pieces-dossier-bouton {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    padding: 7px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--dag-blue);
+    background: #fff;
+    color: var(--dag-blue);
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+}
+.dag .pieces-dossier-bouton:hover {
+    background: var(--dag-blue-light);
+}
+.dag .pieces-dossier-ligne:focus-within .pieces-dossier-bouton {
+    outline: 2px solid var(--dag-blue);
+    outline-offset: 2px;
+}
+.dag .dossier-motif {
+    padding: 12px 14px;
+    border-radius: var(--dag-radius-sm);
+    background: var(--dag-orange-bg);
+    color: var(--dag-orange-ink);
+    font-size: 13px;
+    line-height: 1.6;
+}
+@media (max-width: 640px) {
+    .dag .inscription-dossier {
+        padding: 20px;
+    }
+    .dag .pieces-dossier-ligne {
+        flex-wrap: wrap;
+    }
+    .dag .pieces-dossier-bouton {
+        margin-left: 50px;
+    }
+}
 @media (max-width: 960px) {
     .dag .inscription-layout {
         grid-template-columns: minmax(0, 1fr);
@@ -4234,5 +4357,233 @@
     }
     .dag .inscription-recap-montant {
         font-size: 28px;
+    }
+}
+
+/* Contract text: document view and article-by-article editor. */
+.dag .document-contrat {
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--dag-text);
+}
+.dag .document-contrat p {
+    margin: 0 0 10px;
+    white-space: pre-line;
+}
+.dag .document-contrat ul {
+    margin: 0 0 10px;
+    padding-left: 20px;
+}
+.dag .document-contrat li {
+    margin-bottom: 4px;
+}
+.dag .document-contrat-article {
+    margin-top: 18px;
+}
+.dag .document-contrat-article h3 {
+    font-size: 15px;
+    color: var(--dag-navy);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.dag .document-contrat-numero {
+    font-size: 11.5px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--dag-blue);
+}
+.dag .editeur-contrat {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+.dag .editeur-contrat-barre {
+    display: inline-flex;
+    align-self: flex-start;
+    padding: 3px;
+    border-radius: 999px;
+    background: var(--dag-bg);
+    border: 1px solid var(--dag-border);
+}
+.dag .editeur-contrat-barre button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--dag-text-muted);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.dag .editeur-contrat-barre button.actif {
+    background: #fff;
+    color: var(--dag-navy);
+    box-shadow: 0 1px 3px rgba(7, 31, 65, 0.12);
+}
+.dag .editeur-contrat-apercu {
+    padding: 20px 22px;
+    border: 1px solid var(--dag-border);
+    border-radius: var(--dag-radius-sm);
+    background: #fff;
+}
+.dag .editeur-contrat-articles {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.dag .editeur-contrat-bloc {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 14px 16px;
+    border: 1px solid var(--dag-border);
+    border-radius: var(--dag-radius-sm);
+    background: var(--dag-bg);
+}
+.dag .editeur-contrat-bloc textarea {
+    font-size: 13.5px;
+    line-height: 1.6;
+}
+.dag .editeur-contrat-entete {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+.dag .editeur-contrat-numero {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--dag-blue);
+}
+.dag .editeur-contrat-actions {
+    display: flex;
+    gap: 4px;
+}
+.dag .editeur-contrat-actions button {
+    width: 30px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--dag-border);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--dag-text-muted);
+    cursor: pointer;
+}
+.dag .editeur-contrat-actions button:hover:not(:disabled) {
+    color: var(--dag-navy);
+    border-color: var(--dag-navy);
+}
+.dag .editeur-contrat-actions button.danger:hover:not(:disabled) {
+    color: var(--dag-red);
+    border-color: var(--dag-red);
+}
+.dag .editeur-contrat-actions button:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+.dag .editeur-contrat-ajouter {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Contract page: progress of the contract and the next action. */
+.dag .contrat-etapes {
+    list-style: none;
+    margin: 0 0 24px;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.dag .contrat-etapes li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px 6px 6px;
+    border-radius: 999px;
+    border: 1px solid var(--dag-border);
+    background: #fff;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--dag-text-muted);
+}
+.dag .contrat-etapes li span {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--dag-bg);
+    font-size: 11.5px;
+}
+.dag .contrat-etapes li.faite {
+    color: var(--dag-green);
+    border-color: var(--dag-green);
+}
+.dag .contrat-etapes li.faite span {
+    background: var(--dag-green-bg);
+}
+.dag .contrat-etapes li.courante {
+    color: var(--dag-navy);
+    border-color: var(--dag-blue);
+    background: var(--dag-blue-light);
+}
+.dag .contrat-etapes li.courante span {
+    background: var(--dag-blue);
+    color: #fff;
+}
+.dag .contrat-action {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 20px 22px;
+    margin-bottom: 24px;
+    border-left: 4px solid var(--dag-blue);
+}
+.dag .contrat-action h2 {
+    font-size: 15.5px;
+    color: var(--dag-navy);
+    margin-bottom: 4px;
+}
+.dag .contrat-action p {
+    font-size: 13.5px;
+    color: var(--dag-text-muted);
+    line-height: 1.6;
+}
+.dag .contrat-action-boutons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.dag .btn-danger-outline {
+    color: var(--dag-red);
+    border-color: var(--dag-red);
+}
+@media (max-width: 640px) {
+    .dag .contrat-action-boutons {
+        width: 100%;
+    }
+    .dag .contrat-action-boutons > * {
+        flex: 1 1 auto;
+        justify-content: center;
     }
 }

@@ -1,7 +1,9 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
+import PiecesDossier from '@/components/espaces/pieces-dossier';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
 import espaceApprenant from '@/routes/espace-apprenant';
+import inscriptionsRoutes from '@/routes/espace-apprenant/inscriptions';
 import { libelleFraisInscription } from '@/lib/frais-inscription';
 
 type Inscription = {
@@ -16,6 +18,9 @@ type Inscription = {
     semainesAvantDebut: number | null;
     fraisInscription: string | null;
     paiement: string | null;
+    motif: string | null;
+    piecesRequises: string[];
+    piecesDeposees: { libelle: string; nomOriginal: string }[];
 };
 
 type Props = {
@@ -248,6 +253,8 @@ export default function ApprenantInscriptionsIndex({ inscriptions }: Props) {
                                             </p>
                                         </div>
                                     )}
+                                <EtatDossier inscription={inscription} />
+
                                 {classe === 'terminees' && (
                                     <div
                                         className="espace-formule-progress"
@@ -311,9 +318,118 @@ function EtatFrais({ inscription }: { inscription: Inscription }) {
             {inscription.paiement === 'PAYEE' &&
                 inscription.statut === 'EN_ATTENTE_PAIEMENT' && (
                     <span className="muted">
-                        Paiement reçu : l'équipe DAG valide votre inscription.
+                        Paiement reçu : votre place va être confirmée.
+                    </span>
+                )}
+            {inscription.paiement === null &&
+                STATUTS_DOSSIER.includes(inscription.statut) && (
+                    <span className="muted">
+                        À régler une fois votre dossier validé.
                     </span>
                 )}
         </div>
+    );
+}
+
+const STATUTS_DOSSIER = ['DOSSIER_EN_ETUDE', 'DOSSIER_A_COMPLETER'];
+
+/**
+ * Where the enrolment dossier stands: under review, to be completed (with
+ * the team's reason and the form to send the corrected pieces), or the
+ * reason of a refusal.
+ */
+function EtatDossier({ inscription }: { inscription: Inscription }) {
+    const deposees = Object.fromEntries(
+        inscription.piecesDeposees.map((piece) => [
+            piece.libelle,
+            piece.nomOriginal,
+        ]),
+    );
+    const form = useForm<{ pieces: (File | null)[] }>({
+        pieces: inscription.piecesRequises.map(() => null),
+    });
+
+    if (inscription.statut === 'ABANDONNEE' && inscription.motif) {
+        return (
+            <p className="dossier-motif" style={{ marginTop: 14 }}>
+                <strong>Motif du refus :</strong> {inscription.motif}
+            </p>
+        );
+    }
+
+    if (inscription.statut === 'DOSSIER_EN_ETUDE') {
+        return (
+            <p
+                className="muted"
+                style={{ marginTop: 14, fontSize: 13, lineHeight: 1.6 }}
+            >
+                Votre dossier ({inscription.piecesDeposees.length} pièce
+                {inscription.piecesDeposees.length > 1 ? 's' : ''}) est en cours
+                d'examen par l'équipe DAG. Vous serez prévenu dès sa validation
+                pour régler les frais d'inscription.
+            </p>
+        );
+    }
+
+    if (inscription.statut !== 'DOSSIER_A_COMPLETER') {
+        return null;
+    }
+
+    const choisirPiece = (index: number, fichier: File | null) => {
+        form.setData(
+            'pieces',
+            form.data.pieces.map((actuel, position) =>
+                position === index ? fichier : actuel,
+            ),
+        );
+    };
+
+    const envoyer = (event: React.FormEvent) => {
+        event.preventDefault();
+        form.post(inscriptionsRoutes.completer(inscription.id).url, {
+            forceFormData: true,
+            preserveScroll: true,
+        });
+    };
+
+    return (
+        <form
+            onSubmit={envoyer}
+            style={{
+                marginTop: 16,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 12,
+            }}
+        >
+            {inscription.motif && (
+                <p className="dossier-motif">
+                    <strong>À corriger :</strong> {inscription.motif}
+                </p>
+            )}
+            <PiecesDossier
+                pieces={inscription.piecesRequises}
+                fichiers={form.data.pieces}
+                onChange={choisirPiece}
+                erreurs={form.errors as Record<string, string>}
+                deposees={deposees}
+            />
+            {(form.errors as Record<string, string>).pieces && (
+                <p
+                    role="alert"
+                    style={{ color: 'var(--dag-red)', fontSize: 12.5 }}
+                >
+                    {(form.errors as Record<string, string>).pieces}
+                </p>
+            )}
+            <button
+                type="submit"
+                className="btn-primary"
+                style={{ alignSelf: 'flex-start' }}
+                disabled={form.processing || !form.data.pieces.some(Boolean)}
+            >
+                {form.processing ? 'Envoi…' : 'Envoyer les pièces corrigées'}
+            </button>
+        </form>
     );
 }

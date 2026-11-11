@@ -61,8 +61,8 @@ export default function AdminDemandes({
                     className="muted"
                     style={{ marginTop: 6, fontSize: 14, lineHeight: 1.6 }}
                 >
-                    Traitement des demandes, de la réception au contrat envoyé
-                    pour signature.
+                    Traitement des demandes : devis et contrat envoyés ensemble,
+                    signature du client, puis paiement.
                 </p>
             </div>
 
@@ -169,7 +169,11 @@ export default function AdminDemandes({
                                                         </button>
                                                     )}
                                                 {peutGenererContrat &&
-                                                    demande.payee &&
+                                                    !STATUTS_DEVIS.includes(
+                                                        demande.statut,
+                                                    ) &&
+                                                    demande.statut !==
+                                                        'REFUSEE' &&
                                                     !demande.aContrat && (
                                                         <button
                                                             type="button"
@@ -230,11 +234,14 @@ export default function AdminDemandes({
 }
 
 /**
- * The contract is mandatory for every paid service: this shows where it
- * stands so nothing is left without one.
+ * The contract is sent with the devis and signed before payment: this shows
+ * where it stands so no demande is paid or started without one.
  */
 function EtatContrat({ demande }: { demande: Demande }) {
-    if (!demande.payee) {
+    if (
+        !demande.aContrat &&
+        ['BROUILLON', 'EN_ETUDE', 'REFUSEE'].includes(demande.statut)
+    ) {
         return <span className="muted">—</span>;
     }
 

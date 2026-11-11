@@ -16,17 +16,42 @@ use Illuminate\Support\Str;
 
 /**
  * @property Carbon|null $date_signature
+ * @property Carbon|null $cni_date_delivrance
+ * @property Carbon|null $rectification_demandee_at
  */
 #[Fillable([
     'reference', 'type', 'modele_contrat_id', 'client_id', 'apprenant_id', 'entreprise_id',
     'demande_id', 'abonnement_id', 'candidature_id', 'contenu', 'montant', 'code_verification',
     'statut', 'fichier_pdf', 'photo_signature', 'signataire_nom', 'ip_signature', 'date_signature',
     'signature_contestee', 'signature_invalidee_at', 'derniere_relance_at',
+    'telephone_cocontractant', 'cni_numero', 'cni_lieu_delivrance', 'cni_date_delivrance',
+    'ville_residence', 'quartier_prestation', 'nombre_rectifications', 'motif_rectification',
+    'rectification_demandee_at',
 ])]
 class Contrat extends Model
 {
     /** @use HasFactory<ContratFactory> */
     use GeneratesReference, HasFactory, HasUuids;
+
+    /**
+     * Requests for rectification a client may make on one contract; beyond
+     * them, a new contract is drawn up and approved by DAG.
+     */
+    public const RECTIFICATIONS_MAX = 2;
+
+    /**
+     * A contract for a client's demande (service or formule) identifies the
+     * client by ID card and place of service, as the DAG contract requires.
+     */
+    public function exigeIdentite(): bool
+    {
+        return $this->demande_id !== null;
+    }
+
+    public function rectificationsRestantes(): int
+    {
+        return max(0, self::RECTIFICATIONS_MAX - (int) $this->nombre_rectifications);
+    }
 
     /** @var array<string, string> */
     public const STATUT_LABELS = [
@@ -79,6 +104,9 @@ class Contrat extends Model
             'signature_contestee' => 'boolean',
             'signature_invalidee_at' => 'datetime',
             'derniere_relance_at' => 'datetime',
+            'cni_date_delivrance' => 'date',
+            'nombre_rectifications' => 'integer',
+            'rectification_demandee_at' => 'datetime',
         ];
     }
 
@@ -191,9 +219,11 @@ class Contrat extends Model
     public function libelleObjet(): string
     {
         if ($this->type === 'ABONNEMENT') {
-            $formuleNom = $this->abonnement_id !== null && $this->abonnement->formule_id !== null
-                ? $this->abonnement->formule->nom
-                : 'Formule';
+            $formuleNom = match (true) {
+                $this->abonnement_id !== null && $this->abonnement->formule_id !== null => $this->abonnement->formule->nom,
+                $this->demande_id !== null => $this->demande->libelleObjet(),
+                default => 'Formule',
+            };
 
             return 'Abonnement — '.$formuleNom;
         }

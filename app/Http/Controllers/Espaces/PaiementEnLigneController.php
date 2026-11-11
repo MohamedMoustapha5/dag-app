@@ -6,13 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Models\Facture;
 use App\Models\Paiement;
 use App\Support\Paiements\PaiementService;
+use App\Support\Paiements\PasserelleIndisponible;
 use App\Support\Paiements\SimulationPasserelle;
+use App\Support\Paiements\TelephoneMobile;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 /**
  * Online payment of a facture by its payer (client, entreprise or
@@ -22,7 +25,7 @@ class PaiementEnLigneController extends Controller
 {
     public function __construct(private PaiementService $paiements) {}
 
-    public function initier(Request $request, Facture $facture): RedirectResponse
+    public function initier(Request $request, Facture $facture): SymfonyResponse
     {
         abort_unless($facture->appartientA($request->user('web')), 404);
 
@@ -36,7 +39,7 @@ class PaiementEnLigneController extends Controller
         $telephone = null;
 
         if ($moyens[$data['moyen']]['mobile']) {
-            $telephone = $this->normaliserTelephone($data['telephone'] ?? '');
+            $telephone = TelephoneMobile::normaliser($data['telephone'] ?? '');
 
             if ($telephone === null) {
                 throw ValidationException::withMessages([
@@ -45,10 +48,18 @@ class PaiementEnLigneController extends Controller
             }
         }
 
-        $paiement = $this->paiements->initier($facture, $data['moyen'], $telephone);
+        try {
+            $initie = $this->paiements->initier($facture, $data['moyen'], $telephone, $request->user('web'));
+        } catch (PasserelleIndisponible $erreur) {
+            throw ValidationException::withMessages(['moyen' => $erreur->getMessage()]);
+        }
 
         if ($this->paiements->passerelle()->ecranLocal()) {
-            return to_route('paiements.simulation', $paiement);
+            return to_route('paiements.simulation', $initie->paiement);
+        }
+
+        if ($initie->urlPaiement !== null) {
+            return Inertia::location($initie->urlPaiement);
         }
 
         Inertia::flash('toast', [
@@ -57,6 +68,39 @@ class PaiementEnLigneController extends Controller
         ]);
 
         return back();
+    }
+
+    /**
+     * Where the provider sends the payer back after its checkout page. The
+     * query string it adds is never trusted: the outcome is asked to the
+     * provider, and the webhook stays the main confirmation path.
+     */
+    public function retourPrestataire(Request $request, Paiement $paiement): RedirectResponse
+    {
+        abort_unless($paiement->facture->appartientA($request->user('web')), 404);
+
+        if ($paiement->statut === 'EN_ATTENTE' && $paiement->reference_transaction !== null) {
+            try {
+                $resultat = $this->paiements->passerelle()->verifier($paiement->reference_transaction);
+                $conforme = $this->paiements->appliquerResultat($paiement, $resultat);
+            } catch (PasserelleIndisponible) {
+                $conforme = true;
+            }
+
+            if (! $conforme) {
+                Inertia::flash('toast', ['type' => 'error', 'message' => 'Le montant reçu ne correspond pas à la facture : l\'équipe DAG va vérifier votre paiement.']);
+
+                return redirect($this->retour($request));
+            }
+        }
+
+        Inertia::flash('toast', match ($paiement->fresh()->statut) {
+            'CONFIRME' => ['type' => 'success', 'message' => 'Paiement confirmé. Votre facture est réglée.'],
+            'ECHEC' => ['type' => 'error', 'message' => 'Le paiement a échoué ou a été annulé. Vous pouvez réessayer.'],
+            default => ['type' => 'success', 'message' => 'Paiement en cours de confirmation : votre facture sera mise à jour dès sa validation.'],
+        });
+
+        return redirect($this->retour($request));
     }
 
     /**
@@ -113,20 +157,5 @@ class PaiementEnLigneController extends Controller
         return $request->user('web')->apprenant !== null
             ? route('espace-apprenant.factures')
             : route('espace-client.factures');
-    }
-
-    /**
-     * Normalises a Cameroonian mobile number to 9 digits starting with 6,
-     * or returns null when it is not one.
-     */
-    private function normaliserTelephone(string $saisie): ?string
-    {
-        $chiffres = preg_replace('/\D+/', '', $saisie) ?? '';
-
-        if (str_starts_with($chiffres, '237') && strlen($chiffres) === 12) {
-            $chiffres = substr($chiffres, 3);
-        }
-
-        return preg_match('/^6\d{8}$/', $chiffres) === 1 ? $chiffres : null;
     }
 }

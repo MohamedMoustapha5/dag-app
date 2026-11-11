@@ -61,7 +61,7 @@ class ClientAbonnementController extends Controller
 
     /**
      * Asks the DAG team to renew a subscription. A renewal is a regular formule
-     * request, so it follows the usual quote, payment and contract path.
+     * request, so it follows the usual path: devis and contract, signature, then payment.
      */
     public function renouveler(Request $request, Abonnement $abonnement): RedirectResponse
     {

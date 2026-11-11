@@ -41,7 +41,8 @@ class DevisRecuNotification extends NotificationDag
             $lignes[] = $this->demande->message_devis;
         }
 
-        $lignes[] = 'Vous pouvez payer directement depuis votre espace : Orange Money, MTN Mobile Money ou carte.';
+        $lignes[] = 'Le contrat correspondant vous attend dans votre espace : lisez-le et signez-le en quelques minutes.';
+        $lignes[] = 'Une fois le contrat signé, vous réglez la facture en ligne : Orange Money, MTN Mobile Money ou carte.';
 
         return $lignes;
     }
@@ -53,6 +54,6 @@ class DevisRecuNotification extends NotificationDag
 
     public function libelleAction(): string
     {
-        return 'Voir et payer le devis';
+        return 'Voir le devis et signer le contrat';
     }
 }

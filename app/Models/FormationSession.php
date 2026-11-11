@@ -63,7 +63,7 @@ class FormationSession extends Model
     public function placesRestantes(): int
     {
         $prises = $this->inscriptions()
-            ->whereIn('statut', ['EN_ATTENTE_PAIEMENT', 'VALIDEE', 'FORMEE'])
+            ->whereIn('statut', Inscription::STATUTS_PLACE_RESERVEE)
             ->count();
 
         return max(0, $this->places - $prises);

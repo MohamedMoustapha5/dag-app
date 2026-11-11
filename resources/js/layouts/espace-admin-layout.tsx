@@ -18,6 +18,7 @@ import {
     UserRound,
     Users,
     UsersRound,
+    Wallet,
     X,
 } from 'lucide-react';
 import type { PropsWithChildren } from 'react';
@@ -38,6 +39,7 @@ import equipeAdmin from '@/routes/espace-admin/equipe';
 import facturesAdmin from '@/routes/espace-admin/factures';
 import formationsAdmin from '@/routes/espace-admin/formations';
 import grilleTarifaireAdmin from '@/routes/espace-admin/grille-tarifaire';
+import retraitsAdmin from '@/routes/espace-admin/retraits';
 import servicesAdmin from '@/routes/espace-admin/services';
 import supportAdmin from '@/routes/espace-admin/support';
 
@@ -115,6 +117,12 @@ const NAV_GROUPS: NavGroup[] = [
                 label: 'Factures & paiements',
                 icon: Receipt,
                 href: facturesAdmin.index(),
+                visibleIf: 'FACTURES_PAIEMENTS',
+            },
+            {
+                label: 'Retraits',
+                icon: Wallet,
+                href: retraitsAdmin.index(),
                 visibleIf: 'FACTURES_PAIEMENTS',
             },
             {

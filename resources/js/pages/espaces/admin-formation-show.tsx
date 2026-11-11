@@ -13,6 +13,7 @@ type Formation = {
     programme: string | null;
     duree: string | null;
     prerequis: string | null;
+    piecesRequises: string[];
     statut: string;
 };
 
@@ -50,6 +51,7 @@ export default function AdminFormationShow({
         programme: formation.programme ?? '',
         duree: formation.duree ?? '',
         prerequis: formation.prerequis ?? '',
+        pieces: formation.piecesRequises.join('\n'),
         statut: formation.statut,
     });
 
@@ -77,6 +79,13 @@ export default function AdminFormationShow({
 
     const submitEdit = (event: React.FormEvent) => {
         event.preventDefault();
+        editForm.transform(({ pieces, ...data }) => ({
+            ...data,
+            pieces_requises: pieces
+                .split('\n')
+                .map((piece) => piece.trim())
+                .filter((piece) => piece !== ''),
+        }));
         editForm.patch(formationsAdmin.update(formation.id).url, {
             preserveScroll: true,
         });
@@ -212,6 +221,53 @@ export default function AdminFormationShow({
                                     )
                                 }
                             />
+                        </div>
+                        <div style={{ gridColumn: '1 / -1' }}>
+                            <label htmlFor="edit-pieces">
+                                Pièces du dossier d'inscription
+                            </label>
+                            <textarea
+                                id="edit-pieces"
+                                rows={4}
+                                placeholder={
+                                    'Une pièce par ligne.\nEx. Copie de la CNI'
+                                }
+                                value={editForm.data.pieces}
+                                onChange={(event) =>
+                                    editForm.setData(
+                                        'pieces',
+                                        event.target.value,
+                                    )
+                                }
+                            />
+                            <p
+                                className="muted"
+                                style={{ fontSize: 12, marginTop: 4 }}
+                            >
+                                L'apprenant joint chaque pièce à son inscription
+                                ; vous validez le dossier avant qu'il ne règle
+                                les frais. Laissez vide pour demander la CNI,
+                                l'acte de naissance et une photo d'identité.
+                            </p>
+                            {(editForm.errors as Record<string, string>)
+                                .pieces_requises && (
+                                <p
+                                    style={{
+                                        color: 'var(--dag-red)',
+                                        fontSize: 12,
+                                        marginTop: 4,
+                                    }}
+                                >
+                                    {
+                                        (
+                                            editForm.errors as Record<
+                                                string,
+                                                string
+                                            >
+                                        ).pieces_requises
+                                    }
+                                </p>
+                            )}
                         </div>
                         <div style={{ gridColumn: '1 / -1' }}>
                             <label htmlFor="edit-programme">Programme</label>

@@ -150,6 +150,7 @@ class AdminFormationController extends Controller
                 'programme' => $formation->programme,
                 'duree' => $formation->duree,
                 'prerequis' => $formation->prerequis,
+                'piecesRequises' => $formation->piecesRequises(),
                 'statut' => $formation->statut,
             ],
             'sessions' => $formation->sessions->map(fn (FormationSession $session) => [
@@ -180,8 +181,15 @@ class AdminFormationController extends Controller
             'duree' => ['nullable', 'string', 'max:191'],
             'programme' => ['nullable', 'string'],
             'prerequis' => ['nullable', 'string', 'max:500'],
+            'pieces_requises' => ['nullable', 'array', 'max:15'],
+            'pieces_requises.*' => ['nullable', 'string', 'max:191'],
             'statut' => ['required', Rule::in(['BROUILLON', 'PUBLIEE', 'EN_COURS', 'TERMINEE'])],
         ]);
+
+        if (array_key_exists('pieces_requises', $data)) {
+            $pieces = array_values(array_unique(array_filter(array_map('trim', $data['pieces_requises'] ?? []))));
+            $data['pieces_requises'] = $pieces === [] ? null : $pieces;
+        }
 
         $formation->update($data);
 

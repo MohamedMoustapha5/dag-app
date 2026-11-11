@@ -8,16 +8,35 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Carbon;
 
-#[Fillable(['apprenant_id', 'formation_id', 'formation_session_id', 'montant_negocie', 'statut'])]
+/**
+ * An apprenant's enrolment in a session. It goes through: dossier submitted
+ * (DOSSIER_EN_ETUDE) → dossier validated by DAG, fee billed
+ * (EN_ATTENTE_PAIEMENT) → fee paid, seat confirmed (VALIDEE) → FORMEE. DAG
+ * can send the dossier back for completion (DOSSIER_A_COMPLETER) or refuse
+ * it (ABANDONNEE).
+ *
+ * @property Carbon|null $dossier_valide_at
+ */
+#[Fillable(['apprenant_id', 'formation_id', 'formation_session_id', 'montant_negocie', 'statut', 'motif_decision', 'dossier_valide_at'])]
 class Inscription extends Model
 {
     use HasUuids;
+
+    /**
+     * Statuses that hold a seat in the session: a dossier under review keeps
+     * its place, so DAG never validates more apprenants than seats.
+     *
+     * @var list<string>
+     */
+    public const STATUTS_PLACE_RESERVEE = ['DOSSIER_EN_ETUDE', 'DOSSIER_A_COMPLETER', 'EN_ATTENTE_PAIEMENT', 'VALIDEE', 'FORMEE'];
 
     protected function casts(): array
     {
         return [
             'montant_negocie' => 'decimal:2',
+            'dossier_valide_at' => 'datetime',
         ];
     }
 
@@ -49,5 +68,11 @@ class Inscription extends Model
     public function facture(): HasOne
     {
         return $this->hasOne(Facture::class);
+    }
+
+    /** @return HasMany<PieceInscription, $this> */
+    public function pieces(): HasMany
+    {
+        return $this->hasMany(PieceInscription::class);
     }
 }

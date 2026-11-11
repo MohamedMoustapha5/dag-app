@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\Demande;
 use App\Notifications\DevisRecuNotification;
+use App\Support\ContratRedaction;
 use App\Support\Notifications\Notifier;
 use App\Support\Paiements\PaiementService;
 use Illuminate\Http\RedirectResponse;
@@ -125,12 +126,21 @@ class AdminDemandeController extends Controller
             ]);
         }
 
-        // The contract is mandatory: no prestation starts, is delivered or closed
-        // until the client has signed it.
-        if (in_array($data['statut'], ['EN_COURS', 'LIVREE', 'TERMINEE'], true)
-            && ($demande->contrat === null || ! $demande->contrat->estSigne())) {
+        // The contract is mandatory and signed before payment: only the client's
+        // signature moves a demande to "Contrat signé", and no prestation starts,
+        // is delivered or closed without it.
+        if (in_array($data['statut'], ['CONTRAT_SIGNE', 'EN_COURS', 'LIVREE', 'TERMINEE'], true) && ! $demande->contratEstSigne()) {
             throw ValidationException::withMessages([
-                'statut' => 'Le contrat doit être signé par le client avant de démarrer la prestation.',
+                'statut' => $data['statut'] === 'CONTRAT_SIGNE'
+                    ? 'Une demande passe à « Contrat signé » quand le client signe son contrat, pas à la main.'
+                    : 'Le contrat doit être signé par le client avant de démarrer la prestation.',
+            ]);
+        }
+
+        // The signed contract carries the amount the client agreed to.
+        if ($data['statut'] === 'DEVIS_ENVOYE' && $demande->contratEstSigne()) {
+            throw ValidationException::withMessages([
+                'statut' => 'Le client a déjà signé le contrat : le devis ne peut plus être modifié.',
             ]);
         }
 
@@ -138,9 +148,11 @@ class AdminDemandeController extends Controller
             $demande->update($data);
 
             // Moving a demande to "Devis envoyé" with an amount issues the
-            // facture the client pays, whichever screen the change comes from.
+            // facture and sends the contract the client signs before paying,
+            // whichever screen the change comes from.
             if ($demande->statut === 'DEVIS_ENVOYE' && (float) $demande->montant_negocie > 0) {
                 $paiements->emettreFacturePourDevis($demande, (float) $demande->montant_negocie);
+                ContratRedaction::envoyerAvecDevis($demande);
             }
         });
 
@@ -176,6 +188,14 @@ class AdminDemandeController extends Controller
             'Un paiement a déjà été enregistré : le devis ne peut plus être modifié.'
         );
 
+        abort_if(
+            $demande->contratEstSigne(),
+            409,
+            'Le client a déjà signé le contrat : le devis ne peut plus être modifié.'
+        );
+
+        // The devis comes with its contract: the client reads and signs it
+        // first, then pays the facture.
         DB::transaction(function () use ($demande, $data, $paiements): void {
             $demande->update([
                 'montant_negocie' => $data['montant'],
@@ -184,6 +204,7 @@ class AdminDemandeController extends Controller
             ]);
 
             $paiements->emettreFacturePourDevis($demande, (float) $data['montant']);
+            ContratRedaction::envoyerAvecDevis($demande);
         });
 
         Notifier::envoyer(Notifier::utilisateurDe($demande), new DevisRecuNotification($demande));

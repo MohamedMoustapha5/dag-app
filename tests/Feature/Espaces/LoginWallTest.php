@@ -7,6 +7,19 @@ use App\Models\FormationSession;
 use App\Models\Formule;
 use App\Models\Inscription;
 use App\Models\Service;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+
+/**
+ * @return array<int, UploadedFile>
+ */
+function dossierComplet(FormationSession $session): array
+{
+    return array_map(
+        fn (string $libelle) => UploadedFile::fake()->create('piece.pdf', 100, 'application/pdf'),
+        $session->formation->piecesRequises(),
+    );
+}
 
 test('a guest asking for a service is sent to the login page with an explanation', function () {
     $service = Service::factory()->create(['nom' => 'Site vitrine']);
@@ -57,7 +70,8 @@ test('the demande form preselects the chosen formule', function () {
         ->assertInertia(fn ($page) => $page->where('formuleSelectionnee', $formule->id));
 });
 
-test('an apprenant enrols in an open session and is sent to pay the registration fee', function () {
+test('an apprenant enrols in an open session by sending their dossier for review', function () {
+    Storage::fake('local');
     $apprenant = Apprenant::factory()->create();
     $session = FormationSession::factory()->create();
 
@@ -67,19 +81,20 @@ test('an apprenant enrols in an open session and is sent to pay the registration
         ->assertInertia(fn ($page) => $page->component('espaces/apprenant/inscription-create')->where('session.ouverte', true));
 
     $this->actingAs($apprenant->user)
-        ->post(route('espace-apprenant.inscriptions.store', $session))
-        ->assertRedirect(route('espace-apprenant.factures'));
+        ->post(route('espace-apprenant.inscriptions.store', $session), ['pieces' => dossierComplet($session)])
+        ->assertRedirect(route('espace-apprenant.inscriptions'));
 
     expect(Inscription::where('apprenant_id', $apprenant->id)->where('formation_session_id', $session->id)->value('statut'))
-        ->toBe('EN_ATTENTE_PAIEMENT');
+        ->toBe('DOSSIER_EN_ETUDE');
 });
 
 test('enrolling twice in the same session creates a single inscription', function () {
+    Storage::fake('local');
     $apprenant = Apprenant::factory()->create();
     $session = FormationSession::factory()->create();
 
-    $this->actingAs($apprenant->user)->post(route('espace-apprenant.inscriptions.store', $session));
-    $this->actingAs($apprenant->user)->post(route('espace-apprenant.inscriptions.store', $session))
+    $this->actingAs($apprenant->user)->post(route('espace-apprenant.inscriptions.store', $session), ['pieces' => dossierComplet($session)]);
+    $this->actingAs($apprenant->user)->post(route('espace-apprenant.inscriptions.store', $session), ['pieces' => dossierComplet($session)])
         ->assertRedirect(route('espace-apprenant.inscriptions'));
 
     expect(Inscription::where('apprenant_id', $apprenant->id)->count())->toBe(1);

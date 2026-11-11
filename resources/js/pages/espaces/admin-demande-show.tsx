@@ -148,24 +148,29 @@ export default function AdminDemandeShow({
                             </span>
                         </div>
                     )}
-                    {!demande.contrat && demande.payee && peutGenererContrat && (
-                        <div className="card" style={{ padding: 20 }}>
-                            <p className="muted" style={{ fontSize: 12.5 }}>
-                                Contrat
-                            </p>
-                            <p
-                                className="muted"
-                                style={{ fontSize: 13, margin: '6px 0 12px' }}
-                            >
-                                Demande payée : le contrat est obligatoire avant de
-                                démarrer la prestation.
-                            </p>
-                            <GenererContratButton
-                                demandeId={demande.id}
-                                variante="bouton"
-                            />
-                        </div>
-                    )}
+                    {!demande.contrat &&
+                        demande.facture &&
+                        peutGenererContrat && (
+                            <div className="card" style={{ padding: 20 }}>
+                                <p className="muted" style={{ fontSize: 12.5 }}>
+                                    Contrat
+                                </p>
+                                <p
+                                    className="muted"
+                                    style={{
+                                        fontSize: 13,
+                                        margin: '6px 0 12px',
+                                    }}
+                                >
+                                    Le client doit signer le contrat avant de
+                                    payer : générez-le puis envoyez-le.
+                                </p>
+                                <GenererContratButton
+                                    demandeId={demande.id}
+                                    variante="bouton"
+                                />
+                            </div>
+                        )}
                     {demande.facture && (
                         <div className="card" style={{ padding: 20 }}>
                             <p className="muted" style={{ fontSize: 12.5 }}>

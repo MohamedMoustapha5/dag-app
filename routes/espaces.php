@@ -16,6 +16,7 @@ use App\Http\Controllers\Espaces\AdminFormationController;
 use App\Http\Controllers\Espaces\AdminGrilleTarifaireController;
 use App\Http\Controllers\Espaces\AdminInscriptionController;
 use App\Http\Controllers\Espaces\AdminMotDePasseController;
+use App\Http\Controllers\Espaces\AdminRetraitController;
 use App\Http\Controllers\Espaces\AdminSeanceController;
 use App\Http\Controllers\Espaces\AdminServiceController;
 use App\Http\Controllers\Espaces\AdminStatistiqueController;
@@ -86,6 +87,7 @@ Route::middleware(['auth', 'auth.session', 'verified', EnsureUserType::class.':C
         Route::get('contrats', ClientContratController::class)->name('espace-client.contrats');
         Route::get('contrats/{contrat}', [ClientContratController::class, 'show'])->name('espace-client.contrats.show');
         Route::post('contrats/{contrat}/signature', [ClientContratController::class, 'signer'])->name('espace-client.contrats.signer');
+        Route::post('contrats/{contrat}/rectification', [ClientContratController::class, 'demanderRectification'])->middleware('throttle:6,1')->name('espace-client.contrats.rectification');
         Route::get('contrats/{contrat}/pdf', [ClientContratController::class, 'pdf'])->name('espace-client.contrats.pdf');
         Route::get('documents', ClientDocumentController::class)->name('espace-client.documents');
         Route::get('parametres', [ClientParametreController::class, 'edit'])->name('espace-client.parametres');
@@ -117,7 +119,8 @@ Route::middleware(['auth', 'auth.session', 'verified', EnsureUserType::class.':A
         Route::get('formations', ApprenantFormationController::class)->name('espace-apprenant.formations');
         Route::get('inscriptions', ApprenantInscriptionController::class)->name('espace-apprenant.inscriptions');
         Route::get('formations/{formationSession}/inscription', [ApprenantInscriptionController::class, 'create'])->name('espace-apprenant.inscriptions.create');
-        Route::post('formations/{formationSession}/inscription', [ApprenantInscriptionController::class, 'store'])->name('espace-apprenant.inscriptions.store');
+        Route::post('formations/{formationSession}/inscription', [ApprenantInscriptionController::class, 'store'])->middleware('throttle:10,1')->name('espace-apprenant.inscriptions.store');
+        Route::post('inscriptions/{inscription}/pieces', [ApprenantInscriptionController::class, 'completer'])->middleware('throttle:10,1')->name('espace-apprenant.inscriptions.completer');
         Route::get('factures', ApprenantFactureController::class)->name('espace-apprenant.factures');
         Route::get('factures/{facture}/pdf', [ApprenantFactureController::class, 'pdf'])->name('espace-apprenant.factures.pdf');
         Route::get('dossier', [ApprenantDossierController::class, 'edit'])->name('espace-apprenant.dossier');
@@ -193,20 +196,27 @@ Route::middleware(['auth:admin', 'auth.session', EnsureMembreActif::class])
         Route::delete('seances/{seance}', [AdminSeanceController::class, 'destroy'])->name('espace-admin.seances.destroy');
         Route::patch('inscriptions/{inscription}/valider', [AdminInscriptionController::class, 'valider'])->name('espace-admin.inscriptions.valider');
         Route::patch('inscriptions/{inscription}/refuser', [AdminInscriptionController::class, 'refuser'])->name('espace-admin.inscriptions.refuser');
+        Route::patch('inscriptions/{inscription}/completer', [AdminInscriptionController::class, 'demanderComplement'])->name('espace-admin.inscriptions.completer');
+        Route::get('pieces-inscription/{pieceInscription}', [AdminInscriptionController::class, 'piece'])->name('espace-admin.pieces-inscription.show');
         Route::get('factures', [AdminFactureController::class, 'index'])->name('espace-admin.factures.index');
         Route::post('factures', [AdminFactureController::class, 'store'])->name('espace-admin.factures.store');
         Route::get('factures/{facture}', [AdminFactureController::class, 'show'])->name('espace-admin.factures.show');
         Route::post('factures/{facture}/paiements', [AdminFactureController::class, 'storePaiement'])->name('espace-admin.factures.paiements.store');
         Route::patch('paiements/{paiement}', [AdminFactureController::class, 'updatePaiement'])->name('espace-admin.paiements.update');
+        Route::get('retraits', [AdminRetraitController::class, 'index'])->name('espace-admin.retraits.index');
+        Route::post('retraits', [AdminRetraitController::class, 'store'])->name('espace-admin.retraits.store');
+        Route::post('retraits/{decaissement}/actualiser', [AdminRetraitController::class, 'actualiser'])->name('espace-admin.retraits.actualiser');
         Route::get('contrats', [AdminContratController::class, 'index'])->name('espace-admin.contrats.index');
         Route::post('contrats', [AdminContratController::class, 'store'])->name('espace-admin.contrats.store');
         Route::get('contrats/{contrat}', [AdminContratController::class, 'show'])->name('espace-admin.contrats.show');
         Route::get('contrats/{contrat}/pdf', [AdminContratController::class, 'pdf'])->name('espace-admin.contrats.pdf');
         Route::patch('contrats/{contrat}', [AdminContratController::class, 'update'])->name('espace-admin.contrats.update');
+        Route::patch('contrats/{contrat}/contenu', [AdminContratController::class, 'updateContenu'])->name('espace-admin.contrats.contenu');
         Route::post('modeles-contrat', [AdminContratController::class, 'storeModele'])->name('espace-admin.modeles-contrat.store');
         Route::patch('modeles-contrat/{modeleContrat}', [AdminContratController::class, 'updateModele'])->name('espace-admin.modeles-contrat.update');
         Route::post('clauses', [AdminContratController::class, 'storeClause'])->name('espace-admin.clauses.store');
         Route::patch('clauses/{clause}', [AdminContratController::class, 'updateClause'])->name('espace-admin.clauses.update');
+        Route::patch('clauses/{clause}/deplacer', [AdminContratController::class, 'deplacerClause'])->name('espace-admin.clauses.deplacer');
         Route::delete('clauses/{clause}', [AdminContratController::class, 'destroyClause'])->name('espace-admin.clauses.destroy');
         Route::get('abonnements', [AdminAbonnementController::class, 'index'])->name('espace-admin.abonnements.index');
         Route::post('abonnements', [AdminAbonnementController::class, 'store'])->name('espace-admin.abonnements.store');
@@ -239,6 +249,7 @@ Route::middleware(['auth', 'verified'])->prefix('notifications')->group(function
 
 Route::middleware(['auth', 'verified'])->prefix('paiements')->group(function () {
     Route::post('factures/{facture}', [PaiementEnLigneController::class, 'initier'])->name('paiements.initier');
+    Route::get('retour/{paiement}', [PaiementEnLigneController::class, 'retourPrestataire'])->name('paiements.retour');
     Route::get('simulation/{paiement}', [PaiementEnLigneController::class, 'simulation'])->name('paiements.simulation');
     Route::post('simulation/{paiement}', [PaiementEnLigneController::class, 'decision'])->name('paiements.simulation.decision');
 });

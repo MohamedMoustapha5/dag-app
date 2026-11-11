@@ -1,6 +1,7 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import { Download, FileSignature, ImagePlus } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import DocumentContrat from '@/components/espaces/document-contrat';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
 import { contrats as contratsIndex } from '@/routes/espace-client';
 import contrats from '@/routes/espace-client/contrats';
@@ -20,18 +21,98 @@ type Props = {
         peutSigner: boolean;
         nomSuggere: string;
     };
+    identite: {
+        exigee: boolean;
+        telephone: string | null;
+        cniNumero: string | null;
+        cniLieuDelivrance: string | null;
+        cniDateDelivrance: string | null;
+        villeResidence: string | null;
+        quartierPrestation: string | null;
+    };
+    rectification: {
+        restantes: number;
+        max: number;
+        peutDemander: boolean;
+    };
 };
 
-export default function ContratsShow({ contrat }: Props) {
-    const form = useForm<{
-        signature: File | null;
-        nom: string;
-        accepte: boolean;
-    }>({
+type ChampIdentite =
+    | 'telephone'
+    | 'cni_numero'
+    | 'cni_lieu_delivrance'
+    | 'cni_date_delivrance'
+    | 'ville_residence'
+    | 'quartier_prestation';
+
+const CHAMPS_IDENTITE: {
+    nom: ChampIdentite;
+    libelle: string;
+    type?: string;
+    placeholder?: string;
+    autoComplete?: string;
+}[] = [
+    {
+        nom: 'telephone',
+        libelle: 'Numéro de téléphone',
+        type: 'tel',
+        placeholder: 'Ex. 6 90 00 00 00',
+        autoComplete: 'tel',
+    },
+    { nom: 'cni_numero', libelle: 'N° de la CNI' },
+    {
+        nom: 'cni_lieu_delivrance',
+        libelle: 'CNI faite à',
+        placeholder: 'Ex. Douala',
+    },
+    {
+        nom: 'cni_date_delivrance',
+        libelle: 'Date de délivrance de la CNI',
+        type: 'date',
+    },
+    {
+        nom: 'ville_residence',
+        libelle: 'Ville de résidence',
+        autoComplete: 'address-level2',
+    },
+    {
+        nom: 'quartier_prestation',
+        libelle: 'Quartier de la prestation',
+        placeholder: 'Ex. Bonapriso',
+    },
+];
+
+export default function ContratsShow({
+    contrat,
+    identite,
+    rectification,
+}: Props) {
+    const form = useForm<
+        {
+            signature: File | null;
+            nom: string;
+            accepte: boolean;
+        } & Record<ChampIdentite, string>
+    >({
         signature: null,
         nom: contrat.nomSuggere,
         accepte: false,
+        telephone: identite.telephone ?? '',
+        cni_numero: identite.cniNumero ?? '',
+        cni_lieu_delivrance: identite.cniLieuDelivrance ?? '',
+        cni_date_delivrance: identite.cniDateDelivrance ?? '',
+        ville_residence: identite.villeResidence ?? '',
+        quartier_prestation: identite.quartierPrestation ?? '',
     });
+    const rectificationForm = useForm({ motif: '' });
+    const [rectificationOuverte, setRectificationOuverte] = useState(false);
+
+    const demanderRectification = (event: React.FormEvent) => {
+        event.preventDefault();
+        rectificationForm.post(contrats.rectification(contrat.id).url, {
+            preserveScroll: true,
+        });
+    };
     const [apercu, setApercu] = useState<string | null>(null);
 
     useEffect(() => {
@@ -95,10 +176,7 @@ export default function ContratsShow({ contrat }: Props) {
             </div>
 
             {contrat.montant && (
-                <div
-                    className="card"
-                    style={{ padding: 20, marginBottom: 24 }}
-                >
+                <div className="card" style={{ padding: 20, marginBottom: 24 }}>
                     <p className="muted" style={{ fontSize: 12.5 }}>
                         Montant du contrat
                     </p>
@@ -118,15 +196,7 @@ export default function ContratsShow({ contrat }: Props) {
                 <h2 style={{ fontSize: 15, marginBottom: 12 }}>
                     Texte du contrat
                 </h2>
-                <p
-                    style={{
-                        fontSize: 13.5,
-                        lineHeight: 1.7,
-                        whiteSpace: 'pre-line',
-                    }}
-                >
-                    {contrat.contenu ?? 'Le texte de ce contrat est en cours de rédaction.'}
-                </p>
+                <DocumentContrat contenu={contrat.contenu} />
             </div>
 
             {contrat.estSigne ? (
@@ -192,6 +262,83 @@ export default function ContratsShow({ contrat }: Props) {
                             signature.
                         </p>
                     </div>
+
+                    {identite.exigee && (
+                        <fieldset
+                            style={{
+                                border: 'none',
+                                margin: 0,
+                                padding: 0,
+                            }}
+                        >
+                            <legend
+                                style={{
+                                    fontSize: 14,
+                                    fontWeight: 700,
+                                    marginBottom: 4,
+                                }}
+                            >
+                                Vos informations
+                            </legend>
+                            <p
+                                className="muted"
+                                style={{ fontSize: 12.5, marginBottom: 12 }}
+                            >
+                                Elles figurent en tête du contrat signé, comme
+                                le prévoit le contrat DAG.
+                            </p>
+                            <div
+                                style={{
+                                    display: 'grid',
+                                    gridTemplateColumns:
+                                        'repeat(auto-fit, minmax(220px, 1fr))',
+                                    gap: 14,
+                                }}
+                            >
+                                {CHAMPS_IDENTITE.map((champ) => (
+                                    <div key={champ.nom}>
+                                        <label
+                                            htmlFor={`identite-${champ.nom}`}
+                                        >
+                                            {champ.libelle}
+                                        </label>
+                                        <input
+                                            id={`identite-${champ.nom}`}
+                                            type={champ.type ?? 'text'}
+                                            placeholder={champ.placeholder}
+                                            autoComplete={champ.autoComplete}
+                                            max={
+                                                champ.type === 'date'
+                                                    ? new Date()
+                                                          .toISOString()
+                                                          .slice(0, 10)
+                                                    : undefined
+                                            }
+                                            value={form.data[champ.nom]}
+                                            onChange={(event) =>
+                                                form.setData(
+                                                    champ.nom,
+                                                    event.target.value,
+                                                )
+                                            }
+                                            required
+                                        />
+                                        {form.errors[champ.nom] && (
+                                            <p
+                                                style={{
+                                                    color: 'var(--dag-red)',
+                                                    fontSize: 12.5,
+                                                    marginTop: 6,
+                                                }}
+                                            >
+                                                {form.errors[champ.nom]}
+                                            </p>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </fieldset>
+                    )}
 
                     <div>
                         <label htmlFor="signature">Votre signature</label>
@@ -314,9 +461,7 @@ export default function ContratsShow({ contrat }: Props) {
                                 !form.data.accepte
                             }
                         >
-                            {form.processing
-                                ? 'Envoi…'
-                                : 'Signer le contrat'}
+                            {form.processing ? 'Envoi…' : 'Signer le contrat'}
                         </button>
                     </div>
                 </form>
@@ -325,6 +470,111 @@ export default function ContratsShow({ contrat }: Props) {
                     <p className="muted" style={{ fontSize: 13.5 }}>
                         Ce contrat n'est pas ouvert à la signature.
                     </p>
+                </div>
+            )}
+
+            {contrat.peutSigner && identite.exigee && (
+                <div className="card" style={{ padding: 24, marginTop: 24 }}>
+                    <h2 style={{ fontSize: 15, marginBottom: 6 }}>
+                        Un point à corriger avant de signer ?
+                    </h2>
+                    {rectification.peutDemander ? (
+                        <>
+                            <p
+                                className="muted"
+                                style={{ fontSize: 13.5, lineHeight: 1.6 }}
+                            >
+                                Vous pouvez demander une rectification du
+                                contrat : il vous reste{' '}
+                                <strong>
+                                    {rectification.restantes} demande
+                                    {rectification.restantes > 1 ? 's' : ''}
+                                </strong>{' '}
+                                sur {rectification.max}. Au-delà, un nouveau
+                                contrat devra être établi par DAG.
+                            </p>
+                            {rectificationOuverte ? (
+                                <form
+                                    onSubmit={demanderRectification}
+                                    style={{
+                                        marginTop: 14,
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: 10,
+                                    }}
+                                >
+                                    <label htmlFor="motif-rectification">
+                                        Ce qui doit être rectifié
+                                    </label>
+                                    <textarea
+                                        id="motif-rectification"
+                                        rows={4}
+                                        placeholder="Ex. Le nombre de badges est de 120 et non 100."
+                                        value={rectificationForm.data.motif}
+                                        onChange={(event) =>
+                                            rectificationForm.setData(
+                                                'motif',
+                                                event.target.value,
+                                            )
+                                        }
+                                    />
+                                    {rectificationForm.errors.motif && (
+                                        <p
+                                            style={{
+                                                color: 'var(--dag-red)',
+                                                fontSize: 12.5,
+                                            }}
+                                        >
+                                            {rectificationForm.errors.motif}
+                                        </p>
+                                    )}
+                                    <div style={{ display: 'flex', gap: 10 }}>
+                                        <button
+                                            type="submit"
+                                            className="btn-primary"
+                                            disabled={
+                                                rectificationForm.processing
+                                            }
+                                        >
+                                            {rectificationForm.processing
+                                                ? 'Envoi…'
+                                                : 'Envoyer la demande'}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="btn-outline"
+                                            onClick={() =>
+                                                setRectificationOuverte(false)
+                                            }
+                                        >
+                                            Annuler
+                                        </button>
+                                    </div>
+                                </form>
+                            ) : (
+                                <button
+                                    type="button"
+                                    className="btn-outline"
+                                    style={{ marginTop: 14 }}
+                                    onClick={() =>
+                                        setRectificationOuverte(true)
+                                    }
+                                >
+                                    Demander une rectification
+                                </button>
+                            )}
+                        </>
+                    ) : (
+                        <p
+                            className="muted"
+                            style={{ fontSize: 13.5, lineHeight: 1.6 }}
+                        >
+                            Vous avez utilisé vos {rectification.max} demandes
+                            de rectification. Pour toute autre modification,
+                            contactez l'équipe DAG : un nouveau contrat sera
+                            établi.
+                        </p>
+                    )}
                 </div>
             )}
         </>

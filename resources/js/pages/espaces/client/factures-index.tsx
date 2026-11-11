@@ -1,9 +1,10 @@
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { useState } from 'react';
 import PayerFactureModal, {
     type MoyenPaiement,
 } from '@/components/espaces/payer-facture-modal';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
+import demandesRoutes from '@/routes/espace-client/demandes';
 import facturesRoutes from '@/routes/espace-client/factures';
 
 type Facture = {
@@ -15,6 +16,8 @@ type Facture = {
     statut: string;
     solde: string;
     paiementEnAttente: boolean;
+    attendSignatureContrat: boolean;
+    demandeId: string | null;
 };
 
 type Props = {
@@ -145,7 +148,18 @@ export default function FacturesIndex({
                                         {facture.statut === 'EN_ATTENTE' ||
                                         facture.statut ===
                                             'PARTIELLEMENT_PAYEE' ? (
-                                            facture.paiementEnAttente ? (
+                                            facture.attendSignatureContrat &&
+                                            facture.demandeId ? (
+                                                <Link
+                                                    href={demandesRoutes.show(
+                                                        facture.demandeId,
+                                                    )}
+                                                    className="link-action"
+                                                    style={{ fontSize: 12.5 }}
+                                                >
+                                                    Signer le contrat d'abord
+                                                </Link>
+                                            ) : facture.paiementEnAttente ? (
                                                 <span
                                                     className="muted"
                                                     style={{ fontSize: 12 }}
@@ -168,20 +182,18 @@ export default function FacturesIndex({
                                                     Payer
                                                 </button>
                                             )
-                                        ) : (
-                                            facture.statut === 'PAYEE' ? (
-                                                <a
-                                                    className="link-action"
-                                                    href={
-                                                        facturesRoutes.pdf(
-                                                            facture.id,
-                                                        ).url
-                                                    }
-                                                >
-                                                    PDF ↓
-                                                </a>
-                                            ) : null
-                                        )}
+                                        ) : facture.statut === 'PAYEE' ? (
+                                            <a
+                                                className="link-action"
+                                                href={
+                                                    facturesRoutes.pdf(
+                                                        facture.id,
+                                                    ).url
+                                                }
+                                            >
+                                                PDF ↓
+                                            </a>
+                                        ) : null}
                                     </td>
                                 </tr>
                             ))}

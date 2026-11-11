@@ -26,19 +26,40 @@ class Demande extends Model
     /**
      * Linear progression of a demande, excluding REFUSEE which is a
      * terminal state reachable from any step rather than a step itself.
+     * The client signs the contract sent with the devis before paying.
      *
      * @var list<string>
      */
     public const SUIVI_STEPS = [
-        'BROUILLON', 'EN_ETUDE', 'DEVIS_ENVOYE', 'PAYEE', 'EN_COURS', 'LIVREE', 'TERMINEE',
+        'BROUILLON', 'EN_ETUDE', 'DEVIS_ENVOYE', 'CONTRAT_SIGNE', 'PAYEE', 'EN_COURS', 'LIVREE', 'TERMINEE',
     ];
 
     /** @var array<string, string> */
     public const STATUT_LABELS = [
         'BROUILLON' => 'Brouillon', 'EN_ETUDE' => "À l'étude", 'DEVIS_ENVOYE' => 'Devis envoyé',
-        'PAYEE' => 'Payé', 'EN_COURS' => 'En cours', 'LIVREE' => 'Livrée', 'TERMINEE' => 'Terminée',
-        'REFUSEE' => 'Refusée',
+        'CONTRAT_SIGNE' => 'Contrat signé', 'PAYEE' => 'Payé', 'EN_COURS' => 'En cours',
+        'LIVREE' => 'Livrée', 'TERMINEE' => 'Terminée', 'REFUSEE' => 'Refusée',
     ];
+
+    /**
+     * Whether the demande is at least at the given step of SUIVI_STEPS
+     * (always false for a refused demande).
+     */
+    public function aAtteint(string $etape): bool
+    {
+        $actuelle = array_search($this->statut, self::SUIVI_STEPS, true);
+
+        return $actuelle !== false && $actuelle >= array_search($etape, self::SUIVI_STEPS, true);
+    }
+
+    /**
+     * Whether the client signed the contract of this demande, which opens
+     * the payment of its facture.
+     */
+    public function contratEstSigne(): bool
+    {
+        return $this->contrat !== null && $this->contrat->estSigne();
+    }
 
     public function libelleStatut(): string
     {

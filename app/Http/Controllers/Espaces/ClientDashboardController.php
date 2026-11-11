@@ -20,7 +20,8 @@ class ClientDashboardController extends Controller
     /** @var array<string, string> */
     private const DEMANDE_EVENT_LABELS = [
         'EN_ETUDE' => 'Demande reçue',
-        'DEVIS_ENVOYE' => 'Devis envoyé',
+        'DEVIS_ENVOYE' => 'Devis et contrat envoyés',
+        'CONTRAT_SIGNE' => 'Contrat signé',
         'PAYEE' => 'Devis payé',
         'EN_COURS' => 'Demande en cours de traitement',
         'LIVREE' => 'Livraison effectuée',
@@ -155,7 +156,7 @@ class ClientDashboardController extends Controller
     private function typeEvenementDemande(string $statut): string
     {
         return match ($statut) {
-            'PAYEE', 'LIVREE', 'TERMINEE' => 'succes',
+            'CONTRAT_SIGNE', 'PAYEE', 'LIVREE', 'TERMINEE' => 'succes',
             'EN_COURS' => 'attente',
             'REFUSEE' => 'erreur',
             default => 'info',

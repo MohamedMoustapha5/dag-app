@@ -7,12 +7,17 @@ use App\Enums\Action;
 use App\Enums\Donnee;
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
+use App\Models\Facture;
 use App\Models\FormationSession;
 use App\Models\Inscription;
+use App\Models\PieceInscription;
+use App\Notifications\DossierInscriptionNotification;
 use App\Notifications\InscriptionDecisionNotification;
 use App\Support\Notifications\Notifier;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AdminInscriptionController extends Controller
@@ -24,9 +29,11 @@ class AdminInscriptionController extends Controller
         $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::Formations, Action::Voir), 403);
 
-        $formationSession->load(['formation', 'inscriptions.apprenant.user', 'inscriptions.facture', 'seances']);
+        $formationSession->load(['formation', 'inscriptions.apprenant.user', 'inscriptions.facture', 'inscriptions.pieces', 'seances']);
         $seancesCount = $formationSession->seances->count();
         $peutVoirFactures = $membre->peut(Donnee::FacturesPaiements, Action::Voir);
+        $peutValider = $membre->peut(Donnee::Formations, Action::Valider);
+        $piecesRequises = $formationSession->formation->piecesRequises();
 
         return response()->json([
             'session' => [
@@ -34,12 +41,23 @@ class AdminInscriptionController extends Controller
                 'formationNom' => $formationSession->formation->nom,
                 'prix' => $formationSession->prix,
             ],
-            'peutValider' => $membre->peut(Donnee::Formations, Action::Valider),
+            'peutValider' => $peutValider,
+            'piecesRequises' => $piecesRequises,
             'inscriptions' => $formationSession->inscriptions->map(fn (Inscription $inscription) => [
                 'id' => $inscription->id,
                 'nom' => $inscription->apprenant->user->name,
                 'email' => $inscription->apprenant->user->email,
                 'statut' => $inscription->statut,
+                'motif' => $inscription->motif_decision,
+                // Identity documents are personal data: only the members who
+                // decide on the enrolment can open them.
+                'pieces' => $inscription->pieces->map(fn (PieceInscription $piece) => [
+                    'id' => $piece->id,
+                    'libelle' => $piece->libelle,
+                    'nomOriginal' => $piece->nom_original,
+                    'url' => $peutValider ? route('espace-admin.pieces-inscription.show', $piece) : null,
+                ])->values(),
+                'dossierComplet' => $this->piecesManquantes($inscription, $piecesRequises) === [],
                 'presence' => $inscription->presences()->where('present', true)->count(),
                 'seancesTotal' => $seancesCount,
                 'paiement' => $inscription->facture === null ? null : [
@@ -49,7 +67,8 @@ class AdminInscriptionController extends Controller
                     'reference' => $inscription->facture->reference,
                     'url' => $peutVoirFactures ? route('espace-admin.factures.show', $inscription->facture) : null,
                 ],
-                'validable' => $this->paiementRegle($inscription),
+                'validable' => $inscription->statut === 'DOSSIER_EN_ETUDE'
+                    || ($inscription->statut === 'EN_ATTENTE_PAIEMENT' && $this->paiementRegle($inscription)),
             ]),
         ]);
     }
@@ -92,20 +111,87 @@ class AdminInscriptionController extends Controller
     }
 
     /**
-     * Second step of an enrolment: once the registration fee is settled
-     * (confirmed in Factures & paiements), DAG validates the seat.
+     * DAG validates the dossier of an enrolment: the registration fee is then
+     * billed and the apprenant can pay it, which confirms the seat
+     * (PaiementService). A free session is confirmed right away. An older
+     * enrolment already paid before this step existed is confirmed as before.
      */
     public function valider(Request $request, Inscription $inscription): JsonResponse
     {
         $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::Formations, Action::Valider), 403);
-        abort_unless($inscription->statut === 'EN_ATTENTE_PAIEMENT', 409);
-        abort_unless($this->paiementRegle($inscription), 409, "Les frais d'inscription ne sont pas encore réglés : confirmez d'abord le paiement.");
 
-        $inscription->update(['statut' => 'VALIDEE']);
-        Notifier::envoyer($inscription->apprenant->user, new InscriptionDecisionNotification($inscription, true));
+        if ($inscription->statut === 'EN_ATTENTE_PAIEMENT') {
+            abort_unless($this->paiementRegle($inscription), 409, "Les frais d'inscription ne sont pas encore réglés : l'inscription sera confirmée à leur paiement.");
 
-        ActivityLog::record($membre, "a validé l'inscription", $inscription, "{$inscription->apprenant->user->name} — {$inscription->formation->nom}.");
+            $inscription->update(['statut' => 'VALIDEE']);
+            Notifier::envoyer($inscription->apprenant->user, new InscriptionDecisionNotification($inscription, true));
+            ActivityLog::record($membre, "a validé l'inscription", $inscription, "{$inscription->apprenant->user->name} — {$inscription->formation->nom}.");
+
+            return response()->json(['statut' => $inscription->statut]);
+        }
+
+        abort_unless($inscription->statut === 'DOSSIER_EN_ETUDE', 409, "Ce dossier n'est pas en attente de validation.");
+
+        $inscription->load(['formation', 'formationSession', 'pieces']);
+        $manquantes = $this->piecesManquantes($inscription, $inscription->formation->piecesRequises());
+
+        abort_unless($manquantes === [], 409, 'Le dossier est incomplet ('.implode(', ', $manquantes).') : demandez un complément.');
+
+        $montant = (float) $inscription->montant_negocie;
+
+        DB::transaction(function () use ($inscription, $montant): void {
+            $inscription->update([
+                'statut' => $montant > 0 ? 'EN_ATTENTE_PAIEMENT' : 'VALIDEE',
+                'motif_decision' => null,
+                'dossier_valide_at' => now(),
+            ]);
+
+            if ($montant > 0 && $inscription->facture()->doesntExist()) {
+                Facture::create([
+                    'type' => 'FORMATION',
+                    'client_id' => null,
+                    'apprenant_id' => $inscription->apprenant_id,
+                    'inscription_id' => $inscription->id,
+                    'montant' => $montant,
+                    'montant_paye' => 0,
+                    'echeance' => $inscription->formationSession?->date_debut,
+                    'statut' => 'EN_ATTENTE',
+                ]);
+            }
+        });
+
+        Notifier::envoyer(
+            $inscription->apprenant->user,
+            $montant > 0 ? new DossierInscriptionNotification($inscription, true) : new InscriptionDecisionNotification($inscription, true),
+        );
+
+        ActivityLog::record($membre, "a validé le dossier d'inscription", $inscription, "{$inscription->apprenant->user->name} — {$inscription->formation->nom}.");
+
+        return response()->json(['statut' => $inscription->statut]);
+    }
+
+    /**
+     * Sends the dossier back to the apprenant with what to fix; the seat
+     * stays reserved meanwhile.
+     */
+    public function demanderComplement(Request $request, Inscription $inscription): JsonResponse
+    {
+        $membre = $this->membre($request);
+        abort_unless($membre->peut(Donnee::Formations, Action::Valider), 403);
+        abort_unless($inscription->statut === 'DOSSIER_EN_ETUDE', 409, "Ce dossier n'est pas en cours d'examen.");
+
+        $data = $request->validate([
+            'motif' => ['required', 'string', 'max:1000'],
+        ], [
+            'motif.required' => "Indiquez à l'apprenant ce qu'il doit corriger ou ajouter.",
+        ]);
+
+        $inscription->update(['statut' => 'DOSSIER_A_COMPLETER', 'motif_decision' => $data['motif']]);
+
+        Notifier::envoyer($inscription->apprenant->user, new DossierInscriptionNotification($inscription, false));
+
+        ActivityLog::record($membre, 'a demandé un complément de dossier', $inscription, "{$inscription->apprenant->user->name} — {$inscription->formation->nom}.");
 
         return response()->json(['statut' => $inscription->statut]);
     }
@@ -118,7 +204,11 @@ class AdminInscriptionController extends Controller
     {
         $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::Formations, Action::Valider), 403);
-        abort_unless($inscription->statut === 'EN_ATTENTE_PAIEMENT', 409);
+        abort_unless(in_array($inscription->statut, ['DOSSIER_EN_ETUDE', 'DOSSIER_A_COMPLETER', 'EN_ATTENTE_PAIEMENT'], true), 409);
+
+        $data = $request->validate([
+            'motif' => ['nullable', 'string', 'max:1000'],
+        ]);
 
         $facture = $inscription->facture;
 
@@ -128,7 +218,7 @@ class AdminInscriptionController extends Controller
             'Un paiement a déjà été reçu pour cette inscription : remboursez-le avant de la refuser.'
         );
 
-        $inscription->update(['statut' => 'ABANDONNEE']);
+        $inscription->update(['statut' => 'ABANDONNEE', 'motif_decision' => $data['motif'] ?? null]);
         $facture?->update(['statut' => 'EN_ECHEC']);
 
         Notifier::envoyer($inscription->apprenant->user, new InscriptionDecisionNotification($inscription, false));
@@ -136,6 +226,33 @@ class AdminInscriptionController extends Controller
         ActivityLog::record($membre, "a refusé l'inscription", $inscription, "{$inscription->apprenant->user->name} — {$inscription->formation->nom}.");
 
         return response()->json(['statut' => $inscription->statut]);
+    }
+
+    /**
+     * Opens a piece of an enrolment dossier, for the members who decide on it.
+     */
+    public function piece(Request $request, PieceInscription $pieceInscription): StreamedResponse
+    {
+        $membre = $this->membre($request);
+        abort_unless($membre->peut(Donnee::Formations, Action::Valider), 403);
+        abort_unless(Storage::disk('local')->exists($pieceInscription->chemin), 404);
+
+        $pieceInscription->load('inscription.apprenant.user');
+        $extension = pathinfo($pieceInscription->chemin, PATHINFO_EXTENSION);
+        $nom = str($pieceInscription->libelle.' '.$pieceInscription->inscription->apprenant->user->name)->slug().'.'.$extension;
+
+        return Storage::disk('local')->download($pieceInscription->chemin, $nom);
+    }
+
+    /**
+     * @param  list<string>  $piecesRequises
+     * @return list<string>
+     */
+    private function piecesManquantes(Inscription $inscription, array $piecesRequises): array
+    {
+        $deposees = $inscription->pieces->pluck('libelle')->all();
+
+        return array_values(array_filter($piecesRequises, fn (string $libelle) => ! in_array($libelle, $deposees, true)));
     }
 
     /**

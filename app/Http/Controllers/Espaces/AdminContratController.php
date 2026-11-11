@@ -10,6 +10,7 @@ use App\Models\ActivityLog;
 use App\Models\Clause;
 use App\Models\Contrat;
 use App\Models\Demande;
+use App\Models\MembreEquipe;
 use App\Models\ModeleContrat;
 use App\Notifications\ContratASignerNotification;
 use App\Support\ContratPdf;
@@ -18,6 +19,7 @@ use App\Support\Notifications\Notifier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -33,8 +35,8 @@ class AdminContratController extends Controller
         abort_unless($membre->peut(Donnee::ContratsClauses, Action::Voir), 403);
 
         $contrats = Contrat::query()
-            ->with(['client', 'entreprise', 'demande', 'abonnement.formule', 'candidature.offre'])
-            ->latest()
+            ->with(['client', 'apprenant.user', 'entreprise', 'demande.service', 'demande.formule', 'abonnement.formule', 'candidature.offre'])
+            ->latest('updated_at')
             ->get();
 
         $demandesAContractualiser = Demande::query()
@@ -48,15 +50,19 @@ class AdminContratController extends Controller
             'peutModifier' => $membre->peut(Donnee::ContratsClauses, Action::Modifier),
             'peutSupprimer' => $membre->peut(Donnee::ContratsClauses, Action::Supprimer),
             'peutTelecharger' => $membre->peut(Donnee::ContratsClauses, Action::Telecharger),
-            'modeles' => ModeleContrat::query()->orderBy('nom')->get(['id', 'nom', 'type', 'statut']),
-            'clauses' => Clause::query()->orderBy('ordre')->get(['id', 'titre', 'contenu', 'ordre']),
+            'modeles' => ModeleContrat::query()->orderBy('type')->orderBy('nom')->get(['id', 'nom', 'type', 'statut', 'contenu']),
+            'clauses' => Clause::query()->orderBy('ordre')->orderBy('created_at')->get(['id', 'titre', 'contenu', 'ordre']),
+            'variables' => ContratRedaction::variables(),
             'contrats' => $contrats->map(fn (Contrat $contrat) => [
                 'id' => $contrat->id,
                 'reference' => $contrat->reference,
                 'objet' => $contrat->libelleObjet(),
+                'partie' => $contrat->nomPartie(),
                 'type' => $contrat->type,
                 'statut' => $contrat->statut,
                 'estSigne' => $contrat->estSigne(),
+                'rectificationDemandee' => $contrat->statut === 'BROUILLON' && $contrat->motif_rectification !== null,
+                'misAJourLe' => $contrat->updated_at?->format('d/m/Y'),
             ]),
             'demandesAContractualiser' => $demandesAContractualiser->map(fn (Demande $demande) => [
                 'id' => $demande->id,
@@ -88,10 +94,34 @@ class AdminContratController extends Controller
         abort_unless($membre->peut(Donnee::ContratsClauses, Action::Modifier), 403);
 
         $data = $request->validate([
-            'statut' => ['required', Rule::in(['BROUILLON', 'ACTIF'])],
+            'statut' => ['sometimes', 'required', Rule::in(['BROUILLON', 'ACTIF'])],
+            'nom' => ['sometimes', 'required', 'string', 'max:191'],
+            'contenu' => ['sometimes', 'required', 'string'],
         ]);
 
-        $modeleContrat->update($data);
+        // One active modèle per type: activating one makes it the modèle used
+        // for the contracts drafted from now on, the others become drafts.
+        DB::transaction(function () use ($modeleContrat, $data): void {
+            if (($data['statut'] ?? null) === 'ACTIF') {
+                ModeleContrat::query()
+                    ->where('type', $modeleContrat->type)
+                    ->whereKeyNot($modeleContrat->getKey())
+                    ->where('statut', 'ACTIF')
+                    ->update(['statut' => 'BROUILLON']);
+            }
+
+            $modeleContrat->update($data);
+        });
+
+        if (array_key_exists('contenu', $data) || array_key_exists('nom', $data)) {
+            ActivityLog::record($membre, 'a modifié le modèle de contrat', $modeleContrat, $modeleContrat->nom.'.');
+        }
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => match (true) {
+            ($data['statut'] ?? null) === 'ACTIF' => "« {$modeleContrat->nom} » est le modèle utilisé pour les nouveaux contrats.",
+            array_key_exists('contenu', $data) => 'Modèle enregistré. Il s\'applique aux contrats rédigés à partir de maintenant.',
+            default => 'Modèle mis à jour.',
+        }]);
 
         return back();
     }
@@ -107,7 +137,46 @@ class AdminContratController extends Controller
             'ordre' => ['nullable', 'integer', 'min:0'],
         ]);
 
-        Clause::create([...$data, 'ordre' => $data['ordre'] ?? 0]);
+        // Without an explicit position, a new clause becomes the last article.
+        Clause::create([...$data, 'ordre' => $data['ordre'] ?? ((int) Clause::max('ordre') + 1)]);
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Clause ajoutée à la fin du contrat.']);
+
+        return back();
+    }
+
+    /**
+     * Moves a clause one article up or down in the contract.
+     */
+    public function deplacerClause(Request $request, Clause $clause): RedirectResponse
+    {
+        $membre = $this->membre($request);
+        abort_unless($membre->peut(Donnee::ContratsClauses, Action::Modifier), 403);
+
+        $data = $request->validate([
+            'direction' => ['required', Rule::in(['haut', 'bas'])],
+        ]);
+
+        DB::transaction(function () use ($clause, $data): void {
+            // Positions are renumbered 0..n-1 first, so equal or sparse values
+            // from older clauses still move one step at a time.
+            $clauses = Clause::query()->orderBy('ordre')->orderBy('created_at')->lockForUpdate()->get()->values();
+            $position = $clauses->search(fn (Clause $item) => $item->is($clause));
+            $cible = $data['direction'] === 'haut' ? $position - 1 : $position + 1;
+
+            if ($position === false || $cible < 0 || $cible >= $clauses->count()) {
+                return;
+            }
+
+            $ordre = $clauses->all();
+            [$ordre[$position], $ordre[$cible]] = [$ordre[$cible], $ordre[$position]];
+
+            foreach ($ordre as $index => $item) {
+                if ($item->ordre !== $index) {
+                    $item->update(['ordre' => $index]);
+                }
+            }
+        });
 
         return back();
     }
@@ -127,7 +196,7 @@ class AdminContratController extends Controller
             'ordre' => ['nullable', 'integer', 'min:0'],
         ]);
 
-        $clause->update([...$data, 'ordre' => $data['ordre'] ?? 0]);
+        $clause->update([...$data, 'ordre' => $data['ordre'] ?? $clause->ordre]);
 
         ActivityLog::record($membre, 'a modifié la clause', $clause, $clause->titre.'.');
 
@@ -178,7 +247,7 @@ class AdminContratController extends Controller
         $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::ContratsClauses, Action::Voir), 403);
 
-        $contrat->load(['client', 'entreprise', 'modeleContrat', 'demande', 'abonnement.formule', 'candidature.offre']);
+        $contrat->load(['client', 'apprenant.user', 'entreprise', 'modeleContrat', 'demande', 'abonnement.formule', 'candidature.offre']);
 
         return Inertia::render('espaces/admin-contrat-show', [
             ...$this->adminEspaceProps($membre),
@@ -188,6 +257,8 @@ class AdminContratController extends Controller
                 'id' => $contrat->id,
                 'reference' => $contrat->reference,
                 'objet' => $contrat->libelleObjet(),
+                'partie' => $contrat->nomPartie(),
+                'demandeId' => $contrat->demande_id,
                 'type' => $contrat->type,
                 'statut' => $contrat->statut,
                 'statutsAccessibles' => $contrat->statutsAccessibles(),
@@ -195,11 +266,63 @@ class AdminContratController extends Controller
                 'contenu' => $contrat->contenu,
                 'codeVerification' => $contrat->code_verification,
                 'signataireNom' => $contrat->signataire_nom,
-                'dateSignature' => $contrat->date_signature?->toDateString(),
+                'dateSignature' => $contrat->date_signature?->format('d/m/Y à H:i'),
                 'signatureContestee' => $contrat->signature_contestee,
                 'estSigne' => $contrat->estSigne(),
+                'identite' => $contrat->cni_numero === null && $contrat->telephone_cocontractant === null ? null : [
+                    'telephone' => $contrat->telephone_cocontractant,
+                    'cniNumero' => $contrat->cni_numero,
+                    'cniLieuDelivrance' => $contrat->cni_lieu_delivrance,
+                    'cniDateDelivrance' => $contrat->cni_date_delivrance?->format('d/m/Y'),
+                    'villeResidence' => $contrat->ville_residence,
+                    'quartierPrestation' => $contrat->quartier_prestation,
+                ],
+                'rectification' => [
+                    'nombre' => (int) $contrat->nombre_rectifications,
+                    'max' => Contrat::RECTIFICATIONS_MAX,
+                    'motif' => $contrat->motif_rectification,
+                    'demandeeLe' => $contrat->rectification_demandee_at?->format('d/m/Y à H:i'),
+                ],
             ],
         ]);
+    }
+
+    /**
+     * Corrects the text of a contract still in draft, typically after the
+     * client asked for a rectification; it is then sent again for signature.
+     * A sent or signed contract is never edited.
+     */
+    public function updateContenu(Request $request, Contrat $contrat): RedirectResponse
+    {
+        $membre = $this->membre($request);
+        abort_unless($membre->peut(Donnee::ContratsClauses, Action::Modifier), 403);
+        abort_unless($contrat->statut === 'BROUILLON', 409, 'Seul un contrat en brouillon peut être modifié : remettez-le en brouillon avant de le corriger.');
+
+        $data = $request->validate([
+            'contenu' => ['required', 'string', 'max:60000'],
+            'envoyer' => ['sometimes', 'boolean'],
+        ], [
+            'contenu.required' => 'Le texte du contrat ne peut pas être vide.',
+        ]);
+
+        if ($contrat->contenu !== $data['contenu']) {
+            $contrat->update(['contenu' => $data['contenu']]);
+
+            ActivityLog::record($membre, 'a modifié le texte du contrat', $contrat, "{$contrat->reference}.");
+        }
+
+        // "Enregistrer et envoyer": one click saves the text and sends it for signature.
+        if ($request->boolean('envoyer')) {
+            $this->changerStatut($contrat, 'ENVOYE', $membre);
+
+            Inertia::flash('toast', ['type' => 'success', 'message' => 'Contrat envoyé au client pour signature.']);
+
+            return back();
+        }
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Texte du contrat enregistré.']);
+
+        return back();
     }
 
     public function pdf(Request $request, Contrat $contrat): HttpResponse
@@ -228,16 +351,35 @@ class AdminContratController extends Controller
             ]);
         }
 
-        $contrat->update($data);
+        $this->changerStatut($contrat, $data['statut'], $membre);
 
-        if ($data['statut'] === 'ENVOYE') {
+        Inertia::flash('toast', ['type' => 'success', 'message' => match ($data['statut']) {
+            'ENVOYE' => 'Contrat envoyé au client pour signature.',
+            'BROUILLON' => 'Contrat repassé en brouillon : vous pouvez le corriger.',
+            'ACTIF' => 'Contrat validé : il est maintenant actif.',
+            'TERMINE' => 'Contrat marqué comme terminé.',
+            'RESILIE' => 'Contrat résilié.',
+            'REFUSE' => 'Contrat marqué comme refusé.',
+            default => 'Contrat mis à jour.',
+        }]);
+
+        return back();
+    }
+
+    /**
+     * Applies an allowed status change (checked by the caller) and tells the
+     * client when the contract is sent to them for signature.
+     */
+    private function changerStatut(Contrat $contrat, string $statut, MembreEquipe $membre): void
+    {
+        abort_unless($contrat->peutPasserA($statut), 409, "Un contrat « {$contrat->libelleStatut()} » ne peut pas passer à « ".Contrat::STATUT_LABELS[$statut].' ».');
+
+        $contrat->update(['statut' => $statut]);
+
+        if ($statut === 'ENVOYE') {
             Notifier::envoyer(Notifier::utilisateurDe($contrat), new ContratASignerNotification($contrat));
         }
 
-        ActivityLog::record($this->membre($request), 'a changé le statut du contrat', $contrat, "{$contrat->reference} : {$contrat->libelleStatut()}.");
-
-        Inertia::flash('toast', ['type' => 'success', 'message' => 'Contrat mis à jour.']);
-
-        return back();
+        ActivityLog::record($membre, 'a changé le statut du contrat', $contrat, "{$contrat->reference} : {$contrat->libelleStatut()}.");
     }
 }

@@ -96,7 +96,7 @@ class Abonnement extends Model
     private const MOIS_COURTS = ['Janv', 'Févr', 'Mars', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sept', 'Oct', 'Nov', 'Déc'];
 
     /** Statuses of a renewal request that is still waiting for the team to renew the subscription. */
-    private const STATUTS_RENOUVELLEMENT_OUVERT = ['EN_ETUDE', 'DEVIS_ENVOYE', 'PAYEE'];
+    private const STATUTS_RENOUVELLEMENT_OUVERT = ['EN_ETUDE', 'DEVIS_ENVOYE', 'CONTRAT_SIGNE', 'PAYEE'];
 
     /**
      * Starts a new billing cycle of the same length as the previous one (one

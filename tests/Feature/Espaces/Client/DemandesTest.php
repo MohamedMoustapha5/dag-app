@@ -94,7 +94,7 @@ test('a client can view their own demande with its suivi', function () {
     $response->assertInertia(fn ($page) => $page
         ->component('espaces/client/demandes-show')
         ->where('demande.id', $demande->id)
-        ->where('suivi.etapeActuelle', 4)
+        ->where('suivi.etapeActuelle', 5)
         ->where('suivi.refusee', false));
 });
 

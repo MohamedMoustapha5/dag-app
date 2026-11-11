@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             EntreprisesPartenairesSeeder::class,
             ClientsEtApprenantsSeeder::class,
             DemoWorkflowSeeder::class,
+            ContratDagSeeder::class,
         ]);
     }
 }

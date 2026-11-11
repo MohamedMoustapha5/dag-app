@@ -6,9 +6,9 @@ use App\Enums\Action;
 use App\Enums\Donnee;
 use App\Http\Controllers\Controller;
 use App\Models\Apprenant;
-use App\Models\Facture;
 use App\Models\FormationSession;
 use App\Models\Inscription;
+use App\Models\PieceInscription;
 use App\Models\Presence;
 use App\Models\Seance;
 use App\Support\Notifications\Notifier;
@@ -17,6 +17,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -27,7 +28,7 @@ class ApprenantInscriptionController extends Controller
         $apprenant = $request->user('web')->apprenant;
 
         $inscriptions = $apprenant->inscriptions()
-            ->with(['formation', 'formationSession.seances', 'facture'])
+            ->with(['formation', 'formationSession.seances', 'facture', 'pieces'])
             ->latest()
             ->get();
 
@@ -67,6 +68,7 @@ class ApprenantInscriptionController extends Controller
                 'placesRestantes' => $formationSession->placesRestantes(),
                 'prix' => $formationSession->prix,
                 'ouverte' => $formationSession->statut === 'OUVERTE' && $formationSession->formation->statut === 'PUBLIEE',
+                'piecesRequises' => $formationSession->formation->piecesRequises(),
             ],
         ]);
     }
@@ -88,54 +90,147 @@ class ApprenantInscriptionController extends Controller
 
         abort_if($formationSession->prix === null, 409, "Les frais d'inscription de cette session ne sont pas encore publiés.");
 
+        // Checked again under lock below; here it spares uploading a dossier for nothing.
+        abort_if($formationSession->placesRestantes() <= 0, 409, 'Cette session est complète.');
+
+        $piecesRequises = $formationSession->formation->piecesRequises();
+        $request->validate(...$this->reglesPieces($piecesRequises, true));
+
         // The session row is locked while counting the seats, so two apprenants
-        // enrolling at the same moment can't both take the last one. The
-        // registration fee is billed in the same step, at the session's price.
+        // enrolling at the same moment can't both take the last one. The dossier
+        // under review holds the seat; the fee is only billed once DAG validates it.
         $inscription = DB::transaction(function () use ($apprenant, $formationSession): Inscription {
             $verrouillee = FormationSession::whereKey($formationSession->id)->lockForUpdate()->firstOrFail();
 
             abort_if($verrouillee->placesRestantes() <= 0, 409, 'Cette session est complète.');
             abort_if($this->dejaInscrit($apprenant, $verrouillee), 409, 'Vous êtes déjà inscrit à cette session.');
 
-            $inscription = Inscription::create([
+            return Inscription::create([
                 'apprenant_id' => $apprenant->id,
                 'formation_id' => $verrouillee->formation_id,
                 'formation_session_id' => $verrouillee->id,
                 'montant_negocie' => $verrouillee->prix,
-                'statut' => 'EN_ATTENTE_PAIEMENT',
+                'statut' => 'DOSSIER_EN_ETUDE',
             ]);
-
-            Facture::create([
-                'type' => 'FORMATION',
-                'client_id' => null,
-                'apprenant_id' => $apprenant->id,
-                'inscription_id' => $inscription->id,
-                'montant' => $verrouillee->prix,
-                'montant_paye' => 0,
-                'echeance' => $verrouillee->date_debut,
-                'statut' => 'EN_ATTENTE',
-            ]);
-
-            return $inscription;
         });
 
-        $montant = number_format((float) $inscription->montant_negocie, 0, ',', ' ');
+        $this->enregistrerPieces($request, $inscription, $piecesRequises);
 
         Notifier::alerterEquipe(
             Donnee::Formations,
             Action::Valider,
             'inscription.nouvelle',
-            "Nouvelle inscription — {$formationSession->formation->nom}",
-            "{$apprenant->user->name} s'est inscrit à la session de {$formationSession->ville} ({$montant} FCFA de frais d'inscription, en attente de paiement).",
+            "Dossier d'inscription à examiner — {$formationSession->formation->nom}",
+            "{$apprenant->user->name} a déposé son dossier pour la session de {$formationSession->ville}. Vérifiez les pièces puis validez-le pour lui ouvrir le paiement.",
             route('espace-admin.sessions.show', $formationSession),
         );
 
         Inertia::flash('toast', [
             'type' => 'success',
-            'message' => "Inscription enregistrée : réglez les frais d'inscription ({$montant} FCFA) pour que l'équipe DAG valide votre place.",
+            'message' => "Dossier envoyé : l'équipe DAG l'examine et vous prévient. Vous réglerez les frais d'inscription une fois le dossier validé.",
         ]);
 
-        return to_route('espace-apprenant.factures');
+        return to_route('espace-apprenant.inscriptions');
+    }
+
+    /**
+     * The apprenant replaces the pieces DAG asked to complete; the dossier
+     * goes back to review with the same seat.
+     */
+    public function completer(Request $request, Inscription $inscription): RedirectResponse
+    {
+        $apprenant = $request->user('web')->apprenant;
+
+        abort_unless($inscription->apprenant_id === $apprenant->id, 404);
+        abort_unless($inscription->statut === 'DOSSIER_A_COMPLETER', 409, "Ce dossier n'est pas à compléter.");
+
+        $inscription->load(['formation', 'formationSession', 'pieces']);
+        $piecesRequises = $inscription->formation->piecesRequises();
+        $deposees = $inscription->pieces->pluck('libelle')->all();
+
+        // A piece never joined yet is mandatory; one already joined may be replaced.
+        $manquantes = array_filter($piecesRequises, fn (string $libelle) => ! in_array($libelle, $deposees, true));
+        [$regles, $messages] = $this->reglesPieces($piecesRequises, false, array_keys($manquantes));
+        $request->validate([...$regles, 'pieces' => ['required', 'array', 'min:1']], [
+            ...$messages,
+            'pieces.required' => 'Joignez au moins une pièce corrigée.',
+        ]);
+
+        $this->enregistrerPieces($request, $inscription, $piecesRequises);
+
+        $inscription->update(['statut' => 'DOSSIER_EN_ETUDE', 'motif_decision' => null]);
+
+        Notifier::alerterEquipe(
+            Donnee::Formations,
+            Action::Valider,
+            'inscription.nouvelle',
+            "Dossier complété — {$inscription->formation->nom}",
+            "{$apprenant->user->name} a complété son dossier d'inscription. Il est de nouveau à examiner.",
+            $inscription->formation_session_id !== null ? route('espace-admin.sessions.show', $inscription->formation_session_id) : null,
+        );
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => "Dossier complété : l'équipe DAG l'examine à nouveau."]);
+
+        return to_route('espace-apprenant.inscriptions');
+    }
+
+    /**
+     * One file per required piece, sent as pieces[<index of the piece>].
+     *
+     * @param  list<string>  $piecesRequises
+     * @param  list<int>|null  $obligatoires  indexes that must be sent (all when null)
+     * @return array{0: array<string, list<string>>, 1: array<string, string>}
+     */
+    private function reglesPieces(array $piecesRequises, bool $toutes, ?array $obligatoires = null): array
+    {
+        $regles = ['pieces' => ['array']];
+        $messages = [];
+
+        foreach ($piecesRequises as $index => $libelle) {
+            $requise = $toutes || in_array($index, $obligatoires ?? [], true);
+            $regles["pieces.{$index}"] = [$requise ? 'required' : 'nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'];
+            $messages["pieces.{$index}.required"] = "Joignez la pièce : {$libelle}.";
+            $messages["pieces.{$index}.mimes"] = "« {$libelle} » doit être un PDF ou une image (JPG, PNG).";
+            $messages["pieces.{$index}.max"] = "« {$libelle} » ne doit pas dépasser 5 Mo.";
+            $messages["pieces.{$index}.uploaded"] = "« {$libelle} » n'a pas pu être envoyée : vérifiez qu'elle fait moins de 5 Mo.";
+        }
+
+        return [$regles, $messages];
+    }
+
+    /**
+     * Stores the sent pieces on the private disk, replacing a piece of the
+     * same name already joined to the dossier.
+     *
+     * @param  list<string>  $piecesRequises
+     */
+    private function enregistrerPieces(Request $request, Inscription $inscription, array $piecesRequises): void
+    {
+        foreach ($piecesRequises as $index => $libelle) {
+            $fichier = $request->file("pieces.{$index}");
+
+            if ($fichier === null) {
+                continue;
+            }
+
+            $chemin = $fichier->store(PieceInscription::DOSSIER.'/'.$inscription->id);
+            abort_if($chemin === false, 500, "La pièce « {$libelle} » n'a pas pu être enregistrée.");
+
+            $ancienne = $inscription->pieces()->where('libelle', $libelle)->first();
+
+            if ($ancienne !== null) {
+                Storage::disk('local')->delete($ancienne->chemin);
+                $ancienne->update(['chemin' => $chemin, 'nom_original' => $fichier->getClientOriginalName()]);
+
+                continue;
+            }
+
+            $inscription->pieces()->create([
+                'libelle' => $libelle,
+                'chemin' => $chemin,
+                'nom_original' => $fichier->getClientOriginalName(),
+            ]);
+        }
     }
 
     private function dejaInscrit(Apprenant $apprenant, FormationSession $session): bool
@@ -171,8 +266,14 @@ class ApprenantInscriptionController extends Controller
             'statut' => $inscription->statut,
             'progression' => $this->progression($inscription, $seances),
             'semainesAvantDebut' => $this->semainesAvantDebut($dateDebut),
-            'fraisInscription' => $inscription->facture?->montant,
+            'fraisInscription' => $inscription->facture->montant ?? $inscription->montant_negocie,
             'paiement' => $inscription->facture?->statut,
+            'motif' => $inscription->motif_decision,
+            'piecesRequises' => $inscription->formation->piecesRequises(),
+            'piecesDeposees' => $inscription->pieces->map(fn (PieceInscription $piece) => [
+                'libelle' => $piece->libelle,
+                'nomOriginal' => $piece->nom_original,
+            ])->values()->all(),
         ];
     }
 

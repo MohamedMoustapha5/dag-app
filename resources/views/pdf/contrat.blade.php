@@ -64,7 +64,19 @@
 <h3>Parties et objet</h3>
 <table class="parties" width="100%">
     <tr><td class="k">Prestataire</td><td>DAG — Digital Agency Group, Douala, Cameroun</td></tr>
-    <tr><td class="k">Cocontractant</td><td><strong>{{ $partie }}</strong></td></tr>
+    <tr><td class="k">{{ $contrat->exigeIdentite() ? "Nom et prénom de l'intéressé" : 'Cocontractant' }}</td><td><strong>{{ $contrat->signataire_nom ?? $partie }}</strong>@if($contrat->signataire_nom !== null && $contrat->signataire_nom !== $partie) <span class="muted">(compte : {{ $partie }})</span>@endif</td></tr>
+    @if($contrat->telephone_cocontractant !== null)
+        <tr><td class="k">Téléphone</td><td>{{ $contrat->telephone_cocontractant }}</td></tr>
+    @endif
+    @if($contrat->cni_numero !== null)
+        <tr><td class="k">CNI</td><td>N° {{ $contrat->cni_numero }} — délivrée à {{ $contrat->cni_lieu_delivrance }} le {{ $contrat->cni_date_delivrance?->format('d/m/Y') }}</td></tr>
+    @endif
+    @if($contrat->ville_residence !== null)
+        <tr><td class="k">Ville de résidence</td><td>{{ $contrat->ville_residence }}</td></tr>
+    @endif
+    @if($contrat->quartier_prestation !== null)
+        <tr><td class="k">Quartier de prestation</td><td>{{ $contrat->quartier_prestation }}</td></tr>
+    @endif
     <tr><td class="k">Objet</td><td>{{ $objet }}</td></tr>
     @if($contrat->montant !== null)
         <tr><td class="k">Montant</td><td>{{ number_format((float) $contrat->montant, 0, ',', ' ') }} FCFA</td></tr>

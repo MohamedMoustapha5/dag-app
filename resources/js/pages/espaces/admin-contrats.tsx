@@ -1,6 +1,8 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { X } from 'lucide-react';
-import { useState } from 'react';
+import { ArrowDown, ArrowUp, Eye, Plus, Search, X } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import DocumentContrat from '@/components/espaces/document-contrat';
+import { apercuContrat } from '@/lib/contrat-texte';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
 import clausesAdmin from '@/routes/espace-admin/clauses';
 import contratsAdmin from '@/routes/espace-admin/contrats';
@@ -13,7 +15,13 @@ const TYPE_LABEL: Record<string, string> = {
     CONTRAT_PARTENAIRE: 'Contrat partenaire',
 };
 
-type Modele = { id: string; nom: string; type: string; statut: string };
+type Modele = {
+    id: string;
+    nom: string;
+    type: string;
+    statut: string;
+    contenu: string;
+};
 type ClauseItem = {
     id: string;
     titre: string;
@@ -24,9 +32,12 @@ type Contrat = {
     id: string;
     reference: string;
     objet: string;
+    partie: string;
     type: string;
     statut: string;
     estSigne: boolean;
+    rectificationDemandee: boolean;
+    misAJourLe: string | null;
 };
 type DemandeAContractualiser = { id: string; reference: string; objet: string };
 
@@ -39,7 +50,37 @@ type Props = {
     peutModifier: boolean;
     peutSupprimer: boolean;
     peutTelecharger: boolean;
+    variables: Record<string, string>;
 };
+
+type Filtre = 'a-traiter' | 'attente' | 'actifs' | 'archives' | 'tous';
+
+const FILTRES: {
+    value: Filtre;
+    label: string;
+    statuts: string[] | null;
+}[] = [
+    { value: 'a-traiter', label: 'À traiter', statuts: ['BROUILLON', 'SIGNE'] },
+    { value: 'attente', label: 'En attente de signature', statuts: ['ENVOYE'] },
+    { value: 'actifs', label: 'Actifs', statuts: ['ACTIF'] },
+    {
+        value: 'archives',
+        label: 'Archivés',
+        statuts: ['TERMINE', 'RESILIE', 'REFUSE'],
+    },
+    { value: 'tous', label: 'Tous', statuts: null },
+];
+
+/** The button that leads to the next step of a contract, from the list. */
+function actionContrat(contrat: Contrat): string {
+    if (contrat.statut === 'BROUILLON') {
+        return contrat.rectificationDemandee
+            ? 'Corriger et renvoyer'
+            : 'Relire et envoyer';
+    }
+
+    return contrat.statut === 'SIGNE' ? 'Valider' : 'Ouvrir';
+}
 
 export default function AdminContrats({
     modeles,
@@ -50,26 +91,53 @@ export default function AdminContrats({
     peutModifier,
     peutSupprimer,
     peutTelecharger,
+    variables,
 }: Props) {
     const [ongletActif, setOngletActif] = useState<
         'contrats' | 'modeles' | 'clauses'
     >('contrats');
 
+    const aTraiter = contrats.filter((contrat) =>
+        ['BROUILLON', 'SIGNE'].includes(contrat.statut),
+    ).length;
+    const [filtre, setFiltre] = useState<Filtre>(
+        aTraiter > 0 ? 'a-traiter' : 'tous',
+    );
+    const [recherche, setRecherche] = useState('');
+    const [generationOuverte, setGenerationOuverte] = useState(false);
+    const [modeleEnEdition, setModeleEnEdition] = useState<
+        Modele | 'nouveau' | null
+    >(null);
+    const [clauseEnEdition, setClauseEnEdition] = useState<
+        ClauseItem | 'nouvelle' | null
+    >(null);
+    const [apercuOuvert, setApercuOuvert] = useState(false);
+
+    const contratsFiltres = useMemo(() => {
+        const statuts = FILTRES.find((item) => item.value === filtre)?.statuts;
+        const terme = recherche.trim().toLowerCase();
+
+        return contrats.filter(
+            (contrat) =>
+                (statuts === null ||
+                    statuts === undefined ||
+                    statuts.includes(contrat.statut)) &&
+                (terme === '' ||
+                    [contrat.reference, contrat.objet, contrat.partie].some(
+                        (valeur) => valeur.toLowerCase().includes(terme),
+                    )),
+        );
+    }, [contrats, filtre, recherche]);
+
+    const compter = (statuts: string[] | null) =>
+        statuts === null
+            ? contrats.length
+            : contrats.filter((contrat) => statuts.includes(contrat.statut))
+                  .length;
+
     const contratForm = useForm({
         demande_id: demandesAContractualiser[0]?.id ?? '',
-        modele_contrat_id: modeles[0]?.id ?? '',
-    });
-
-    const modeleForm = useForm({
-        nom: '',
-        type: 'PRESTATION_SERVICE',
-        contenu: '',
-    });
-
-    const clauseForm = useForm({
-        titre: '',
-        contenu: '',
-        ordre: 0,
+        modele_contrat_id: '',
     });
 
     const submitContrat = (event: React.FormEvent) => {
@@ -77,37 +145,33 @@ export default function AdminContrats({
         contratForm.post(contratsAdmin.store().url);
     };
 
-    const submitModele = (event: React.FormEvent) => {
-        event.preventDefault();
-        modeleForm.post(modelesContratAdmin.store().url, {
-            onSuccess: () => modeleForm.reset(),
-        });
-    };
-
-    const activerModele = (id: string, statutActuel: string) => {
+    const changerStatutModele = (modele: Modele, statut: string) => {
         router.patch(
-            modelesContratAdmin.update(id).url,
-            { statut: statutActuel === 'ACTIF' ? 'BROUILLON' : 'ACTIF' },
+            modelesContratAdmin.update(modele.id).url,
+            { statut },
             { preserveScroll: true },
         );
     };
 
-    const submitClause = (event: React.FormEvent) => {
-        event.preventDefault();
-        clauseForm.post(clausesAdmin.store().url, {
-            onSuccess: () => clauseForm.reset(),
-        });
+    const deplacerClause = (clause: ClauseItem, direction: 'haut' | 'bas') => {
+        router.patch(
+            clausesAdmin.deplacer(clause.id).url,
+            { direction },
+            { preserveScroll: true, preserveState: true },
+        );
     };
 
-    const [clauseEnEdition, setClauseEnEdition] = useState<ClauseItem | null>(
-        null,
-    );
-
-    const supprimerClause = (id: string) => {
-        if (!confirm('Supprimer cette clause ?')) {
+    const supprimerClause = (clause: ClauseItem) => {
+        if (
+            !confirm(
+                `Supprimer l'article « ${clause.titre} » ? Les contrats déjà rédigés gardent leur texte.`,
+            )
+        ) {
             return;
         }
-        router.delete(clausesAdmin.destroy(id).url, { preserveScroll: true });
+        router.delete(clausesAdmin.destroy(clause.id).url, {
+            preserveScroll: true,
+        });
     };
 
     return (
@@ -125,8 +189,8 @@ export default function AdminContrats({
                 <div className="espace-hero-content">
                     <h1>Contrats & clauses</h1>
                     <p>
-                        Modèles de contrat, bibliothèque de clauses et suivi des
-                        contrats générés.
+                        Suivez les contrats à envoyer et à valider, et rédigez
+                        le texte type utilisé pour les nouveaux contrats.
                     </p>
                 </div>
             </div>
@@ -138,6 +202,21 @@ export default function AdminContrats({
                     onClick={() => setOngletActif('contrats')}
                 >
                     Contrats ({contrats.length})
+                    {aTraiter > 0 && (
+                        <span
+                            className="chip chip-orange"
+                            style={{ marginLeft: 8, fontSize: 11 }}
+                        >
+                            {aTraiter} à traiter
+                        </span>
+                    )}
+                </button>
+                <button
+                    type="button"
+                    className={`account-tab${ongletActif === 'clauses' ? ' active' : ''}`}
+                    onClick={() => setOngletActif('clauses')}
+                >
+                    Articles du contrat ({clauses.length})
                 </button>
                 <button
                     type="button"
@@ -146,32 +225,122 @@ export default function AdminContrats({
                 >
                     Modèles ({modeles.length})
                 </button>
-                <button
-                    type="button"
-                    className={`account-tab${ongletActif === 'clauses' ? ' active' : ''}`}
-                    onClick={() => setOngletActif('clauses')}
-                >
-                    Clauses ({clauses.length})
-                </button>
             </div>
 
             {ongletActif === 'contrats' && (
                 <>
-                    {peutCreer && demandesAContractualiser.length > 0 && (
+                    <div
+                        style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            gap: 12,
+                            flexWrap: 'wrap',
+                            marginBottom: 16,
+                        }}
+                    >
+                        <div
+                            className="account-tabs"
+                            style={{ marginBottom: 0, flexWrap: 'wrap' }}
+                            role="group"
+                            aria-label="Filtrer les contrats"
+                        >
+                            {FILTRES.map((item) => (
+                                <button
+                                    key={item.value}
+                                    type="button"
+                                    aria-pressed={filtre === item.value}
+                                    className={`account-tab${filtre === item.value ? ' active' : ''}`}
+                                    onClick={() => setFiltre(item.value)}
+                                >
+                                    {item.label} ({compter(item.statuts)})
+                                </button>
+                            ))}
+                        </div>
+                        <div
+                            style={{
+                                display: 'flex',
+                                gap: 10,
+                                alignItems: 'center',
+                                flexWrap: 'wrap',
+                            }}
+                        >
+                            <label
+                                style={{
+                                    position: 'relative',
+                                    margin: 0,
+                                    display: 'block',
+                                }}
+                            >
+                                <span className="sr-only">
+                                    Rechercher un contrat
+                                </span>
+                                <Search
+                                    size={15}
+                                    style={{
+                                        position: 'absolute',
+                                        left: 12,
+                                        top: '50%',
+                                        transform: 'translateY(-50%)',
+                                        color: 'var(--dag-text-muted)',
+                                    }}
+                                />
+                                <input
+                                    type="search"
+                                    placeholder="Client, référence…"
+                                    value={recherche}
+                                    onChange={(event) =>
+                                        setRecherche(event.target.value)
+                                    }
+                                    style={{ paddingLeft: 34, minWidth: 220 }}
+                                />
+                            </label>
+                            {peutCreer &&
+                                demandesAContractualiser.length > 0 && (
+                                    <button
+                                        type="button"
+                                        className="btn-outline"
+                                        onClick={() =>
+                                            setGenerationOuverte(
+                                                !generationOuverte,
+                                            )
+                                        }
+                                    >
+                                        <Plus
+                                            size={15}
+                                            style={{ marginRight: 6 }}
+                                        />
+                                        Générer un contrat
+                                    </button>
+                                )}
+                        </div>
+                    </div>
+
+                    {generationOuverte && (
                         <form
                             onSubmit={submitContrat}
                             className="card"
                             style={{
                                 padding: 24,
-                                marginBottom: 28,
+                                marginBottom: 20,
                                 display: 'flex',
                                 flexDirection: 'column',
                                 gap: 14,
                             }}
                         >
-                            <p style={{ fontSize: 14.5, fontWeight: 700 }}>
-                                Générer un contrat pour une demande
-                            </p>
+                            <div>
+                                <p style={{ fontSize: 14.5, fontWeight: 700 }}>
+                                    Générer un contrat pour une demande
+                                </p>
+                                <p
+                                    className="muted"
+                                    style={{ fontSize: 12.5, marginTop: 4 }}
+                                >
+                                    Normalement, le contrat part automatiquement
+                                    avec le devis. Utilisez ce formulaire pour
+                                    une demande qui n'en a pas encore.
+                                </p>
+                            </div>
                             <div
                                 style={{
                                     display: 'grid',
@@ -207,7 +376,7 @@ export default function AdminContrats({
                                 </div>
                                 <div>
                                     <label htmlFor="modele_contrat_id">
-                                        Modèle (optionnel)
+                                        Modèle
                                     </label>
                                     <select
                                         id="modele_contrat_id"
@@ -221,7 +390,9 @@ export default function AdminContrats({
                                             )
                                         }
                                     >
-                                        <option value="">Aucun</option>
+                                        <option value="">
+                                            Modèle par défaut
+                                        </option>
                                         {modeles
                                             .filter(
                                                 (modele) =>
@@ -252,58 +423,83 @@ export default function AdminContrats({
                     )}
 
                     <div className="card" style={{ padding: 24 }}>
-                        {contrats.length === 0 ? (
+                        {contratsFiltres.length === 0 ? (
                             <p className="data-table-empty">
-                                Aucun contrat pour le moment.
+                                {filtre === 'a-traiter' && recherche === ''
+                                    ? 'Aucun contrat à traiter : tout est à jour.'
+                                    : 'Aucun contrat ne correspond.'}
                             </p>
                         ) : (
                             <div className="data-table-wrap">
                                 <table className="data-table">
                                     <thead>
                                         <tr>
-                                            <th>Référence</th>
-                                            <th>Objet</th>
-                                            <th>Type</th>
+                                            <th>Contrat</th>
+                                            <th>Client</th>
                                             <th>Statut</th>
+                                            <th>Mis à jour</th>
                                             <th />
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {contrats.map((contrat) => (
+                                        {contratsFiltres.map((contrat) => (
                                             <tr key={contrat.id}>
                                                 <td>
                                                     <Link
                                                         href={contratsAdmin.show(
                                                             contrat.id,
                                                         )}
-                                                        className="link-action"
+                                                        style={{
+                                                            fontWeight: 600,
+                                                            color: 'var(--dag-navy)',
+                                                        }}
                                                     >
-                                                        {contrat.reference}
+                                                        {contrat.objet}
                                                     </Link>
+                                                    <span
+                                                        className="muted"
+                                                        style={{
+                                                            display: 'block',
+                                                            fontSize: 12,
+                                                        }}
+                                                    >
+                                                        {contrat.reference} ·{' '}
+                                                        {TYPE_LABEL[
+                                                            contrat.type
+                                                        ] ?? contrat.type}
+                                                    </span>
                                                 </td>
-                                                <td
-                                                    style={{
-                                                        fontWeight: 600,
-                                                    }}
-                                                >
-                                                    {contrat.objet}
-                                                </td>
-                                                <td className="muted">
-                                                    {TYPE_LABEL[contrat.type] ??
-                                                        contrat.type}
-                                                </td>
+                                                <td>{contrat.partie}</td>
                                                 <td>
                                                     <span
-                                                        className={`chip ${STATUT_CHIP[contrat.statut] ?? 'chip-gray'}`}
+                                                        style={{
+                                                            display: 'flex',
+                                                            gap: 6,
+                                                            flexWrap: 'wrap',
+                                                        }}
                                                     >
-                                                        {STATUT_LABEL[
-                                                            contrat.statut
-                                                        ] ?? contrat.statut}
+                                                        <span
+                                                            className={`chip ${STATUT_CHIP[contrat.statut] ?? 'chip-gray'}`}
+                                                        >
+                                                            {STATUT_LABEL[
+                                                                contrat.statut
+                                                            ] ?? contrat.statut}
+                                                        </span>
+                                                        {contrat.rectificationDemandee && (
+                                                            <span className="chip chip-orange">
+                                                                Rectification
+                                                                demandée
+                                                            </span>
+                                                        )}
                                                     </span>
+                                                </td>
+                                                <td className="muted">
+                                                    {contrat.misAJourLe ?? '—'}
                                                 </td>
                                                 <td
                                                     style={{
                                                         textAlign: 'right',
+                                                        whiteSpace: 'nowrap',
                                                     }}
                                                 >
                                                     {peutTelecharger &&
@@ -315,10 +511,48 @@ export default function AdminContrats({
                                                                     ).url
                                                                 }
                                                                 className="link-action"
+                                                                style={{
+                                                                    marginRight: 14,
+                                                                }}
                                                             >
-                                                                Télécharger le PDF
+                                                                PDF
                                                             </a>
                                                         )}
+                                                    <Link
+                                                        href={contratsAdmin.show(
+                                                            contrat.id,
+                                                        )}
+                                                        className={
+                                                            [
+                                                                'BROUILLON',
+                                                                'SIGNE',
+                                                            ].includes(
+                                                                contrat.statut,
+                                                            ) && peutModifier
+                                                                ? 'btn-primary'
+                                                                : 'link-action'
+                                                        }
+                                                        style={
+                                                            [
+                                                                'BROUILLON',
+                                                                'SIGNE',
+                                                            ].includes(
+                                                                contrat.statut,
+                                                            ) && peutModifier
+                                                                ? {
+                                                                      padding:
+                                                                          '6px 14px',
+                                                                      fontSize: 12.5,
+                                                                  }
+                                                                : undefined
+                                                        }
+                                                    >
+                                                        {peutModifier
+                                                            ? actionContrat(
+                                                                  contrat,
+                                                              )
+                                                            : 'Ouvrir'}
+                                                    </Link>
                                                 </td>
                                             </tr>
                                         ))}
@@ -330,95 +564,242 @@ export default function AdminContrats({
                 </>
             )}
 
-            {ongletActif === 'modeles' && (
+            {ongletActif === 'clauses' && (
                 <>
-                    {peutCreer && (
-                        <form
-                            onSubmit={submitModele}
-                            className="card"
+                    <div
+                        className="card"
+                        style={{
+                            padding: 20,
+                            marginBottom: 20,
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            gap: 16,
+                            flexWrap: 'wrap',
+                        }}
+                    >
+                        <p
+                            className="muted"
                             style={{
-                                padding: 24,
-                                marginBottom: 28,
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: 14,
+                                fontSize: 13.5,
+                                lineHeight: 1.6,
+                                flex: '1 1 320px',
                             }}
                         >
-                            <p style={{ fontSize: 14.5, fontWeight: 700 }}>
-                                Créer un modèle de contrat
-                            </p>
-                            <div
+                            Ces articles sont ajoutés, dans cet ordre et
+                            numérotés automatiquement, à chaque nouveau contrat.
+                            Les contrats déjà rédigés gardent leur texte.
+                        </p>
+                        <div style={{ display: 'flex', gap: 10 }}>
+                            <button
+                                type="button"
+                                className="btn-outline"
+                                onClick={() => setApercuOuvert(true)}
                                 style={{
-                                    display: 'grid',
-                                    gridTemplateColumns:
-                                        'repeat(auto-fit, minmax(220px, 1fr))',
-                                    gap: 14,
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: 6,
                                 }}
                             >
-                                <div>
-                                    <label htmlFor="nom">Nom</label>
-                                    <input
-                                        id="nom"
-                                        value={modeleForm.data.nom}
-                                        onChange={(event) =>
-                                            modeleForm.setData(
-                                                'nom',
-                                                event.target.value,
-                                            )
-                                        }
-                                    />
-                                </div>
-                                <div>
-                                    <label htmlFor="type">Type</label>
-                                    <select
-                                        id="type"
-                                        value={modeleForm.data.type}
-                                        onChange={(event) =>
-                                            modeleForm.setData(
-                                                'type',
-                                                event.target.value,
-                                            )
-                                        }
-                                    >
-                                        {Object.entries(TYPE_LABEL).map(
-                                            ([valeur, label]) => (
-                                                <option
-                                                    key={valeur}
-                                                    value={valeur}
-                                                >
-                                                    {label}
-                                                </option>
-                                            ),
-                                        )}
-                                    </select>
-                                </div>
-                                <div style={{ gridColumn: '1 / -1' }}>
-                                    <label htmlFor="contenu">Contenu</label>
-                                    <textarea
-                                        id="contenu"
-                                        rows={4}
-                                        value={modeleForm.data.contenu}
-                                        onChange={(event) =>
-                                            modeleForm.setData(
-                                                'contenu',
-                                                event.target.value,
-                                            )
-                                        }
-                                    />
-                                </div>
-                            </div>
-                            <button
-                                type="submit"
-                                disabled={modeleForm.processing}
-                                className="btn-primary"
-                                style={{ alignSelf: 'flex-start' }}
-                            >
-                                {modeleForm.processing
-                                    ? 'Création…'
-                                    : 'Créer le modèle'}
+                                <Eye size={15} /> Aperçu du contrat
                             </button>
-                        </form>
+                            {peutCreer && (
+                                <button
+                                    type="button"
+                                    className="btn-primary"
+                                    onClick={() =>
+                                        setClauseEnEdition('nouvelle')
+                                    }
+                                    style={{
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: 6,
+                                    }}
+                                >
+                                    <Plus size={15} /> Ajouter un article
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
+                    {clauses.length === 0 ? (
+                        <div className="card" style={{ padding: 24 }}>
+                            <p className="data-table-empty">
+                                Aucun article pour le moment.
+                            </p>
+                        </div>
+                    ) : (
+                        <ol
+                            style={{
+                                listStyle: 'none',
+                                margin: 0,
+                                padding: 0,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 12,
+                            }}
+                        >
+                            {clauses.map((clause, index) => (
+                                <li
+                                    key={clause.id}
+                                    className="card"
+                                    style={{
+                                        padding: 18,
+                                        display: 'flex',
+                                        gap: 16,
+                                        alignItems: 'flex-start',
+                                        flexWrap: 'wrap',
+                                    }}
+                                >
+                                    <div style={{ flex: '1 1 320px' }}>
+                                        <p
+                                            className="editeur-contrat-numero"
+                                            style={{ marginBottom: 2 }}
+                                        >
+                                            Article {index + 1}
+                                        </p>
+                                        <p
+                                            style={{
+                                                fontWeight: 700,
+                                                color: 'var(--dag-navy)',
+                                                marginBottom: 4,
+                                            }}
+                                        >
+                                            {clause.titre}
+                                        </p>
+                                        <p
+                                            className="muted"
+                                            style={{
+                                                fontSize: 13,
+                                                lineHeight: 1.6,
+                                                display: '-webkit-box',
+                                                WebkitLineClamp: 2,
+                                                WebkitBoxOrient: 'vertical',
+                                                overflow: 'hidden',
+                                            }}
+                                        >
+                                            {clause.contenu}
+                                        </p>
+                                    </div>
+                                    <div
+                                        className="editeur-contrat-actions"
+                                        style={{ alignItems: 'center' }}
+                                    >
+                                        {peutModifier && (
+                                            <>
+                                                <button
+                                                    type="button"
+                                                    disabled={index === 0}
+                                                    onClick={() =>
+                                                        deplacerClause(
+                                                            clause,
+                                                            'haut',
+                                                        )
+                                                    }
+                                                    aria-label={`Monter l'article ${clause.titre}`}
+                                                    title="Monter"
+                                                >
+                                                    <ArrowUp size={15} />
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    disabled={
+                                                        index ===
+                                                        clauses.length - 1
+                                                    }
+                                                    onClick={() =>
+                                                        deplacerClause(
+                                                            clause,
+                                                            'bas',
+                                                        )
+                                                    }
+                                                    aria-label={`Descendre l'article ${clause.titre}`}
+                                                    title="Descendre"
+                                                >
+                                                    <ArrowDown size={15} />
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    className="link-action"
+                                                    style={{
+                                                        width: 'auto',
+                                                        padding: '0 12px',
+                                                    }}
+                                                    onClick={() =>
+                                                        setClauseEnEdition(
+                                                            clause,
+                                                        )
+                                                    }
+                                                >
+                                                    Modifier
+                                                </button>
+                                            </>
+                                        )}
+                                        {peutSupprimer && (
+                                            <button
+                                                type="button"
+                                                className="danger"
+                                                style={{
+                                                    width: 'auto',
+                                                    padding: '0 12px',
+                                                }}
+                                                onClick={() =>
+                                                    supprimerClause(clause)
+                                                }
+                                            >
+                                                Supprimer
+                                            </button>
+                                        )}
+                                    </div>
+                                </li>
+                            ))}
+                        </ol>
                     )}
+                </>
+            )}
+
+            {ongletActif === 'modeles' && (
+                <>
+                    <div
+                        className="card"
+                        style={{
+                            padding: 20,
+                            marginBottom: 20,
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            gap: 16,
+                            flexWrap: 'wrap',
+                        }}
+                    >
+                        <p
+                            className="muted"
+                            style={{
+                                fontSize: 13.5,
+                                lineHeight: 1.6,
+                                flex: '1 1 320px',
+                            }}
+                        >
+                            Le modèle est l'introduction du contrat, avant les
+                            articles. Pour chaque type de contrat, le modèle
+                            marqué « Par défaut » est utilisé pour les nouveaux
+                            contrats.
+                        </p>
+                        {peutCreer && (
+                            <button
+                                type="button"
+                                className="btn-primary"
+                                onClick={() => setModeleEnEdition('nouveau')}
+                                style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: 6,
+                                }}
+                            >
+                                <Plus size={15} /> Nouveau modèle
+                            </button>
+                        )}
+                    </div>
 
                     <div className="card" style={{ padding: 24 }}>
                         {modeles.length === 0 ? (
@@ -430,9 +811,9 @@ export default function AdminContrats({
                                 <table className="data-table">
                                     <thead>
                                         <tr>
-                                            <th>Nom</th>
-                                            <th>Type</th>
-                                            <th>Statut</th>
+                                            <th>Modèle</th>
+                                            <th>Type de contrat</th>
+                                            <th>Utilisation</th>
                                             <th />
                                         </tr>
                                     </thead>
@@ -456,191 +837,49 @@ export default function AdminContrats({
                                                     >
                                                         {modele.statut ===
                                                         'ACTIF'
-                                                            ? 'Actif'
-                                                            : 'Brouillon'}
+                                                            ? 'Par défaut'
+                                                            : 'Non utilisé'}
                                                     </span>
                                                 </td>
                                                 <td
                                                     style={{
                                                         textAlign: 'right',
+                                                        whiteSpace: 'nowrap',
                                                     }}
                                                 >
-                                                    {peutModifier && (
-                                                        <button
-                                                            type="button"
-                                                            className="link-action"
-                                                            onClick={() =>
-                                                                activerModele(
-                                                                    modele.id,
-                                                                    modele.statut,
-                                                                )
-                                                            }
-                                                        >
-                                                            {modele.statut ===
-                                                            'ACTIF'
-                                                                ? 'Repasser en brouillon'
-                                                                : 'Activer'}
-                                                        </button>
-                                                    )}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        )}
-                    </div>
-                </>
-            )}
-
-            {ongletActif === 'clauses' && (
-                <>
-                    {peutCreer && (
-                        <form
-                            onSubmit={submitClause}
-                            className="card"
-                            style={{
-                                padding: 24,
-                                marginBottom: 28,
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: 14,
-                            }}
-                        >
-                            <p style={{ fontSize: 14.5, fontWeight: 700 }}>
-                                Ajouter une clause
-                            </p>
-                            <div
-                                style={{
-                                    display: 'grid',
-                                    gridTemplateColumns:
-                                        'repeat(auto-fit, minmax(220px, 1fr))',
-                                    gap: 14,
-                                }}
-                            >
-                                <div>
-                                    <label htmlFor="titre">Titre</label>
-                                    <input
-                                        id="titre"
-                                        value={clauseForm.data.titre}
-                                        onChange={(event) =>
-                                            clauseForm.setData(
-                                                'titre',
-                                                event.target.value,
-                                            )
-                                        }
-                                    />
-                                </div>
-                                <div>
-                                    <label htmlFor="ordre">Ordre</label>
-                                    <input
-                                        id="ordre"
-                                        type="number"
-                                        min={0}
-                                        value={clauseForm.data.ordre}
-                                        onChange={(event) =>
-                                            clauseForm.setData(
-                                                'ordre',
-                                                Number(event.target.value),
-                                            )
-                                        }
-                                    />
-                                </div>
-                                <div style={{ gridColumn: '1 / -1' }}>
-                                    <label htmlFor="clause-contenu">
-                                        Contenu
-                                    </label>
-                                    <textarea
-                                        id="clause-contenu"
-                                        rows={3}
-                                        value={clauseForm.data.contenu}
-                                        onChange={(event) =>
-                                            clauseForm.setData(
-                                                'contenu',
-                                                event.target.value,
-                                            )
-                                        }
-                                    />
-                                </div>
-                            </div>
-                            <button
-                                type="submit"
-                                disabled={clauseForm.processing}
-                                className="btn-primary"
-                                style={{ alignSelf: 'flex-start' }}
-                            >
-                                {clauseForm.processing
-                                    ? 'Ajout…'
-                                    : 'Ajouter la clause'}
-                            </button>
-                        </form>
-                    )}
-
-                    <div className="card" style={{ padding: 24 }}>
-                        {clauses.length === 0 ? (
-                            <p className="data-table-empty">
-                                Aucune clause pour le moment.
-                            </p>
-                        ) : (
-                            <div className="data-table-wrap">
-                                <table className="data-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Titre</th>
-                                            <th>Ordre</th>
-                                            <th />
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {clauses.map((clause) => (
-                                            <tr key={clause.id}>
-                                                <td
-                                                    style={{
-                                                        fontWeight: 600,
-                                                    }}
-                                                >
-                                                    {clause.titre}
-                                                </td>
-                                                <td className="muted">
-                                                    {clause.ordre}
-                                                </td>
-                                                <td
-                                                    style={{
-                                                        textAlign: 'right',
-                                                    }}
-                                                >
-                                                    {peutModifier && (
-                                                        <button
-                                                            type="button"
-                                                            className="link-action"
-                                                            style={{
-                                                                marginRight: 16,
-                                                            }}
-                                                            onClick={() =>
-                                                                setClauseEnEdition(
-                                                                    clause,
-                                                                )
-                                                            }
-                                                        >
-                                                            Modifier
-                                                        </button>
-                                                    )}
-                                                    {peutSupprimer && (
-                                                        <button
-                                                            type="button"
-                                                            className="link-action"
-                                                            style={{
-                                                                color: 'var(--dag-red)',
-                                                            }}
-                                                            onClick={() =>
-                                                                supprimerClause(
-                                                                    clause.id,
-                                                                )
-                                                            }
-                                                        >
-                                                            Supprimer
-                                                        </button>
-                                                    )}
+                                                    <button
+                                                        type="button"
+                                                        className="link-action"
+                                                        onClick={() =>
+                                                            setModeleEnEdition(
+                                                                modele,
+                                                            )
+                                                        }
+                                                    >
+                                                        {peutModifier
+                                                            ? 'Modifier'
+                                                            : 'Voir'}
+                                                    </button>
+                                                    {peutModifier &&
+                                                        modele.statut !==
+                                                            'ACTIF' && (
+                                                            <button
+                                                                type="button"
+                                                                className="link-action"
+                                                                style={{
+                                                                    marginLeft: 14,
+                                                                }}
+                                                                onClick={() =>
+                                                                    changerStatutModele(
+                                                                        modele,
+                                                                        'ACTIF',
+                                                                    )
+                                                                }
+                                                            >
+                                                                Utiliser par
+                                                                défaut
+                                                            </button>
+                                                        )}
                                                 </td>
                                             </tr>
                                         ))}
@@ -654,48 +893,68 @@ export default function AdminContrats({
 
             {clauseEnEdition && (
                 <ClauseModal
-                    clause={clauseEnEdition}
+                    clause={
+                        clauseEnEdition === 'nouvelle' ? null : clauseEnEdition
+                    }
+                    variables={variables}
                     onClose={() => setClauseEnEdition(null)}
+                />
+            )}
+
+            {modeleEnEdition && (
+                <ModeleModal
+                    modele={
+                        modeleEnEdition === 'nouveau' ? null : modeleEnEdition
+                    }
+                    clauses={clauses}
+                    variables={variables}
+                    lectureSeule={
+                        !peutModifier && modeleEnEdition !== 'nouveau'
+                    }
+                    onClose={() => setModeleEnEdition(null)}
+                />
+            )}
+
+            {apercuOuvert && (
+                <ApercuModal
+                    modeles={modeles}
+                    clauses={clauses}
+                    onClose={() => setApercuOuvert(false)}
                 />
             )}
         </>
     );
 }
 
-function ClauseModal({
-    clause,
+function Modal({
+    titre,
+    sousTitre,
+    large = false,
     onClose,
+    children,
 }: {
-    clause: ClauseItem;
+    titre: string;
+    sousTitre?: string;
+    large?: boolean;
     onClose: () => void;
+    children: React.ReactNode;
 }) {
-    const form = useForm({
-        titre: clause.titre,
-        contenu: clause.contenu,
-        ordre: clause.ordre,
-    });
-
-    const submit = (event: React.FormEvent) => {
-        event.preventDefault();
-        form.patch(clausesAdmin.update(clause.id).url, {
-            preserveScroll: true,
-            onSuccess: onClose,
-        });
-    };
-
     return (
         <div
             className="modal-backdrop"
             role="dialog"
             aria-modal="true"
-            aria-label="Modifier la clause"
+            aria-label={titre}
             onClick={(event) => {
                 if (event.target === event.currentTarget) {
                     onClose();
                 }
             }}
         >
-            <div className="modal-panel" style={{ maxWidth: 620 }}>
+            <div
+                className="modal-panel"
+                style={{ maxWidth: large ? 860 : 620 }}
+            >
                 <button
                     type="button"
                     className="modal-close"
@@ -706,122 +965,431 @@ function ClauseModal({
                 </button>
 
                 <h2 style={{ fontSize: 19, color: 'var(--dag-navy)' }}>
-                    Modifier la clause
+                    {titre}
                 </h2>
-                <p
-                    style={{
-                        marginTop: 8,
-                        marginBottom: 20,
-                        fontSize: 13.5,
-                        lineHeight: 1.6,
-                        color: 'var(--dag-text-muted)',
-                    }}
-                >
-                    La modification s'applique aux contrats générés à partir de
-                    maintenant ; les contrats déjà rédigés gardent leur texte.
-                </p>
-
-                <form
-                    onSubmit={submit}
-                    style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 16,
-                    }}
-                >
-                    <div
+                {sousTitre && (
+                    <p
                         style={{
-                            display: 'grid',
-                            gridTemplateColumns: '1fr 110px',
-                            gap: 14,
+                            marginTop: 8,
+                            marginBottom: 20,
+                            fontSize: 13.5,
+                            lineHeight: 1.6,
+                            color: 'var(--dag-text-muted)',
                         }}
                     >
-                        <div>
-                            <label htmlFor="clause-titre">Titre</label>
-                            <input
-                                id="clause-titre"
-                                value={form.data.titre}
-                                onChange={(event) =>
-                                    form.setData('titre', event.target.value)
-                                }
-                                required
-                            />
-                            {form.errors.titre && (
-                                <p
-                                    style={{
-                                        color: 'var(--dag-red)',
-                                        fontSize: 12,
-                                        marginTop: 4,
-                                    }}
-                                >
-                                    {form.errors.titre}
-                                </p>
-                            )}
-                        </div>
-                        <div>
-                            <label htmlFor="clause-ordre">Ordre</label>
-                            <input
-                                id="clause-ordre"
-                                type="number"
-                                min={0}
-                                value={form.data.ordre}
-                                onChange={(event) =>
-                                    form.setData(
-                                        'ordre',
-                                        Number(event.target.value),
-                                    )
-                                }
-                            />
-                        </div>
+                        {sousTitre}
+                    </p>
+                )}
+                {children}
+            </div>
+        </div>
+    );
+}
+
+function Erreur({ message }: { message?: string }) {
+    return message ? (
+        <p style={{ color: 'var(--dag-red)', fontSize: 12, marginTop: 4 }}>
+            {message}
+        </p>
+    ) : null;
+}
+
+function ClauseModal({
+    clause,
+    variables,
+    onClose,
+}: {
+    clause: ClauseItem | null;
+    variables: Record<string, string>;
+    onClose: () => void;
+}) {
+    const form = useForm({
+        titre: clause?.titre ?? '',
+        contenu: clause?.contenu ?? '',
+        ordre: clause?.ordre ?? null,
+    });
+    const [apercu, setApercu] = useState(false);
+
+    const submit = (event: React.FormEvent) => {
+        event.preventDefault();
+
+        if (clause === null) {
+            form.transform(({ titre, contenu }) => ({ titre, contenu }));
+            form.post(clausesAdmin.store().url, {
+                preserveScroll: true,
+                onSuccess: onClose,
+            });
+
+            return;
+        }
+
+        form.patch(clausesAdmin.update(clause.id).url, {
+            preserveScroll: true,
+            onSuccess: onClose,
+        });
+    };
+
+    return (
+        <Modal
+            titre={
+                clause === null ? 'Ajouter un article' : "Modifier l'article"
+            }
+            sousTitre={
+                clause === null
+                    ? "L'article est ajouté à la fin des nouveaux contrats ; vous pourrez le déplacer ensuite."
+                    : "La modification s'applique aux contrats rédigés à partir de maintenant ; les contrats déjà rédigés gardent leur texte."
+            }
+            onClose={onClose}
+        >
+            <form
+                onSubmit={submit}
+                style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
+            >
+                <div>
+                    <label htmlFor="clause-titre">Titre de l'article</label>
+                    <input
+                        id="clause-titre"
+                        value={form.data.titre}
+                        placeholder="Ex. Délai de prestation"
+                        maxLength={85}
+                        onChange={(event) =>
+                            form.setData('titre', event.target.value)
+                        }
+                        required
+                    />
+                    <Erreur message={form.errors.titre} />
+                </div>
+                <div>
+                    <div
+                        style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                        }}
+                    >
+                        <label htmlFor="clause-contenu">Texte</label>
+                        <button
+                            type="button"
+                            className="link-action"
+                            style={{ fontSize: 12.5 }}
+                            onClick={() => setApercu(!apercu)}
+                        >
+                            {apercu ? 'Modifier' : 'Aperçu'}
+                        </button>
                     </div>
-                    <div>
-                        <label htmlFor="clause-contenu">Contenu</label>
+                    {apercu ? (
+                        <div className="editeur-contrat-apercu">
+                            <DocumentContrat
+                                contenu={apercuContrat('', [
+                                    {
+                                        titre: form.data.titre || 'Article',
+                                        contenu: form.data.contenu,
+                                    },
+                                ])}
+                            />
+                        </div>
+                    ) : (
                         <textarea
                             id="clause-contenu"
-                            rows={8}
+                            rows={9}
                             value={form.data.contenu}
+                            placeholder="Une ligne vide sépare deux paragraphes ; une ligne commençant par « - » devient une puce."
                             onChange={(event) =>
                                 form.setData('contenu', event.target.value)
                             }
                             required
                         />
-                        {form.errors.contenu && (
-                            <p
-                                style={{
-                                    color: 'var(--dag-red)',
-                                    fontSize: 12,
-                                    marginTop: 4,
-                                }}
-                            >
-                                {form.errors.contenu}
-                            </p>
-                        )}
-                    </div>
+                    )}
+                    <Erreur message={form.errors.contenu} />
+                    <VariablesDisponibles variables={variables} />
+                </div>
 
+                <div
+                    style={{
+                        display: 'flex',
+                        justifyContent: 'flex-end',
+                        gap: 12,
+                    }}
+                >
+                    <button
+                        type="button"
+                        className="btn-outline"
+                        onClick={onClose}
+                    >
+                        Annuler
+                    </button>
+                    <button
+                        type="submit"
+                        className="btn-primary"
+                        disabled={form.processing}
+                    >
+                        {clause === null ? "Ajouter l'article" : 'Enregistrer'}
+                    </button>
+                </div>
+            </form>
+        </Modal>
+    );
+}
+
+function ModeleModal({
+    modele,
+    clauses,
+    variables,
+    lectureSeule,
+    onClose,
+}: {
+    modele: Modele | null;
+    clauses: ClauseItem[];
+    variables: Record<string, string>;
+    lectureSeule: boolean;
+    onClose: () => void;
+}) {
+    const form = useForm({
+        nom: modele?.nom ?? '',
+        type: modele?.type ?? 'PRESTATION_SERVICE',
+        contenu: modele?.contenu ?? '',
+    });
+    const [apercu, setApercu] = useState(lectureSeule);
+
+    const submit = (event: React.FormEvent) => {
+        event.preventDefault();
+
+        if (modele === null) {
+            form.post(modelesContratAdmin.store().url, {
+                preserveScroll: true,
+                onSuccess: onClose,
+            });
+
+            return;
+        }
+
+        form.transform(({ nom, contenu }) => ({ nom, contenu }));
+        form.patch(modelesContratAdmin.update(modele.id).url, {
+            preserveScroll: true,
+            onSuccess: onClose,
+        });
+    };
+
+    return (
+        <Modal
+            titre={
+                modele === null
+                    ? 'Nouveau modèle'
+                    : lectureSeule
+                      ? modele.nom
+                      : 'Modifier le modèle'
+            }
+            sousTitre="L'introduction du contrat, suivie des articles. Les contrats déjà rédigés gardent leur texte."
+            large
+            onClose={onClose}
+        >
+            <form
+                onSubmit={submit}
+                style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
+            >
+                {!lectureSeule && (
                     <div
                         style={{
-                            display: 'flex',
-                            justifyContent: 'flex-end',
-                            gap: 12,
+                            display: 'grid',
+                            gridTemplateColumns:
+                                'repeat(auto-fit, minmax(220px, 1fr))',
+                            gap: 14,
                         }}
                     >
+                        <div>
+                            <label htmlFor="modele-nom">Nom</label>
+                            <input
+                                id="modele-nom"
+                                value={form.data.nom}
+                                onChange={(event) =>
+                                    form.setData('nom', event.target.value)
+                                }
+                                required
+                            />
+                            <Erreur message={form.errors.nom} />
+                        </div>
+                        <div>
+                            <label htmlFor="modele-type">Type de contrat</label>
+                            <select
+                                id="modele-type"
+                                value={form.data.type}
+                                disabled={modele !== null}
+                                onChange={(event) =>
+                                    form.setData('type', event.target.value)
+                                }
+                            >
+                                {Object.entries(TYPE_LABEL).map(
+                                    ([valeur, label]) => (
+                                        <option key={valeur} value={valeur}>
+                                            {label}
+                                        </option>
+                                    ),
+                                )}
+                            </select>
+                        </div>
+                    </div>
+                )}
+
+                <div>
+                    <div
+                        className="editeur-contrat-barre"
+                        role="tablist"
+                        style={{ marginBottom: 10 }}
+                    >
+                        {!lectureSeule && (
+                            <button
+                                type="button"
+                                role="tab"
+                                aria-selected={!apercu}
+                                className={!apercu ? 'actif' : ''}
+                                onClick={() => setApercu(false)}
+                            >
+                                Introduction
+                            </button>
+                        )}
                         <button
                             type="button"
-                            className="btn-outline"
-                            onClick={onClose}
+                            role="tab"
+                            aria-selected={apercu}
+                            className={apercu ? 'actif' : ''}
+                            onClick={() => setApercu(true)}
                         >
-                            Annuler
+                            <Eye size={14} /> Contrat complet (exemple)
                         </button>
+                    </div>
+                    {apercu ? (
+                        <div
+                            className="editeur-contrat-apercu"
+                            style={{ maxHeight: '55vh', overflowY: 'auto' }}
+                        >
+                            <DocumentContrat
+                                contenu={apercuContrat(
+                                    form.data.contenu,
+                                    clauses,
+                                )}
+                            />
+                        </div>
+                    ) : (
+                        <>
+                            <textarea
+                                id="modele-contenu"
+                                aria-label="Introduction du contrat"
+                                rows={8}
+                                value={form.data.contenu}
+                                onChange={(event) =>
+                                    form.setData('contenu', event.target.value)
+                                }
+                                required
+                            />
+                            <Erreur message={form.errors.contenu} />
+                            <VariablesDisponibles variables={variables} />
+                        </>
+                    )}
+                </div>
+
+                <div
+                    style={{
+                        display: 'flex',
+                        justifyContent: 'flex-end',
+                        gap: 12,
+                    }}
+                >
+                    <button
+                        type="button"
+                        className="btn-outline"
+                        onClick={onClose}
+                    >
+                        {lectureSeule ? 'Fermer' : 'Annuler'}
+                    </button>
+                    {!lectureSeule && (
                         <button
                             type="submit"
                             className="btn-primary"
                             disabled={form.processing}
                         >
-                            Enregistrer
+                            {modele === null
+                                ? 'Créer le modèle'
+                                : 'Enregistrer'}
                         </button>
-                    </div>
-                </form>
+                    )}
+                </div>
+            </form>
+        </Modal>
+    );
+}
+
+/**
+ * The contract a new demande would receive today, with example values.
+ */
+function ApercuModal({
+    modeles,
+    clauses,
+    onClose,
+}: {
+    modeles: Modele[];
+    clauses: ClauseItem[];
+    onClose: () => void;
+}) {
+    const actifs = modeles.filter((modele) => modele.statut === 'ACTIF');
+    const [modeleId, setModeleId] = useState(actifs[0]?.id ?? '');
+    const modele = actifs.find((item) => item.id === modeleId);
+
+    return (
+        <Modal
+            titre="Aperçu d'un nouveau contrat"
+            sousTitre="Le contrat tel qu'un client le recevrait aujourd'hui, avec des valeurs d'exemple à la place des informations de la demande."
+            large
+            onClose={onClose}
+        >
+            {actifs.length > 1 && (
+                <div style={{ maxWidth: 320, marginBottom: 14 }}>
+                    <label htmlFor="apercu-modele">Type de contrat</label>
+                    <select
+                        id="apercu-modele"
+                        value={modeleId}
+                        onChange={(event) => setModeleId(event.target.value)}
+                    >
+                        {actifs.map((item) => (
+                            <option key={item.id} value={item.id}>
+                                {TYPE_LABEL[item.type] ?? item.type} —{' '}
+                                {item.nom}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+            )}
+            <div
+                className="editeur-contrat-apercu"
+                style={{ maxHeight: '60vh', overflowY: 'auto' }}
+            >
+                <DocumentContrat
+                    contenu={apercuContrat(modele?.contenu ?? '', clauses)}
+                />
             </div>
-        </div>
+        </Modal>
+    );
+}
+
+/**
+ * Placeholders replaced when a contract is drafted from a modèle or a clause.
+ */
+function VariablesDisponibles({
+    variables,
+}: {
+    variables: Record<string, string>;
+}) {
+    return (
+        <p
+            className="muted"
+            style={{ fontSize: 12, marginTop: 6, lineHeight: 1.7 }}
+        >
+            Variables remplacées automatiquement :{' '}
+            {Object.entries(variables).map(([code, libelle], index) => (
+                <span key={code}>
+                    {index > 0 && ' · '}
+                    <code title={libelle}>{code}</code> {libelle.toLowerCase()}
+                </span>
+            ))}
+        </p>
     );
 }

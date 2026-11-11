@@ -1,47 +1,111 @@
 <?php
 
+use App\Enums\MembreEquipeRole;
 use App\Models\Apprenant;
 use App\Models\Facture;
 use App\Models\Formation;
 use App\Models\FormationSession;
 use App\Models\Inscription;
 use App\Models\MembreEquipe;
+use App\Models\PieceInscription;
 use App\Notifications\AlerteEquipeNotification;
+use App\Notifications\DossierInscriptionNotification;
+use App\Notifications\InscriptionDecisionNotification;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
+
+beforeEach(function () {
+    Storage::fake('local');
+});
 
 /**
- * Enrols the apprenant through the espace and returns the enrolment.
+ * One fake file per piece required by the formation of the session.
+ *
+ * @return array<int, UploadedFile>
+ */
+function piecesPour(FormationSession $session): array
+{
+    return collect($session->formation->piecesRequises())
+        ->map(fn (string $libelle, int $index) => UploadedFile::fake()->create("piece-{$index}.pdf", 200, 'application/pdf'))
+        ->all();
+}
+
+/**
+ * Enrols the apprenant through the espace with a complete dossier and
+ * returns the enrolment.
  */
 function inscrire(Apprenant $apprenant, FormationSession $session): Inscription
 {
     test()->actingAs($apprenant->user)
-        ->post(route('espace-apprenant.inscriptions.store', $session))
-        ->assertRedirect(route('espace-apprenant.factures'));
+        ->post(route('espace-apprenant.inscriptions.store', $session), ['pieces' => piecesPour($session)])
+        ->assertRedirect(route('espace-apprenant.inscriptions'));
 
     return Inscription::where('apprenant_id', $apprenant->id)->sole();
 }
 
-test('enrolling bills the registration fee of the session to the apprenant', function () {
+/**
+ * Enrols the apprenant and has DAG validate the dossier, which bills the fee.
+ */
+function inscrireEtValider(Apprenant $apprenant, FormationSession $session): Inscription
+{
+    $inscription = inscrire($apprenant, $session);
+
+    test()->actingAs(MembreEquipe::factory()->promotrice()->create(), 'admin')
+        ->patchJson(route('espace-admin.inscriptions.valider', $inscription))
+        ->assertOk();
+
+    return $inscription->fresh();
+}
+
+test('enrolling submits the dossier for review without billing anything yet', function () {
+    Notification::fake();
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
     $apprenant = Apprenant::factory()->create();
-    $session = FormationSession::factory()->create(['prix' => 120000, 'date_debut' => '2026-12-01']);
+    $session = FormationSession::factory()->create(['prix' => 120000]);
 
     $inscription = inscrire($apprenant, $session);
 
-    $facture = Facture::sole();
-    expect($inscription->statut)->toBe('EN_ATTENTE_PAIEMENT');
+    expect($inscription->statut)->toBe('DOSSIER_EN_ETUDE');
     expect((float) $inscription->montant_negocie)->toBe(120000.0);
-    expect($facture->type)->toBe('FORMATION');
-    expect($facture->apprenant_id)->toBe($apprenant->id);
-    expect($facture->inscription_id)->toBe($inscription->id);
-    expect((float) $facture->montant)->toBe(120000.0);
-    expect($facture->statut)->toBe('EN_ATTENTE');
-    expect($facture->echeance->toDateString())->toBe('2026-12-01');
+    expect(Facture::count())->toBe(0);
+
+    $pieces = PieceInscription::where('inscription_id', $inscription->id)->get();
+    expect($pieces->pluck('libelle')->all())->toBe(Formation::PIECES_PAR_DEFAUT);
+    $pieces->each(fn (PieceInscription $piece) => Storage::disk('local')->assertExists($piece->chemin));
+
+    Notification::assertSentTo(
+        $promotrice,
+        AlerteEquipeNotification::class,
+        fn (AlerteEquipeNotification $alerte) => $alerte->evenement() === 'inscription.nouvelle',
+    );
+});
+
+test('the dossier must contain every piece the formation asks for', function () {
+    $apprenant = Apprenant::factory()->create();
+    $formation = Formation::factory()->create(['pieces_requises' => ['Copie de la CNI', 'Diplôme le plus élevé']]);
+    $session = FormationSession::factory()->for($formation)->create();
 
     $this->actingAs($apprenant->user)
-        ->get(route('espace-apprenant.factures'))
-        ->assertInertia(fn ($page) => $page
-            ->where('factures.0.id', $facture->id)
-            ->where('factures.0.solde', '120000'));
+        ->get(route('espace-apprenant.inscriptions.create', $session))
+        ->assertInertia(fn ($page) => $page->where('session.piecesRequises', ['Copie de la CNI', 'Diplôme le plus élevé']));
+
+    $this->actingAs($apprenant->user)
+        ->post(route('espace-apprenant.inscriptions.store', $session), [
+            'pieces' => [0 => UploadedFile::fake()->create('cni.pdf', 100, 'application/pdf')],
+        ])
+        ->assertSessionHasErrors(['pieces.1' => 'Joignez la pièce : Diplôme le plus élevé.']);
+
+    $this->actingAs($apprenant->user)
+        ->post(route('espace-apprenant.inscriptions.store', $session), [
+            'pieces' => [
+                0 => UploadedFile::fake()->create('cni.exe', 100),
+                1 => UploadedFile::fake()->create('diplome.pdf', 100, 'application/pdf'),
+            ],
+        ])
+        ->assertSessionHasErrors('pieces.0');
+
+    expect(Inscription::count())->toBe(0);
 });
 
 test('a session whose fee is not published yet takes no enrolment', function () {
@@ -106,50 +170,154 @@ test('a session cannot be opened to enrolments without a registration fee', func
     expect((float) $session->fresh()->prix)->toBe(85000.0);
 });
 
-test('the seat is validated in a second step, only once the fee payment is confirmed', function () {
+test('validating the dossier bills the fee, and paying it confirms the seat', function () {
     Notification::fake();
     $promotrice = MembreEquipe::factory()->promotrice()->create();
     $apprenant = Apprenant::factory()->create();
-    $session = FormationSession::factory()->create(['prix' => 50000]);
+    $session = FormationSession::factory()->create(['prix' => 50000, 'date_debut' => '2026-12-01']);
     $inscription = inscrire($apprenant, $session);
-    $facture = Facture::sole();
 
     $this->actingAs($promotrice, 'admin')
         ->getJson(route('espace-admin.sessions.inscrits', $session))
-        ->assertJsonPath('inscriptions.0.paiement.statut', 'EN_ATTENTE')
-        ->assertJsonPath('inscriptions.0.paiement.url', route('espace-admin.factures.show', $facture))
-        ->assertJsonPath('inscriptions.0.validable', false);
+        ->assertJsonPath('inscriptions.0.statut', 'DOSSIER_EN_ETUDE')
+        ->assertJsonPath('inscriptions.0.dossierComplet', true)
+        ->assertJsonPath('inscriptions.0.paiement', null)
+        ->assertJsonCount(3, 'inscriptions.0.pieces');
 
     $this->actingAs($promotrice, 'admin')
         ->patchJson(route('espace-admin.inscriptions.valider', $inscription))
-        ->assertStatus(409);
-    expect($inscription->fresh()->statut)->toBe('EN_ATTENTE_PAIEMENT');
+        ->assertOk();
 
-    // Step 1: the payment is confirmed in Factures & paiements.
+    $facture = Facture::sole();
+    expect($inscription->fresh()->statut)->toBe('EN_ATTENTE_PAIEMENT');
+    expect($inscription->fresh()->dossier_valide_at)->not->toBeNull();
+    expect($facture->type)->toBe('FORMATION');
+    expect($facture->apprenant_id)->toBe($apprenant->id);
+    expect($facture->inscription_id)->toBe($inscription->id);
+    expect((float) $facture->montant)->toBe(50000.0);
+    expect($facture->echeance->toDateString())->toBe('2026-12-01');
+    Notification::assertSentTo($apprenant->user, DossierInscriptionNotification::class);
+
+    $this->actingAs($apprenant->user)
+        ->get(route('espace-apprenant.factures'))
+        ->assertInertia(fn ($page) => $page
+            ->where('factures.0.id', $facture->id)
+            ->where('factures.0.solde', '50000'));
+
     $this->actingAs($promotrice, 'admin')
         ->post(route('espace-admin.factures.paiements.store', $facture), ['montant' => 50000, 'moyen' => 'OM'])
         ->assertSessionHasNoErrors();
 
     expect($facture->fresh()->statut)->toBe('PAYEE');
-    expect($inscription->fresh()->statut)->toBe('EN_ATTENTE_PAIEMENT');
-    Notification::assertSentTo(
-        $promotrice,
-        AlerteEquipeNotification::class,
-        fn (AlerteEquipeNotification $alerte) => $alerte->evenement() === 'inscription.payee',
-    );
+    expect($inscription->fresh()->statut)->toBe('VALIDEE');
+    Notification::assertSentTo($apprenant->user, InscriptionDecisionNotification::class);
+});
 
-    // Step 2: the seat is validated.
+test('a validated dossier cannot be validated a second time', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $inscription = inscrireEtValider(Apprenant::factory()->create(), FormationSession::factory()->create(['prix' => 40000]));
+
     $this->actingAs($promotrice, 'admin')
         ->patchJson(route('espace-admin.inscriptions.valider', $inscription))
+        ->assertStatus(409);
+
+    expect(Facture::count())->toBe(1);
+});
+
+test('DAG can ask for a completion, and the corrected pieces send the dossier back to review', function () {
+    Notification::fake();
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $apprenant = Apprenant::factory()->create();
+    $inscription = inscrire($apprenant, FormationSession::factory()->create());
+    $ancienChemin = $inscription->pieces()->where('libelle', Formation::PIECES_PAR_DEFAUT[0])->value('chemin');
+
+    $this->actingAs($promotrice, 'admin')
+        ->patchJson(route('espace-admin.inscriptions.completer', $inscription), ['motif' => ''])
+        ->assertJsonValidationErrors('motif');
+
+    $this->actingAs($promotrice, 'admin')
+        ->patchJson(route('espace-admin.inscriptions.completer', $inscription), ['motif' => 'La CNI est illisible.'])
         ->assertOk();
 
-    expect($inscription->fresh()->statut)->toBe('VALIDEE');
+    expect($inscription->fresh()->statut)->toBe('DOSSIER_A_COMPLETER');
+    expect($inscription->fresh()->motif_decision)->toBe('La CNI est illisible.');
+    Notification::assertSentTo($apprenant->user, DossierInscriptionNotification::class);
+
+    $this->actingAs($apprenant->user)
+        ->get(route('espace-apprenant.inscriptions'))
+        ->assertInertia(fn ($page) => $page
+            ->where('inscriptions.0.statut', 'DOSSIER_A_COMPLETER')
+            ->where('inscriptions.0.motif', 'La CNI est illisible.'));
+
+    $this->actingAs($apprenant->user)
+        ->post(route('espace-apprenant.inscriptions.completer', $inscription), [
+            'pieces' => [0 => UploadedFile::fake()->create('cni-nette.pdf', 150, 'application/pdf')],
+        ])
+        ->assertRedirect(route('espace-apprenant.inscriptions'));
+
+    $inscription->refresh();
+    $piece = $inscription->pieces()->where('libelle', Formation::PIECES_PAR_DEFAUT[0])->sole();
+    expect($inscription->statut)->toBe('DOSSIER_EN_ETUDE');
+    expect($inscription->motif_decision)->toBeNull();
+    expect($piece->nom_original)->toBe('cni-nette.pdf');
+    expect($inscription->pieces()->count())->toBe(3);
+    Storage::disk('local')->assertMissing($ancienChemin);
+    Storage::disk('local')->assertExists($piece->chemin);
+});
+
+test('an apprenant cannot complete a dossier that is not theirs or not sent back', function () {
+    $inscription = inscrire(Apprenant::factory()->create(), FormationSession::factory()->create());
+    $autre = Apprenant::factory()->create();
+    $piece = ['pieces' => [0 => UploadedFile::fake()->create('cni.pdf', 100, 'application/pdf')]];
+
+    $this->actingAs($autre->user)
+        ->post(route('espace-apprenant.inscriptions.completer', $inscription), $piece)
+        ->assertNotFound();
+
+    $this->actingAs($inscription->apprenant->user)
+        ->post(route('espace-apprenant.inscriptions.completer', $inscription), $piece)
+        ->assertStatus(409);
+});
+
+test('the pieces of a dossier are only served to the members who decide on it', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $inscription = inscrire(Apprenant::factory()->create(), FormationSession::factory()->create());
+    $piece = $inscription->pieces()->firstOrFail();
+
+    $this->actingAs($promotrice, 'admin')
+        ->get(route('espace-admin.pieces-inscription.show', $piece))
+        ->assertOk()
+        ->assertDownload();
+
+    $sansDroit = MembreEquipe::factory()->create(['role' => MembreEquipeRole::CommunicationMarketing]);
+
+    $this->actingAs($sansDroit, 'admin')
+        ->get(route('espace-admin.pieces-inscription.show', $piece))
+        ->assertForbidden();
+});
+
+test('refusing a dossier frees the seat and tells the apprenant why', function () {
+    Notification::fake();
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $session = FormationSession::factory()->create(['places' => 1]);
+    $inscription = inscrire(Apprenant::factory()->create(), $session);
+
+    expect($session->fresh()->placesRestantes())->toBe(0);
+
+    $this->actingAs($promotrice, 'admin')
+        ->patchJson(route('espace-admin.inscriptions.refuser', $inscription), ['motif' => 'Prérequis non remplis.'])
+        ->assertOk();
+
+    expect($inscription->fresh()->statut)->toBe('ABANDONNEE');
+    expect($inscription->fresh()->motif_decision)->toBe('Prérequis non remplis.');
+    expect($session->fresh()->placesRestantes())->toBe(1);
+    Notification::assertSentTo($inscription->apprenant->user, InscriptionDecisionNotification::class);
 });
 
 test('refusing an unpaid enrolment cancels its fee, which can no longer be paid', function () {
     $promotrice = MembreEquipe::factory()->promotrice()->create();
     $apprenant = Apprenant::factory()->create();
-    $inscription = inscrire($apprenant, FormationSession::factory()->create());
+    $inscription = inscrireEtValider($apprenant, FormationSession::factory()->create());
     $facture = Facture::sole();
 
     $this->actingAs($promotrice, 'admin')
@@ -167,7 +335,7 @@ test('refusing an unpaid enrolment cancels its fee, which can no longer be paid'
 test('an enrolment whose fee was partly paid cannot be refused before a refund', function () {
     $promotrice = MembreEquipe::factory()->promotrice()->create();
     $apprenant = Apprenant::factory()->create();
-    $inscription = inscrire($apprenant, FormationSession::factory()->create(['prix' => 60000]));
+    $inscription = inscrireEtValider($apprenant, FormationSession::factory()->create(['prix' => 60000]));
     Facture::sole()->update(['montant_paye' => 20000, 'statut' => 'PARTIELLEMENT_PAYEE']);
 
     $this->actingAs($promotrice, 'admin')
@@ -175,6 +343,24 @@ test('an enrolment whose fee was partly paid cannot be refused before a refund',
         ->assertStatus(409);
 
     expect($inscription->fresh()->statut)->toBe('EN_ATTENTE_PAIEMENT');
+});
+
+test('a formation lists the pieces its dossier requires, with a default list', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $formation = Formation::factory()->create();
+
+    expect($formation->piecesRequises())->toBe(Formation::PIECES_PAR_DEFAUT);
+
+    $this->actingAs($promotrice, 'admin')
+        ->patch(route('espace-admin.formations.update', $formation), [
+            'nom' => $formation->nom,
+            'description' => $formation->description,
+            'statut' => $formation->statut,
+            'pieces_requises' => ['  Copie de la CNI ', '', 'Copie du dernier diplôme'],
+        ])
+        ->assertSessionHasNoErrors();
+
+    expect($formation->fresh()->piecesRequises())->toBe(['Copie de la CNI', 'Copie du dernier diplôme']);
 });
 
 test('the public pages show the registration fee of each session', function () {

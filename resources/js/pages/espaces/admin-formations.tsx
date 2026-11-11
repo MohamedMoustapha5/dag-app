@@ -52,7 +52,21 @@ type Inscrit = {
         url: string | null;
     } | null;
     validable: boolean;
+    motif: string | null;
+    dossierComplet: boolean;
+    pieces: {
+        id: string;
+        libelle: string;
+        nomOriginal: string;
+        url: string | null;
+    }[];
 };
+
+const STATUTS_DECISION = [
+    'DOSSIER_EN_ETUDE',
+    'DOSSIER_A_COMPLETER',
+    'EN_ATTENTE_PAIEMENT',
+];
 
 const PAIEMENT_LABEL: Record<string, string> = {
     EN_ATTENTE: 'À régler',
@@ -71,6 +85,7 @@ const PAIEMENT_CHIP: Record<string, string> = {
 type Roster = {
     session: { ville: string; formationNom: string };
     peutValider: boolean;
+    piecesRequises: string[];
     inscriptions: Inscrit[];
 };
 
@@ -127,8 +142,18 @@ export default function AdminFormations({
     const [expanded, setExpanded] = useState<Session | null>(null);
     const [roster, setRoster] = useState<Roster | null>(null);
     const [rosterLoading, setRosterLoading] = useState(false);
+    const [dossierOuvert, setDossierOuvert] = useState<Inscrit | null>(null);
 
     const { submit } = useHttp();
+
+    const rechargerInscrits = async () => {
+        if (expanded) {
+            const data = (await submit(
+                sessionsAdmin.inscrits(expanded.id),
+            )) as Roster;
+            setRoster(data);
+        }
+    };
 
     const chargerInscrits = async (session: Session) => {
         if (expanded?.id === session.id) {
@@ -151,31 +176,17 @@ export default function AdminFormations({
         }
     };
 
-    const traiterInscription = async (
-        inscriptionId: string,
-        decision: 'valider' | 'refuser',
-    ) => {
-        const route =
-            decision === 'valider'
-                ? inscriptionsAdmin.valider(inscriptionId)
-                : inscriptionsAdmin.refuser(inscriptionId);
-
+    /** Confirms a legacy enrolment whose fee was paid before dossiers existed. */
+    const confirmerInscription = async (inscriptionId: string) => {
         try {
-            await submit(route);
+            await submit(inscriptionsAdmin.valider(inscriptionId));
         } catch {
             alert(
-                decision === 'valider'
-                    ? "L'inscription ne peut pas être validée : les frais d'inscription ne sont pas encore réglés."
-                    : "L'inscription ne peut pas être refusée : un paiement a déjà été reçu, remboursez-le d'abord.",
+                "L'inscription ne peut pas être confirmée : les frais d'inscription ne sont pas encore réglés.",
             );
         }
 
-        if (expanded) {
-            const data = (await submit(
-                sessionsAdmin.inscrits(expanded.id),
-            )) as Roster;
-            setRoster(data);
-        }
+        await rechargerInscrits();
     };
 
     const supprimerSession = (session: Session) => {
@@ -406,6 +417,7 @@ export default function AdminFormations({
                                                 <th>Apprenant</th>
                                                 <th>E-mail</th>
                                                 <th>Statut</th>
+                                                <th>Dossier</th>
                                                 <th>Frais d'inscription</th>
                                                 <th>Présence</th>
                                                 <th />
@@ -436,6 +448,12 @@ export default function AdminFormations({
                                                                     inscrit.statut}
                                                             </span>
                                                         </td>
+                                                        <td className="muted">
+                                                            {inscrit.pieces
+                                                                .length > 0
+                                                                ? `${inscrit.pieces.length}/${roster.piecesRequises.length} pièce${inscrit.pieces.length > 1 ? 's' : ''}`
+                                                                : '—'}
+                                                        </td>
                                                         <td>
                                                             <PaiementInscrit
                                                                 paiement={
@@ -456,8 +474,9 @@ export default function AdminFormations({
                                                             }}
                                                         >
                                                             {roster.peutValider &&
-                                                                inscrit.statut ===
-                                                                    'EN_ATTENTE_PAIEMENT' && (
+                                                                STATUTS_DECISION.includes(
+                                                                    inscrit.statut,
+                                                                ) && (
                                                                     <div
                                                                         style={{
                                                                             display:
@@ -467,49 +486,34 @@ export default function AdminFormations({
                                                                                 'flex-end',
                                                                         }}
                                                                     >
+                                                                        {inscrit.statut ===
+                                                                            'EN_ATTENTE_PAIEMENT' &&
+                                                                            inscrit.validable && (
+                                                                                <button
+                                                                                    type="button"
+                                                                                    className="link-action"
+                                                                                    onClick={() =>
+                                                                                        confirmerInscription(
+                                                                                            inscrit.id,
+                                                                                        )
+                                                                                    }
+                                                                                >
+                                                                                    Confirmer
+                                                                                </button>
+                                                                            )}
                                                                         <button
                                                                             type="button"
                                                                             className="link-action"
-                                                                            disabled={
-                                                                                !inscrit.validable
-                                                                            }
-                                                                            title={
-                                                                                inscrit.validable
-                                                                                    ? undefined
-                                                                                    : "Confirmez d'abord le paiement des frais d'inscription"
-                                                                            }
-                                                                            style={
-                                                                                inscrit.validable
-                                                                                    ? undefined
-                                                                                    : {
-                                                                                          opacity: 0.45,
-                                                                                          cursor: 'not-allowed',
-                                                                                      }
-                                                                            }
                                                                             onClick={() =>
-                                                                                traiterInscription(
-                                                                                    inscrit.id,
-                                                                                    'valider',
+                                                                                setDossierOuvert(
+                                                                                    inscrit,
                                                                                 )
                                                                             }
                                                                         >
-                                                                            Valider
-                                                                            l'inscription
-                                                                        </button>
-                                                                        <button
-                                                                            type="button"
-                                                                            className="link-action"
-                                                                            style={{
-                                                                                color: 'var(--dag-red)',
-                                                                            }}
-                                                                            onClick={() =>
-                                                                                traiterInscription(
-                                                                                    inscrit.id,
-                                                                                    'refuser',
-                                                                                )
-                                                                            }
-                                                                        >
-                                                                            Refuser
+                                                                            {inscrit.statut ===
+                                                                            'DOSSIER_EN_ETUDE'
+                                                                                ? 'Examiner le dossier'
+                                                                                : 'Voir le dossier'}
                                                                         </button>
                                                                     </div>
                                                                 )}
@@ -526,6 +530,18 @@ export default function AdminFormations({
                 </div>
             )}
 
+            {dossierOuvert && roster && (
+                <ExamenDossierModal
+                    inscrit={dossierOuvert}
+                    piecesRequises={roster.piecesRequises}
+                    onClose={() => setDossierOuvert(null)}
+                    onDecision={async () => {
+                        setDossierOuvert(null);
+                        await rechargerInscrits();
+                    }}
+                />
+            )}
+
             {createOpen && (
                 <SessionModal
                     mode="create"
@@ -540,6 +556,305 @@ export default function AdminFormations({
                 />
             )}
         </>
+    );
+}
+
+/**
+ * Review of an enrolment dossier: the team opens each piece, then validates
+ * the dossier (the registration fee is billed and the apprenant can pay),
+ * asks for a completion with a reason, or refuses it.
+ */
+function ExamenDossierModal({
+    inscrit,
+    piecesRequises,
+    onClose,
+    onDecision,
+}: {
+    inscrit: Inscrit;
+    piecesRequises: string[];
+    onClose: () => void;
+    onDecision: () => Promise<void>;
+}) {
+    const http = useHttp<{ motif: string }>({ motif: '' });
+    const [action, setAction] = useState<'complement' | 'refus' | null>(null);
+    const [erreur, setErreur] = useState<string | null>(null);
+    const enExamen = inscrit.statut === 'DOSSIER_EN_ETUDE';
+    const parLibelle = Object.fromEntries(
+        inscrit.pieces.map((piece) => [piece.libelle, piece]),
+    );
+
+    const decider = async (decision: 'valider' | 'complement' | 'refus') => {
+        setErreur(null);
+
+        const route =
+            decision === 'valider'
+                ? inscriptionsAdmin.valider(inscrit.id)
+                : decision === 'complement'
+                  ? inscriptionsAdmin.completer(inscrit.id)
+                  : inscriptionsAdmin.refuser(inscrit.id);
+
+        try {
+            await http.submit(route);
+            await onDecision();
+        } catch {
+            if (!http.errors.motif) {
+                setErreur(
+                    decision === 'refus'
+                        ? "L'inscription ne peut pas être refusée : un paiement a déjà été reçu, remboursez-le d'abord."
+                        : "L'action n'a pas pu être enregistrée : rechargez la liste et réessayez.",
+                );
+            }
+        }
+    };
+
+    return (
+        <div
+            className="modal-backdrop"
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Dossier d'inscription de ${inscrit.nom}`}
+            onClick={(event) => {
+                if (event.target === event.currentTarget) {
+                    onClose();
+                }
+            }}
+        >
+            <div className="modal-panel">
+                <button
+                    type="button"
+                    className="modal-close"
+                    onClick={onClose}
+                    aria-label="Fermer"
+                >
+                    <X size={16} />
+                </button>
+
+                <h2 style={{ fontSize: 19, color: 'var(--dag-navy)' }}>
+                    Dossier de {inscrit.nom}
+                </h2>
+                <p
+                    className="muted"
+                    style={{ marginTop: 6, marginBottom: 20, fontSize: 13 }}
+                >
+                    {inscrit.email} ·{' '}
+                    <span
+                        className={`chip ${STATUT_CHIP[inscrit.statut] ?? 'chip-gray'}`}
+                    >
+                        {STATUT_LABEL[inscrit.statut] ?? inscrit.statut}
+                    </span>
+                </p>
+
+                <ul
+                    style={{
+                        listStyle: 'none',
+                        margin: 0,
+                        padding: 0,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 8,
+                    }}
+                >
+                    {piecesRequises.map((libelle) => {
+                        const piece = parLibelle[libelle];
+
+                        return (
+                            <li
+                                key={libelle}
+                                style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    gap: 12,
+                                    padding: '10px 14px',
+                                    borderRadius: 10,
+                                    border: '1px solid var(--dag-border)',
+                                    background: piece
+                                        ? 'var(--dag-bg)'
+                                        : 'var(--dag-red-bg)',
+                                }}
+                            >
+                                <span style={{ minWidth: 0 }}>
+                                    <span
+                                        style={{
+                                            display: 'block',
+                                            fontWeight: 600,
+                                            fontSize: 13.5,
+                                        }}
+                                    >
+                                        {libelle}
+                                    </span>
+                                    <span
+                                        className="muted"
+                                        style={{ fontSize: 12 }}
+                                    >
+                                        {piece
+                                            ? piece.nomOriginal
+                                            : 'Non fournie'}
+                                    </span>
+                                </span>
+                                {piece?.url && (
+                                    <a
+                                        href={piece.url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="link-action"
+                                        style={{ flex: 'none', fontSize: 13 }}
+                                    >
+                                        Ouvrir ↗
+                                    </a>
+                                )}
+                            </li>
+                        );
+                    })}
+                </ul>
+
+                {inscrit.motif && (
+                    <p className="dossier-motif" style={{ marginTop: 16 }}>
+                        <strong>Dernier message envoyé :</strong>{' '}
+                        {inscrit.motif}
+                    </p>
+                )}
+
+                {action !== null && (
+                    <div style={{ marginTop: 18 }}>
+                        <label htmlFor="motif-decision">
+                            {action === 'complement'
+                                ? "Ce que l'apprenant doit corriger ou ajouter"
+                                : 'Motif du refus (facultatif)'}
+                        </label>
+                        <textarea
+                            id="motif-decision"
+                            rows={3}
+                            value={http.data.motif}
+                            placeholder={
+                                action === 'complement'
+                                    ? 'Ex. La copie de la CNI est illisible : renvoyez un scan net, recto et verso.'
+                                    : ''
+                            }
+                            onChange={(event) =>
+                                http.setData('motif', event.target.value)
+                            }
+                        />
+                        {http.errors.motif && (
+                            <p
+                                style={{
+                                    color: 'var(--dag-red)',
+                                    fontSize: 12,
+                                    marginTop: 4,
+                                }}
+                            >
+                                {http.errors.motif}
+                            </p>
+                        )}
+                    </div>
+                )}
+
+                {erreur && (
+                    <p
+                        role="alert"
+                        style={{
+                            color: 'var(--dag-red)',
+                            fontSize: 13,
+                            marginTop: 12,
+                        }}
+                    >
+                        {erreur}
+                    </p>
+                )}
+
+                <div
+                    style={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        gap: 10,
+                        marginTop: 22,
+                    }}
+                >
+                    {action === null ? (
+                        <>
+                            {enExamen && (
+                                <button
+                                    type="button"
+                                    className="btn-primary"
+                                    disabled={
+                                        http.processing ||
+                                        !inscrit.dossierComplet
+                                    }
+                                    title={
+                                        inscrit.dossierComplet
+                                            ? undefined
+                                            : 'Il manque des pièces : demandez un complément'
+                                    }
+                                    onClick={() => decider('valider')}
+                                >
+                                    Valider le dossier
+                                </button>
+                            )}
+                            {enExamen && (
+                                <button
+                                    type="button"
+                                    className="btn-outline"
+                                    onClick={() => setAction('complement')}
+                                >
+                                    Demander un complément
+                                </button>
+                            )}
+                            <button
+                                type="button"
+                                className="btn-outline"
+                                style={{
+                                    color: 'var(--dag-red)',
+                                    borderColor: 'var(--dag-red)',
+                                }}
+                                onClick={() => setAction('refus')}
+                            >
+                                Refuser l'inscription
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <button
+                                type="button"
+                                className="btn-primary"
+                                disabled={http.processing}
+                                onClick={() =>
+                                    decider(
+                                        action === 'complement'
+                                            ? 'complement'
+                                            : 'refus',
+                                    )
+                                }
+                            >
+                                {action === 'complement'
+                                    ? "Envoyer la demande à l'apprenant"
+                                    : 'Confirmer le refus'}
+                            </button>
+                            <button
+                                type="button"
+                                className="btn-outline"
+                                onClick={() => {
+                                    setAction(null);
+                                    http.clearErrors();
+                                }}
+                            >
+                                Retour
+                            </button>
+                        </>
+                    )}
+                </div>
+
+                {enExamen && action === null && (
+                    <p
+                        className="muted"
+                        style={{ fontSize: 12, marginTop: 12, lineHeight: 1.6 }}
+                    >
+                        En validant, la facture des frais d'inscription est
+                        émise : l'apprenant est prévenu et peut payer. Son
+                        paiement confirme sa place.
+                    </p>
+                )}
+            </div>
+        </div>
     );
 }
 
