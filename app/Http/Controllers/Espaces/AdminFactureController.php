@@ -103,6 +103,7 @@ class AdminFactureController extends Controller
             ...$this->adminEspaceProps($membre),
             'peutCreer' => $membre->peut(Donnee::FacturesPaiements, Action::Creer),
             'peutModifier' => $membre->peut(Donnee::FacturesPaiements, Action::Modifier),
+            'peutValider' => $membre->peut(Donnee::FacturesPaiements, Action::Valider),
             'peutGenererContrat' => $membre->peut(Donnee::ContratsClauses, Action::Creer),
             'facture' => [
                 'id' => $facture->id,
@@ -130,7 +131,9 @@ class AdminFactureController extends Controller
     public function storePaiement(Request $request, Facture $facture, PaiementService $paiements): RedirectResponse
     {
         $membre = $this->membre($request);
-        abort_unless($membre->peut(Donnee::FacturesPaiements, Action::Creer), 403);
+        // A manual payment is confirmed as it is recorded, in the name of the
+        // member: recording it is validating money received.
+        abort_unless($membre->peut(Donnee::FacturesPaiements, Action::Creer) && $membre->peut(Donnee::FacturesPaiements, Action::Valider), 403);
 
         $data = $request->validate([
             'montant' => ['required', 'numeric', 'min:0.01'],
@@ -165,6 +168,7 @@ class AdminFactureController extends Controller
         ]);
 
         abort_unless($paiement->statut === 'EN_ATTENTE', 409, 'Ce paiement a déjà été traité.');
+        abort_if($data['statut'] === 'CONFIRME' && ! $membre->peut(Donnee::FacturesPaiements, Action::Valider), 403, 'Confirmer un paiement demande le droit de validation sur les paiements.');
 
         if ($data['statut'] === 'CONFIRME') {
             $paiements->confirmer($paiement, $membre);

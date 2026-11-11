@@ -33,7 +33,10 @@ return [
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app/private'),
-            'serve' => true,
+            // Identity documents, CVs and signatures live here: they leave only
+            // through the controllers that check who asks. No public
+            // /storage/{path} route (read or upload) is registered for them.
+            'serve' => false,
             'throw' => false,
             'report' => false,
         ],

@@ -9,6 +9,7 @@ import demandesAdmin from '@/routes/espace-admin/demandes';
 
 type Props = {
     peutModifier: boolean;
+    peutValider: boolean;
     contrat: {
         id: string;
         reference: string;
@@ -120,6 +121,7 @@ const PROCHAINE_ACTION: Record<string, { titre: string; texte: string }> = {
 
 export default function AdminContratShow({
     peutModifier,
+    peutValider,
     peutTelecharger,
     contrat,
 }: Props) {
@@ -177,7 +179,10 @@ export default function AdminContratShow({
             : PROCHAINE_ACTION[contrat.statut];
     const transitions = peutModifier
         ? contrat.statutsAccessibles.filter(
-              (statut) => TRANSITIONS[statut] !== undefined,
+              (statut) =>
+                  TRANSITIONS[statut] !== undefined &&
+                  // Validating opens the payment: it takes the validation right.
+                  (statut !== 'ACTIF' || peutValider),
           )
         : [];
 

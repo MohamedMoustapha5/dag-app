@@ -261,6 +261,7 @@ class AdminContratController extends Controller
         return Inertia::render('espaces/admin-contrat-show', [
             ...$this->adminEspaceProps($membre),
             'peutModifier' => $membre->peut(Donnee::ContratsClauses, Action::Modifier),
+            'peutValider' => $membre->peut(Donnee::ContratsClauses, Action::Valider),
             'peutTelecharger' => $membre->peut(Donnee::ContratsClauses, Action::Telecharger),
             'contrat' => [
                 'id' => $contrat->id,
@@ -351,6 +352,10 @@ class AdminContratController extends Controller
         $data = $request->validate([
             'statut' => ['required', Rule::in(array_keys(Contrat::STATUT_LABELS))],
         ]);
+
+        // Validating a signed contract opens the payment to the client: it is
+        // a validation, not an edit, whatever level the role was given.
+        abort_if($data['statut'] === 'ACTIF' && ! $membre->peut(Donnee::ContratsClauses, Action::Valider), 403, 'Valider un contrat demande le droit de validation sur les contrats.');
 
         if (! $contrat->peutPasserA($data['statut'])) {
             throw ValidationException::withMessages([

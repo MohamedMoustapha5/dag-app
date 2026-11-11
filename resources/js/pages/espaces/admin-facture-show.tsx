@@ -40,6 +40,7 @@ type Props = {
     paiements: Paiement[];
     peutCreer: boolean;
     peutModifier: boolean;
+    peutValider: boolean;
     peutGenererContrat: boolean;
 };
 
@@ -48,6 +49,7 @@ export default function AdminFactureShow({
     paiements,
     peutCreer,
     peutModifier,
+    peutValider,
     peutGenererContrat,
 }: Props) {
     const trancher = (id: string, statut: 'CONFIRME' | 'ECHEC') => {
@@ -106,9 +108,7 @@ export default function AdminFactureShow({
                         {facture.reference} · {facture.client}
                     </span>
                 </div>
-                <div
-                    style={{ display: 'flex', alignItems: 'center', gap: 12 }}
-                >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     {facture.statut === 'PAYEE' &&
                         facture.demandeId &&
                         peutGenererContrat &&
@@ -208,7 +208,8 @@ export default function AdminFactureShow({
                                             >
                                                 {paiement.statut === 'CONFIRME'
                                                     ? 'Confirmé'
-                                                    : paiement.statut === 'ECHEC'
+                                                    : paiement.statut ===
+                                                        'ECHEC'
                                                       ? 'Échec'
                                                       : 'En attente'}
                                             </span>
@@ -218,21 +219,23 @@ export default function AdminFactureShow({
                                                 paiement.statut ===
                                                     'EN_ATTENTE' && (
                                                     <>
-                                                        <button
-                                                            type="button"
-                                                            className="link-action"
-                                                            style={{
-                                                                marginRight: 12,
-                                                            }}
-                                                            onClick={() =>
-                                                                trancher(
-                                                                    paiement.id,
-                                                                    'CONFIRME',
-                                                                )
-                                                            }
-                                                        >
-                                                            Confirmer
-                                                        </button>
+                                                        {peutValider && (
+                                                            <button
+                                                                type="button"
+                                                                className="link-action"
+                                                                style={{
+                                                                    marginRight: 12,
+                                                                }}
+                                                                onClick={() =>
+                                                                    trancher(
+                                                                        paiement.id,
+                                                                        'CONFIRME',
+                                                                    )
+                                                                }
+                                                            >
+                                                                Confirmer
+                                                            </button>
+                                                        )}
                                                         <button
                                                             type="button"
                                                             className="link-action"
@@ -259,7 +262,7 @@ export default function AdminFactureShow({
                 )}
             </div>
 
-            {peutCreer && facture.statut !== 'PAYEE' && (
+            {peutCreer && peutValider && facture.statut !== 'PAYEE' && (
                 <form
                     onSubmit={submit}
                     className="card"
