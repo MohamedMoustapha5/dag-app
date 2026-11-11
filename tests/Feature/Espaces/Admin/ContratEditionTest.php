@@ -4,6 +4,7 @@ use App\Enums\MembreEquipeRole;
 use App\Models\Clause;
 use App\Models\Client;
 use App\Models\Contrat;
+use App\Models\Demande;
 use App\Models\MembreEquipe;
 use App\Models\ModeleContrat;
 use App\Notifications\ContratASignerNotification;
@@ -121,4 +122,16 @@ test('saving a draft without sending it keeps it in draft', function () {
     expect($contrat->fresh()->statut)->toBe('BROUILLON');
     expect($contrat->fresh()->contenu)->toBe('Nouveau texte.');
     Notification::assertNothingSent();
+});
+
+test('a contract cannot be generated for a demande from a modele of another contract type', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $demande = Demande::factory()->create(['statut' => 'DEVIS_ENVOYE']);
+    $partenaire = ModeleContrat::create(['nom' => 'Partenaire', 'type' => 'CONTRAT_PARTENAIRE', 'contenu' => 'Contrat-cadre avec {{entreprise}}.', 'statut' => 'ACTIF']);
+
+    $this->actingAs($promotrice, 'admin')
+        ->post(route('espace-admin.contrats.store'), ['demande_id' => $demande->id, 'modele_contrat_id' => $partenaire->id])
+        ->assertSessionHasErrors('modele_contrat_id');
+
+    expect(Contrat::where('demande_id', $demande->id)->exists())->toBeFalse();
 });

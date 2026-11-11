@@ -233,6 +233,14 @@ class AdminContratController extends Controller
             ? ModeleContrat::where('id', $data['modele_contrat_id'])->first()
             : null;
 
+        // A demande gets a prestation or an abonnement contract: a modèle
+        // written for a stage or a partnership would draft the wrong text.
+        if ($modele !== null && $modele->type !== ContratRedaction::typePour($demande)) {
+            throw ValidationException::withMessages([
+                'modele_contrat_id' => 'Ce modèle est prévu pour un autre type de contrat : choisissez le modèle par défaut ou un modèle « '.(ContratRedaction::typePour($demande) === 'ABONNEMENT' ? 'Abonnement' : 'Prestation de service').' ».',
+            ]);
+        }
+
         $contrat = ContratRedaction::brouillonPour($demande, $modele);
 
         ActivityLog::record($this->membre($request), 'a généré le contrat', $contrat, "{$contrat->reference} pour la demande {$demande->reference}.");

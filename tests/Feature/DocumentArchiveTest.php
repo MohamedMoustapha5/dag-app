@@ -132,3 +132,22 @@ test('the archiver command stores the PDF of every downloadable document still m
     expect(Storage::disk('local')->get("documents/factures/{$payee->id}.pdf"))->toStartWith('%PDF');
     expect($impayee->fresh()->fichier_pdf)->toBeNull();
 });
+
+test('the archiver rebuilds the PDF of signed contracts with the current layout only when asked', function () {
+    $contrat = Contrat::factory()->create(['statut' => 'ENVOYE', 'contenu' => "1. Objet\nTexte signé."]);
+    $contrat->update(['statut' => 'SIGNE', 'date_signature' => now(), 'signataire_nom' => 'Aïcha N.']);
+    $chemin = $contrat->fresh()->fichier_pdf;
+    Storage::disk('local')->put($chemin, 'ANCIENNE MISE EN PAGE');
+
+    $this->artisan('documents:archiver')->assertSuccessful();
+    expect(Storage::disk('local')->get($chemin))->toBe('ANCIENNE MISE EN PAGE');
+
+    $this->artisan('documents:archiver', ['--contrats' => true])
+        ->expectsOutputToContain('1 contrat(s) signé(s) reconstruit(s)')
+        ->assertSuccessful();
+
+    $contrat->refresh();
+    expect($contrat->statut)->toBe('SIGNE');
+    expect($contrat->contenu)->toBe("1. Objet\nTexte signé.");
+    expect(Storage::disk('local')->get($contrat->fichier_pdf))->toStartWith('%PDF');
+});

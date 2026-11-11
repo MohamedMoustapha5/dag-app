@@ -25,6 +25,7 @@
         .zone { height: 124px; padding-top: 8px; }
         .bandeau { background: #eaf1ff; border-left: 4px solid #0166fe; padding: 8px 12px; margin: 14px 0; font-size: 11px; }
         .conteste { background: #fbeaea; border-left-color: #d64545; }
+        .proces-verbal { margin-top: 26px; padding-top: 14px; border-top: 1px solid #c9d3e3; page-break-inside: avoid; }
         .pied { position: fixed; left: 0; width: 86%; bottom: -46px; border-top: 1px solid #071f41; padding-top: 5px; font-size: 8.5px; color: #3d4f6b; }
     </style>
 </head>
@@ -64,7 +65,7 @@
 <h3>Parties et objet</h3>
 <table class="parties" width="100%">
     <tr><td class="k">Prestataire</td><td>DAG — Digital Agency Group, Douala, Cameroun</td></tr>
-    <tr><td class="k">{{ $contrat->exigeIdentite() ? "Nom et prénom de l'intéressé" : 'Cocontractant' }}</td><td><strong>{{ $contrat->signataire_nom ?? $partie }}</strong>@if($contrat->signataire_nom !== null && $contrat->signataire_nom !== $partie) <span class="muted">(compte : {{ $partie }})</span>@endif</td></tr>
+    <tr><td class="k">{{ $contrat->exigeIdentite() ? "Nom et prénom de l'intéressé" : 'Cocontractant' }}</td><td><strong>{{ $contrat->signataire_nom ?? $partie }}</strong>@if($contrat->signataire_nom !== null && $partie !== "—" && $contrat->signataire_nom !== $partie) <span class="muted">(compte : {{ $partie }})</span>@endif</td></tr>
     @if($contrat->telephone_cocontractant !== null)
         <tr><td class="k">Téléphone</td><td>{{ $contrat->telephone_cocontractant }}</td></tr>
     @endif
@@ -92,7 +93,9 @@
     @endforeach
 @endforeach
 
-<div style="page-break-before: always;"></div>
+{{-- The acceptance record follows the articles directly; kept in one piece,
+     it only moves to the next page when it does not fit on the current one. --}}
+<div class="proces-verbal">
 
 <h3 style="font-size: 17px; margin-top: 0;">Procès-verbal d'acceptation</h3>
 
@@ -144,6 +147,8 @@
         </td>
     </tr>
 </table>
+
+</div>
 
 <p class="muted" style="margin-top: 30px; font-size: 10px;">
     Généré par la plateforme DAG — Digital Agency Group © {{ now()->year }}.

@@ -396,7 +396,11 @@ export default function AdminContrats({
                                         {modeles
                                             .filter(
                                                 (modele) =>
-                                                    modele.statut === 'ACTIF',
+                                                    modele.statut === 'ACTIF' &&
+                                                    [
+                                                        'PRESTATION_SERVICE',
+                                                        'ABONNEMENT',
+                                                    ].includes(modele.type),
                                             )
                                             .map((modele) => (
                                                 <option
@@ -407,6 +411,11 @@ export default function AdminContrats({
                                                 </option>
                                             ))}
                                     </select>
+                                    <Erreur
+                                        message={
+                                            contratForm.errors.modele_contrat_id
+                                        }
+                                    />
                                 </div>
                             </div>
                             <button
