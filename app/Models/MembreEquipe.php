@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Concerns\RevoqueSessionsAuChangementDeMotDePasse;
 use App\Enums\Action;
 use App\Enums\Donnee;
 use App\Enums\MembreEquipeRole;
@@ -30,7 +31,7 @@ use Illuminate\Notifications\Notifiable;
 class MembreEquipe extends Authenticatable
 {
     /** @use HasFactory<MembreEquipeFactory> */
-    use HasFactory, HasUuids, Notifiable;
+    use HasFactory, HasUuids, Notifiable, RevoqueSessionsAuChangementDeMotDePasse;
 
     protected $table = 'membres_equipe';
 
