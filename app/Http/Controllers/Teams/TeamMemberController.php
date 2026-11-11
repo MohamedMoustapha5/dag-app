@@ -41,8 +41,11 @@ class TeamMemberController extends Controller
 
         abort_if($team->owner()?->is($user), 403, __('The team owner cannot be removed.'));
 
+        // Only a member of this team can be removed from it: anyone else is
+        // unknown here, whatever team they belong to.
         $team->memberships()
             ->where('user_id', $user->id)
+            ->firstOrFail()
             ->delete();
 
         if ($user->isCurrentTeam($team)) {
