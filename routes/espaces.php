@@ -16,6 +16,7 @@ use App\Http\Controllers\Espaces\AdminFormationController;
 use App\Http\Controllers\Espaces\AdminGrilleTarifaireController;
 use App\Http\Controllers\Espaces\AdminInscriptionController;
 use App\Http\Controllers\Espaces\AdminMotDePasseController;
+use App\Http\Controllers\Espaces\AdminPresenceController;
 use App\Http\Controllers\Espaces\AdminRetraitController;
 use App\Http\Controllers\Espaces\AdminSeanceController;
 use App\Http\Controllers\Espaces\AdminServiceController;
@@ -194,6 +195,9 @@ Route::middleware(['auth:admin', 'auth.session', EnsureMembreActif::class])
         Route::get('sessions/{formationSession}/export', [AdminInscriptionController::class, 'export'])->name('espace-admin.sessions.export');
         Route::post('sessions/{formationSession}/seances', [AdminSeanceController::class, 'store'])->name('espace-admin.sessions.seances.store');
         Route::delete('seances/{seance}', [AdminSeanceController::class, 'destroy'])->name('espace-admin.seances.destroy');
+        Route::get('seances/{seance}/presences', [AdminPresenceController::class, 'show'])->name('espace-admin.seances.presences.show');
+        Route::put('seances/{seance}/presences', [AdminPresenceController::class, 'update'])->name('espace-admin.seances.presences.update');
+        Route::get('sessions/{formationSession}/presences', [AdminPresenceController::class, 'export'])->name('espace-admin.sessions.presences.export');
         Route::patch('inscriptions/{inscription}/valider', [AdminInscriptionController::class, 'valider'])->name('espace-admin.inscriptions.valider');
         Route::patch('inscriptions/{inscription}/refuser', [AdminInscriptionController::class, 'refuser'])->name('espace-admin.inscriptions.refuser');
         Route::patch('inscriptions/{inscription}/completer', [AdminInscriptionController::class, 'demanderComplement'])->name('espace-admin.inscriptions.completer');

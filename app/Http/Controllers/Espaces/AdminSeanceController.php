@@ -7,7 +7,9 @@ use App\Enums\Action;
 use App\Enums\Donnee;
 use App\Http\Controllers\Controller;
 use App\Models\FormationSession;
+use App\Models\Inscription;
 use App\Models\Seance;
+use App\Support\Presences\FeuillePresence;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -23,12 +25,15 @@ class AdminSeanceController extends Controller
         $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::Formations, Action::Voir), 403);
 
-        $formationSession->load(['formation', 'seances' => fn ($query) => $query->orderBy('date')]);
+        $formationSession->load(['formation', 'seances' => fn ($query) => $query->orderBy('date')->orderBy('created_at')->with('presences')]);
+        $inscrits = FeuillePresence::inscrits($formationSession);
 
         return Inertia::render('espaces/admin-session-show', [
             ...$this->adminEspaceProps($membre),
             'peutModifier' => $membre->peut(Donnee::Formations, Action::Modifier),
             'peutCreer' => $membre->peut(Donnee::Formations, Action::Creer),
+            'peutPointer' => $membre->peut(Donnee::Formations, Action::Modifier),
+            'peutTelecharger' => $membre->peut(Donnee::Formations, Action::Telecharger),
             'session' => [
                 'id' => $formationSession->id,
                 'formationId' => $formationSession->formation_id,
@@ -48,7 +53,13 @@ class AdminSeanceController extends Controller
                 'id' => $seance->id,
                 'titre' => $seance->titre,
                 'date' => $this->formatDate($seance->date),
+                'presence' => FeuillePresence::resume($seance, $inscrits),
             ]),
+            'assiduite' => $inscrits->map(fn (Inscription $inscription) => [
+                'inscriptionId' => $inscription->id,
+                'nom' => $inscription->apprenant->user->name,
+                ...FeuillePresence::assiduite($inscription, $formationSession->seances),
+            ])->values(),
         ]);
     }
 

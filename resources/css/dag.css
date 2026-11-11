@@ -4878,3 +4878,339 @@
         gap: 6px 14px !important;
     }
 }
+
+/* ── Feuille de présence (pointage par l'équipe) ─────────────────────── */
+.dag .feuille-presence-entete {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+.dag .feuille-presence-entete h1 {
+    font-size: 22px;
+    color: var(--dag-navy);
+    margin: 2px 0 8px;
+}
+.dag .feuille-presence-surtitre {
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--dag-blue);
+}
+.dag .feuille-presence-infos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+    font-size: 13.5px;
+    color: var(--dag-text-muted);
+}
+.dag .feuille-presence-infos span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.dag .feuille-presence-navigation {
+    display: flex;
+    gap: 8px;
+}
+.dag .feuille-presence-navigation .btn-outline {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 12px;
+    font-size: 13px;
+}
+.dag .feuille-presence-bandeau {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    margin-bottom: 18px;
+    border-radius: var(--dag-radius-sm);
+    background: var(--dag-orange-bg);
+    color: var(--dag-orange-ink);
+    font-size: 13.5px;
+}
+.dag .feuille-presence-compteurs {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+}
+.dag .feuille-presence-compteurs div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 12px 14px;
+    background: #fff;
+    border: 1px solid var(--dag-border);
+    border-left-width: 4px;
+    border-radius: var(--dag-radius-sm);
+}
+.dag .feuille-presence-compteurs strong {
+    font-size: 22px;
+    line-height: 1.1;
+    color: var(--dag-navy);
+}
+.dag .feuille-presence-compteurs span {
+    font-size: 12px;
+    color: var(--dag-text-muted);
+}
+.dag .feuille-presence-compteurs .present {
+    border-left-color: var(--dag-green);
+}
+.dag .feuille-presence-compteurs .retard {
+    border-left-color: var(--dag-orange);
+}
+.dag .feuille-presence-compteurs .absent {
+    border-left-color: var(--dag-red);
+}
+.dag .feuille-presence-compteurs .excuse {
+    border-left-color: var(--dag-blue);
+}
+.dag .feuille-presence {
+    padding: 0;
+    overflow: hidden;
+}
+.dag .feuille-presence-outils {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--dag-border);
+}
+.dag .feuille-presence-outils .btn-outline {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    font-size: 13px;
+}
+.dag .feuille-presence-recherche {
+    position: relative;
+    flex: 1;
+    max-width: 320px;
+    margin: 0;
+}
+.dag .feuille-presence-recherche svg {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--dag-text-faint);
+}
+.dag .feuille-presence-recherche input {
+    padding-left: 34px;
+}
+.dag .feuille-presence-liste {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.dag .feuille-presence-ligne {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px 16px;
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--dag-border);
+}
+.dag .feuille-presence-ligne:last-child {
+    border-bottom: none;
+}
+.dag .feuille-presence-apprenant {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+.dag .feuille-presence-apprenant > div {
+    min-width: 0;
+}
+.dag .feuille-presence-avatar {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--dag-blue-light);
+    color: var(--dag-blue);
+    font-size: 13px;
+    font-weight: 700;
+}
+.dag .feuille-presence-nom {
+    font-weight: 600;
+    font-size: 14px;
+    overflow-wrap: anywhere;
+}
+.dag .feuille-presence-email {
+    font-size: 12px;
+    color: var(--dag-text-muted);
+    overflow-wrap: anywhere;
+}
+.dag .presence-choix {
+    display: inline-grid;
+    grid-template-columns: repeat(4, auto);
+    border: 1px solid var(--dag-border);
+    border-radius: var(--dag-radius-sm);
+    overflow: hidden;
+}
+.dag .presence-choix-option {
+    padding: 8px 12px;
+    border: none;
+    border-left: 1px solid var(--dag-border);
+    background: #fff;
+    color: var(--dag-text-muted);
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+        background-color 0.15s var(--dag-ease),
+        color 0.15s var(--dag-ease);
+}
+.dag .presence-choix-option:first-child {
+    border-left: none;
+}
+.dag .presence-choix-option:hover {
+    background: #f5f6fa;
+    color: var(--dag-text);
+}
+.dag .presence-choix-option:focus-visible {
+    outline: 2px solid var(--dag-blue);
+    outline-offset: -2px;
+}
+.dag .presence-choix-option.present[aria-checked='true'] {
+    background: var(--dag-green);
+    color: #fff;
+}
+.dag .presence-choix-option.retard[aria-checked='true'] {
+    background: var(--dag-orange);
+    color: #fff;
+}
+.dag .presence-choix-option.absent[aria-checked='true'] {
+    background: var(--dag-red);
+    color: #fff;
+}
+.dag .presence-choix-option.excuse[aria-checked='true'] {
+    background: var(--dag-blue);
+    color: #fff;
+}
+.dag .presence-etiquette {
+    justify-self: end;
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    background: #f1f2f6;
+    color: var(--dag-text-muted);
+}
+.dag .presence-etiquette.present {
+    background: var(--dag-green-bg);
+    color: var(--dag-green);
+}
+.dag .presence-etiquette.retard {
+    background: var(--dag-orange-bg);
+    color: var(--dag-orange-ink);
+}
+.dag .presence-etiquette.absent {
+    background: var(--dag-red-bg);
+    color: var(--dag-red);
+}
+.dag .presence-etiquette.excuse {
+    background: var(--dag-blue-light);
+    color: var(--dag-blue);
+}
+.dag .feuille-presence-remarque {
+    grid-column: 1 / -1;
+    font-size: 13px;
+}
+.dag .feuille-presence-remarque-lue {
+    grid-column: 1 / -1;
+    font-size: 12.5px;
+    color: var(--dag-text-muted);
+    font-style: italic;
+}
+.dag .feuille-presence-barre {
+    position: sticky;
+    bottom: 12px;
+    z-index: 5;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-top: 16px;
+    padding: 12px 18px;
+    background: #fff;
+    border: 1px solid var(--dag-border);
+    border-radius: var(--dag-radius-sm);
+    box-shadow: var(--dag-shadow-md);
+    font-size: 13.5px;
+    font-weight: 600;
+}
+.dag .assiduite-barre {
+    display: inline-block;
+    width: 64px;
+    height: 6px;
+    border-radius: 999px;
+    background: #eceef4;
+    overflow: hidden;
+    vertical-align: middle;
+    margin-right: 8px;
+}
+.dag .assiduite-barre span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+}
+
+@media (max-width: 760px) {
+    .dag .feuille-presence-compteurs {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .dag .feuille-presence-compteurs div {
+        padding: 10px;
+    }
+    .dag .feuille-presence-compteurs strong {
+        font-size: 18px;
+    }
+    .dag .feuille-presence-ligne {
+        grid-template-columns: minmax(0, 1fr);
+        padding: 14px 16px;
+    }
+    .dag .presence-choix {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .dag .presence-choix-option {
+        padding: 10px 8px;
+    }
+    .dag .presence-choix-option:nth-child(odd) {
+        border-left: none;
+    }
+    .dag .presence-choix-option:nth-child(n + 3) {
+        border-top: 1px solid var(--dag-border);
+    }
+    .dag .presence-etiquette {
+        justify-self: start;
+    }
+    .dag .feuille-presence-outils .btn-outline,
+    .dag .feuille-presence-recherche {
+        flex: 1 1 100%;
+        max-width: none;
+        justify-content: center;
+    }
+    .dag .feuille-presence-barre {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+        bottom: 8px;
+    }
+}

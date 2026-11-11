@@ -88,7 +88,7 @@ class Contrat extends Model
      */
     public function statutsAccessibles(): array
     {
-        return self::TRANSITIONS[$this->statut] ?? [];
+        return self::TRANSITIONS[$this->statut];
     }
 
     public function peutPasserA(string $statut): bool

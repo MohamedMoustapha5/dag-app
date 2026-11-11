@@ -26,6 +26,7 @@ type Session = {
     places: number;
     prix: string | null;
     inscritsCount: number;
+    seancesAPointer: number;
     statut: string;
     image: string | null;
 };
@@ -325,6 +326,21 @@ export default function AdminFormations({
                                                 {STATUT_LABEL[session.statut] ??
                                                     session.statut}
                                             </span>
+                                            {session.seancesAPointer > 0 && (
+                                                <span
+                                                    className="chip chip-orange"
+                                                    style={{
+                                                        marginLeft: 6,
+                                                    }}
+                                                >
+                                                    {session.seancesAPointer}{' '}
+                                                    séance
+                                                    {session.seancesAPointer > 1
+                                                        ? 's'
+                                                        : ''}{' '}
+                                                    à pointer
+                                                </span>
+                                            )}
                                         </td>
                                         <td
                                             data-label=""
@@ -338,6 +354,14 @@ export default function AdminFormations({
                                                     flexWrap: 'wrap',
                                                 }}
                                             >
+                                                <Link
+                                                    href={sessionsAdmin.show(
+                                                        session.id,
+                                                    )}
+                                                    className="link-action"
+                                                >
+                                                    Séances et présence
+                                                </Link>
                                                 <button
                                                     type="button"
                                                     className="link-action"

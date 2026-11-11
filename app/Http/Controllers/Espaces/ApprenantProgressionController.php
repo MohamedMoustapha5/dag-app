@@ -60,6 +60,7 @@ class ApprenantProgressionController extends Controller
                 'titre' => $seance->titre,
                 'date' => $this->formatDate($seance->date),
                 'present' => $presences->get($seance->id)?->present,
+                'statutPresence' => $presences->get($seance->id)?->statut,
             ])
             ->values();
 

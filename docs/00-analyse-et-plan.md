@@ -137,7 +137,7 @@ Documentation : [`07-phase-6-contrats.md`](07-phase-6-contrats.md)
 - [x] Relance automatique des contrats non signés (voir la phase 10)
 - [ ] Contestation de signature
 
-### Phase 7 — Module Formation — partielle
+### Phase 7 — Module Formation — terminée
 
 Documentation : [`08-phase-7-formation.md`](08-phase-7-formation.md)
 
@@ -145,7 +145,7 @@ Documentation : [`08-phase-7-formation.md`](08-phase-7-formation.md)
 - [x] Inscriptions, validation et export
 - [x] Attestations validées par DAG, avec PDF
 - [x] Espace apprenant : progression, dossier, CV
-- [ ] Pointage de la présence par l'équipe
+- [x] Pointage de la présence par l'équipe (Présent, En retard, Absent, Excusé), assiduité et export
 
 ### Phase 8 — Entreprises partenaires et placement — terminée
 

@@ -9,6 +9,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property list<string>|null $pieces_requises
+ */
 #[Fillable(['nom', 'description', 'programme', 'categorie', 'duree', 'prerequis', 'pieces_requises', 'image', 'statut'])]
 class Formation extends Model
 {

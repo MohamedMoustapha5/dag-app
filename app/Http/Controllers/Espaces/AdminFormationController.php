@@ -8,6 +8,7 @@ use App\Enums\Donnee;
 use App\Http\Controllers\Controller;
 use App\Models\Formation;
 use App\Models\FormationSession;
+use App\Support\Presences\FeuillePresence;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -26,7 +27,7 @@ class AdminFormationController extends Controller
         abort_unless($membre->peut(Donnee::Formations, Action::Voir), 403);
 
         $sessions = FormationSession::query()
-            ->with('formation')
+            ->with(['formation', 'inscriptions', 'seances.presences'])
             ->orderByDesc('date_debut')
             ->get();
 
@@ -53,6 +54,7 @@ class AdminFormationController extends Controller
                 'places' => $session->places,
                 'prix' => $session->prix,
                 'inscritsCount' => $session->places - $session->placesRestantes(),
+                'seancesAPointer' => FeuillePresence::seancesAPointer($session),
                 'statut' => $session->statut,
                 'image' => $session->image,
             ]),
