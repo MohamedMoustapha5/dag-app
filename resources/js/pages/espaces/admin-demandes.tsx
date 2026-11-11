@@ -248,8 +248,8 @@ function EtatContrat({ demande }: { demande: Demande }) {
     const etats: Record<string, { label: string; chip: string }> = {
         BROUILLON: { label: 'À envoyer', chip: 'chip-orange' },
         ENVOYE: { label: 'En attente de signature', chip: 'chip-orange' },
-        SIGNE: { label: 'Signé', chip: 'chip-green' },
-        ACTIF: { label: 'Signé', chip: 'chip-green' },
+        SIGNE: { label: 'Signé, à valider', chip: 'chip-orange' },
+        ACTIF: { label: 'Validé', chip: 'chip-green' },
         TERMINE: { label: 'Terminé', chip: 'chip-green' },
     };
     const etat =

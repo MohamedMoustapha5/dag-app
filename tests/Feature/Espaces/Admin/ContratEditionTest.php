@@ -5,9 +5,11 @@ use App\Models\Clause;
 use App\Models\Client;
 use App\Models\Contrat;
 use App\Models\Demande;
+use App\Models\Facture;
 use App\Models\MembreEquipe;
 use App\Models\ModeleContrat;
 use App\Notifications\ContratASignerNotification;
+use App\Notifications\ContratValideNotification;
 use Illuminate\Support\Facades\Notification;
 
 test('the contract list tells who each contract is for and which ones await a correction', function () {
@@ -134,4 +136,31 @@ test('a contract cannot be generated for a demande from a modele of another cont
         ->assertSessionHasErrors('modele_contrat_id');
 
     expect(Contrat::where('demande_id', $demande->id)->exists())->toBeFalse();
+});
+
+test('validating a signed demande contract tells the client the payment is open', function () {
+    Notification::fake();
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $client = Client::factory()->create();
+    $demande = Demande::factory()->create(['client_id' => $client->id, 'statut' => 'CONTRAT_SIGNE']);
+    $contrat = Contrat::factory()->signe()->create(['client_id' => $client->id, 'demande_id' => $demande->id]);
+    $facture = Facture::factory()->create(['client_id' => $client->id, 'demande_id' => $demande->id, 'montant' => 50000]);
+
+    // Staff cannot record a payment either while the contract awaits validation.
+    $this->actingAs($promotrice, 'admin')
+        ->post(route('espace-admin.factures.paiements.store', $facture), ['montant' => 50000, 'moyen' => 'ESPECES'])
+        ->assertSessionHasErrors('montant');
+
+    $this->actingAs($promotrice, 'admin')
+        ->patch(route('espace-admin.contrats.update', $contrat), ['statut' => 'ACTIF'])
+        ->assertSessionHasNoErrors();
+
+    expect($contrat->fresh()->statut)->toBe('ACTIF');
+    Notification::assertSentTo($client->user, ContratValideNotification::class);
+
+    $this->actingAs($promotrice, 'admin')
+        ->post(route('espace-admin.factures.paiements.store', $facture), ['montant' => 50000, 'moyen' => 'ESPECES'])
+        ->assertSessionHasNoErrors();
+
+    expect($facture->fresh()->statut)->toBe('PAYEE');
 });

@@ -191,6 +191,15 @@ class Contrat extends Model
     }
 
     /**
+     * Whether DAG validated the signed contract (it is then active, or
+     * already completed).
+     */
+    public function estValide(): bool
+    {
+        return in_array($this->statut, ['ACTIF', 'TERMINE'], true);
+    }
+
+    /**
      * Name of the cocontractant, whichever of client / apprenant /
      * entreprise the contrat is attached to.
      */

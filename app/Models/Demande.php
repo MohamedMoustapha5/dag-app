@@ -53,12 +53,20 @@ class Demande extends Model
     }
 
     /**
-     * Whether the client signed the contract of this demande, which opens
-     * the payment of its facture.
+     * Whether the client signed the contract of this demande.
      */
     public function contratEstSigne(): bool
     {
         return $this->contrat !== null && $this->contrat->estSigne();
+    }
+
+    /**
+     * Whether DAG validated the contract the client signed, which opens the
+     * payment of the facture.
+     */
+    public function contratEstValide(): bool
+    {
+        return $this->contrat !== null && $this->contrat->estValide();
     }
 
     public function libelleStatut(): string

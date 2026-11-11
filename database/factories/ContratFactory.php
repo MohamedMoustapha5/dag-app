@@ -33,4 +33,12 @@ class ContratFactory extends Factory
             'date_signature' => now(),
         ]);
     }
+
+    /**
+     * Signed by the client and validated by DAG: the facture can be paid.
+     */
+    public function valide(): static
+    {
+        return $this->signe()->state(['statut' => 'ACTIF']);
+    }
 }

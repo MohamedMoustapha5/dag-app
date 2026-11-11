@@ -17,6 +17,7 @@ type Facture = {
     solde: string;
     paiementEnAttente: boolean;
     attendSignatureContrat: boolean;
+    attendValidationContrat: boolean;
     demandeId: string | null;
 };
 
@@ -159,6 +160,14 @@ export default function FacturesIndex({
                                                 >
                                                     Signer le contrat d'abord
                                                 </Link>
+                                            ) : facture.attendValidationContrat ? (
+                                                <span
+                                                    className="muted"
+                                                    style={{ fontSize: 12 }}
+                                                >
+                                                    Contrat en cours de
+                                                    validation par DAG
+                                                </span>
                                             ) : facture.paiementEnAttente ? (
                                                 <span
                                                     className="muted"

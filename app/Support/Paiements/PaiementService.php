@@ -64,8 +64,7 @@ class PaiementService
 
     /**
      * Whether the facture still waits for the client to sign the contract of
-     * its demande: a service or a formule is only paid once its contract is
-     * signed.
+     * its demande.
      */
     public function attendSignatureContrat(Facture $facture): bool
     {
@@ -73,13 +72,33 @@ class PaiementService
     }
 
     /**
+     * Whether the client signed the contract of the facture's demande but DAG
+     * has not validated it yet.
+     */
+    public function attendValidationContrat(Facture $facture): bool
+    {
+        return $facture->demande_id !== null
+            && $facture->demande->contratEstSigne()
+            && ! $facture->demande->contratEstValide();
+    }
+
+    /**
+     * A service or a formule is only paid once its contract is signed by the
+     * client and then validated by DAG.
+     *
      * @throws ValidationException
      */
-    private function exigerContratSigne(Facture $facture, string $champ): void
+    private function exigerContratValide(Facture $facture, string $champ): void
     {
         if ($this->attendSignatureContrat($facture)) {
             throw ValidationException::withMessages([
-                $champ => 'Le contrat doit être signé avant le paiement : signez-le depuis votre espace, le paiement s\'ouvre juste après.',
+                $champ => 'Le contrat doit être signé puis validé par DAG avant le paiement : signez-le depuis votre espace.',
+            ]);
+        }
+
+        if ($this->attendValidationContrat($facture)) {
+            throw ValidationException::withMessages([
+                $champ => 'Le contrat est signé et en cours de validation par DAG : le paiement s\'ouvre dès sa validation.',
             ]);
         }
     }
@@ -136,7 +155,7 @@ class PaiementService
                 throw ValidationException::withMessages(['moyen' => 'Cette facture est déjà réglée.']);
             }
 
-            $this->exigerContratSigne($verrouillee, 'moyen');
+            $this->exigerContratValide($verrouillee, 'moyen');
 
             if ($this->paiementEnAttente($verrouillee)) {
                 throw ValidationException::withMessages([
@@ -294,7 +313,7 @@ class PaiementService
                 throw ValidationException::withMessages(['montant' => 'Cette facture est déjà réglée.']);
             }
 
-            $this->exigerContratSigne($facture, 'montant');
+            $this->exigerContratValide($facture, 'montant');
 
             if ($montant > $solde) {
                 throw ValidationException::withMessages([
@@ -369,7 +388,7 @@ class PaiementService
             );
         }
 
-        // The contract was signed before this payment (exigerContratSigne), so
+        // The contract was signed and validated before this payment (exigerContratValide), so
         // the prestation can start as soon as the facture is settled.
         if ($soldee && $facture->demande_id !== null) {
             $demande = $facture->demande;

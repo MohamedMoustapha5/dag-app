@@ -147,7 +147,8 @@ class ClientContratController extends Controller
 
         $contrat->refresh();
 
-        // Signing opens the payment of the demande's facture.
+        // Signing moves the demande to « Contrat signé »; its facture can be paid
+        // once DAG has validated the contract (PaiementService).
         $demande = $contrat->demande;
 
         if ($demande !== null && ! $demande->aAtteint('CONTRAT_SIGNE') && $demande->statut !== 'REFUSEE') {
@@ -164,18 +165,19 @@ class ClientContratController extends Controller
             Donnee::ContratsClauses,
             Action::Modifier,
             'contrat.signe',
-            "Contrat signé — {$contrat->reference}",
+            $demande !== null ? "Contrat signé à valider — {$contrat->reference}" : "Contrat signé — {$contrat->reference}",
             $demande !== null
-                ? "{$data['nom']} a signé le contrat « {$contrat->libelleObjet()} ». Le paiement de la facture lui est maintenant ouvert."
+                ? "{$data['nom']} a signé le contrat « {$contrat->libelleObjet()} ». Validez-le pour ouvrir le paiement de la facture au client."
                 : "{$data['nom']} a signé le contrat « {$contrat->libelleObjet()} ».",
             route('espace-admin.contrats.show', $contrat),
         );
 
         ActivityLog::record(null, 'contrat signé par le client', $contrat, "{$contrat->reference} signé par {$data['nom']}.");
 
-        // Next step of the request: back to the demande, where the payment is now open.
+        // Next step of the request: back to the demande, where the payment opens
+        // once DAG has validated the contract.
         if ($demande !== null && $request->user('web')->can('view', $demande)) {
-            Inertia::flash('toast', ['type' => 'success', 'message' => 'Contrat signé. Vous pouvez maintenant régler votre facture.']);
+            Inertia::flash('toast', ['type' => 'success', 'message' => "Contrat signé. L'équipe DAG le valide, puis vous pourrez régler votre facture."]);
 
             return to_route('espace-client.demandes.show', $demande);
         }

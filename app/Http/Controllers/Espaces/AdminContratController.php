@@ -13,6 +13,7 @@ use App\Models\Demande;
 use App\Models\MembreEquipe;
 use App\Models\ModeleContrat;
 use App\Notifications\ContratASignerNotification;
+use App\Notifications\ContratValideNotification;
 use App\Support\ContratPdf;
 use App\Support\ContratRedaction;
 use App\Support\Notifications\Notifier;
@@ -364,7 +365,9 @@ class AdminContratController extends Controller
         Inertia::flash('toast', ['type' => 'success', 'message' => match ($data['statut']) {
             'ENVOYE' => 'Contrat envoyé au client pour signature.',
             'BROUILLON' => 'Contrat repassé en brouillon : vous pouvez le corriger.',
-            'ACTIF' => 'Contrat validé : il est maintenant actif.',
+            'ACTIF' => $contrat->demande_id !== null
+                ? 'Contrat validé : le client est prévenu et peut régler sa facture.'
+                : 'Contrat validé : il est maintenant actif.',
             'TERMINE' => 'Contrat marqué comme terminé.',
             'RESILIE' => 'Contrat résilié.',
             'REFUSE' => 'Contrat marqué comme refusé.',
@@ -386,6 +389,11 @@ class AdminContratController extends Controller
 
         if ($statut === 'ENVOYE') {
             Notifier::envoyer(Notifier::utilisateurDe($contrat), new ContratASignerNotification($contrat));
+        }
+
+        // Validating a demande's signed contract opens the payment of its facture.
+        if ($statut === 'ACTIF' && $contrat->demande_id !== null) {
+            Notifier::envoyer(Notifier::utilisateurDe($contrat), new ContratValideNotification($contrat));
         }
 
         ActivityLog::record($membre, 'a changé le statut du contrat', $contrat, "{$contrat->reference} : {$contrat->libelleStatut()}.");

@@ -50,6 +50,7 @@ class ClientFactureController extends Controller
                 'solde' => (string) $paiements->soldeRestant($facture),
                 'paiementEnAttente' => $paiements->paiementEnAttente($facture),
                 'attendSignatureContrat' => $paiements->attendSignatureContrat($facture),
+                'attendValidationContrat' => $paiements->attendValidationContrat($facture),
                 'demandeId' => $facture->demande_id,
             ]),
             'moyensPaiement' => $paiements->moyens(),

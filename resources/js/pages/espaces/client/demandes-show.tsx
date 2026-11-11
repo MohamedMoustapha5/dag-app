@@ -35,6 +35,7 @@ type Props = {
             solde: string;
             paiementEnAttente: boolean;
             attendSignatureContrat: boolean;
+            attendValidationContrat: boolean;
         } | null;
     };
     moyensPaiement: MoyenPaiement[];
@@ -248,7 +249,15 @@ export default function DemandesShow({
                                         style={{ fontSize: 12, marginTop: 12 }}
                                     >
                                         Le paiement s'ouvre après la signature
-                                        du contrat.
+                                        du contrat et sa validation par DAG.
+                                    </p>
+                                ) : demande.facture.attendValidationContrat ? (
+                                    <p
+                                        className="muted"
+                                        style={{ fontSize: 12, marginTop: 12 }}
+                                    >
+                                        Contrat signé, en cours de validation
+                                        par DAG : le paiement s'ouvre ensuite.
                                     </p>
                                 ) : demande.facture.paiementEnAttente ? (
                                     <p
@@ -307,7 +316,8 @@ export default function DemandesShow({
 
 /**
  * Tells the client what to do next: the contract sent with the devis is
- * signed first (step 1), then the facture is paid (step 2).
+ * signed first (step 1), DAG validates it (step 2), then the facture is
+ * paid (step 3).
  */
 function ProchaineEtape({
     demande,
@@ -334,10 +344,10 @@ function ProchaineEtape({
             ? "Contrat signé et paiement reçu : l'équipe DAG lance votre prestation. Vous suivez son avancement ici."
             : "Paiement reçu. L'équipe DAG vous tient informé de la suite ici.";
     } else if (facture.attendSignatureContrat) {
-        etape = 'Étape 1 sur 2 — Signez votre contrat';
+        etape = 'Étape 1 sur 3 — Signez votre contrat';
         if (contrat?.envoye) {
             message =
-                "Lisez le contrat qui accompagne votre devis, puis signez-le. Le paiement de la facture s'ouvre juste après la signature.";
+                "Lisez le contrat qui accompagne votre devis, puis signez-le. L'équipe DAG le valide ensuite et le paiement de la facture s'ouvre.";
             action = (
                 <Link
                     href={contratsRoutes.show(contrat.id)}
@@ -351,11 +361,15 @@ function ProchaineEtape({
             message =
                 "Votre contrat est en cours de finalisation par l'équipe DAG. Vous le recevrez ici pour signature, puis vous pourrez régler la facture.";
         }
+    } else if (facture.attendValidationContrat) {
+        etape = 'Étape 2 sur 3 — Validation du contrat par DAG';
+        message =
+            "Merci, votre contrat est signé. L'équipe DAG le vérifie et le valide : vous serez prévenu dès que le paiement de la facture est ouvert.";
     } else if (aPayer) {
-        etape = 'Étape 2 sur 2 — Réglez votre facture';
+        etape = 'Étape 3 sur 3 — Réglez votre facture';
         message = facture.paiementEnAttente
             ? 'Votre paiement est en attente de confirmation par le prestataire.'
-            : "Votre contrat est signé. Réglez la facture pour que l'équipe DAG lance la prestation.";
+            : "Votre contrat est signé et validé par DAG. Réglez la facture pour que l'équipe lance la prestation.";
         action = facture.paiementEnAttente ? null : (
             <button
                 type="button"

@@ -39,7 +39,7 @@ test('a client starts an Orange Money payment and is sent to the simulation scre
 test('confirming the payment settles the facture and moves the demande to paid', function () {
     $client = Client::factory()->create();
     $demande = Demande::factory()->create(['client_id' => $client->id, 'statut' => 'CONTRAT_SIGNE']);
-    Contrat::factory()->signe()->create(['client_id' => $client->id, 'demande_id' => $demande->id]);
+    Contrat::factory()->valide()->create(['client_id' => $client->id, 'demande_id' => $demande->id]);
     $facture = Facture::factory()->create(['client_id' => $client->id, 'demande_id' => $demande->id, 'montant' => 80000]);
 
     $this->actingAs($client->user)
@@ -287,16 +287,31 @@ test('the full journey: request a service, receive the devis and contract, sign,
 
     expect($demande->fresh()->statut)->toBe('CONTRAT_SIGNE');
 
+    // Signed but not yet validated by DAG: still no payment.
     $this->actingAs($client->user)
+        ->get(route('espace-client.demandes.show', $demande))
+        ->assertInertia(fn ($page) => $page
+            ->where('demande.facture.attendSignatureContrat', false)
+            ->where('demande.facture.attendValidationContrat', true));
+    $this->actingAs($client->user)
+        ->post(route('paiements.initier', $facture), ['moyen' => 'OM', 'telephone' => '690000000'])
+        ->assertSessionHasErrors('moyen');
+    expect(Paiement::count())->toBe(0);
+
+    $this->actingAs($promotrice, 'admin')
+        ->patch(route('espace-admin.contrats.update', $contrat), ['statut' => 'ACTIF'])
+        ->assertSessionHasNoErrors();
+
+    $this->actingAs($client->user, 'web')
         ->post(route('paiements.initier', $facture), ['moyen' => 'OM', 'telephone' => '690000000']);
 
-    $this->actingAs($client->user)
+    $this->actingAs($client->user, 'web')
         ->post(route('paiements.simulation.decision', Paiement::firstOrFail()), ['resultat' => 'succes']);
 
     expect($facture->fresh()->statut)->toBe('PAYEE');
     expect($demande->fresh()->statut)->toBe('PAYEE');
 
-    $this->actingAs($client->user)
+    $this->actingAs($client->user, 'web')
         ->get(route('espace-client.factures.pdf', $facture))
         ->assertOk();
 });
@@ -336,7 +351,7 @@ test('moving a demande to devis envoyé from the status form also issues the fac
     expect($facture->statut)->toBe('EN_ATTENTE');
 });
 
-test('a demande facture cannot be paid online until its contract is signed', function (?string $statutContrat) {
+test('a demande facture cannot be paid online until its contract is signed and validated', function (?string $statutContrat) {
     $client = Client::factory()->create();
     $demande = Demande::factory()->create(['client_id' => $client->id, 'statut' => 'DEVIS_ENVOYE']);
     if ($statutContrat !== null) {
@@ -354,6 +369,8 @@ test('a demande facture cannot be paid online until its contract is signed', fun
     'no contract' => [null],
     'contract in draft' => ['BROUILLON'],
     'contract sent, not signed' => ['ENVOYE'],
+    'contract signed, not yet validated by DAG' => ['SIGNE'],
+    'contract refused' => ['REFUSE'],
 ]);
 
 test('staff cannot record a payment on a demande facture whose contract is not signed', function () {

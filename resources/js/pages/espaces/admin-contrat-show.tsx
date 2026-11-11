@@ -98,7 +98,7 @@ const PROCHAINE_ACTION: Record<string, { titre: string; texte: string }> = {
     },
     SIGNE: {
         titre: 'Le client a signé : validez le contrat',
-        texte: 'Vérifiez la signature et les informations du client, puis validez le contrat pour le rendre actif.',
+        texte: 'Vérifiez la signature et les informations du client, puis validez le contrat : le client est prévenu et peut alors régler sa facture.',
     },
     ACTIF: {
         titre: 'Contrat validé et actif',

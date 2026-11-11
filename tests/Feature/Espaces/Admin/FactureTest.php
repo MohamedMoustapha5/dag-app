@@ -42,7 +42,7 @@ test('a demande already billed cannot be billed twice', function () {
 test('recording a full payment marks the facture and the linked demande as paid', function () {
     $membre = MembreEquipe::factory()->create(['role' => MembreEquipeRole::ControleGestion]);
     $demande = Demande::factory()->create(['statut' => 'CONTRAT_SIGNE']);
-    Contrat::factory()->signe()->create(['demande_id' => $demande->id]);
+    Contrat::factory()->valide()->create(['demande_id' => $demande->id]);
     $facture = Facture::factory()->create([
         'demande_id' => $demande->id,
         'client_id' => null,
