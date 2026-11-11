@@ -1,7 +1,9 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { X } from 'lucide-react';
 import { useState } from 'react';
+import { ProchaineEtapeCourte } from '@/components/espaces/suivi-procedure';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
+import { formatMontant } from '@/lib/montant';
 import contratsAdmin from '@/routes/espace-admin/contrats';
 import demandesAdmin from '@/routes/espace-admin/demandes';
 
@@ -17,7 +19,14 @@ type Demande = {
     contratId: string | null;
     payee: boolean;
     updatedAt: string | null;
+    prochaineEtape: {
+        titre: string;
+        aVous: boolean;
+        libelleActeur: string;
+    } | null;
 };
+
+type FiltreDemandes = 'dag' | 'client' | 'toutes';
 
 type Props = {
     demandes: Demande[];
@@ -36,6 +45,23 @@ export default function AdminDemandes({
     peutEnvoyerContrat,
 }: Props) {
     const [devisPour, setDevisPour] = useState<Demande | null>(null);
+
+    const aTraiter = demandes.filter(
+        (demande) => demande.prochaineEtape?.aVous,
+    );
+    const chezLeClient = demandes.filter(
+        (demande) =>
+            demande.prochaineEtape !== null && !demande.prochaineEtape.aVous,
+    );
+    const [filtre, setFiltre] = useState<FiltreDemandes>(
+        aTraiter.length > 0 ? 'dag' : 'toutes',
+    );
+    const demandesAffichees =
+        filtre === 'dag'
+            ? aTraiter
+            : filtre === 'client'
+              ? chezLeClient
+              : demandes;
 
     const envoyerContrat = (contratId: string) => {
         router.patch(
@@ -61,60 +87,99 @@ export default function AdminDemandes({
                     className="muted"
                     style={{ marginTop: 6, fontSize: 14, lineHeight: 1.6 }}
                 >
-                    Traitement des demandes : devis et contrat envoyés ensemble,
-                    signature du client, puis paiement.
+                    Devis et contrat envoyés ensemble, signature du client,
+                    validation du contrat par DAG, paiement, puis réalisation.
+                    La colonne « Prochaine étape » indique qui doit agir.
                 </p>
             </div>
 
+            <div
+                className="account-tabs"
+                style={{ marginBottom: 16 }}
+                role="group"
+                aria-label="Filtrer les demandes"
+            >
+                {(
+                    [
+                        ['dag', `À traiter par DAG (${aTraiter.length})`],
+                        [
+                            'client',
+                            `En attente du client (${chezLeClient.length})`,
+                        ],
+                        ['toutes', `Toutes (${demandes.length})`],
+                    ] as const
+                ).map(([valeur, libelle]) => (
+                    <button
+                        key={valeur}
+                        type="button"
+                        aria-pressed={filtre === valeur}
+                        className={`account-tab${filtre === valeur ? ' active' : ''}`}
+                        onClick={() => setFiltre(valeur)}
+                    >
+                        {libelle}
+                    </button>
+                ))}
+            </div>
+
             <div className="card" style={{ padding: 24 }}>
-                <p
-                    style={{
-                        fontSize: 14.5,
-                        fontWeight: 700,
-                        marginBottom: 16,
-                    }}
-                >
-                    Toutes les demandes ({demandes.length})
-                </p>
-                {demandes.length === 0 ? (
+                {demandesAffichees.length === 0 ? (
                     <p className="data-table-empty">
-                        Aucune demande pour le moment.
+                        {filtre === 'dag'
+                            ? 'Rien à traiter : toutes les demandes sont à jour.'
+                            : 'Aucune demande dans cette catégorie.'}
                     </p>
                 ) : (
                     <div className="data-table-wrap">
-                        <table className="data-table">
+                        <table className="data-table cartes-mobile">
                             <thead>
                                 <tr>
-                                    <th>Référence</th>
+                                    <th>Demande</th>
                                     <th>Client</th>
-                                    <th>Service</th>
                                     <th>Statut</th>
+                                    <th>Prochaine étape</th>
                                     <th>Contrat</th>
-                                    <th>Montant</th>
-                                    <th>Mise à jour</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {demandes.map((demande) => (
+                                {demandesAffichees.map((demande) => (
                                     <tr key={demande.id}>
-                                        <td>
+                                        <td
+                                            className="cellule-titre"
+                                            data-label="Demande"
+                                        >
                                             <Link
                                                 href={demandesAdmin.show(
                                                     demande.id,
                                                 )}
-                                                className="link-action"
+                                                style={{
+                                                    fontWeight: 600,
+                                                    color: 'var(--dag-navy)',
+                                                }}
+                                            >
+                                                {demande.objet}
+                                            </Link>
+                                            <span
+                                                className="muted"
+                                                style={{
+                                                    display: 'block',
+                                                    fontSize: 12,
+                                                }}
                                             >
                                                 {demande.reference}
-                                            </Link>
+                                                {demande.updatedAt &&
+                                                    ` · ${demande.updatedAt}`}
+                                                {demande.montantNegocie &&
+                                                    ` · ${formatMontant(demande.montantNegocie)}`}
+                                            </span>
                                         </td>
-                                        <td style={{ fontWeight: 600 }}>
+                                        <td
+                                            data-label="Client"
+                                            style={{ fontWeight: 600 }}
+                                        >
                                             {demande.client}
                                         </td>
-                                        <td className="muted">
-                                            {demande.objet}
-                                        </td>
-                                        <td>
+                                        <td data-label="Statut">
                                             <span
                                                 className={`chip ${STATUT_CHIP[demande.statut] ?? 'chip-gray'}`}
                                             >
@@ -122,23 +187,26 @@ export default function AdminDemandes({
                                                     demande.statut}
                                             </span>
                                         </td>
-                                        <td>
+                                        <td data-label="Prochaine étape">
+                                            <ProchaineEtapeCourte
+                                                prochaine={
+                                                    demande.prochaineEtape
+                                                }
+                                            />
+                                        </td>
+                                        <td data-label="Contrat">
                                             <EtatContrat demande={demande} />
                                         </td>
-                                        <td className="muted">
-                                            {demande.montantNegocie
-                                                ? `${demande.montantNegocie} FCFA`
-                                                : '—'}
-                                        </td>
-                                        <td className="muted">
-                                            {demande.updatedAt}
-                                        </td>
-                                        <td>
+                                        <td
+                                            data-label=""
+                                            className="cellule-actions"
+                                        >
                                             <div
                                                 style={{
                                                     display: 'flex',
-                                                    gap: 14,
-                                                    flexWrap: 'wrap',
+                                                    gap: 6,
+                                                    flexDirection: 'column',
+                                                    alignItems: 'flex-start',
                                                 }}
                                             >
                                                 <Link

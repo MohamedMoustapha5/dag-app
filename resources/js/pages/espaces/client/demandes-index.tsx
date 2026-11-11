@@ -1,6 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { ProchaineEtapeCourte } from '@/components/espaces/suivi-procedure';
 import demandesRoutes from '@/routes/espace-client/demandes';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
 
@@ -12,15 +13,18 @@ type Demande = {
     statutLabel: string | null;
     estPartenaire: boolean;
     updatedAt: string;
+    prochaineEtape: { titre: string; aVous: boolean } | null;
 };
 
 type Props = {
     demandes: Demande[];
 };
 
-type Filtre = 'toutes' | 'en-cours' | 'devis-envoye' | 'transmis' | 'termine';
+type Filtre =
+    'a-faire' | 'toutes' | 'en-cours' | 'devis-envoye' | 'transmis' | 'termine';
 
 const FILTRES: { value: Filtre; label: string }[] = [
+    { value: 'a-faire', label: 'À faire de votre côté' },
     { value: 'toutes', label: 'Toutes' },
     { value: 'en-cours', label: 'En cours' },
     { value: 'devis-envoye', label: 'Devis envoyé' },
@@ -48,11 +52,17 @@ function miseAJourLabel(dateIso: string): string {
 }
 
 export default function DemandesIndex({ demandes }: Props) {
-    const [filtre, setFiltre] = useState<Filtre>('toutes');
+    const [filtre, setFiltre] = useState<Filtre>(() =>
+        demandes.some((demande) => demande.prochaineEtape?.aVous)
+            ? 'a-faire'
+            : 'toutes',
+    );
 
     const demandesFiltrees = useMemo(() => {
         return demandes.filter((demande) => {
             switch (filtre) {
+                case 'a-faire':
+                    return demande.prochaineEtape?.aVous === true;
                 case 'en-cours':
                     return (
                         demande.statut === 'EN_COURS' && !demande.estPartenaire
@@ -128,12 +138,13 @@ export default function DemandesIndex({ demandes }: Props) {
                         Aucune demande dans cette catégorie.
                     </p>
                 ) : (
-                    <table className="data-table">
+                    <table className="data-table cartes-mobile">
                         <thead>
                             <tr>
                                 <th>Service</th>
                                 <th>Type</th>
                                 <th>Statut</th>
+                                <th>Prochaine étape</th>
                                 <th>Mise à jour</th>
                                 <th />
                             </tr>
@@ -141,15 +152,19 @@ export default function DemandesIndex({ demandes }: Props) {
                         <tbody>
                             {demandesFiltrees.map((demande) => (
                                 <tr key={demande.id}>
-                                    <td style={{ fontWeight: 600 }}>
+                                    <td
+                                        className="cellule-titre"
+                                        data-label="Service"
+                                        style={{ fontWeight: 600 }}
+                                    >
                                         {demande.objet}
                                     </td>
-                                    <td className="muted">
+                                    <td data-label="Type" className="muted">
                                         {demande.estPartenaire
                                             ? 'Nova-Tech'
                                             : 'DAG'}
                                     </td>
-                                    <td>
+                                    <td data-label="Statut">
                                         <span
                                             className={`chip ${STATUT_CHIP[demande.statut] ?? 'chip-gray'}`}
                                         >
@@ -158,10 +173,21 @@ export default function DemandesIndex({ demandes }: Props) {
                                                 demande.statut}
                                         </span>
                                     </td>
-                                    <td className="muted">
+                                    <td data-label="Prochaine étape">
+                                        <ProchaineEtapeCourte
+                                            prochaine={demande.prochaineEtape}
+                                        />
+                                    </td>
+                                    <td
+                                        data-label="Mise à jour"
+                                        className="muted"
+                                    >
                                         {miseAJourLabel(demande.updatedAt)}
                                     </td>
-                                    <td style={{ textAlign: 'right' }}>
+                                    <td
+                                        data-label=""
+                                        style={{ textAlign: 'right' }}
+                                    >
                                         <Link
                                             href={demandesRoutes.show(
                                                 demande.id,

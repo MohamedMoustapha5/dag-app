@@ -1,6 +1,7 @@
 import { Head, Link, router, useForm, useHttp } from '@inertiajs/react';
 import { X } from 'lucide-react';
 import { useState } from 'react';
+import { ProchaineEtapeCourte } from '@/components/espaces/suivi-procedure';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
 import inscriptionsAdmin from '@/routes/espace-admin/inscriptions';
 import sessionsAdmin from '@/routes/espace-admin/sessions';
@@ -54,6 +55,11 @@ type Inscrit = {
     validable: boolean;
     motif: string | null;
     dossierComplet: boolean;
+    prochaineEtape: {
+        titre: string;
+        aVous: boolean;
+        libelleActeur: string;
+    } | null;
     pieces: {
         id: string;
         libelle: string;
@@ -246,7 +252,7 @@ export default function AdminFormations({
                     </p>
                 ) : (
                     <div className="data-table-wrap">
-                        <table className="data-table">
+                        <table className="data-table cartes-mobile">
                             <thead>
                                 <tr>
                                     <th>Session</th>
@@ -261,13 +267,20 @@ export default function AdminFormations({
                             <tbody>
                                 {sessions.map((session) => (
                                     <tr key={session.id}>
-                                        <td style={{ fontWeight: 600 }}>
+                                        <td
+                                            className="cellule-titre"
+                                            data-label="Session"
+                                            style={{ fontWeight: 600 }}
+                                        >
                                             {session.formationNom}
                                         </td>
-                                        <td className="muted">
+                                        <td
+                                            data-label="Ville"
+                                            className="muted"
+                                        >
                                             {session.ville}
                                         </td>
-                                        <td>
+                                        <td data-label="Mode">
                                             <span
                                                 className={`chip ${MODE_CHIP[session.mode] ?? 'chip-gray'}`}
                                             >
@@ -275,13 +288,19 @@ export default function AdminFormations({
                                                     session.mode}
                                             </span>
                                         </td>
-                                        <td className="muted">
+                                        <td
+                                            data-label="Dates"
+                                            className="muted"
+                                        >
                                             {formatPlage(
                                                 session.dateDebut,
                                                 session.dateFin,
                                             )}
                                         </td>
-                                        <td className="muted">
+                                        <td
+                                            data-label="Inscrits"
+                                            className="muted"
+                                        >
                                             {session.inscritsCount}/
                                             {session.places}
                                             <br />
@@ -299,7 +318,7 @@ export default function AdminFormations({
                                                 )}
                                             </span>
                                         </td>
-                                        <td>
+                                        <td data-label="Statut">
                                             <span
                                                 className={`chip ${STATUT_CHIP[session.statut] ?? 'chip-gray'}`}
                                             >
@@ -307,7 +326,10 @@ export default function AdminFormations({
                                                     session.statut}
                                             </span>
                                         </td>
-                                        <td style={{ textAlign: 'right' }}>
+                                        <td
+                                            data-label=""
+                                            style={{ textAlign: 'right' }}
+                                        >
                                             <div
                                                 style={{
                                                     display: 'flex',
@@ -411,7 +433,7 @@ export default function AdminFormations({
                                 </p>
                             ) : (
                                 <div className="data-table-wrap">
-                                    <table className="data-table">
+                                    <table className="data-table cartes-mobile">
                                         <thead>
                                             <tr>
                                                 <th>Apprenant</th>
@@ -428,16 +450,21 @@ export default function AdminFormations({
                                                 (inscrit) => (
                                                     <tr key={inscrit.id}>
                                                         <td
+                                                            className="cellule-titre"
+                                                            data-label="Apprenant"
                                                             style={{
                                                                 fontWeight: 600,
                                                             }}
                                                         >
                                                             {inscrit.nom}
                                                         </td>
-                                                        <td className="muted">
+                                                        <td
+                                                            data-label="E-mail"
+                                                            className="muted"
+                                                        >
                                                             {inscrit.email}
                                                         </td>
-                                                        <td>
+                                                        <td data-label="Statut">
                                                             <span
                                                                 className={`chip ${STATUT_CHIP[inscrit.statut] ?? 'chip-gray'}`}
                                                             >
@@ -447,27 +474,47 @@ export default function AdminFormations({
                                                                 ] ??
                                                                     inscrit.statut}
                                                             </span>
+                                                            {inscrit.prochaineEtape && (
+                                                                <div
+                                                                    style={{
+                                                                        marginTop: 6,
+                                                                    }}
+                                                                >
+                                                                    <ProchaineEtapeCourte
+                                                                        prochaine={
+                                                                            inscrit.prochaineEtape
+                                                                        }
+                                                                    />
+                                                                </div>
+                                                            )}
                                                         </td>
-                                                        <td className="muted">
+                                                        <td
+                                                            data-label="Dossier"
+                                                            className="muted"
+                                                        >
                                                             {inscrit.pieces
                                                                 .length > 0
                                                                 ? `${inscrit.pieces.length}/${roster.piecesRequises.length} pièce${inscrit.pieces.length > 1 ? 's' : ''}`
                                                                 : '—'}
                                                         </td>
-                                                        <td>
+                                                        <td data-label="Frais">
                                                             <PaiementInscrit
                                                                 paiement={
                                                                     inscrit.paiement
                                                                 }
                                                             />
                                                         </td>
-                                                        <td className="muted">
+                                                        <td
+                                                            data-label="Présence"
+                                                            className="muted"
+                                                        >
                                                             {inscrit.presence}/
                                                             {
                                                                 inscrit.seancesTotal
                                                             }
                                                         </td>
                                                         <td
+                                                            data-label=""
                                                             style={{
                                                                 textAlign:
                                                                     'right',

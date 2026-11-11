@@ -440,7 +440,7 @@ export default function AdminContrats({
                             </p>
                         ) : (
                             <div className="data-table-wrap">
-                                <table className="data-table">
+                                <table className="data-table cartes-mobile">
                                     <thead>
                                         <tr>
                                             <th>Contrat</th>
@@ -453,7 +453,10 @@ export default function AdminContrats({
                                     <tbody>
                                         {contratsFiltres.map((contrat) => (
                                             <tr key={contrat.id}>
-                                                <td>
+                                                <td
+                                                    className="cellule-titre"
+                                                    data-label="Contrat"
+                                                >
                                                     <Link
                                                         href={contratsAdmin.show(
                                                             contrat.id,
@@ -478,8 +481,10 @@ export default function AdminContrats({
                                                         ] ?? contrat.type}
                                                     </span>
                                                 </td>
-                                                <td>{contrat.partie}</td>
-                                                <td>
+                                                <td data-label="Client">
+                                                    {contrat.partie}
+                                                </td>
+                                                <td data-label="Statut">
                                                     <span
                                                         style={{
                                                             display: 'flex',
@@ -502,10 +507,14 @@ export default function AdminContrats({
                                                         )}
                                                     </span>
                                                 </td>
-                                                <td className="muted">
+                                                <td
+                                                    data-label="Mis à jour"
+                                                    className="muted"
+                                                >
                                                     {contrat.misAJourLe ?? '—'}
                                                 </td>
                                                 <td
+                                                    data-label=""
                                                     style={{
                                                         textAlign: 'right',
                                                         whiteSpace: 'nowrap',

@@ -4587,3 +4587,294 @@
         justify-content: center;
     }
 }
+
+/* Procedure tracking shared by the client and admin spaces. */
+.dag .suivi-procedure {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 28px;
+}
+.dag .suivi-procedure-etapes {
+    list-style: none;
+    margin: 0;
+    padding: 18px 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+    gap: 14px 10px;
+    background: #fff;
+    border: 1px solid var(--dag-border);
+    border-radius: var(--dag-radius-sm);
+}
+.dag .suivi-procedure-etape {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    min-width: 0;
+}
+.dag .suivi-procedure-pastille {
+    flex: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12.5px;
+    font-weight: 800;
+    background: var(--dag-bg);
+    border: 2px solid var(--dag-border);
+    color: var(--dag-text-muted);
+}
+.dag .suivi-procedure-etape.faite .suivi-procedure-pastille {
+    background: var(--dag-green);
+    border-color: var(--dag-green);
+    color: #fff;
+}
+.dag .suivi-procedure-etape.en_cours .suivi-procedure-pastille {
+    background: var(--dag-blue);
+    border-color: var(--dag-blue);
+    color: #fff;
+    box-shadow: 0 0 0 4px var(--dag-blue-light);
+}
+.dag .suivi-procedure-texte {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding-top: 3px;
+}
+.dag .suivi-procedure-libelle {
+    font-size: 12.5px;
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--dag-text-muted);
+}
+.dag .suivi-procedure-etape.faite .suivi-procedure-libelle {
+    color: var(--dag-text);
+}
+.dag .suivi-procedure-etape.en_cours .suivi-procedure-libelle {
+    color: var(--dag-navy);
+    font-weight: 800;
+}
+.dag .suivi-procedure-acteur {
+    font-size: 11px;
+    color: var(--dag-text-muted);
+    margin-top: 2px;
+}
+.dag .suivi-procedure-prochaine {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 18px 20px;
+    border-radius: var(--dag-radius-sm);
+    border: 1px solid var(--dag-border);
+    border-left-width: 4px;
+    background: #fff;
+}
+.dag .suivi-procedure-prochaine.a-vous {
+    border-left-color: var(--dag-blue);
+    background: var(--dag-blue-light);
+}
+.dag .suivi-procedure-prochaine.en-attente {
+    border-left-color: var(--dag-orange);
+}
+.dag .suivi-procedure-prochaine.information,
+.dag .suivi-procedure-prochaine.terminee {
+    border-left-color: var(--dag-green);
+    background: var(--dag-green-bg);
+}
+.dag .suivi-procedure-prochaine.interrompue {
+    border-left-color: var(--dag-red);
+    background: var(--dag-red-bg);
+    color: var(--dag-red);
+}
+.dag .suivi-procedure-prochaine.terminee,
+.dag .suivi-procedure-prochaine.interrompue {
+    justify-content: flex-start;
+    font-size: 13.5px;
+    font-weight: 600;
+}
+.dag .suivi-procedure-prochaine-corps {
+    flex: 1 1 300px;
+    min-width: 0;
+}
+.dag .suivi-procedure-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11.5px;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--dag-text-muted);
+}
+.dag .suivi-procedure-prochaine.a-vous .suivi-procedure-badge {
+    color: var(--dag-blue);
+}
+.dag .suivi-procedure-prochaine.en-attente .suivi-procedure-badge {
+    color: var(--dag-orange-ink);
+}
+.dag .suivi-procedure-prochaine.information .suivi-procedure-badge {
+    color: var(--dag-green);
+}
+.dag .suivi-procedure-titre {
+    font-size: 15.5px;
+    font-weight: 800;
+    color: var(--dag-navy);
+    margin: 4px 0 2px;
+}
+.dag .suivi-procedure-description {
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--dag-text);
+}
+.dag .suivi-procedure-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.dag .suivi-procedure.compact {
+    gap: 10px;
+    margin-bottom: 0;
+}
+.dag .suivi-procedure.compact .suivi-procedure-etapes {
+    padding: 12px 14px;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+}
+.dag .suivi-procedure.compact .suivi-procedure-prochaine {
+    padding: 14px 16px;
+}
+.dag .suivi-procedure-courte {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 1px;
+    font-size: 12.5px;
+    line-height: 1.35;
+    color: var(--dag-text);
+}
+.dag .suivi-procedure-courte strong {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--dag-orange-ink);
+}
+.dag .suivi-procedure-courte.a-vous strong {
+    color: var(--dag-blue);
+}
+@media (max-width: 640px) {
+    .dag .suivi-procedure-etapes {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .dag .suivi-procedure-actions {
+        width: 100%;
+    }
+    .dag .suivi-procedure-actions > * {
+        flex: 1 1 auto;
+        justify-content: center;
+        text-align: center;
+    }
+}
+
+/* Data tables that turn into cards on phones: each cell shows its column
+   name (data-label), so nothing hides behind a horizontal scroll. */
+@media (max-width: 760px) {
+    .dag .data-table-wrap:has(> .data-table.cartes-mobile) {
+        overflow: visible;
+        background: transparent;
+        border: none;
+        box-shadow: none;
+    }
+    .dag .data-table.cartes-mobile thead {
+        display: none;
+    }
+    .dag .data-table.cartes-mobile,
+    .dag .data-table.cartes-mobile tbody {
+        display: block;
+        white-space: normal;
+    }
+    .dag .data-table.cartes-mobile tr {
+        display: block;
+        margin-bottom: 12px;
+        padding: 6px 16px;
+        background: #fff;
+        border: 1px solid var(--dag-border);
+        border-radius: var(--dag-radius-sm);
+        box-shadow: var(--dag-shadow-sm);
+    }
+    .dag .data-table.cartes-mobile tbody tr:hover td {
+        background: transparent;
+    }
+    .dag .data-table.cartes-mobile td {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 14px;
+        padding: 9px 0;
+        border-bottom: 1px dashed var(--dag-border);
+        text-align: right;
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+    .dag .data-table.cartes-mobile td:last-child {
+        border-bottom: none;
+    }
+    .dag .data-table.cartes-mobile td::before {
+        content: attr(data-label);
+        flex: none;
+        max-width: 45%;
+        text-align: left;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--dag-text-faint);
+    }
+    .dag .data-table.cartes-mobile td[data-label='']::before {
+        display: none;
+    }
+    .dag .data-table.cartes-mobile td[data-label=''] {
+        justify-content: flex-end;
+    }
+    .dag .data-table.cartes-mobile td.cellule-titre {
+        display: block;
+        text-align: left;
+        font-size: 14.5px;
+    }
+    .dag .data-table.cartes-mobile td.cellule-titre::before {
+        display: none;
+    }
+}
+
+/* Wide lists stay within the page on desktop: titles and action links wrap
+   instead of pushing the table into a horizontal scroll. */
+.dag .data-table.cartes-mobile td.cellule-titre {
+    white-space: normal;
+    min-width: 200px;
+}
+.dag .data-table.cartes-mobile td.cellule-actions {
+    white-space: normal;
+    min-width: 150px;
+}
+.dag .data-table .suivi-procedure-courte {
+    white-space: normal;
+    min-width: 140px;
+}
+@media (min-width: 761px) {
+    .dag .data-table.cartes-mobile th,
+    .dag .data-table.cartes-mobile td {
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+}
+@media (max-width: 760px) {
+    .dag .data-table.cartes-mobile td.cellule-actions > div {
+        flex-direction: row !important;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 6px 14px !important;
+    }
+}

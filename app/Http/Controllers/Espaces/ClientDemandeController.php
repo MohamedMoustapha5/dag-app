@@ -10,6 +10,7 @@ use App\Models\Formule;
 use App\Models\Service;
 use App\Support\Notifications\Notifier;
 use App\Support\Paiements\PaiementService;
+use App\Support\Parcours\ParcoursDemande;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -24,7 +25,7 @@ class ClientDemandeController extends Controller
         $client = $request->user('web')->client;
 
         $demandes = $client->demandes()
-            ->with(['service', 'formule'])
+            ->with(['service', 'formule', 'contrat', 'facture'])
             ->latest('updated_at')
             ->get();
 
@@ -38,8 +39,21 @@ class ClientDemandeController extends Controller
                 'statutLabel' => $demande->libelleStatutPartenaire(),
                 'estPartenaire' => $demande->est_partenaire_nova_tech,
                 'updatedAt' => $demande->updated_at,
+                'prochaineEtape' => self::prochaineEtape($demande),
             ]),
         ]);
+    }
+
+    /**
+     * The next step of a demande in short, for the list of demandes.
+     *
+     * @return array{titre: string, aVous: bool}|null
+     */
+    private static function prochaineEtape(Demande $demande): ?array
+    {
+        $prochaine = ParcoursDemande::pour($demande, 'client')['prochaine'];
+
+        return $prochaine === null ? null : ['titre' => $prochaine['titre'], 'aVous' => $prochaine['aVous']];
     }
 
     public function create(Request $request): Response
@@ -126,6 +140,7 @@ class ClientDemandeController extends Controller
                 ] : null,
             ],
             'moyensPaiement' => $paiements->moyens(),
+            'parcours' => ParcoursDemande::pour($demande, 'client'),
             'suivi' => [
                 'etapes' => Demande::SUIVI_STEPS,
                 'etapeActuelle' => $etapeActuelle === false ? null : $etapeActuelle,

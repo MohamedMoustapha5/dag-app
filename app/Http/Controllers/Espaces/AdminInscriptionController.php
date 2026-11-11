@@ -14,6 +14,7 @@ use App\Models\PieceInscription;
 use App\Notifications\DossierInscriptionNotification;
 use App\Notifications\InscriptionDecisionNotification;
 use App\Support\Notifications\Notifier;
+use App\Support\Parcours\ParcoursInscription;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -58,6 +59,7 @@ class AdminInscriptionController extends Controller
                     'url' => $peutValider ? route('espace-admin.pieces-inscription.show', $piece) : null,
                 ])->values(),
                 'dossierComplet' => $this->piecesManquantes($inscription, $piecesRequises) === [],
+                'prochaineEtape' => $this->prochaineEtape($inscription),
                 'presence' => $inscription->presences()->where('present', true)->count(),
                 'seancesTotal' => $seancesCount,
                 'paiement' => $inscription->facture === null ? null : [
@@ -242,6 +244,23 @@ class AdminInscriptionController extends Controller
         $nom = str($pieceInscription->libelle.' '.$pieceInscription->inscription->apprenant->user->name)->slug().'.'.$extension;
 
         return Storage::disk('local')->download($pieceInscription->chemin, $nom);
+    }
+
+    /**
+     * The next step of an enrolment in short, for the roster: what to do,
+     * and whether it is up to DAG or to the apprenant.
+     *
+     * @return array{titre: string, aVous: bool, libelleActeur: string}|null
+     */
+    private function prochaineEtape(Inscription $inscription): ?array
+    {
+        $prochaine = ParcoursInscription::pour($inscription, 'admin')['prochaine'];
+
+        return $prochaine === null || $prochaine['information'] ? null : [
+            'titre' => $prochaine['titre'],
+            'aVous' => $prochaine['aVous'],
+            'libelleActeur' => $prochaine['libelleActeur'],
+        ];
     }
 
     /**

@@ -1,6 +1,9 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
 import PiecesDossier from '@/components/espaces/pieces-dossier';
+import SuiviProcedure, {
+    type Parcours,
+} from '@/components/espaces/suivi-procedure';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
 import espaceApprenant from '@/routes/espace-apprenant';
 import inscriptionsRoutes from '@/routes/espace-apprenant/inscriptions';
@@ -21,6 +24,7 @@ type Inscription = {
     motif: string | null;
     piecesRequises: string[];
     piecesDeposees: { libelle: string; nomOriginal: string }[];
+    parcours: Parcours;
 };
 
 type Props = {
@@ -253,6 +257,25 @@ export default function ApprenantInscriptionsIndex({ inscriptions }: Props) {
                                             </p>
                                         </div>
                                     )}
+
+                                <div style={{ marginTop: 16 }}>
+                                    <SuiviProcedure
+                                        parcours={inscription.parcours}
+                                        messageTermine="Formation suivie : bravo !"
+                                        compact
+                                    >
+                                        {inscription.parcours.prochaine
+                                            ?.action === 'payer' && (
+                                            <Link
+                                                href={espaceApprenant.factures()}
+                                                className="btn-primary"
+                                            >
+                                                Régler les frais
+                                            </Link>
+                                        )}
+                                    </SuiviProcedure>
+                                </div>
+
                                 <EtatDossier inscription={inscription} />
 
                                 {classe === 'terminees' && (
@@ -353,20 +376,6 @@ function EtatDossier({ inscription }: { inscription: Inscription }) {
         return (
             <p className="dossier-motif" style={{ marginTop: 14 }}>
                 <strong>Motif du refus :</strong> {inscription.motif}
-            </p>
-        );
-    }
-
-    if (inscription.statut === 'DOSSIER_EN_ETUDE') {
-        return (
-            <p
-                className="muted"
-                style={{ marginTop: 14, fontSize: 13, lineHeight: 1.6 }}
-            >
-                Votre dossier ({inscription.piecesDeposees.length} pièce
-                {inscription.piecesDeposees.length > 1 ? 's' : ''}) est en cours
-                d'examen par l'équipe DAG. Vous serez prévenu dès sa validation
-                pour régler les frais d'inscription.
             </p>
         );
     }

@@ -7,7 +7,11 @@ import PayerFactureModal, {
 import contratsRoutes from '@/routes/espace-client/contrats';
 import facturesRoutes from '@/routes/espace-client/factures';
 import demandes from '@/routes/espace-client/demandes';
+import SuiviProcedure, {
+    type Parcours,
+} from '@/components/espaces/suivi-procedure';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
+import { formatMontant } from '@/lib/montant';
 
 type Props = {
     demande: {
@@ -39,16 +43,12 @@ type Props = {
         } | null;
     };
     moyensPaiement: MoyenPaiement[];
-    suivi: {
-        etapes: string[];
-        etapeActuelle: number | null;
-        refusee: boolean;
-    };
+    parcours: Parcours;
 };
 
 export default function DemandesShow({
     demande,
-    suivi,
+    parcours,
     moyensPaiement,
 }: Props) {
     const [paiementOuvert, setPaiementOuvert] = useState(false);
@@ -96,52 +96,36 @@ export default function DemandesShow({
                 </span>
             </div>
 
-            {suivi.refusee ? (
-                <div
-                    className="card"
-                    style={{
-                        padding: 24,
-                        marginBottom: 32,
-                        borderColor: 'var(--dag-red)',
-                    }}
-                >
-                    <p
-                        style={{
-                            color: 'var(--dag-red)',
-                            fontWeight: 600,
-                            fontSize: 14,
-                        }}
-                    >
-                        Cette demande a été refusée.
-                    </p>
-                </div>
-            ) : (
-                <div
-                    className="process-track-card"
-                    style={{ marginBottom: 32 }}
-                >
-                    {suivi.etapes.map((etape, index) => (
-                        <div
-                            key={etape}
-                            style={{ display: 'flex', alignItems: 'center' }}
+            <SuiviProcedure
+                parcours={parcours}
+                messageTermine="Votre demande est terminée. Merci de votre confiance !"
+            >
+                {parcours.prochaine?.action === 'signer_contrat' &&
+                    demande.contrat && (
+                        <Link
+                            href={contratsRoutes.show(demande.contrat.id)}
+                            className="btn-primary"
                         >
-                            <div className="process-step">
-                                <span
-                                    className={`process-step-dot${suivi.etapeActuelle !== null && index <= suivi.etapeActuelle ? ' done' : ''}`}
-                                >
-                                    {index + 1}
-                                </span>
-                                <span className="process-step-label">
-                                    {STATUT_LABEL[etape] ?? etape}
-                                </span>
-                            </div>
-                            {index < suivi.etapes.length - 1 && (
-                                <span className="process-step-arrow">→</span>
-                            )}
-                        </div>
+                            Lire et signer le contrat
+                        </Link>
+                    )}
+                {parcours.prochaine?.action === 'payer' &&
+                    aPayer &&
+                    facture &&
+                    (facture.paiementEnAttente ? (
+                        <span className="muted" style={{ fontSize: 13 }}>
+                            Paiement en attente de confirmation
+                        </span>
+                    ) : (
+                        <button
+                            type="button"
+                            className="btn-primary"
+                            onClick={() => setPaiementOuvert(true)}
+                        >
+                            Payer {formatMontant(facture.solde)}
+                        </button>
                     ))}
-                </div>
-            )}
+            </SuiviProcedure>
 
             <div className="card" style={{ padding: 24, marginBottom: 24 }}>
                 <h2 style={{ fontSize: 15, marginBottom: 8 }}>Description</h2>
@@ -154,7 +138,7 @@ export default function DemandesShow({
                 {demande.montantNegocie && (
                     <p style={{ marginTop: 12, fontSize: 13.5 }}>
                         Montant négocié :{' '}
-                        <strong>{demande.montantNegocie} FCFA</strong>
+                        <strong>{formatMontant(demande.montantNegocie)}</strong>
                     </p>
                 )}
                 {demande.messageDevis && (
@@ -166,14 +150,6 @@ export default function DemandesShow({
                     </p>
                 )}
             </div>
-
-            {!suivi.refusee && (
-                <ProchaineEtape
-                    demande={demande}
-                    aPayer={aPayer}
-                    onPayer={() => setPaiementOuvert(true)}
-                />
-            )}
 
             {(demande.contrat || demande.facture) && (
                 <div className="grid-3">
@@ -214,7 +190,12 @@ export default function DemandesShow({
                                             .url
                                     }
                                     className="link-action"
-                                    style={{ display: 'block', marginTop: 12 }}
+                                    style={{
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: 6,
+                                        marginTop: 12,
+                                    }}
                                 >
                                     <Download size={14} /> Télécharger le PDF
                                 </a>
@@ -239,8 +220,10 @@ export default function DemandesShow({
                                 className="muted"
                                 style={{ fontSize: 12.5, marginTop: 8 }}
                             >
-                                {demande.facture.montantPaye} /{' '}
-                                {demande.facture.montant} FCFA payés
+                                {formatMontant(
+                                    demande.facture.montantPaye,
+                                ).replace(' FCFA', '')}{' '}
+                                / {formatMontant(demande.facture.montant)} payés
                             </p>
                             {aPayer &&
                                 (demande.facture.attendSignatureContrat ? (
@@ -277,7 +260,8 @@ export default function DemandesShow({
                                         }}
                                         onClick={() => setPaiementOuvert(true)}
                                     >
-                                        Payer {demande.facture.solde} FCFA
+                                        Payer{' '}
+                                        {formatMontant(demande.facture.solde)}
                                     </button>
                                 ))}
                             {demande.facture.statut === 'PAYEE' && (
@@ -287,7 +271,12 @@ export default function DemandesShow({
                                             .url
                                     }
                                     className="link-action"
-                                    style={{ display: 'block', marginTop: 12 }}
+                                    style={{
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: 6,
+                                        marginTop: 12,
+                                    }}
                                 >
                                     <Download size={14} /> Télécharger la
                                     facture
@@ -311,109 +300,5 @@ export default function DemandesShow({
                 />
             )}
         </>
-    );
-}
-
-/**
- * Tells the client what to do next: the contract sent with the devis is
- * signed first (step 1), DAG validates it (step 2), then the facture is
- * paid (step 3).
- */
-function ProchaineEtape({
-    demande,
-    aPayer,
-    onPayer,
-}: {
-    demande: Props['demande'];
-    aPayer: boolean;
-    onPayer: () => void;
-}) {
-    const contrat = demande.contrat;
-    const facture = demande.facture;
-
-    let etape: string | null = null;
-    let message: string;
-    let action: React.ReactNode = null;
-
-    if (facture === null) {
-        return null;
-    }
-
-    if (facture.statut === 'PAYEE') {
-        message = contrat?.estSigne
-            ? "Contrat signé et paiement reçu : l'équipe DAG lance votre prestation. Vous suivez son avancement ici."
-            : "Paiement reçu. L'équipe DAG vous tient informé de la suite ici.";
-    } else if (facture.attendSignatureContrat) {
-        etape = 'Étape 1 sur 3 — Signez votre contrat';
-        if (contrat?.envoye) {
-            message =
-                "Lisez le contrat qui accompagne votre devis, puis signez-le. L'équipe DAG le valide ensuite et le paiement de la facture s'ouvre.";
-            action = (
-                <Link
-                    href={contratsRoutes.show(contrat.id)}
-                    className="btn-primary"
-                    style={{ padding: '8px 18px', fontSize: 13 }}
-                >
-                    Lire et signer le contrat
-                </Link>
-            );
-        } else {
-            message =
-                "Votre contrat est en cours de finalisation par l'équipe DAG. Vous le recevrez ici pour signature, puis vous pourrez régler la facture.";
-        }
-    } else if (facture.attendValidationContrat) {
-        etape = 'Étape 2 sur 3 — Validation du contrat par DAG';
-        message =
-            "Merci, votre contrat est signé. L'équipe DAG le vérifie et le valide : vous serez prévenu dès que le paiement de la facture est ouvert.";
-    } else if (aPayer) {
-        etape = 'Étape 3 sur 3 — Réglez votre facture';
-        message = facture.paiementEnAttente
-            ? 'Votre paiement est en attente de confirmation par le prestataire.'
-            : "Votre contrat est signé et validé par DAG. Réglez la facture pour que l'équipe lance la prestation.";
-        action = facture.paiementEnAttente ? null : (
-            <button
-                type="button"
-                className="btn-primary"
-                style={{ padding: '8px 18px', fontSize: 13 }}
-                onClick={onPayer}
-            >
-                Payer {facture.solde} FCFA
-            </button>
-        );
-    } else {
-        return null;
-    }
-
-    return (
-        <div
-            className="card"
-            style={{
-                padding: 18,
-                marginBottom: 20,
-                background: 'var(--dag-blue-light)',
-                borderColor: 'transparent',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: 16,
-                flexWrap: 'wrap',
-            }}
-        >
-            <div style={{ flex: '1 1 280px' }}>
-                {etape && (
-                    <p
-                        style={{
-                            fontWeight: 600,
-                            fontSize: 14,
-                            marginBottom: 4,
-                        }}
-                    >
-                        {etape}
-                    </p>
-                )}
-                <p style={{ fontSize: 13.5, lineHeight: 1.6 }}>{message}</p>
-            </div>
-            {action}
-        </div>
     );
 }

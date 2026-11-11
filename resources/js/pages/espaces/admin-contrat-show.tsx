@@ -168,7 +168,13 @@ export default function AdminContratShow({
     const indexCourant = ETAPES.findIndex(
         (etape) => etape.statut === contrat.statut,
     );
-    const prochaine = PROCHAINE_ACTION[contrat.statut];
+    const prochaine =
+        contrat.statut === 'SIGNE' && contrat.demandeId === null
+            ? {
+                  titre: 'Le cocontractant a signé : validez le contrat',
+                  texte: 'Vérifiez la signature puis validez le contrat pour le rendre actif.',
+              }
+            : PROCHAINE_ACTION[contrat.statut];
     const transitions = peutModifier
         ? contrat.statutsAccessibles.filter(
               (statut) => TRANSITIONS[statut] !== undefined,

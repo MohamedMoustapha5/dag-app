@@ -1,6 +1,10 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import GenererContratButton from '@/components/espaces/generer-contrat-button';
+import SuiviProcedure, {
+    type Parcours,
+} from '@/components/espaces/suivi-procedure';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
+import contratsAdmin from '@/routes/espace-admin/contrats';
 import demandesAdmin from '@/routes/espace-admin/demandes';
 
 type Props = {
@@ -17,7 +21,7 @@ type Props = {
         montantNegocie: string | null;
         payee: boolean;
         createdAt: string;
-        contrat: { reference: string; statut: string } | null;
+        contrat: { id: string; reference: string; statut: string } | null;
         facture: { reference: string; statut: string } | null;
     };
     suivi: {
@@ -25,6 +29,7 @@ type Props = {
         etapeActuelle: number | null;
         refusee: boolean;
     };
+    parcours: Parcours;
 };
 
 export default function AdminDemandeShow({
@@ -32,6 +37,7 @@ export default function AdminDemandeShow({
     peutGenererContrat,
     demande,
     suivi,
+    parcours,
 }: Props) {
     const form = useForm({
         statut: demande.statut,
@@ -83,33 +89,42 @@ export default function AdminDemandeShow({
                 </span>
             </div>
 
-            {!suivi.refusee && (
-                <div
-                    className="process-track-card"
-                    style={{ marginBottom: 32 }}
-                >
-                    {suivi.etapes.map((etape, index) => (
-                        <div
-                            key={etape}
-                            style={{ display: 'flex', alignItems: 'center' }}
+            <SuiviProcedure
+                parcours={parcours}
+                messageTermine="Demande terminée : la procédure est complète."
+            >
+                {parcours.prochaine?.action === 'ouvrir_contrat' &&
+                    demande.contrat && (
+                        <Link
+                            href={contratsAdmin.show(demande.contrat.id)}
+                            className={
+                                parcours.prochaine.aVous
+                                    ? 'btn-primary'
+                                    : 'btn-outline'
+                            }
                         >
-                            <div className="process-step">
-                                <span
-                                    className={`process-step-dot${suivi.etapeActuelle !== null && index <= suivi.etapeActuelle ? ' done' : ''}`}
-                                >
-                                    {index + 1}
-                                </span>
-                                <span className="process-step-label">
-                                    {STATUT_LABEL[etape] ?? etape}
-                                </span>
-                            </div>
-                            {index < suivi.etapes.length - 1 && (
-                                <span className="process-step-arrow">→</span>
-                            )}
-                        </div>
-                    ))}
-                </div>
-            )}
+                            {parcours.prochaine.aVous
+                                ? 'Ouvrir le contrat'
+                                : 'Voir le contrat'}
+                        </Link>
+                    )}
+                {parcours.prochaine?.action === 'generer_contrat' &&
+                    peutGenererContrat && (
+                        <GenererContratButton
+                            demandeId={demande.id}
+                            variante="bouton"
+                        />
+                    )}
+                {(parcours.prochaine?.action === 'envoyer_devis' ||
+                    parcours.prochaine?.action === 'changer_statut') &&
+                    peutModifier && (
+                        <a href="#mise-a-jour-demande" className="btn-primary">
+                            {parcours.prochaine.action === 'envoyer_devis'
+                                ? 'Fixer le montant et envoyer'
+                                : 'Mettre à jour le statut'}
+                        </a>
+                    )}
+            </SuiviProcedure>
 
             <div className="card" style={{ padding: 24, marginBottom: 24 }}>
                 <h2 style={{ fontSize: 15, marginBottom: 8 }}>Description</h2>
@@ -192,6 +207,7 @@ export default function AdminDemandeShow({
 
             {peutModifier && (
                 <form
+                    id="mise-a-jour-demande"
                     onSubmit={submit}
                     className="card"
                     style={{

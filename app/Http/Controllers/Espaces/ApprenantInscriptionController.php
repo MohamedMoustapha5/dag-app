@@ -12,6 +12,7 @@ use App\Models\PieceInscription;
 use App\Models\Presence;
 use App\Models\Seance;
 use App\Support\Notifications\Notifier;
+use App\Support\Parcours\ParcoursInscription;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -274,6 +275,7 @@ class ApprenantInscriptionController extends Controller
                 'libelle' => $piece->libelle,
                 'nomOriginal' => $piece->nom_original,
             ])->values()->all(),
+            'parcours' => ParcoursInscription::pour($inscription, 'client'),
         ];
     }
 

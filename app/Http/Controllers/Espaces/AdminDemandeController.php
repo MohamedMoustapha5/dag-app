@@ -12,6 +12,7 @@ use App\Notifications\DevisRecuNotification;
 use App\Support\ContratRedaction;
 use App\Support\Notifications\Notifier;
 use App\Support\Paiements\PaiementService;
+use App\Support\Parcours\ParcoursDemande;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -54,8 +55,26 @@ class AdminDemandeController extends Controller
                 'contratId' => $demande->contrat !== null ? $demande->contrat->id : null,
                 'payee' => $demande->facture !== null && $demande->facture->statut === 'PAYEE',
                 'updatedAt' => $demande->updated_at?->toDateString(),
+                'prochaineEtape' => self::prochaineEtape($demande),
             ]),
         ]);
+    }
+
+    /**
+     * The next step of a demande in short, for the list: what to do, and
+     * whether it is up to DAG or to the client.
+     *
+     * @return array{titre: string, aVous: bool, libelleActeur: string}|null
+     */
+    private static function prochaineEtape(Demande $demande): ?array
+    {
+        $prochaine = ParcoursDemande::pour($demande, 'admin')['prochaine'];
+
+        return $prochaine === null ? null : [
+            'titre' => $prochaine['titre'],
+            'aVous' => $prochaine['aVous'],
+            'libelleActeur' => $prochaine['libelleActeur'],
+        ];
     }
 
     public function show(Request $request, Demande $demande): Response
@@ -83,6 +102,7 @@ class AdminDemandeController extends Controller
                 'payee' => $demande->facture !== null && $demande->facture->statut === 'PAYEE',
                 'createdAt' => $demande->created_at?->toDateString(),
                 'contrat' => $demande->contrat !== null ? [
+                    'id' => $demande->contrat->id,
                     'reference' => $demande->contrat->reference,
                     'statut' => $demande->contrat->statut,
                 ] : null,
@@ -91,6 +111,7 @@ class AdminDemandeController extends Controller
                     'statut' => $demande->facture->statut,
                 ] : null,
             ],
+            'parcours' => ParcoursDemande::pour($demande, 'admin'),
             'suivi' => [
                 'etapes' => Demande::SUIVI_STEPS,
                 'etapeActuelle' => $etapeActuelle === false ? null : $etapeActuelle,
