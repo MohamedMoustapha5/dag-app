@@ -1,6 +1,16 @@
 import { Head, Link, router, useForm, useHttp } from '@inertiajs/react';
-import { X } from 'lucide-react';
-import { useState } from 'react';
+import {
+    CalendarDays,
+    CalendarCheck,
+    Download,
+    FileText,
+    MapPin,
+    Search,
+    Users,
+    X,
+} from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 import { ProchaineEtapeCourte } from '@/components/espaces/suivi-procedure';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
 import inscriptionsAdmin from '@/routes/espace-admin/inscriptions';
@@ -150,6 +160,9 @@ export default function AdminFormations({
     const [roster, setRoster] = useState<Roster | null>(null);
     const [rosterLoading, setRosterLoading] = useState(false);
     const [dossierOuvert, setDossierOuvert] = useState<Inscrit | null>(null);
+    const [confirmationEnCours, setConfirmationEnCours] = useState<
+        string | null
+    >(null);
 
     const { submit } = useHttp();
 
@@ -163,12 +176,6 @@ export default function AdminFormations({
     };
 
     const chargerInscrits = async (session: Session) => {
-        if (expanded?.id === session.id) {
-            setExpanded(null);
-            setRoster(null);
-            return;
-        }
-
         setExpanded(session);
         setRoster(null);
         setRosterLoading(true);
@@ -178,19 +185,35 @@ export default function AdminFormations({
                 sessionsAdmin.inscrits(session.id),
             )) as Roster;
             setRoster(data);
+        } catch {
+            toast.error(
+                'La liste des inscrits n’a pas pu être chargée. Réessayez.',
+            );
+            setExpanded(null);
         } finally {
             setRosterLoading(false);
         }
     };
 
+    const fermerInscrits = () => {
+        setExpanded(null);
+        setRoster(null);
+        setDossierOuvert(null);
+    };
+
     /** Confirms a legacy enrolment whose fee was paid before dossiers existed. */
-    const confirmerInscription = async (inscriptionId: string) => {
+    const confirmerInscription = async (inscrit: Inscrit) => {
+        setConfirmationEnCours(inscrit.id);
+
         try {
-            await submit(inscriptionsAdmin.valider(inscriptionId));
+            await submit(inscriptionsAdmin.valider(inscrit.id));
+            toast.success(`Inscription de ${inscrit.nom} confirmée.`);
         } catch {
-            alert(
+            toast.error(
                 "L'inscription ne peut pas être confirmée : les frais d'inscription ne sont pas encore réglés.",
             );
+        } finally {
+            setConfirmationEnCours(null);
         }
 
         await rechargerInscrits();
@@ -411,194 +434,16 @@ export default function AdminFormations({
             </div>
 
             {expanded && (
-                <div className="card" style={{ padding: 24 }}>
-                    <div
-                        style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            gap: 16,
-                            flexWrap: 'wrap',
-                            marginBottom: 16,
-                        }}
-                    >
-                        <p style={{ fontSize: 14.5, fontWeight: 700 }}>
-                            Inscrits — {expanded.formationNom}, {expanded.ville}{' '}
-                            {roster && (
-                                <span
-                                    className="chip chip-green"
-                                    style={{ marginLeft: 8 }}
-                                >
-                                    {roster.inscriptions.length}/
-                                    {expanded.places}
-                                </span>
-                            )}
-                        </p>
-                        <a
-                            href={sessionsAdmin.export(expanded.id).url}
-                            className="btn-outline"
-                            style={{ padding: '8px 16px', fontSize: 13 }}
-                        >
-                            Exporter la liste
-                        </a>
-                    </div>
-
-                    {rosterLoading && (
-                        <p className="muted" style={{ fontSize: 13 }}>
-                            Chargement…
-                        </p>
-                    )}
-
-                    {!rosterLoading && roster && (
-                        <>
-                            {roster.inscriptions.length === 0 ? (
-                                <p className="data-table-empty">
-                                    Aucun inscrit pour cette session.
-                                </p>
-                            ) : (
-                                <div className="data-table-wrap">
-                                    <table className="data-table cartes-mobile">
-                                        <thead>
-                                            <tr>
-                                                <th>Apprenant</th>
-                                                <th>E-mail</th>
-                                                <th>Statut</th>
-                                                <th>Dossier</th>
-                                                <th>Frais d'inscription</th>
-                                                <th>Présence</th>
-                                                <th />
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {roster.inscriptions.map(
-                                                (inscrit) => (
-                                                    <tr key={inscrit.id}>
-                                                        <td
-                                                            className="cellule-titre"
-                                                            data-label="Apprenant"
-                                                            style={{
-                                                                fontWeight: 600,
-                                                            }}
-                                                        >
-                                                            {inscrit.nom}
-                                                        </td>
-                                                        <td
-                                                            data-label="E-mail"
-                                                            className="muted"
-                                                        >
-                                                            {inscrit.email}
-                                                        </td>
-                                                        <td data-label="Statut">
-                                                            <span
-                                                                className={`chip ${STATUT_CHIP[inscrit.statut] ?? 'chip-gray'}`}
-                                                            >
-                                                                {STATUT_LABEL[
-                                                                    inscrit
-                                                                        .statut
-                                                                ] ??
-                                                                    inscrit.statut}
-                                                            </span>
-                                                            {inscrit.prochaineEtape && (
-                                                                <div
-                                                                    style={{
-                                                                        marginTop: 6,
-                                                                    }}
-                                                                >
-                                                                    <ProchaineEtapeCourte
-                                                                        prochaine={
-                                                                            inscrit.prochaineEtape
-                                                                        }
-                                                                    />
-                                                                </div>
-                                                            )}
-                                                        </td>
-                                                        <td
-                                                            data-label="Dossier"
-                                                            className="muted"
-                                                        >
-                                                            {inscrit.pieces
-                                                                .length > 0
-                                                                ? `${inscrit.pieces.length}/${roster.piecesRequises.length} pièce${inscrit.pieces.length > 1 ? 's' : ''}`
-                                                                : '—'}
-                                                        </td>
-                                                        <td data-label="Frais">
-                                                            <PaiementInscrit
-                                                                paiement={
-                                                                    inscrit.paiement
-                                                                }
-                                                            />
-                                                        </td>
-                                                        <td
-                                                            data-label="Présence"
-                                                            className="muted"
-                                                        >
-                                                            {inscrit.presence}/
-                                                            {
-                                                                inscrit.seancesTotal
-                                                            }
-                                                        </td>
-                                                        <td
-                                                            data-label=""
-                                                            style={{
-                                                                textAlign:
-                                                                    'right',
-                                                            }}
-                                                        >
-                                                            {roster.peutValider &&
-                                                                STATUTS_DECISION.includes(
-                                                                    inscrit.statut,
-                                                                ) && (
-                                                                    <div
-                                                                        style={{
-                                                                            display:
-                                                                                'flex',
-                                                                            gap: 10,
-                                                                            justifyContent:
-                                                                                'flex-end',
-                                                                        }}
-                                                                    >
-                                                                        {inscrit.statut ===
-                                                                            'EN_ATTENTE_PAIEMENT' &&
-                                                                            inscrit.validable && (
-                                                                                <button
-                                                                                    type="button"
-                                                                                    className="link-action"
-                                                                                    onClick={() =>
-                                                                                        confirmerInscription(
-                                                                                            inscrit.id,
-                                                                                        )
-                                                                                    }
-                                                                                >
-                                                                                    Confirmer
-                                                                                </button>
-                                                                            )}
-                                                                        <button
-                                                                            type="button"
-                                                                            className="link-action"
-                                                                            onClick={() =>
-                                                                                setDossierOuvert(
-                                                                                    inscrit,
-                                                                                )
-                                                                            }
-                                                                        >
-                                                                            {inscrit.statut ===
-                                                                            'DOSSIER_EN_ETUDE'
-                                                                                ? 'Examiner le dossier'
-                                                                                : 'Voir le dossier'}
-                                                                        </button>
-                                                                    </div>
-                                                                )}
-                                                        </td>
-                                                    </tr>
-                                                ),
-                                            )}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            )}
-                        </>
-                    )}
-                </div>
+                <PanneauInscrits
+                    session={expanded}
+                    roster={roster}
+                    chargement={rosterLoading}
+                    bloque={dossierOuvert !== null}
+                    confirmationEnCours={confirmationEnCours}
+                    onClose={fermerInscrits}
+                    onExaminer={setDossierOuvert}
+                    onConfirmer={confirmerInscription}
+                />
             )}
 
             {dossierOuvert && roster && (
@@ -929,13 +774,440 @@ function ExamenDossierModal({
     );
 }
 
+type FiltreInscrits = 'tous' | 'a_traiter' | 'attente' | 'confirmes' | 'clos';
+
+const STATUTS_CONFIRMES = ['VALIDEE', 'FORMEE'];
+
+/** Whether DAG has to act on the enrolment now (decide or confirm). */
+function aTraiter(inscrit: Inscrit): boolean {
+    return (
+        inscrit.statut === 'DOSSIER_EN_ETUDE' ||
+        (inscrit.statut === 'EN_ATTENTE_PAIEMENT' && inscrit.validable)
+    );
+}
+
+function filtreDe(inscrit: Inscrit): Exclude<FiltreInscrits, 'tous'> {
+    if (aTraiter(inscrit)) {
+        return 'a_traiter';
+    }
+
+    if (STATUTS_CONFIRMES.includes(inscrit.statut)) {
+        return 'confirmes';
+    }
+
+    return inscrit.statut === 'ABANDONNEE' ? 'clos' : 'attente';
+}
+
+function initialesDe(nom: string): string {
+    return nom
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((mot) => mot[0]?.toUpperCase())
+        .join('');
+}
+
+/**
+ * The enrolments of a session in a side panel: where each apprenant stands,
+ * what DAG has to do first, and the dossier, fee and attendance at a glance.
+ */
+function PanneauInscrits({
+    session,
+    roster,
+    chargement,
+    bloque,
+    confirmationEnCours,
+    onClose,
+    onExaminer,
+    onConfirmer,
+}: {
+    session: Session;
+    roster: Roster | null;
+    chargement: boolean;
+    bloque: boolean;
+    confirmationEnCours: string | null;
+    onClose: () => void;
+    onExaminer: (inscrit: Inscrit) => void;
+    onConfirmer: (inscrit: Inscrit) => Promise<void>;
+}) {
+    const [filtre, setFiltre] = useState<FiltreInscrits>('tous');
+    const [recherche, setRecherche] = useState('');
+    const fermerRef = useRef<HTMLButtonElement>(null);
+
+    useEffect(() => {
+        const precedent = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        fermerRef.current?.focus();
+
+        return () => {
+            document.body.style.overflow = precedent;
+        };
+    }, []);
+
+    useEffect(() => {
+        const surTouche = (event: KeyboardEvent) => {
+            if (event.key === 'Escape' && !bloque) {
+                onClose();
+            }
+        };
+        window.addEventListener('keydown', surTouche);
+
+        return () => window.removeEventListener('keydown', surTouche);
+    }, [bloque, onClose]);
+
+    const inscrits = roster?.inscriptions ?? [];
+    const compte = (cle: FiltreInscrits) =>
+        cle === 'tous'
+            ? inscrits.length
+            : inscrits.filter((inscrit) => filtreDe(inscrit) === cle).length;
+
+    const terme = recherche.trim().toLowerCase();
+    const visibles = inscrits
+        .filter((inscrit) => filtre === 'tous' || filtreDe(inscrit) === filtre)
+        .filter(
+            (inscrit) =>
+                terme === '' ||
+                inscrit.nom.toLowerCase().includes(terme) ||
+                inscrit.email.toLowerCase().includes(terme),
+        )
+        // What DAG has to handle comes first.
+        .sort((a, b) => Number(aTraiter(b)) - Number(aTraiter(a)));
+
+    const filtres: { cle: FiltreInscrits; libelle: string }[] = [
+        { cle: 'tous', libelle: 'Tous' },
+        { cle: 'a_traiter', libelle: 'À traiter' },
+        { cle: 'attente', libelle: 'En attente de l’apprenant' },
+        { cle: 'confirmes', libelle: 'Confirmés' },
+        { cle: 'clos', libelle: 'Refusés' },
+    ];
+
+    return (
+        <div
+            className="panneau-backdrop"
+            onClick={(event) => {
+                if (event.target === event.currentTarget) {
+                    onClose();
+                }
+            }}
+        >
+            <aside
+                className="panneau-lateral"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="panneau-inscrits-titre"
+            >
+                <header className="panneau-entete">
+                    <div style={{ minWidth: 0 }}>
+                        <p className="panneau-surtitre">
+                            <Users size={14} aria-hidden="true" /> Inscrits de
+                            la session
+                        </p>
+                        <h2 id="panneau-inscrits-titre">
+                            {session.formationNom}
+                        </h2>
+                        <p className="panneau-infos">
+                            <span>
+                                <MapPin size={13} aria-hidden="true" />
+                                {session.ville}
+                            </span>
+                            <span>
+                                <CalendarDays size={13} aria-hidden="true" />
+                                {formatPlage(
+                                    session.dateDebut,
+                                    session.dateFin,
+                                )}
+                            </span>
+                            <span>
+                                {MODE_LABEL[session.mode] ?? session.mode}
+                            </span>
+                        </p>
+                    </div>
+                    <button
+                        ref={fermerRef}
+                        type="button"
+                        className="modal-close panneau-fermer"
+                        onClick={onClose}
+                        aria-label="Fermer la liste des inscrits"
+                    >
+                        <X size={16} />
+                    </button>
+                </header>
+
+                <div className="panneau-corps">
+                    <div className="panneau-resume">
+                        <div>
+                            <strong>
+                                {session.inscritsCount}/{session.places}
+                            </strong>
+                            <span>Places prises</span>
+                        </div>
+                        <div
+                            className={compte('a_traiter') > 0 ? 'alerte' : ''}
+                        >
+                            <strong>
+                                {roster ? compte('a_traiter') : '–'}
+                            </strong>
+                            <span>À traiter par DAG</span>
+                        </div>
+                        <div>
+                            <strong>{roster ? compte('attente') : '–'}</strong>
+                            <span>En attente apprenant</span>
+                        </div>
+                        <div className="ok">
+                            <strong>
+                                {roster ? compte('confirmes') : '–'}
+                            </strong>
+                            <span>Confirmés</span>
+                        </div>
+                    </div>
+
+                    <div className="panneau-actions">
+                        <a
+                            href={sessionsAdmin.export(session.id).url}
+                            className="btn-outline"
+                        >
+                            <Download size={15} aria-hidden="true" />
+                            Exporter la liste
+                        </a>
+                        <Link
+                            href={sessionsAdmin.show(session.id)}
+                            className="btn-outline"
+                        >
+                            <CalendarCheck size={15} aria-hidden="true" />
+                            Séances et présence
+                        </Link>
+                    </div>
+
+                    {chargement || roster === null ? (
+                        <div
+                            aria-busy="true"
+                            aria-label="Chargement des inscrits"
+                        >
+                            {[0, 1, 2].map((index) => (
+                                <div
+                                    key={index}
+                                    className="inscrit-carte squelette"
+                                >
+                                    <span className="squelette-rond" />
+                                    <span className="squelette-lignes">
+                                        <span />
+                                        <span />
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    ) : inscrits.length === 0 ? (
+                        <div className="panneau-vide">
+                            <Users size={28} aria-hidden="true" />
+                            <p style={{ fontWeight: 700 }}>
+                                Aucun inscrit pour le moment
+                            </p>
+                            <p className="muted">
+                                Les dossiers déposés par les apprenants
+                                apparaîtront ici, prêts à être examinés.
+                            </p>
+                        </div>
+                    ) : (
+                        <>
+                            <div
+                                className="panneau-filtres"
+                                role="tablist"
+                                aria-label="Filtrer les inscrits"
+                            >
+                                {filtres
+                                    .filter(
+                                        (item) =>
+                                            item.cle === 'tous' ||
+                                            compte(item.cle) > 0,
+                                    )
+                                    .map((item) => (
+                                        <button
+                                            key={item.cle}
+                                            type="button"
+                                            role="tab"
+                                            aria-selected={filtre === item.cle}
+                                            className={
+                                                item.cle === 'a_traiter'
+                                                    ? 'a-traiter'
+                                                    : undefined
+                                            }
+                                            onClick={() => setFiltre(item.cle)}
+                                        >
+                                            {item.libelle}
+                                            <span>{compte(item.cle)}</span>
+                                        </button>
+                                    ))}
+                            </div>
+
+                            {inscrits.length > 6 && (
+                                <label className="panneau-recherche">
+                                    <Search size={15} aria-hidden="true" />
+                                    <span className="sr-only">
+                                        Rechercher un apprenant
+                                    </span>
+                                    <input
+                                        type="search"
+                                        placeholder="Rechercher un apprenant"
+                                        value={recherche}
+                                        onChange={(event) =>
+                                            setRecherche(event.target.value)
+                                        }
+                                    />
+                                </label>
+                            )}
+
+                            <ul className="inscrits-liste">
+                                {visibles.map((inscrit) => (
+                                    <CarteInscrit
+                                        key={inscrit.id}
+                                        inscrit={inscrit}
+                                        piecesRequises={roster.piecesRequises}
+                                        peutValider={roster.peutValider}
+                                        confirmation={
+                                            confirmationEnCours === inscrit.id
+                                        }
+                                        onExaminer={onExaminer}
+                                        onConfirmer={onConfirmer}
+                                    />
+                                ))}
+                                {visibles.length === 0 && (
+                                    <li className="panneau-vide">
+                                        <p className="muted">
+                                            Aucun inscrit ne correspond.
+                                        </p>
+                                    </li>
+                                )}
+                            </ul>
+                        </>
+                    )}
+                </div>
+            </aside>
+        </div>
+    );
+}
+
+function CarteInscrit({
+    inscrit,
+    piecesRequises,
+    peutValider,
+    confirmation,
+    onExaminer,
+    onConfirmer,
+}: {
+    inscrit: Inscrit;
+    piecesRequises: string[];
+    peutValider: boolean;
+    confirmation: boolean;
+    onExaminer: (inscrit: Inscrit) => void;
+    onConfirmer: (inscrit: Inscrit) => Promise<void>;
+}) {
+    const decision = peutValider && STATUTS_DECISION.includes(inscrit.statut);
+    const confirmable =
+        peutValider &&
+        inscrit.statut === 'EN_ATTENTE_PAIEMENT' &&
+        inscrit.validable;
+    const confirme = STATUTS_CONFIRMES.includes(inscrit.statut);
+
+    return (
+        <li className={`inscrit-carte${aTraiter(inscrit) ? ' a-traiter' : ''}`}>
+            <div className="inscrit-identite">
+                <span className="inscrit-avatar" aria-hidden="true">
+                    {initialesDe(inscrit.nom)}
+                </span>
+                <div style={{ minWidth: 0 }}>
+                    <p className="inscrit-nom">{inscrit.nom}</p>
+                    <p className="inscrit-email">{inscrit.email}</p>
+                </div>
+                <span
+                    className={`chip ${STATUT_CHIP[inscrit.statut] ?? 'chip-gray'}`}
+                >
+                    {STATUT_LABEL[inscrit.statut] ?? inscrit.statut}
+                </span>
+            </div>
+
+            {inscrit.prochaineEtape && (
+                <div className="inscrit-etape">
+                    <ProchaineEtapeCourte prochaine={inscrit.prochaineEtape} />
+                </div>
+            )}
+
+            <dl className="inscrit-details">
+                <div>
+                    <dt>Dossier</dt>
+                    <dd>
+                        <FileText size={13} aria-hidden="true" />
+                        {inscrit.pieces.length}/{piecesRequises.length} pièce
+                        {piecesRequises.length > 1 ? 's' : ''}
+                        {inscrit.dossierComplet ? (
+                            <span className="inscrit-ok">complet</span>
+                        ) : (
+                            <span className="inscrit-manque">incomplet</span>
+                        )}
+                    </dd>
+                </div>
+                <div>
+                    <dt>Frais d’inscription</dt>
+                    <dd>
+                        <PaiementInscrit paiement={inscrit.paiement} />
+                    </dd>
+                </div>
+                {confirme && (
+                    <div>
+                        <dt>Présence</dt>
+                        <dd>
+                            {inscrit.presence}/{inscrit.seancesTotal} séance
+                            {inscrit.seancesTotal > 1 ? 's' : ''}
+                        </dd>
+                    </div>
+                )}
+            </dl>
+
+            {inscrit.motif && inscrit.statut !== 'VALIDEE' && (
+                <p className="inscrit-motif">
+                    <strong>Message envoyé :</strong> {inscrit.motif}
+                </p>
+            )}
+
+            {decision && (
+                <div className="inscrit-actions">
+                    {confirmable && (
+                        <button
+                            type="button"
+                            className="btn-primary"
+                            disabled={confirmation}
+                            onClick={() => onConfirmer(inscrit)}
+                        >
+                            {confirmation
+                                ? 'Confirmation…'
+                                : 'Confirmer l’inscription'}
+                        </button>
+                    )}
+                    <button
+                        type="button"
+                        className={
+                            inscrit.statut === 'DOSSIER_EN_ETUDE'
+                                ? 'btn-primary'
+                                : 'btn-outline'
+                        }
+                        onClick={() => onExaminer(inscrit)}
+                    >
+                        {inscrit.statut === 'DOSSIER_EN_ETUDE'
+                            ? 'Examiner le dossier'
+                            : 'Voir le dossier'}
+                    </button>
+                </div>
+            )}
+        </li>
+    );
+}
+
 /**
  * Registration fee of one enrolment: amount, payment state and, for a role
  * allowed to see factures, the link where the payment is confirmed.
  */
 function PaiementInscrit({ paiement }: { paiement: Inscrit['paiement'] }) {
     if (paiement === null) {
-        return <span className="muted">—</span>;
+        return <span className="muted">Non facturés</span>;
     }
 
     return (

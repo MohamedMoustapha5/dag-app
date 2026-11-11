@@ -78,6 +78,11 @@ test('each stage of an enrolment tells who acts next', function (string $statut,
         'statut' => $statut,
     ]);
 
+    if ($statut === 'EN_ATTENTE_PAIEMENT') {
+        // Validating the dossier bills the fee: the facture is still unpaid.
+        Facture::factory()->create(['client_id' => null, 'apprenant_id' => $inscription->apprenant_id, 'inscription_id' => $inscription->id]);
+    }
+
     expect(etapeEnCours(ParcoursInscription::pour($inscription, 'client'))[0])->toBe($etape);
     expect(etapeEnCours(ParcoursInscription::pour($inscription, 'admin'))[1])->toBe($acteur);
 })->with([
@@ -155,4 +160,21 @@ test('an enrolment paid before dossiers existed waits for DAG to confirm the sea
     expect($pourApprenant['prochaine']['information'])->toBeFalse();
     expect($pourAdmin['prochaine']['titre'])->toBe("Confirmer l'inscription");
     expect($pourAdmin['prochaine']['aVous'])->toBeTrue();
+});
+
+test('an older enrolment never billed is not sent to a payment: DAG confirms the seat', function () {
+    $session = FormationSession::factory()->create();
+    $inscription = Inscription::create([
+        'apprenant_id' => Apprenant::factory()->create()->id,
+        'formation_id' => $session->formation_id,
+        'formation_session_id' => $session->id,
+        'statut' => 'EN_ATTENTE_PAIEMENT',
+    ]);
+
+    $pourApprenant = ParcoursInscription::pour($inscription, 'client');
+    $pourAdmin = ParcoursInscription::pour($inscription->fresh(), 'admin');
+
+    expect(etapeEnCours($pourApprenant)[0])->toBe('formation');
+    expect($pourApprenant['prochaine']['aVous'])->toBeFalse();
+    expect($pourAdmin['prochaine']['action'])->toBe('confirmer_inscription');
 });

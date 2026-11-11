@@ -5004,7 +5004,7 @@
     transform: translateY(-50%);
     color: var(--dag-text-faint);
 }
-.dag .feuille-presence-recherche input {
+.dag .feuille-presence-recherche input[type='search'] {
     padding-left: 34px;
 }
 .dag .feuille-presence-liste {
@@ -5212,5 +5212,392 @@
         align-items: stretch;
         text-align: center;
         bottom: 8px;
+    }
+}
+
+/* ── Panneau latéral des inscrits d'une session ──────────────────────── */
+.dag .panneau-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    display: flex;
+    justify-content: flex-end;
+    background: rgba(7, 19, 38, 0.45);
+    animation: dagFadeIn 0.18s var(--dag-ease);
+}
+.dag .panneau-lateral {
+    display: flex;
+    flex-direction: column;
+    width: min(680px, 100%);
+    height: 100%;
+    background: var(--dag-bg);
+    box-shadow: var(--dag-shadow-lg);
+    animation: dagPanneauIn 0.26s var(--dag-ease);
+}
+@keyframes dagPanneauIn {
+    from {
+        transform: translateX(32px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .dag .panneau-backdrop,
+    .dag .panneau-lateral {
+        animation: none;
+    }
+}
+.dag .panneau-entete {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 22px 24px 18px;
+    background: #fff;
+    border-bottom: 1px solid var(--dag-border);
+}
+.dag .panneau-entete h2 {
+    margin: 4px 0 6px;
+    font-size: 19px;
+    line-height: 1.3;
+    color: var(--dag-navy);
+    overflow-wrap: anywhere;
+}
+.dag .panneau-surtitre {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--dag-blue);
+}
+.dag .panneau-infos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    font-size: 13px;
+    color: var(--dag-text-muted);
+}
+.dag .panneau-infos span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+.dag .panneau-fermer {
+    position: static;
+    flex: none;
+}
+.dag .panneau-corps {
+    flex: 1;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 20px 24px 32px;
+}
+.dag .panneau-resume {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 14px;
+}
+.dag .panneau-resume div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 12px 14px;
+    background: #fff;
+    border: 1px solid var(--dag-border);
+    border-radius: var(--dag-radius-sm);
+}
+.dag .panneau-resume strong {
+    font-size: 20px;
+    line-height: 1.1;
+    color: var(--dag-navy);
+}
+.dag .panneau-resume span {
+    font-size: 11.5px;
+    color: var(--dag-text-muted);
+}
+.dag .panneau-resume .alerte {
+    border-color: var(--dag-orange);
+    background: var(--dag-orange-bg);
+}
+.dag .panneau-resume .alerte strong {
+    color: var(--dag-orange-ink);
+}
+.dag .panneau-resume .ok strong {
+    color: var(--dag-green);
+}
+.dag .panneau-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+.dag .panneau-actions .btn-outline {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    font-size: 13px;
+}
+.dag .panneau-filtres {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    margin-bottom: 12px;
+    scrollbar-width: none;
+}
+.dag .panneau-filtres button {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 12px;
+    border: 1px solid var(--dag-border);
+    border-radius: 999px;
+    background: #fff;
+    color: var(--dag-text-muted);
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.dag .panneau-filtres button span {
+    min-width: 20px;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: #f1f2f6;
+    font-size: 11.5px;
+    text-align: center;
+}
+.dag .panneau-filtres button.a-traiter span {
+    background: var(--dag-orange-bg);
+    color: var(--dag-orange-ink);
+}
+.dag .panneau-filtres button[aria-selected='true'] {
+    border-color: var(--dag-navy);
+    background: var(--dag-navy);
+    color: #fff;
+}
+.dag .panneau-filtres button[aria-selected='true'] span {
+    background: rgba(255, 255, 255, 0.18);
+    color: #fff;
+}
+.dag .panneau-filtres button:focus-visible {
+    outline: 2px solid var(--dag-blue);
+    outline-offset: 2px;
+}
+.dag .panneau-recherche {
+    position: relative;
+    display: block;
+    margin: 0 0 12px;
+}
+.dag .panneau-recherche svg {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--dag-text-faint);
+}
+.dag .panneau-recherche input[type='search'] {
+    padding-left: 34px;
+}
+.dag .inscrits-liste {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.dag .inscrit-carte {
+    padding: 16px 18px;
+    background: #fff;
+    border: 1px solid var(--dag-border);
+    border-radius: var(--dag-radius-sm);
+    box-shadow: var(--dag-shadow-xs);
+}
+.dag .inscrit-carte.a-traiter {
+    border-left: 4px solid var(--dag-orange);
+}
+.dag .inscrit-identite {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+}
+.dag .inscrit-avatar {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--dag-blue-light);
+    color: var(--dag-blue);
+    font-size: 13px;
+    font-weight: 700;
+}
+.dag .inscrit-nom {
+    font-size: 14.5px;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+.dag .inscrit-email {
+    font-size: 12.5px;
+    color: var(--dag-text-muted);
+    overflow-wrap: anywhere;
+}
+.dag .inscrit-etape {
+    margin-top: 10px;
+}
+.dag .inscrit-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px 16px;
+    margin: 14px 0 0;
+    padding-top: 12px;
+    border-top: 1px dashed var(--dag-border);
+}
+.dag .inscrit-details dt {
+    margin-bottom: 4px;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--dag-text-faint);
+}
+.dag .inscrit-details dd {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    font-size: 13px;
+}
+.dag .inscrit-ok,
+.dag .inscrit-manque {
+    padding: 1px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+}
+.dag .inscrit-ok {
+    background: var(--dag-green-bg);
+    color: var(--dag-green);
+}
+.dag .inscrit-manque {
+    background: var(--dag-orange-bg);
+    color: var(--dag-orange-ink);
+}
+.dag .inscrit-motif {
+    margin-top: 12px;
+    padding: 8px 12px;
+    border-radius: var(--dag-radius-sm);
+    background: var(--dag-bg);
+    font-size: 12.5px;
+    color: var(--dag-text-muted);
+}
+.dag .inscrit-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 14px;
+}
+.dag .inscrit-actions .btn-primary,
+.dag .inscrit-actions .btn-outline {
+    padding: 8px 16px;
+    font-size: 13px;
+}
+.dag .panneau-vide {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 40px 20px;
+    text-align: center;
+    font-size: 13.5px;
+    color: var(--dag-text-muted);
+}
+.dag .inscrit-carte.squelette {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+.dag .squelette-rond,
+.dag .squelette-lignes span {
+    display: block;
+    background: linear-gradient(90deg, #eef0f5, #f6f7fa, #eef0f5);
+    background-size: 200% 100%;
+    animation: dagSquelette 1.2s ease-in-out infinite;
+}
+.dag .squelette-rond {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+}
+.dag .squelette-lignes {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.dag .squelette-lignes span {
+    height: 10px;
+    border-radius: 6px;
+}
+.dag .squelette-lignes span:first-child {
+    width: 45%;
+}
+.dag .squelette-lignes span:last-child {
+    width: 70%;
+}
+@keyframes dagSquelette {
+    from {
+        background-position: 200% 0;
+    }
+    to {
+        background-position: -200% 0;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .dag .squelette-rond,
+    .dag .squelette-lignes span {
+        animation: none;
+    }
+}
+
+@media (max-width: 760px) {
+    .dag .panneau-lateral {
+        width: 100%;
+    }
+    .dag .panneau-entete {
+        padding: 16px 16px 14px;
+    }
+    .dag .panneau-corps {
+        padding: 16px 16px 28px;
+    }
+    .dag .panneau-resume {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .dag .panneau-actions .btn-outline {
+        flex: 1 1 0;
+        justify-content: center;
+    }
+    .dag .inscrit-identite {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+    .dag .inscrit-identite .chip {
+        grid-column: 2;
+        justify-self: start;
+    }
+    .dag .inscrit-actions > * {
+        flex: 1 1 100%;
     }
 }

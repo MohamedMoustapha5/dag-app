@@ -40,9 +40,10 @@ class ParcoursInscription
             'dossier' => $statut !== 'DOSSIER_A_COMPLETER',
             'examen' => in_array($statut, ['EN_ATTENTE_PAIEMENT', 'VALIDEE', 'FORMEE'], true),
             // A fee already paid counts even while DAG still has to confirm the
-            // seat (enrolments paid before dossiers existed).
+            // seat (enrolments paid before dossiers existed), and so does an
+            // older enrolment that was never billed: there is nothing to pay.
             'paiement' => in_array($statut, ['VALIDEE', 'FORMEE'], true)
-                || ($statut === 'EN_ATTENTE_PAIEMENT' && $inscription->facture?->statut === 'PAYEE'),
+                || ($statut === 'EN_ATTENTE_PAIEMENT' && ($inscription->facture === null || $inscription->facture->statut === 'PAYEE')),
             'formation' => $statut === 'FORMEE',
         ];
 
@@ -119,9 +120,12 @@ class ParcoursInscription
             'formation' => $inscription->statut === 'EN_ATTENTE_PAIEMENT' ? [
                 Acteur::DAG,
                 $apprenant ? 'Confirmation de votre place' : "Confirmer l'inscription",
-                $apprenant
-                    ? "Vos frais d'inscription sont réglés : l'équipe DAG confirme votre place et vous prévient."
-                    : "Frais réglés : confirmez l'inscription de l'apprenant.",
+                match (true) {
+                    $apprenant && $inscription->facture === null => "L'équipe DAG confirme votre place et vous prévient.",
+                    $apprenant => "Vos frais d'inscription sont réglés : l'équipe DAG confirme votre place et vous prévient.",
+                    $inscription->facture === null => "Ancienne inscription sans frais facturés : confirmez l'inscription de l'apprenant.",
+                    default => "Frais réglés : confirmez l'inscription de l'apprenant.",
+                },
                 $apprenant ? null : 'confirmer_inscription',
             ] : [
                 Acteur::DAG,
