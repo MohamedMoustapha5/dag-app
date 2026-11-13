@@ -11,6 +11,7 @@ enum Donnee: string
     case Catalogue = 'CATALOGUE';
     case Formations = 'FORMATIONS';
     case DemandesClients = 'DEMANDES_CLIENTS';
+    case Support = 'SUPPORT';
     case Abonnements = 'ABONNEMENTS';
     case FacturesPaiements = 'FACTURES_PAIEMENTS';
     case ContratsClauses = 'CONTRATS_CLAUSES';
@@ -24,6 +25,7 @@ enum Donnee: string
             self::Catalogue => 'Catalogue de services',
             self::Formations => 'Formations & sessions',
             self::DemandesClients => 'Demandes clients',
+            self::Support => 'Support',
             self::Abonnements => 'Abonnements',
             self::FacturesPaiements => 'Factures & paiements',
             self::ContratsClauses => 'Contrats & clauses',

@@ -111,7 +111,7 @@ const NAV_GROUPS: NavGroup[] = [
                 label: 'Support',
                 icon: Headphones,
                 href: supportAdmin.index(),
-                visibleIf: 'DEMANDES_CLIENTS',
+                visibleIf: 'SUPPORT',
             },
             {
                 label: 'Factures & paiements',

@@ -23,9 +23,13 @@ Création de contenu, Développeur.
   l'équipe ; la Directrice peut relever chaque niveau. Son compte est aussi présenté
   dans l'équipe du site public.
 - Les droits par rôle et par domaine (catalogue, formations, demandes clients,
-  abonnements, factures et paiements, contrats et clauses, dossiers apprenants,
-  entreprises et offres, statistiques) ont des valeurs par défaut issues du cahier des
-  charges, modifiables depuis la page Équipe sans changer le code.
+  support, abonnements, factures et paiements, contrats et clauses, dossiers
+  apprenants, entreprises et offres, statistiques) ont des valeurs par défaut issues
+  du cahier des charges, modifiables depuis la page Équipe sans changer le code.
+- Support (messagerie avec les clients, apprenants et visiteurs du formulaire de
+  contact) a sa propre ligne : lecture pour lire les conversations, gestion pour
+  répondre, clore et recevoir les alertes. Ses valeurs par défaut reprennent celles
+  des demandes clients, qu'il suivait auparavant.
 - Niveaux : Total, Gestion (voir, créer, modifier), Validation (voir, valider),
   Lecture (voir, télécharger), Aucun.
 - Les modifications sont stockées dans `droits_roles`, mises en cache et prises en
