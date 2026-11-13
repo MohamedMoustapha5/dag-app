@@ -7,6 +7,7 @@ use App\Models\Client;
 use App\Models\Team;
 use App\Models\TeamInvitation;
 use App\Models\User;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Inertia\Testing\AssertableInertia as Assert;
 
 test('registration screen can be rendered', function () {
@@ -115,4 +116,44 @@ test('registration requires accepting the terms and privacy policy', function ()
 
     $response->assertSessionHasErrors('terms');
     $this->assertGuest();
+});
+
+test('in production, registration refuses a weak password', function (string $password) {
+    app()->detectEnvironment(fn () => 'production');
+    $this->withoutMiddleware(PreventRequestForgery::class);
+
+    $response = $this->post(route('register.store'), [
+        'compte_type' => 'particulier',
+        'name' => 'Test User',
+        'email' => 'test@example.com',
+        'password' => $password,
+        'password_confirmation' => $password,
+        'terms' => 'on',
+    ]);
+
+    $response->assertSessionHasErrors('password');
+    $this->assertGuest();
+    $this->assertDatabaseMissing('users', ['email' => 'test@example.com']);
+})->with([
+    'shorter than 10 characters' => 'Bamako202',
+    'no uppercase letter' => 'bamako2026dag',
+    'no lowercase letter' => 'BAMAKO2026DAG',
+    'no number' => 'BamakoDagAgence',
+]);
+
+test('in production, registration accepts a strong password', function () {
+    app()->detectEnvironment(fn () => 'production');
+    $this->withoutMiddleware(PreventRequestForgery::class);
+
+    $response = $this->post(route('register.store'), [
+        'compte_type' => 'particulier',
+        'name' => 'Test User',
+        'email' => 'test@example.com',
+        'password' => 'Bamako2026Dag',
+        'password_confirmation' => 'Bamako2026Dag',
+        'terms' => 'on',
+    ]);
+
+    $response->assertSessionHasNoErrors();
+    $this->assertAuthenticated();
 });

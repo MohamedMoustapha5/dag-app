@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Validation\Rules\Password;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,6 +20,13 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Schema::defaultStringLength(191);
+
+        // Every password form (sign-up, reset, settings, team accounts) uses
+        // Password::default(). Production asks for more than the 8-character
+        // minimum kept for local work and tests.
+        Password::defaults(fn (): ?Password => $this->app->isProduction()
+            ? Password::min(10)->letters()->mixedCase()->numbers()
+            : null);
 
         Event::listen(NotificationSent::class, [JournaliserNotification::class, 'quandEnvoyee']);
         Event::listen(NotificationFailed::class, [JournaliserNotification::class, 'quandEchouee']);

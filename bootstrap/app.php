@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\AjouterEntetesSecurite;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\SetTeamUrlDefaults;
@@ -30,6 +31,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // Only APP_URL's host (and its subdomains) is accepted, so a forged Host
         // header can't make password-reset links point to another domain.
         $middleware->trustHosts();
+
+        $middleware->append(AjouterEntetesSecurite::class);
 
         $middleware->web(append: [
             HandleAppearance::class,
