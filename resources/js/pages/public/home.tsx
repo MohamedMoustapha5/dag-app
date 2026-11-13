@@ -214,13 +214,17 @@ export default function Home({ stats, equipe }: HomeProps) {
                 <div className="hero-full-content home-hero-content anim-entree container">
                     <span className="badge">Bienvenue chez DAG</span>
                     <h1>
-                        L'accélérateur digital de <span>votre activité</span>.
+                        Plus de clients. Plus de ventes.
+                        <br />
+                        <span>Passez au digital</span>.
                     </h1>
                     <p>
-                        DAG est une agence digitale qui accompagne les
-                        particuliers, les entreprises et les apprenants dans
-                        leur transformation numérique à travers des services,
-                        des formations et du placement.
+                        Du marketing digital au site web, de la formation à
+                        l’emploi, DAG fait grandir votre activité et votre
+                        carrière. Un projet en tête ? Soumettez-le à DAG : nous
+                        trouvons comment le propulser, surtout dans le digital.
+                        Et pour les hôpitaux, notre application de gestion
+                        simplifie le quotidien des équipes de santé.
                     </p>
                     <div className="home-hero-actions">
                         <Link

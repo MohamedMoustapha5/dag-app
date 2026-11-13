@@ -287,10 +287,10 @@ export const publicEn: Record<string, string> = {
     "La convention de stage signée avec Kiro Digital Solutions m'a ouvert les portes du marché du travail directement après la formation.":
         'The internship agreement signed with Kiro Digital Solutions opened the doors of the job market right after the training.',
     'Bienvenue chez DAG': 'Welcome to DAG',
-    "L'accélérateur digital de": 'The digital accelerator for',
-    'votre activité': 'your business',
-    'DAG est une agence digitale qui accompagne les particuliers, les entreprises et les apprenants dans leur transformation numérique à travers des services, des formations et du placement.':
-        'DAG is a digital agency that supports individuals, companies and learners in their digital transformation through services, training and job placement.',
+    'Plus de clients. Plus de ventes.': 'More customers. More sales.',
+    'Passez au digital': 'Go digital',
+    'Du marketing digital au site web, de la formation à l’emploi, DAG fait grandir votre activité et votre carrière. Un projet en tête ? Soumettez-le à DAG : nous trouvons comment le propulser, surtout dans le digital. Et pour les hôpitaux, notre application de gestion simplifie le quotidien des équipes de santé.':
+        'From digital marketing to websites, from training to employment, DAG grows your business and your career. Got a project in mind? Submit it to DAG: we find how to propel it, especially through digital. And for hospitals, our management application simplifies the daily work of healthcare teams.',
     'Découvrir nos services →': 'Discover our services →',
     'Contrats numériques': 'Digital contracts',
     'Moyens de paiement': 'Payment methods',
