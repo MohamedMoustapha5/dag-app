@@ -5601,3 +5601,150 @@
         flex: 1 1 100%;
     }
 }
+
+/* ── Demandes clients (administration) : résumé, onglets, repères ───── */
+.dag .demandes-resume {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 18px;
+}
+.dag .demandes-resume-carte {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: #fff;
+    border: 1px solid var(--dag-border);
+    border-radius: var(--dag-radius-sm);
+    text-align: left;
+    cursor: pointer;
+    transition:
+        border-color 0.15s var(--dag-ease),
+        box-shadow 0.15s var(--dag-ease);
+}
+.dag .demandes-resume-carte:hover {
+    border-color: var(--dag-blue);
+}
+.dag .demandes-resume-carte:focus-visible {
+    outline: 2px solid var(--dag-blue);
+    outline-offset: 2px;
+}
+.dag .demandes-resume-carte.active {
+    border-color: var(--dag-navy);
+    box-shadow: var(--dag-shadow-sm);
+}
+.dag .demandes-resume-carte > span:last-child {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+.dag .demandes-resume-carte strong {
+    font-size: 22px;
+    line-height: 1.1;
+    color: var(--dag-navy);
+}
+.dag .demandes-resume-carte > span:last-child > span {
+    font-size: 12.5px;
+    color: var(--dag-text-muted);
+}
+.dag .demandes-resume-icone {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+}
+.dag .demandes-resume-carte.bleu .demandes-resume-icone {
+    background: var(--dag-blue-light);
+    color: var(--dag-blue);
+}
+.dag .demandes-resume-carte.orange .demandes-resume-icone {
+    background: var(--dag-orange-bg);
+    color: var(--dag-orange-ink);
+}
+.dag .demandes-resume-carte.gris .demandes-resume-icone {
+    background: #f1f2f6;
+    color: var(--dag-text-muted);
+}
+.dag .demandes-resume-carte.vert .demandes-resume-icone {
+    background: var(--dag-green-bg);
+    color: var(--dag-green);
+}
+.dag .demandes-barre {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+.dag .demandes-barre .account-tabs {
+    margin: 0;
+    min-width: 0;
+}
+.dag .demandes-recherche {
+    position: relative;
+    flex: 0 1 280px;
+    margin: 0;
+}
+.dag .demandes-recherche svg {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--dag-text-faint);
+}
+.dag .demandes-recherche input[type='search'] {
+    padding-left: 34px;
+}
+.dag .demandes-aide {
+    margin: 0 0 14px;
+    font-size: 13px;
+    color: var(--dag-text-muted);
+    line-height: 1.6;
+}
+.dag .demande-nouvelle,
+.dag .demande-relance {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 1px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    vertical-align: middle;
+}
+.dag .demande-nouvelle {
+    background: var(--dag-blue);
+    color: #fff;
+}
+.dag .demande-relance {
+    background: var(--dag-orange-bg);
+    color: var(--dag-orange-ink);
+}
+.dag .btn-primary.btn-petit {
+    padding: 7px 14px;
+    font-size: 12.5px;
+}
+
+@media (max-width: 760px) {
+    .dag .demandes-resume {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+    .dag .demandes-resume-carte {
+        padding: 12px;
+        gap: 10px;
+    }
+    .dag .demandes-resume-carte strong {
+        font-size: 18px;
+    }
+    .dag .demandes-resume-icone {
+        width: 32px;
+        height: 32px;
+    }
+    .dag .demandes-recherche {
+        flex: 1 1 100%;
+    }
+}

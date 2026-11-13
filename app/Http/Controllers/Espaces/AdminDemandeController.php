@@ -54,6 +54,7 @@ class AdminDemandeController extends Controller
                 'contratStatut' => $demande->contrat !== null ? $demande->contrat->statut : null,
                 'contratId' => $demande->contrat !== null ? $demande->contrat->id : null,
                 'payee' => $demande->facture !== null && $demande->facture->statut === 'PAYEE',
+                'createdAt' => $demande->created_at?->toDateString(),
                 'updatedAt' => $demande->updated_at?->toDateString(),
                 'prochaineEtape' => self::prochaineEtape($demande),
             ]),
