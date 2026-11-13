@@ -43,6 +43,7 @@ class AdminContratController extends Controller
         $demandesAContractualiser = Demande::query()
             ->whereNotIn('statut', ['BROUILLON', 'REFUSEE'])
             ->whereDoesntHave('contrat')
+            ->with(['service', 'formule'])
             ->get();
 
         return Inertia::render('espaces/admin-contrats', [

@@ -147,22 +147,25 @@ class DroitsMatrix
             );
         }
 
-        Cache::forget(self::CACHE_KEY);
+        Cache::memo()->forget(self::CACHE_KEY);
     }
 
     public static function reinitialiser(MembreEquipeRole $role): void
     {
         DroitRole::where('role', $role->value)->delete();
 
-        Cache::forget(self::CACHE_KEY);
+        Cache::memo()->forget(self::CACHE_KEY);
     }
 
     /**
+     * Memoized for the request: a page checks many rights, and with the
+     * database cache store each plain cache read is an SQL query.
+     *
      * @return array<string, array<string, string>>
      */
     private static function surcharges(): array
     {
-        return Cache::remember(self::CACHE_KEY, 3600, function (): array {
+        return Cache::memo()->remember(self::CACHE_KEY, 3600, function (): array {
             $surcharges = [];
 
             foreach (DroitRole::all() as $droit) {
