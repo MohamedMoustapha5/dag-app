@@ -21,7 +21,12 @@ type Props = {
 };
 
 type Filtre =
-    'a-faire' | 'toutes' | 'en-cours' | 'devis-envoye' | 'transmis' | 'termine';
+    | 'a-faire'
+    | 'toutes'
+    | 'en-cours'
+    | 'devis-envoye'
+    | 'transmis'
+    | 'termine';
 
 const FILTRES: { value: Filtre; label: string }[] = [
     { value: 'a-faire', label: 'À faire de votre côté' },

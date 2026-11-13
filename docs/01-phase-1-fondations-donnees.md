@@ -130,12 +130,12 @@ Génération automatique des références humaines (`DAG-DEM-2026-0001`,
 
 Comptes de démo utiles pour la suite (mot de passe `password`) :
 
-| Rôle                     | E-mail               |
-| ------------------------ | -------------------- |
-| Promotrice (accès total) | afsamandou15@gmail.com       |
-| Juriste                  | ndoumnkambenoitpascal@gmail.com       |
-| Client actif             | aicha.n@exemple.com  |
-| Apprenante               | stephanie.a@mail.com |
+| Rôle                     | E-mail                          |
+| ------------------------ | ------------------------------- |
+| Promotrice (accès total) | afsamandou15@gmail.com          |
+| Juriste                  | ndoumnkambenoitpascal@gmail.com |
+| Client actif             | aicha.n@exemple.com             |
+| Apprenante               | stephanie.a@mail.com            |
 
 _(Kiro Digital Solutions reste une entreprise partenaire de démo, mais n'a plus
 de compte propre — voir la mise à jour en tête de `docs/02-phase-2-...md`.)_

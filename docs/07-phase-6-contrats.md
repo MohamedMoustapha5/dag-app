@@ -39,11 +39,11 @@ Chaque service demandé et payé doit avoir un contrat signé par le client.
 
 ## 3. Données
 
-| Table | Rôle |
-| ----- | ---- |
-| `modeles_contrat` | Texte type par type de contrat, au statut brouillon ou actif. |
-| `clauses` | Clauses ordonnées, insérables dans un contrat. |
-| `contrats` | Contrat rattaché à un client, un apprenant ou une entreprise, avec référence `DAG-CTR-…`, code de vérification, montant et statut. |
+| Table             | Rôle                                                                                                                               |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `modeles_contrat` | Texte type par type de contrat, au statut brouillon ou actif.                                                                      |
+| `clauses`         | Clauses ordonnées, insérables dans un contrat.                                                                                     |
+| `contrats`        | Contrat rattaché à un client, un apprenant ou une entreprise, avec référence `DAG-CTR-…`, code de vérification, montant et statut. |
 
 Types : `PRESTATION_SERVICE`, `ABONNEMENT`, `CONVENTION_STAGE`, `CONTRAT_PARTENAIRE`.
 Statuts : `BROUILLON`, `ENVOYE`, `SIGNE`, `ACTIF`, `TERMINE`, `REFUSE`, `RESILIE`.

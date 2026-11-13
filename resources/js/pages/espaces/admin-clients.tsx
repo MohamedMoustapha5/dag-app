@@ -37,11 +37,7 @@ type Props = {
     };
 };
 
-export default function AdminClients({
-    clients,
-    apprenants,
-    actions,
-}: Props) {
+export default function AdminClients({ clients, apprenants, actions }: Props) {
     const [onglet, setOnglet] = useState<'clients' | 'apprenants'>('clients');
 
     const supprimerApprenant = (apprenant: ApprenantCompte) => {

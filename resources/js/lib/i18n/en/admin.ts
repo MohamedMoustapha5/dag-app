@@ -155,7 +155,8 @@ export const adminEn: Record<string, string> = {
     'Convention de stage': 'Internship agreement',
     'Contrat partenaire': 'Partner contract',
     'Supprimer cette clause ?': 'Delete this clause?',
-    'Contrats & clauses — Administration': 'Contracts & clauses — Administration',
+    'Contrats & clauses — Administration':
+        'Contracts & clauses — Administration',
     'Modèles de contrat, bibliothèque de clauses et suivi des contrats générés.':
         'Contract templates, clause library and follow-up of generated contracts.',
     'Contrats (': 'Contracts (',
@@ -232,12 +233,12 @@ export const adminEn: Record<string, string> = {
     'Envoyer le devis': 'Send quote',
 
     // Companies and offers
-    'Entreprises & offres — Administration': 'Companies & offers — Administration',
+    'Entreprises & offres — Administration':
+        'Companies & offers — Administration',
     "Validez les entreprises partenaires et publiez leurs offres d'emploi — rien n'est jamais mis en ligne automatiquement.":
         'Validate partner companies and publish their job offers — nothing is ever published automatically.',
     'Entreprises partenaires (': 'Partner companies (',
-    'Aucune entreprise partenaire pour le moment.':
-        'No partner company yet.',
+    'Aucune entreprise partenaire pour le moment.': 'No partner company yet.',
     Entreprise: 'Company',
     Offres: 'Offers',
     '· compte client lié': '· linked client account',
@@ -264,7 +265,7 @@ export const adminEn: Record<string, string> = {
     'A déjà postulé': 'Already applied',
     'Partage du dossier non autorisé': 'File sharing not authorised',
     'Postuler pour un apprenant': 'Apply for a learner',
-    ". Choisissez un dossier parmi tous les candidats : apprenants DAG, anciens apprenants et dossiers reçus de candidats externes.":
+    '. Choisissez un dossier parmi tous les candidats : apprenants DAG, anciens apprenants et dossiers reçus de candidats externes.':
         '. Choose a file among all candidates: DAG learners, former learners and files received from external candidates.',
     'Rechercher un nom ou une ville': 'Search a name or city',
     'Filtrer les apprenants': 'Filter learners',
@@ -303,7 +304,8 @@ export const adminEn: Record<string, string> = {
     'Moyen de paiement': 'Payment method',
     'Référence (optionnel)': 'Reference (optional)',
     'Enregistrer le paiement': 'Record payment',
-    'Factures & paiements — Administration': 'Invoices & payments — Administration',
+    'Factures & paiements — Administration':
+        'Invoices & payments — Administration',
     'Générez une facture pour une demande acceptée et suivez les paiements reçus.':
         'Generate an invoice for an accepted request and follow the payments received.',
     'Générer une facture pour une demande': 'Generate an invoice for a request',
@@ -334,7 +336,8 @@ export const adminEn: Record<string, string> = {
     'Image (optionnel)': 'Image (optional)',
     'JPG, PNG ou WebP — 5 Mo maximum.': 'JPG, PNG or WebP — 5 MB maximum.',
     'Créer la session': 'Create session',
-    'Formations & sessions — Administration': 'Training & sessions — Administration',
+    'Formations & sessions — Administration':
+        'Training & sessions — Administration',
     'Gestion des sessions, validation des inscriptions.':
         'Session management, validation of enrolments.',
     '+ Nouvelle session': '+ New session',
@@ -374,7 +377,7 @@ export const adminEn: Record<string, string> = {
     'Formateur / Formatrice': 'Trainer',
     'Ex. S. Mballa': 'E.g. S. Mballa',
     'Image de la formation': 'Training image',
-    "Laissez vide pour conserver l’image actuelle.":
+    'Laissez vide pour conserver l’image actuelle.':
         'Leave empty to keep the current image.',
     "L'image sélectionnée est affichée en aperçu.":
         'The selected image is shown as a preview.',
@@ -396,7 +399,8 @@ export const adminEn: Record<string, string> = {
     'Ajouter la ligne': 'Add line',
     Tarif: 'Price',
     'DAG (interne)': 'DAG (internal)',
-    'Catalogue de services — Administration': 'Service catalogue — Administration',
+    'Catalogue de services — Administration':
+        'Service catalogue — Administration',
     'Catalogue de services': 'Service catalogue',
     '+ Ajouter un service': '+ Add a service',
     'Aucun service dans le catalogue pour le moment.':
@@ -409,7 +413,7 @@ export const adminEn: Record<string, string> = {
     'Nom du service': 'Service name',
     'Ex. Montage vidéo': 'E.g. Video editing',
     'Ex. Création & communication…': 'E.g. Creation & communication…',
-    "Détermine la section où le service apparaît dans le catalogue public. Tapez une nouvelle catégorie pour en créer une.":
+    'Détermine la section où le service apparaît dans le catalogue public. Tapez une nouvelle catégorie pour en créer une.':
         'Determines the section where the service appears in the public catalogue. Type a new category to create one.',
     'Ex. DAG (interne), Nova-Tech…': 'E.g. DAG (internal), Nova-Tech…',
     'Visible sur la fiche du catalogue': 'Visible on the catalogue entry',

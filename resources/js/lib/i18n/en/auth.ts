@@ -34,7 +34,8 @@ export const authEn: Record<string, string> = {
     Particulier: 'Individual',
     Entreprise: 'Company',
     Organisation: 'Organisation',
-    'Apprenant — je cherche une formation': 'Learner — I am looking for a training',
+    'Apprenant — je cherche une formation':
+        'Learner — I am looking for a training',
     'Votre nom': 'Your name',
     "J'accepte les": 'I accept the',
     "conditions générales d'utilisation": 'terms of use',

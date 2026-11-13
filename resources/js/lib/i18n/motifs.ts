@@ -65,13 +65,13 @@ export const motifs: [RegExp, Remplacement][] = [
         /^Expiré depuis (\d+) jours?$/,
         (m) => `Expired ${m[1]} ${pluriel(m[1], 'day')} ago`,
     ],
-    [
-        /^(\d+) jours? restants?$/,
-        (m) => `${m[1]} ${pluriel(m[1], 'day')} left`,
-    ],
+    [/^(\d+) jours? restants?$/, (m) => `${m[1]} ${pluriel(m[1], 'day')} left`],
     [/^expiré depuis (\d+) j$/, (m) => `expired ${m[1]} d ago`],
     [/^dans (\d+) j$/, (m) => `in ${m[1]} d`],
-    [/^Attestation validée le (.+)$/, (m) => `Certificate validated on ${m[1]}`],
+    [
+        /^Attestation validée le (.+)$/,
+        (m) => `Certificate validated on ${m[1]}`,
+    ],
     [/^Date limite : (.+) ·$/, (m) => `Deadline: ${m[1]} ·`],
     [/^· limite (.+)$/, (m) => `· deadline ${m[1]}`],
     [/^le (\d{1,2}[/ ].+)$/, (m) => `on ${m[1]}`],
@@ -79,10 +79,7 @@ export const motifs: [RegExp, Remplacement][] = [
     [/^Numéro (.+)$/, (m) => `Number ${m[1]}`],
     [/^(\d+) séances?$/, (m) => `${m[1]} ${pluriel(m[1], 'sitting')}`],
     [/^(\d+) événements?$/, (m) => `${m[1]} ${pluriel(m[1], 'event')}`],
-    [
-        /^(\d+) séance\(s\) restante\(s\)$/,
-        (m) => `${m[1]} session(s) left`,
-    ],
+    [/^(\d+) séance\(s\) restante\(s\)$/, (m) => `${m[1]} session(s) left`],
     [/^(\d+) places?$/, (m) => `${m[1]} ${pluriel(m[1], 'place')}`],
 
     // Page titles and headings carrying a name or reference
@@ -107,7 +104,8 @@ export const motifs: [RegExp, Remplacement][] = [
     ],
     [
         /^Rappel : votre contrat attend votre signature — (.+)$/,
-        (m) => `Reminder: your contract is waiting for your signature — ${m[1]}`,
+        (m) =>
+            `Reminder: your contract is waiting for your signature — ${m[1]}`,
     ],
     [/^Nouvelle demande — (.+)$/, (m) => `New request — ${m[1]}`],
     [
@@ -121,7 +119,8 @@ export const motifs: [RegExp, Remplacement][] = [
     ],
     [
         /^Notre équipe a préparé le devis de votre demande « (.+) » : (.+) FCFA\.$/,
-        (m) => `Our team has prepared the quote for your request “${m[1]}”: ${m[2]} FCFA.`,
+        (m) =>
+            `Our team has prepared the quote for your request “${m[1]}”: ${m[2]} FCFA.`,
     ],
     [
         /^Nous avons bien reçu votre paiement de (.+) FCFA pour « (.+) »\.$/,
@@ -129,11 +128,13 @@ export const motifs: [RegExp, Remplacement][] = [
     ],
     [
         /^Le contrat « (.+) » est disponible dans votre espace\. Sa signature est nécessaire pour que la prestation démarre\.$/,
-        (m) => `The contract “${m[1]}” is available in your area. Its signature is required for the service to start.`,
+        (m) =>
+            `The contract “${m[1]}” is available in your area. Its signature is required for the service to start.`,
     ],
     [
         /^Merci : votre contrat « (.+) » a bien été signé\. La prestation peut démarrer\.$/,
-        (m) => `Thank you: your contract “${m[1]}” has been signed. The service can start.`,
+        (m) =>
+            `Thank you: your contract “${m[1]}” has been signed. The service can start.`,
     ],
     [
         /^(.+) a signé le contrat « (.+) »\. La prestation peut démarrer\.$/,
@@ -146,7 +147,8 @@ export const motifs: [RegExp, Remplacement][] = [
     ],
     [
         /^(.+) demande à s'inscrire à la session de (.+)\. Elle attend la validation du paiement\.$/,
-        (m) => `${m[1]} wants to enrol in the ${m[2]} session. It is awaiting payment validation.`,
+        (m) =>
+            `${m[1]} wants to enrol in the ${m[2]} session. It is awaiting payment validation.`,
     ],
     [
         /^(.+) FCFA reçus pour (.+)\.$/,
@@ -154,11 +156,13 @@ export const motifs: [RegExp, Remplacement][] = [
     ],
     [
         /^Félicitations : votre attestation pour la formation « (.+) » a été validée et peut être téléchargée\.$/,
-        (m) => `Congratulations: your certificate for the training “${m[1]}” has been validated and can be downloaded.`,
+        (m) =>
+            `Congratulations: your certificate for the training “${m[1]}” has been validated and can be downloaded.`,
     ],
     [
         /^DAG vous transmet un candidat pour votre offre « (.+) »\. Consultez son dossier, puis sélectionnez-le ou refusez-le\.$/,
-        (m) => `DAG sends you a candidate for your offer “${m[1]}”. Review their file, then select or decline them.`,
+        (m) =>
+            `DAG sends you a candidate for your offer “${m[1]}”. Review their file, then select or decline them.`,
     ],
 
     // Confirmation messages and toasts written by the server
@@ -180,17 +184,16 @@ export const motifs: [RegExp, Remplacement][] = [
     ],
 
     // Confirmation dialogs
-    [
-        /^Supprimer la formule « (.+) » \?$/,
-        (m) => `Delete the plan “${m[1]}”?`,
-    ],
+    [/^Supprimer la formule « (.+) » \?$/, (m) => `Delete the plan “${m[1]}”?`],
     [
         /^Renouveler l'abonnement « (.+) » de (.+) \? Un nouveau cycle démarre\.$/,
-        (m) => `Renew the “${m[1]}” subscription of ${m[2]}? A new cycle starts.`,
+        (m) =>
+            `Renew the “${m[1]}” subscription of ${m[2]}? A new cycle starts.`,
     ],
     [
         /^Supprimer la session « (.+) » \? Ses séances seront également supprimées\.$/,
-        (m) => `Delete the session “${m[1]}”? Its sittings will also be deleted.`,
+        (m) =>
+            `Delete the session “${m[1]}”? Its sittings will also be deleted.`,
     ],
     [/^Supprimer « (.+) » \?$/, (m) => `Delete “${m[1]}”?`],
     [
@@ -207,14 +210,17 @@ export const motifs: [RegExp, Remplacement][] = [
     ],
     [
         /^Supprimer le dossier de « (.+) » \? .*$/,
-        (m) => `Delete the file of “${m[1]}”? Their CV and, if it was turned into a learner file, that file will be permanently deleted.`,
+        (m) =>
+            `Delete the file of “${m[1]}”? Their CV and, if it was turned into a learner file, that file will be permanently deleted.`,
     ],
     [
         /^Supprimer le compte de « (.+) » \? Son dossier.*$/,
-        (m) => `Delete the account of “${m[1]}”? Their file, enrolments, applications and certificates will be permanently deleted. Their existing invoices and contracts are kept.`,
+        (m) =>
+            `Delete the account of “${m[1]}”? Their file, enrolments, applications and certificates will be permanently deleted. Their existing invoices and contracts are kept.`,
     ],
     [
         /^Supprimer le compte de « (.+) » \? Cette action est définitive\..*$/,
-        (m) => `Delete the account of “${m[1]}”? This action is permanent. Their existing requests, contracts and invoices are kept but will no longer be linked to a client account.`,
+        (m) =>
+            `Delete the account of “${m[1]}”? This action is permanent. Their existing requests, contracts and invoices are kept but will no longer be linked to a client account.`,
     ],
 ];

@@ -121,7 +121,8 @@ export default function ClocheNotifications({ urlLire, urlToutesLues }: Props) {
                     // On a phone the panel spans the screen, just under the top bar.
                     setHauteurBarre(
                         Math.round(
-                            (conteneur.current?.getBoundingClientRect().bottom ?? 62) + 8,
+                            (conteneur.current?.getBoundingClientRect()
+                                .bottom ?? 62) + 8,
                         ),
                     );
                     setOuvert((valeur) => !valeur);
@@ -149,9 +150,7 @@ export default function ClocheNotifications({ urlLire, urlToutesLues }: Props) {
                             border: '2px solid #fff',
                         }}
                     >
-                        {cloche.nonLues > 99
-                            ? '99+'
-                            : cloche.nonLues}
+                        {cloche.nonLues > 99 ? '99+' : cloche.nonLues}
                     </span>
                 )}
             </button>
@@ -174,7 +173,9 @@ export default function ClocheNotifications({ urlLire, urlToutesLues }: Props) {
                             borderBottom: '1px solid var(--dag-border)',
                         }}
                     >
-                        <strong style={{ fontSize: 14.5 }}>Notifications</strong>
+                        <strong style={{ fontSize: 14.5 }}>
+                            Notifications
+                        </strong>
                         {cloche.nonLues > 0 && (
                             <button
                                 type="button"

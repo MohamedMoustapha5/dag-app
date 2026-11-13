@@ -62,10 +62,12 @@ export const serveurEn: Record<string, string> = {
     'Ce compte est désactivé.': 'This account is deactivated.',
     'Cet abonnement ne peut pas être renouvelé pour le moment.':
         'This subscription cannot be renewed at the moment.',
-    "Ce contrat n'a pas encore été signé.": 'This contract has not been signed yet.',
+    "Ce contrat n'a pas encore été signé.":
+        'This contract has not been signed yet.',
     'Seule une facture payée peut être téléchargée.':
         'Only a paid invoice can be downloaded.',
-    'Ce paiement a déjà été traité.': 'This payment has already been processed.',
+    'Ce paiement a déjà été traité.':
+        'This payment has already been processed.',
     "Cette offre n'accepte plus de candidatures.":
         'This offer no longer accepts applications.',
 

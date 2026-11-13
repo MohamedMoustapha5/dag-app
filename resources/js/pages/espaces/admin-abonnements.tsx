@@ -346,15 +346,18 @@ export default function AdminAbonnements({
                                         </td>
                                         <td className="muted">
                                             {abonnement.echeance ?? '—'}
-                                            {abonnement.joursRestants !== null &&
-                                                abonnement.etat !== 'termine' && (
+                                            {abonnement.joursRestants !==
+                                                null &&
+                                                abonnement.etat !==
+                                                    'termine' && (
                                                     <span
                                                         style={{
                                                             display: 'block',
                                                             fontSize: 11.5,
                                                         }}
                                                     >
-                                                        {abonnement.joursRestants < 0
+                                                        {abonnement.joursRestants <
+                                                        0
                                                             ? `expiré depuis ${-abonnement.joursRestants} j`
                                                             : `dans ${abonnement.joursRestants} j`}
                                                     </span>
@@ -366,9 +369,11 @@ export default function AdminAbonnements({
                                                     mois={abonnement.mois}
                                                     compact
                                                     couleur={
-                                                        abonnement.etat === 'expire'
+                                                        abonnement.etat ===
+                                                        'expire'
                                                             ? 'var(--dag-red)'
-                                                            : abonnement.etat === 'bientot'
+                                                            : abonnement.etat ===
+                                                                'bientot'
                                                               ? 'var(--dag-orange)'
                                                               : 'var(--dag-blue)'
                                                     }
@@ -396,43 +401,57 @@ export default function AdminAbonnements({
                                                 {abonnement.demandeRenouvellement && (
                                                     <Link
                                                         href={demandesAdmin.show(
-                                                            abonnement.demandeRenouvellement.id,
+                                                            abonnement
+                                                                .demandeRenouvellement
+                                                                .id,
                                                         )}
                                                         className="chip chip-blue"
                                                     >
                                                         Renouvellement demandé
                                                     </Link>
                                                 )}
-                                                {abonnement.etat === 'expire' && (
-                                                    <span className="chip chip-red">Expiré</span>
+                                                {abonnement.etat ===
+                                                    'expire' && (
+                                                    <span className="chip chip-red">
+                                                        Expiré
+                                                    </span>
                                                 )}
-                                                {abonnement.etat === 'bientot' && (
+                                                {abonnement.etat ===
+                                                    'bientot' && (
                                                     <span className="chip chip-orange">
                                                         Expire bientôt
                                                     </span>
                                                 )}
                                                 {peutModifier &&
-                                                    (abonnement.etat === 'bientot' ||
-                                                        abonnement.etat === 'expire' ||
+                                                    (abonnement.etat ===
+                                                        'bientot' ||
+                                                        abonnement.etat ===
+                                                            'expire' ||
                                                         abonnement.demandeRenouvellement !==
                                                             null) && (
                                                         <button
                                                             type="button"
                                                             className="btn-primary"
                                                             style={{
-                                                                padding: '5px 12px',
+                                                                padding:
+                                                                    '5px 12px',
                                                                 fontSize: 12,
                                                             }}
                                                             onClick={() =>
-                                                                renouvelerAbonnement(abonnement)
+                                                                renouvelerAbonnement(
+                                                                    abonnement,
+                                                                )
                                                             }
                                                         >
                                                             Renouveler
                                                         </button>
                                                     )}
                                                 {!abonnement.demandeRenouvellement &&
-                                                    abonnement.etat === 'actif' && (
-                                                        <span className="muted">—</span>
+                                                    abonnement.etat ===
+                                                        'actif' && (
+                                                        <span className="muted">
+                                                            —
+                                                        </span>
                                                     )}
                                             </div>
                                         </td>

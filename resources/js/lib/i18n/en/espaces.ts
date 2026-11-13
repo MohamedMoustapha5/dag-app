@@ -330,7 +330,7 @@ export const espacesEn: Record<string, string> = {
     'Candidatures (': 'Applications (',
 
     // Contracts
-    "Importez vous-même la photo de votre signature pour activer un contrat.":
+    'Importez vous-même la photo de votre signature pour activer un contrat.':
         'Upload the photo of your signature yourself to activate a contract.',
     'Aucun contrat pour le moment.': 'No contract yet.',
     'Réf.': 'Ref.',
@@ -347,7 +347,7 @@ export const espacesEn: Record<string, string> = {
     'Signé par': 'Signed by',
     'Télécharger le PDF signé': 'Download signed PDF',
     'Signer le contrat': 'Sign the contract',
-    'Importez une photo ou un scan de votre signature manuscrite (PNG ou JPG). La date, l\'heure et votre adresse IP sont conservées comme preuve de signature.':
+    "Importez une photo ou un scan de votre signature manuscrite (PNG ou JPG). La date, l'heure et votre adresse IP sont conservées comme preuve de signature.":
         'Upload a photo or scan of your handwritten signature (PNG or JPG). The date, time and your IP address are kept as proof of signature.',
     'Votre signature': 'Your signature',
     'Aperçu de la signature': 'Signature preview',
@@ -402,8 +402,7 @@ export const espacesEn: Record<string, string> = {
     // Client settings and dashboard
     'Espace client DAG': 'DAG client area',
     'Cliente DAG': 'DAG client',
-    'Nouveau devis ou mise à jour de demande':
-        'New quote or request update',
+    'Nouveau devis ou mise à jour de demande': 'New quote or request update',
     'Facture et confirmation de paiement': 'Invoice and payment confirmation',
     'Offres et actualités DAG': 'DAG offers and news',
     'La suppression de votre compte est définitive. Vos contrats déjà signés et factures payées restent archivés, conformément à la politique de confidentialité.':
@@ -411,7 +410,8 @@ export const espacesEn: Record<string, string> = {
     'Tout le catalogue DAG, accessible sans quitter votre espace client.':
         'The whole DAG catalogue, available without leaving your client area.',
     'Espace client': 'Client area',
-    'Voici un résumé de votre compte DAG.': 'Here is a summary of your DAG account.',
+    'Voici un résumé de votre compte DAG.':
+        'Here is a summary of your DAG account.',
     'Demandes en cours': 'Requests in progress',
     'Factures en attente': 'Invoices pending',
     'FCFA à régler': 'FCFA to pay',

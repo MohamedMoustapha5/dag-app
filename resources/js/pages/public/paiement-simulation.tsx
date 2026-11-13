@@ -139,7 +139,10 @@ export default function PaiementSimulation({ paiement, retour }: Props) {
                     </div>
 
                     <div style={{ padding: '10px 28px 26px' }}>
-                        <Ligne libelle="Marchand" valeur="DAG — Digital Agency Group" />
+                        <Ligne
+                            libelle="Marchand"
+                            valeur="DAG — Digital Agency Group"
+                        />
                         <Ligne libelle="Facture" valeur={paiement.facture} />
                         <Ligne
                             libelle="Moyen de paiement"
@@ -189,13 +192,16 @@ export default function PaiementSimulation({ paiement, retour }: Props) {
                                     background: BLUE,
                                     color: '#fff',
                                     border: `1.5px solid ${BLUE}`,
-                                    boxShadow: '0 8px 20px rgba(1,102,254,0.28)',
+                                    boxShadow:
+                                        '0 8px 20px rgba(1,102,254,0.28)',
                                 }}
                                 disabled={envoi}
                                 onClick={() => decider('succes')}
                             >
                                 <Check size={16} />
-                                {envoi ? 'Traitement…' : 'Confirmer le paiement'}
+                                {envoi
+                                    ? 'Traitement…'
+                                    : 'Confirmer le paiement'}
                             </button>
                         </div>
 

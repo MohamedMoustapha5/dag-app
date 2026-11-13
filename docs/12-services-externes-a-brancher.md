@@ -12,13 +12,13 @@ certains services, un petit adaptateur.
 
 ## 1. Vue d'ensemble
 
-| Service | État du code | Ce qui manque | Priorité |
-| ------- | ------------ | ------------- | -------- |
-| E-mail professionnel | Prêt, actif | Un serveur d'envoi (SMTP) et la configuration du domaine | Indispensable |
-| Adresses réelles de l'équipe | Prêt | La liste des adresses à enregistrer | Indispensable |
-| Paiement Orange Money, MTN MoMo, carte | Prêt, en simulation | Un compte prestataire et ses clés API, un adaptateur | Indispensable |
-| SMS | Canal prêt, désactivé | Un fournisseur, un nom d'expéditeur validé, un adaptateur | Plus tard |
-| WhatsApp | Canal prêt, désactivé | Un compte WhatsApp Business, des modèles de message approuvés, un adaptateur | Plus tard |
+| Service                                | État du code          | Ce qui manque                                                                | Priorité      |
+| -------------------------------------- | --------------------- | ---------------------------------------------------------------------------- | ------------- |
+| E-mail professionnel                   | Prêt, actif           | Un serveur d'envoi (SMTP) et la configuration du domaine                     | Indispensable |
+| Adresses réelles de l'équipe           | Prêt                  | La liste des adresses à enregistrer                                          | Indispensable |
+| Paiement Orange Money, MTN MoMo, carte | Prêt, en simulation   | Un compte prestataire et ses clés API, un adaptateur                         | Indispensable |
+| SMS                                    | Canal prêt, désactivé | Un fournisseur, un nom d'expéditeur validé, un adaptateur                    | Plus tard     |
+| WhatsApp                               | Canal prêt, désactivé | Un compte WhatsApp Business, des modèles de message approuvés, un adaptateur | Plus tard     |
 
 ## 2. E-mail professionnel (à faire en premier)
 
@@ -165,12 +165,12 @@ Sources : [tarification officielle de la plateforme WhatsApp Business](https://d
 
 ## 7. Informations à rassembler
 
-| Information | Pour | Qui la détient |
-| ----------- | ---- | -------------- |
-| Nom de domaine et accès DNS | E-mail, webhooks | DAG ou son hébergeur |
-| Adresse d'expédition officielle | E-mail | DAG |
-| Liste des membres : nom, adresse, rôle | Comptes équipe | DAG |
-| Documents légaux de l'entreprise (registre, identifiants fiscaux) | Paiement, WhatsApp, SMS | DAG |
-| Nom d'expéditeur souhaité (« DAG ») | SMS | DAG |
-| Numéro dédié à WhatsApp Business | WhatsApp | DAG |
-| Budget mensuel prévu (SMS, WhatsApp) | Choix des fournisseurs | DAG |
+| Information                                                       | Pour                    | Qui la détient       |
+| ----------------------------------------------------------------- | ----------------------- | -------------------- |
+| Nom de domaine et accès DNS                                       | E-mail, webhooks        | DAG ou son hébergeur |
+| Adresse d'expédition officielle                                   | E-mail                  | DAG                  |
+| Liste des membres : nom, adresse, rôle                            | Comptes équipe          | DAG                  |
+| Documents légaux de l'entreprise (registre, identifiants fiscaux) | Paiement, WhatsApp, SMS | DAG                  |
+| Nom d'expéditeur souhaité (« DAG »)                               | SMS                     | DAG                  |
+| Numéro dédié à WhatsApp Business                                  | WhatsApp                | DAG                  |
+| Budget mensuel prévu (SMS, WhatsApp)                              | Choix des fournisseurs  | DAG                  |

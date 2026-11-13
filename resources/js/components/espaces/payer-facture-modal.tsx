@@ -435,8 +435,8 @@ export default function PayerFactureModal({ facture, moyens, onClose }: Props) {
                                 marginTop: 14,
                             }}
                         >
-                            <ShieldCheck size={14} /> Transaction chiffrée.
-                            DAG ne conserve aucune donnée bancaire.
+                            <ShieldCheck size={14} /> Transaction chiffrée. DAG
+                            ne conserve aucune donnée bancaire.
                         </p>
                     </div>
                 </form>

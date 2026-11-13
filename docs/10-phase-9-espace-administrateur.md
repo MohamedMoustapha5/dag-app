@@ -45,14 +45,14 @@ n'affiche que ce qui lui est transmis.
 
 ## 4. Pages de l'espace
 
-| Section | Pages |
-| ------- | ----- |
+| Section              | Pages                                                                                                                                 |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
 | Activité commerciale | Demandes clients (devis, contrat), Comptes clients et apprenants, Abonnements et formules, Factures et paiements, Contrats et clauses |
-| Catalogue | Catalogue de services, Grille tarifaire |
-| Formation | Formations et sessions, Attestations |
-| Recrutement | Entreprises et offres, Dossiers apprenants |
-| Pilotage | Statistiques |
-| Administration | Équipe DAG et droits |
+| Catalogue            | Catalogue de services, Grille tarifaire                                                                                               |
+| Formation            | Formations et sessions, Attestations                                                                                                  |
+| Recrutement          | Entreprises et offres, Dossiers apprenants                                                                                            |
+| Pilotage             | Statistiques                                                                                                                          |
+| Administration       | Équipe DAG et droits                                                                                                                  |
 
 Les liens de la barre latérale n'apparaissent que si le rôle a au moins le droit de
 voir le domaine.
@@ -66,11 +66,11 @@ couleurs, cachet signé de la directrice) : voir les phases 5, 6 et 7.
 
 La page Statistiques regroupe trois onglets, affichés selon les droits du rôle.
 
-| Onglet | Contenu | Qui le voit |
-| ------ | ------- | ----------- |
-| Indicateurs | Chiffres clés par domaine, demandes par statut, finances | Tout rôle ayant le droit de voir les statistiques, chaque indicateur étant filtré par ses droits |
-| Journal d'activité | Qui a fait quoi, du plus récent au plus ancien | La Directrice uniquement |
-| Documents | Contrats signés, attestations, CV et dossiers reçus, en un seul tableau | Les rôles ayant le droit de téléchargement sur l'un de ces domaines |
+| Onglet             | Contenu                                                                 | Qui le voit                                                                                      |
+| ------------------ | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Indicateurs        | Chiffres clés par domaine, demandes par statut, finances                | Tout rôle ayant le droit de voir les statistiques, chaque indicateur étant filtré par ses droits |
+| Journal d'activité | Qui a fait quoi, du plus récent au plus ancien                          | La Directrice uniquement                                                                         |
+| Documents          | Contrats signés, attestations, CV et dossiers reçus, en un seul tableau | Les rôles ayant le droit de téléchargement sur l'un de ces domaines                              |
 
 ### Journal d'activité
 
@@ -102,23 +102,23 @@ La page Statistiques regroupe trois onglets, affichés selon les droits du rôle
 L'équipe est prévenue sans avoir à chercher :
 
 - [x] Alerte à la création d'une demande de renouvellement par un client (notification de
-  l'équipe ayant le droit de modifier les demandes)
+      l'équipe ayant le droit de modifier les demandes)
 - [x] Page Abonnements : bandeau « À traiter » (renouvellements demandés, abonnements
-  expirés, abonnements arrivant à échéance), onglet « À traiter », colonne Alerte avec le
-  lien vers la demande de renouvellement, jours restants ou dépassés sous l'échéance
+      expirés, abonnements arrivant à échéance), onglet « À traiter », colonne Alerte avec le
+      lien vers la demande de renouvellement, jours restants ou dépassés sous l'échéance
 - [x] Barre de cycle découpée par mois avec l'état du paiement de chaque mois
 - [x] Tableau de bord : bandeau d'alerte vers les abonnements, visible des seuls rôles ayant
-  accès aux abonnements
+      accès aux abonnements
 - [x] Renouvellement par l'équipe : le bouton **Renouveler** de la colonne Alerte, ou le
-  passage du statut à « Actif » pour un abonnement expiré, terminé ou en brouillon, lance un
-  nouveau cycle de même durée (un mois au minimum) avec une barre de progression remise à
-  zéro. Avant la fin du cycle, le nouveau cycle commence à l'ancienne échéance ; après la
-  fin, il commence le jour du renouvellement. La demande de renouvellement est alors close
-  (colonne `renouvele_le`), l'alerte disparaît et la facture réglée par le client est
-  rattachée à l'abonnement, ce qui affiche le mois comme payé. Réactiver un abonnement
-  suspendu non expiré ne touche pas ses dates.
+      passage du statut à « Actif » pour un abonnement expiré, terminé ou en brouillon, lance un
+      nouveau cycle de même durée (un mois au minimum) avec une barre de progression remise à
+      zéro. Avant la fin du cycle, le nouveau cycle commence à l'ancienne échéance ; après la
+      fin, il commence le jour du renouvellement. La demande de renouvellement est alors close
+      (colonne `renouvele_le`), l'alerte disparaît et la facture réglée par le client est
+      rattachée à l'abonnement, ce qui affiche le mois comme payé. Réactiver un abonnement
+      suspendu non expiré ne touche pas ses dates.
 - [ ] Prolongation automatique de l'échéance dès la réception du paiement du renouvellement
-  (aujourd'hui, c'est l'équipe qui valide le renouvellement)
+      (aujourd'hui, c'est l'équipe qui valide le renouvellement)
 
 Côté client (`docs/05-phase-4-espace-client.md`), chaque abonnement affiche ses mois sur la
 barre de progression (le mois en cours en gras, une coche verte si payé, une horloge si en

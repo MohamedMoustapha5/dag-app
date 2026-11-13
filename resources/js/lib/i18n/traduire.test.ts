@@ -8,15 +8,21 @@ describe('traduire', () => {
     });
 
     it('leaves names and unknown content untouched', () => {
-        expect(traduire('Kiro Digital Solutions')).toBe('Kiro Digital Solutions');
+        expect(traduire('Kiro Digital Solutions')).toBe(
+            'Kiro Digital Solutions',
+        );
         expect(traduire('150 000')).toBe('150 000');
     });
 
     it('translates texts with a variable part', () => {
         expect(traduire('Il y a 5 min')).toBe('5 min ago');
         expect(traduire('Il y a 2 jours')).toBe('2 days ago');
-        expect(traduire('Paiement reçu — FAC-001')).toBe('Payment received — FAC-001');
-        expect(traduire('Abonnements — Administration')).toBe('Subscriptions — Administration');
+        expect(traduire('Paiement reçu — FAC-001')).toBe(
+            'Payment received — FAC-001',
+        );
+        expect(traduire('Abonnements — Administration')).toBe(
+            'Subscriptions — Administration',
+        );
         expect(traduire('Contrat CTR-12')).toBe('Contract CTR-12');
     });
 
@@ -33,7 +39,9 @@ describe('traduire', () => {
 
 describe('numbered steps', () => {
     it('keeps the number and translates the step', () => {
-        expect(traduire('1. Choisissez votre formation')).toBe('1. Choose your training');
+        expect(traduire('1. Choisissez votre formation')).toBe(
+            '1. Choose your training',
+        );
     });
 });
 
@@ -48,7 +56,9 @@ describe('catalogue content', () => {
 
 describe('titles and months', () => {
     it('translates the page title and the month filters', () => {
-        expect(traduire('Connexion - DAG — Digital Agency Group')).toBe('Sign in - DAG — Digital Agency Group');
+        expect(traduire('Connexion - DAG — Digital Agency Group')).toBe(
+            'Sign in - DAG — Digital Agency Group',
+        );
         expect(traduire('Novembre 2026')).toBe('November 2026');
     });
 });

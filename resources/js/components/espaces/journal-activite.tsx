@@ -80,7 +80,12 @@ export default function JournalActivite({ journal }: { journal: JournalData }) {
                         event.preventDefault();
                         filtrer(recherche, journal.filtres.auteur);
                     }}
-                    style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}
+                    style={{
+                        display: 'flex',
+                        gap: 10,
+                        flexWrap: 'wrap',
+                        alignItems: 'center',
+                    }}
                 >
                     <select
                         aria-label="Filtrer par auteur"
@@ -173,7 +178,9 @@ export default function JournalActivite({ journal }: { journal: JournalData }) {
                             </span>
                             <div style={{ flex: 1, minWidth: 0 }}>
                                 <p style={{ fontSize: 13.5, lineHeight: 1.5 }}>
-                                    <strong>{entree.auteur ?? 'Système'}</strong>{' '}
+                                    <strong>
+                                        {entree.auteur ?? 'Système'}
+                                    </strong>{' '}
                                     {entree.action}
                                 </p>
                                 {entree.description && (

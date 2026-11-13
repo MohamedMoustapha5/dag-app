@@ -168,20 +168,18 @@ export default function ApprenantFacturesIndex({
                                                     Payer
                                                 </button>
                                             )
-                                        ) : (
-                                            facture.statut === 'PAYEE' ? (
-                                                <a
-                                                    className="link-action"
-                                                    href={
-                                                        facturesRoutes.pdf(
-                                                            facture.id,
-                                                        ).url
-                                                    }
-                                                >
-                                                    PDF ↓
-                                                </a>
-                                            ) : null
-                                        )}
+                                        ) : facture.statut === 'PAYEE' ? (
+                                            <a
+                                                className="link-action"
+                                                href={
+                                                    facturesRoutes.pdf(
+                                                        facture.id,
+                                                    ).url
+                                                }
+                                            >
+                                                PDF ↓
+                                            </a>
+                                        ) : null}
                                     </td>
                                 </tr>
                             ))}

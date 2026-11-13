@@ -55,14 +55,15 @@ export default function DocumentsAdmin({
         );
     };
 
-    const toutes = documents.types.reduce((somme, type) => somme + type.total, 0);
+    const toutes = documents.types.reduce(
+        (somme, type) => somme + type.total,
+        0,
+    );
 
     return (
         <div className="card" style={{ padding: 24 }}>
             <div style={{ marginBottom: 16 }}>
-                <p style={{ fontSize: 15, fontWeight: 700 }}>
-                    Documents
-                </p>
+                <p style={{ fontSize: 15, fontWeight: 700 }}>Documents</p>
                 <p className="muted" style={{ fontSize: 12.5, marginTop: 2 }}>
                     Tous les documents téléchargeables au même endroit.
                 </p>
@@ -102,7 +103,8 @@ export default function DocumentsAdmin({
                             style={{ padding: '6px 14px', fontSize: 12.5 }}
                             onClick={() => filtrer(recherche, type.value)}
                         >
-                            {TYPE_LABEL[type.value] ?? type.value} ({type.total})
+                            {TYPE_LABEL[type.value] ?? type.value} ({type.total}
+                            )
                         </button>
                     ))}
                 </div>
@@ -200,10 +202,7 @@ export default function DocumentsAdmin({
             )}
 
             {documents.total > documents.limite && (
-                <p
-                    className="muted"
-                    style={{ fontSize: 12.5, marginTop: 12 }}
-                >
+                <p className="muted" style={{ fontSize: 12.5, marginTop: 12 }}>
                     Les {documents.limite} plus récents sur {documents.total}{' '}
                     sont affichés : affinez avec la recherche ou le type.
                 </p>

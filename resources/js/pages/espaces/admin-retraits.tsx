@@ -155,7 +155,10 @@ export default function AdminRetraits({
                                 }
                             >
                                 {moyens.map((moyen) => (
-                                    <option key={moyen.value} value={moyen.value}>
+                                    <option
+                                        key={moyen.value}
+                                        value={moyen.value}
+                                    >
                                         {moyen.label}
                                     </option>
                                 ))}
@@ -225,7 +228,13 @@ export default function AdminRetraits({
             )}
 
             <div className="card" style={{ padding: 24 }}>
-                <p style={{ fontSize: 14.5, fontWeight: 700, marginBottom: 16 }}>
+                <p
+                    style={{
+                        fontSize: 14.5,
+                        fontWeight: 700,
+                        marginBottom: 16,
+                    }}
+                >
                     Historique des retraits ({retraits.length})
                 </p>
                 {retraits.length === 0 ? (

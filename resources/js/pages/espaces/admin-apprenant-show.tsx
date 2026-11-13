@@ -335,7 +335,10 @@ export default function AdminApprenantShow({
                     </form>
                 )}
                 {!peutPostuler && !apprenant.consentementCv && (
-                    <p className="muted" style={{ fontSize: 12.5, marginTop: 16 }}>
+                    <p
+                        className="muted"
+                        style={{ fontSize: 12.5, marginTop: 16 }}
+                    >
                         Cet apprenant n'a pas autorisé le partage de son dossier
                         avec les entreprises : DAG ne peut pas postuler à sa
                         place.

@@ -4250,7 +4250,9 @@
     border: 1px dashed var(--dag-border);
     border-radius: var(--dag-radius-sm);
     background: var(--dag-bg);
-    transition: border-color 0.15s ease, background-color 0.15s ease;
+    transition:
+        border-color 0.15s ease,
+        background-color 0.15s ease;
 }
 .dag .pieces-dossier-ligne.prete {
     border-style: solid;
