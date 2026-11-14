@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AjouterEntetesSecurite;
+use App\Http\Middleware\AppliquerLangue;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\SetTeamUrlDefaults;
@@ -35,6 +36,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->append(AjouterEntetesSecurite::class);
 
         $middleware->web(append: [
+            AppliquerLangue::class,
             HandleAppearance::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
