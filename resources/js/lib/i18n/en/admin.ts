@@ -464,4 +464,9 @@ export const adminEn: Record<string, string> = {
     Pourvue: 'Filled',
     Retenue: 'Selected',
     Reçue: 'Received',
+
+    // Making an Entreprise client a recruitment partner
+    'Faire partenaire': 'Make partner',
+    Partenaire: 'Partner',
+    'Partenaire désactivé': 'Partner deactivated',
 };

@@ -8,10 +8,13 @@ use App\Models\Client;
 use App\Models\Contrat;
 use App\Models\Demande;
 use App\Models\DroitRole;
+use App\Models\EntreprisePartenaire;
 use App\Models\Facture;
 use App\Models\MembreEquipe;
+use App\Notifications\PartenariatValideNotification;
 use App\Support\SuppressionCompte;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Notification;
 
 test('a membre with voir can list the client accounts', function () {
     $membre = MembreEquipe::factory()->juriste()->create();
@@ -120,4 +123,84 @@ test('an anonymised client can no longer sign in with their former credentials',
     $this->post(route('login.store'), ['email' => $email, 'password' => 'password'])
         ->assertSessionHasErrors('email');
     $this->assertGuest();
+});
+
+test('a promotrice makes an entreprise client a recruitment partner from its account', function () {
+    Notification::fake();
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $client = Client::factory()->create([
+        'type' => 'ENTREPRISE',
+        'nom' => 'Batiplus SARL',
+        'secteur_activite' => 'BTP',
+        'telephone' => '690112233',
+    ]);
+
+    $response = $this->actingAs($promotrice, 'admin')
+        ->post(route('espace-admin.clients.partenaire', $client));
+
+    $response->assertRedirect();
+    $this->assertDatabaseHas('entreprises_partenaires', [
+        'client_id' => $client->id,
+        'nom' => 'Batiplus SARL',
+        'secteur' => 'BTP',
+        'email' => $client->user->email,
+        'telephone' => '690112233',
+        'statut' => 'ACTIF',
+    ]);
+    Notification::assertSentTo($client->user, PartenariatValideNotification::class);
+    $this->actingAs($client->user, 'web')->get(route('espace-client.offres.index'))->assertOk();
+});
+
+test('making a partner reactivates the existing partner record instead of creating another', function () {
+    Notification::fake();
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $client = Client::factory()->create(['type' => 'ENTREPRISE']);
+    $fiche = EntreprisePartenaire::factory()->create(['client_id' => $client->id, 'nom' => 'Nom de la fiche', 'statut' => 'INACTIF']);
+
+    $this->actingAs($promotrice, 'admin')
+        ->post(route('espace-admin.clients.partenaire', $client))
+        ->assertRedirect();
+
+    expect(EntreprisePartenaire::where('client_id', $client->id)->count())->toBe(1);
+    expect($fiche->fresh()->statut)->toBe('ACTIF');
+    expect($fiche->fresh()->nom)->toBe('Nom de la fiche');
+    Notification::assertSentTo($client->user, PartenariatValideNotification::class);
+});
+
+test('a role without the validation right cannot make a client a partner', function () {
+    Notification::fake();
+    $membre = MembreEquipe::factory()->create(['role' => MembreEquipeRole::CommunicationMarketing]);
+    $client = Client::factory()->create(['type' => 'ENTREPRISE']);
+
+    $this->actingAs($membre, 'admin')
+        ->post(route('espace-admin.clients.partenaire', $client))
+        ->assertForbidden();
+
+    $this->assertDatabaseMissing('entreprises_partenaires', ['client_id' => $client->id]);
+    Notification::assertNothingSent();
+});
+
+test('only an entreprise client can become a recruitment partner', function () {
+    Notification::fake();
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $client = Client::factory()->create(['type' => 'PARTICULIER']);
+
+    $this->actingAs($promotrice, 'admin')
+        ->post(route('espace-admin.clients.partenaire', $client))
+        ->assertUnprocessable();
+
+    $this->assertDatabaseMissing('entreprises_partenaires', ['client_id' => $client->id]);
+    Notification::assertNothingSent();
+});
+
+test('the comptes page shows the partner status and who may make a partner', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $client = clientPartenaireValide();
+
+    $response = $this->actingAs($promotrice, 'admin')->get(route('espace-admin.clients.index'));
+
+    $response->assertInertia(fn ($page) => $page
+        ->where('clients.0.id', $client->id)
+        ->where('clients.0.statutPartenaire', 'ACTIF')
+        ->where('actions.nommerPartenaire', true));
 });

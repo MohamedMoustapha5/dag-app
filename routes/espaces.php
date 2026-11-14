@@ -183,6 +183,7 @@ Route::middleware(['auth:admin', 'auth.session', EnsureMembreActif::class])
         Route::post('demandes/{demande}/devis', [AdminDemandeController::class, 'envoyerDevis'])->name('espace-admin.demandes.devis');
         Route::get('clients', [AdminClientController::class, 'index'])->name('espace-admin.clients.index');
         Route::delete('clients/{client}', [AdminClientController::class, 'destroy'])->name('espace-admin.clients.destroy');
+        Route::post('clients/{client}/partenaire', [AdminClientController::class, 'nommerPartenaire'])->name('espace-admin.clients.partenaire');
         Route::get('formations', [AdminFormationController::class, 'index'])->name('espace-admin.formations.index');
         Route::post('sessions', [AdminFormationController::class, 'storeRapide'])->name('espace-admin.sessions.store-rapide');
         Route::get('formations/{formation}', [AdminFormationController::class, 'show'])->name('espace-admin.formations.show');

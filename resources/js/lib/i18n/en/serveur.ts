@@ -85,4 +85,11 @@ export const serveurEn: Record<string, string> = {
     'Voir et payer le devis': 'View and pay the quote',
     'Voir mes inscriptions': 'View my enrolments',
     'Voir mes séances': 'View my sessions',
+
+    // Recruitment partnership validated by DAG
+    'Votre entreprise est partenaire recrutement de DAG':
+        'Your company is a DAG recruitment partner',
+    "L'équipe DAG a validé votre entreprise comme partenaire recrutement. Vous pouvez maintenant publier vos offres d'emploi et recevoir les candidats que DAG vous transmet.":
+        'The DAG team validated your company as a recruitment partner. You can now publish your job offers and receive the candidates DAG sends you.',
+    'Publier une offre': 'Publish an offer',
 };

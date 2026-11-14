@@ -39,6 +39,13 @@ puis retient ou refuse chaque candidat.
 La page Comptes clients comporte un onglet « Apprenants » listant ceux qui ont créé
 leur compte, avec suppression du compte (les factures et contrats sont conservés).
 
+Sur un compte client de type Entreprise, **« Faire partenaire »** en fait directement un
+partenaire recrutement, sans demande de sa part : sa fiche partenaire est créée active à
+partir du compte (nom, secteur, e-mail, téléphone), ou la fiche existante est réactivée.
+Son espace ouvre aussitôt les offres et les candidatures, et le client reçoit une
+notification. Cette action exige le droit de validation sur « Entreprises et offres » ;
+un badge « Partenaire » signale ensuite le compte.
+
 ## 3. Côté entreprise partenaire
 
 - Création d'offres, suivi des candidatures, consultation du dossier complet d'un

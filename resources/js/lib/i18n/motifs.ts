@@ -219,6 +219,20 @@ export const motifs: [RegExp, Remplacement][] = [
             `Delete the account of “${m[1]}”? Their file, enrolments, applications and certificates will be permanently deleted. Their existing invoices and contracts are kept.`,
     ],
     [
+        /^Faire de « (.+) » un partenaire recrutement \? .*$/,
+        (m) =>
+            `Make “${m[1]}” a recruitment partner? Their area will be able to publish job offers, checked by DAG before going live, and receive the candidates DAG sends them. The client will be informed.`,
+    ],
+    [
+        /^(.+) est maintenant un partenaire validé : ses offres et candidatures sont ouvertes\.$/,
+        (m) =>
+            `${m[1]} is now a validated partner: their job offers and applications are open.`,
+    ],
+    [
+        /^(.+) est maintenant un partenaire validé\.$/,
+        (m) => `${m[1]} is now a validated partner.`,
+    ],
+    [
         /^Supprimer le compte de « (.+) » \? Cette action est définitive\..*$/,
         (m) =>
             `Delete the account of “${m[1]}”? This action is permanent. Their existing requests, contracts and invoices are kept but will no longer be linked to a client account.`,

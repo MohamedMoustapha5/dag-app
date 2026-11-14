@@ -13,6 +13,7 @@ type Client = {
     ville: string | null;
     telephone: string | null;
     statut: string;
+    statutPartenaire: 'EN_ATTENTE' | 'ACTIF' | 'INACTIF' | null;
     demandesCount: number;
     inscritLe: string | null;
 };
@@ -34,6 +35,7 @@ type Props = {
     actions: {
         supprimer: boolean;
         supprimerApprenant: boolean;
+        nommerPartenaire: boolean;
     };
 };
 
@@ -51,6 +53,21 @@ export default function AdminClients({ clients, apprenants, actions }: Props) {
         router.delete(apprenantsAdmin.destroy(apprenant.id).url, {
             preserveScroll: true,
         });
+    };
+
+    const nommerPartenaire = (client: Client) => {
+        if (
+            !confirm(
+                `Faire de « ${client.nom} » un partenaire recrutement ? Son espace pourra publier des offres d'emploi, vérifiées par DAG avant leur mise en ligne, et recevoir les candidats que DAG lui transmet. Le client en sera informé.`,
+            )
+        ) {
+            return;
+        }
+        router.post(
+            clientsAdmin.partenaire(client.id).url,
+            {},
+            { preserveScroll: true },
+        );
     };
 
     const supprimer = (client: Client) => {
@@ -246,6 +263,24 @@ export default function AdminClients({ clients, apprenants, actions }: Props) {
                                         </td>
                                         <td className="muted">
                                             {client.typeLabel}
+                                            {client.statutPartenaire ===
+                                                'ACTIF' && (
+                                                <span
+                                                    className="chip chip-green"
+                                                    style={{ marginLeft: 6 }}
+                                                >
+                                                    Partenaire
+                                                </span>
+                                            )}
+                                            {client.statutPartenaire ===
+                                                'INACTIF' && (
+                                                <span
+                                                    className="chip chip-gray"
+                                                    style={{ marginLeft: 6 }}
+                                                >
+                                                    Partenaire désactivé
+                                                </span>
+                                            )}
                                         </td>
                                         <td className="muted">
                                             {client.ville ?? '—'}
@@ -264,7 +299,31 @@ export default function AdminClients({ clients, apprenants, actions }: Props) {
                                         <td className="muted">
                                             {client.inscritLe ?? '—'}
                                         </td>
-                                        <td style={{ textAlign: 'right' }}>
+                                        <td
+                                            style={{
+                                                textAlign: 'right',
+                                                whiteSpace: 'nowrap',
+                                            }}
+                                        >
+                                            {actions.nommerPartenaire &&
+                                                client.type === 'ENTREPRISE' &&
+                                                client.statutPartenaire !==
+                                                    'ACTIF' && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            nommerPartenaire(
+                                                                client,
+                                                            )
+                                                        }
+                                                        className="link-action"
+                                                        style={{
+                                                            marginRight: 14,
+                                                        }}
+                                                    >
+                                                        Faire partenaire
+                                                    </button>
+                                                )}
                                             {actions.supprimer && (
                                                 <button
                                                     type="button"
