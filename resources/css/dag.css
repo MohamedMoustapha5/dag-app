@@ -42,6 +42,30 @@
     box-sizing: border-box;
     -webkit-tap-highlight-color: transparent;
 }
+
+/* Every scrollable area of the application (notifications, tables, modals,
+   search results, side panels): a thin, rounded, light bar instead of the
+   browser's default one. Areas that hide their bar (sidebar, tabs) keep
+   doing so: their own rules are more specific. */
+.dag,
+.dag * {
+    scrollbar-width: thin;
+    scrollbar-color: #d3d9e5 transparent;
+}
+.dag ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+.dag ::-webkit-scrollbar-track {
+    background: transparent;
+}
+.dag ::-webkit-scrollbar-thumb {
+    background: #d3d9e5;
+    border-radius: 999px;
+}
+.dag ::-webkit-scrollbar-thumb:hover {
+    background: #b6c0d2;
+}
 .dag {
     font-family: 'Plus Jakarta Sans', sans-serif;
     color: var(--dag-text);
@@ -3912,26 +3936,6 @@
 .dag .data-table [class^='btn-'] {
     white-space: nowrap;
 }
-/* The last-resort scroll (very narrow screens) stays thin and discreet
-   instead of the browser's default bar. */
-.dag .data-table-wrap,
-.dag .process-track-card {
-    scrollbar-width: thin;
-    scrollbar-color: #d3d9e5 transparent;
-}
-.dag .data-table-wrap::-webkit-scrollbar,
-.dag .process-track-card::-webkit-scrollbar {
-    height: 6px;
-}
-.dag .data-table-wrap::-webkit-scrollbar-track,
-.dag .process-track-card::-webkit-scrollbar-track {
-    background: transparent;
-}
-.dag .data-table-wrap::-webkit-scrollbar-thumb,
-.dag .process-track-card::-webkit-scrollbar-thumb {
-    background: #d3d9e5;
-    border-radius: 999px;
-}
 .dag .data-table th {
     text-align: left;
     font-size: 11px;
@@ -4810,23 +4814,28 @@
 }
 
 /* Data tables that turn into cards on phones: each cell shows its column
-   name (data-label), so nothing hides behind a horizontal scroll. */
+   name (data-label), so nothing hides behind a horizontal scroll. Tables
+   without their own labels get them from their header row
+   (lib/tableaux-mobiles.ts, data-cartes-auto). */
 @media (max-width: 760px) {
-    .dag .data-table-wrap:has(> .data-table.cartes-mobile) {
+    .dag
+        .data-table-wrap:has(
+            > .data-table:is(.cartes-mobile, [data-cartes-auto])
+        ) {
         overflow: visible;
         background: transparent;
         border: none;
         box-shadow: none;
     }
-    .dag .data-table.cartes-mobile thead {
+    .dag .data-table:is(.cartes-mobile, [data-cartes-auto]) thead {
         display: none;
     }
-    .dag .data-table.cartes-mobile,
-    .dag .data-table.cartes-mobile tbody {
+    .dag .data-table:is(.cartes-mobile, [data-cartes-auto]),
+    .dag .data-table:is(.cartes-mobile, [data-cartes-auto]) tbody {
         display: block;
         white-space: normal;
     }
-    .dag .data-table.cartes-mobile tr {
+    .dag .data-table:is(.cartes-mobile, [data-cartes-auto]) tr {
         display: block;
         margin-bottom: 12px;
         padding: 6px 16px;
@@ -4835,10 +4844,10 @@
         border-radius: var(--dag-radius-sm);
         box-shadow: var(--dag-shadow-sm);
     }
-    .dag .data-table.cartes-mobile tbody tr:hover td {
+    .dag .data-table:is(.cartes-mobile, [data-cartes-auto]) tbody tr:hover td {
         background: transparent;
     }
-    .dag .data-table.cartes-mobile td {
+    .dag .data-table:is(.cartes-mobile, [data-cartes-auto]) td {
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
@@ -4849,10 +4858,10 @@
         white-space: normal;
         overflow-wrap: anywhere;
     }
-    .dag .data-table.cartes-mobile td:last-child {
+    .dag .data-table:is(.cartes-mobile, [data-cartes-auto]) td:last-child {
         border-bottom: none;
     }
-    .dag .data-table.cartes-mobile td::before {
+    .dag .data-table:is(.cartes-mobile, [data-cartes-auto]) td::before {
         content: attr(data-label);
         flex: none;
         max-width: 45%;
@@ -4863,18 +4872,24 @@
         text-transform: uppercase;
         color: var(--dag-text-faint);
     }
-    .dag .data-table.cartes-mobile td[data-label='']::before {
+    .dag
+        .data-table:is(.cartes-mobile, [data-cartes-auto])
+        td[data-label='']::before {
         display: none;
     }
-    .dag .data-table.cartes-mobile td[data-label=''] {
+    .dag .data-table:is(.cartes-mobile, [data-cartes-auto]) td[data-label=''] {
         justify-content: flex-end;
     }
-    .dag .data-table.cartes-mobile td.cellule-titre {
+    .dag
+        .data-table:is(.cartes-mobile, [data-cartes-auto])
+        td:is(.cellule-titre, .cellule-titre-auto) {
         display: block;
         text-align: left;
         font-size: 14.5px;
     }
-    .dag .data-table.cartes-mobile td.cellule-titre::before {
+    .dag
+        .data-table:is(.cartes-mobile, [data-cartes-auto])
+        td:is(.cellule-titre, .cellule-titre-auto)::before {
         display: none;
     }
 }

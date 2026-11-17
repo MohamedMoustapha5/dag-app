@@ -203,7 +203,13 @@ export default function ClocheNotifications({ urlLire, urlToutesLues }: Props) {
                         )}
                     </div>
 
-                    <div style={{ overflowY: 'auto', minHeight: 0 }}>
+                    <div
+                        style={{
+                            overflowY: 'auto',
+                            overscrollBehavior: 'contain',
+                            minHeight: 0,
+                        }}
+                    >
                         {cloche.recentes.length === 0 ? (
                             <p
                                 className="muted"

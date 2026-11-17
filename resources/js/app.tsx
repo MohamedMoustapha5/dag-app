@@ -3,6 +3,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { initializeTheme } from '@/hooks/use-appearance';
 import { installerTraducteur } from '@/lib/i18n/traducteur';
+import { installerTableauxMobiles } from '@/lib/tableaux-mobiles';
 import AppLayout from '@/layouts/app-layout';
 import AuthLayout from '@/layouts/auth-layout';
 import EspaceAdminLayout from '@/layouts/espace-admin-layout';
@@ -60,3 +61,6 @@ initializeTheme();
 
 // English interface when the visitor chose it with the language switcher.
 installerTraducteur();
+
+// Data tables shown as cards on phones, each cell labelled with its column.
+installerTableauxMobiles();

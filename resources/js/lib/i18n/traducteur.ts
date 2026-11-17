@@ -9,7 +9,14 @@ import { traduire } from './traduire';
  * later (navigation, modals, refreshed data).
  */
 
-const ATTRIBUTS = ['placeholder', 'title', 'aria-label', 'alt'] as const;
+// data-label: column names shown in the phone cards of the data tables.
+const ATTRIBUTS = [
+    'placeholder',
+    'title',
+    'aria-label',
+    'alt',
+    'data-label',
+] as const;
 const IGNORES = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEXTAREA', 'CODE']);
 
 const origineTexte = new WeakMap<Node, string>();
