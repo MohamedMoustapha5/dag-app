@@ -22,7 +22,7 @@ const SECTIONS: SectionJuridique[] = [
                     développement web, cybersécurité)
                 </li>
                 <li>
-                    <strong>Siège</strong> : Akwa, Douala, Cameroun
+                    <strong>Siège</strong> : Douala, Cameroun
                 </li>
                 <li>
                     <strong>E-mail</strong> :{' '}

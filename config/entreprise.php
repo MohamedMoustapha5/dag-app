@@ -17,7 +17,7 @@ return [
 
     'activite' => 'Agence digitale',
 
-    'siege' => 'Akwa, Douala, Cameroun',
+    'siege' => 'Douala, Cameroun',
 
     'email' => 'contact@agencydag.com',
 

@@ -10,7 +10,7 @@ const SECTIONS: SectionJuridique[] = [
         contenu: (
             <p>
                 Le responsable du traitement de vos données est DAG — Digital
-                Agency Group, Akwa, Douala, Cameroun (
+                Agency Group, Douala, Cameroun (
                 <a href="mailto:contact@agencydag.com">contact@agencydag.com</a>
                 ). DAG traite vos données dans le respect de la réglementation
                 camerounaise applicable à la protection des données à caractère
