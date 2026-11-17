@@ -1,4 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
+import { CircleCheck } from 'lucide-react';
 import candidatures from '@/routes/espace-client/candidatures';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
 import RepartitionDonut from '@/components/espaces/repartition-donut';
@@ -130,10 +131,10 @@ export default function CandidaturesIndex({
                                                     >
                                                         Voir le dossier
                                                     </Link>
-                                                    {(candidature.statut ===
+                                                    {candidature.statut ===
                                                         'EN_ETUDE' ||
-                                                        candidature.statut ===
-                                                            'DEPOSEE') && (
+                                                    candidature.statut ===
+                                                        'DEPOSEE' ? (
                                                         <div
                                                             style={{
                                                                 display: 'flex',
@@ -175,6 +176,27 @@ export default function CandidaturesIndex({
                                                                 Sélectionner
                                                             </button>
                                                         </div>
+                                                    ) : (
+                                                        <span
+                                                            style={{
+                                                                display:
+                                                                    'inline-flex',
+                                                                alignItems:
+                                                                    'center',
+                                                                gap: 5,
+                                                                fontSize: 12,
+                                                                fontWeight: 500,
+                                                                color: 'var(--dag-text-faint)',
+                                                                whiteSpace:
+                                                                    'nowrap',
+                                                            }}
+                                                        >
+                                                            <CircleCheck
+                                                                size={14}
+                                                                aria-hidden
+                                                            />
+                                                            Décision prise
+                                                        </span>
                                                     )}
                                                 </div>
                                             </td>
