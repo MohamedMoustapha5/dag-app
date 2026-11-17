@@ -25,6 +25,8 @@ type Offre = {
     ville: string | null;
     statut: string;
     candidaturesCount: number;
+    retenuesCount: number;
+    refuseesCount: number;
     postulable: boolean;
     dateLimite: string | null;
     expiree: boolean;
@@ -279,6 +281,41 @@ export default function AdminEntreprises({
                                         </td>
                                         <td className="muted">
                                             {offre.candidaturesCount}
+                                            {(offre.retenuesCount > 0 ||
+                                                offre.refuseesCount > 0) && (
+                                                <p
+                                                    style={{
+                                                        fontSize: 12,
+                                                        marginTop: 2,
+                                                        whiteSpace: 'nowrap',
+                                                    }}
+                                                >
+                                                    {offre.retenuesCount >
+                                                        0 && (
+                                                        <span
+                                                            style={{
+                                                                color: 'var(--dag-green)',
+                                                            }}
+                                                        >
+                                                            {`${offre.retenuesCount} ${offre.retenuesCount > 1 ? 'retenues' : 'retenue'}`}
+                                                        </span>
+                                                    )}
+                                                    {offre.retenuesCount > 0 &&
+                                                        offre.refuseesCount >
+                                                            0 &&
+                                                        ' · '}
+                                                    {offre.refuseesCount >
+                                                        0 && (
+                                                        <span
+                                                            style={{
+                                                                color: 'var(--dag-red)',
+                                                            }}
+                                                        >
+                                                            {`${offre.refuseesCount} ${offre.refuseesCount > 1 ? 'refusées' : 'refusée'}`}
+                                                        </span>
+                                                    )}
+                                                </p>
+                                            )}
                                         </td>
                                         <td>
                                             <span

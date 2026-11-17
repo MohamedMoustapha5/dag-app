@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers\Espaces;
 
+use App\Enums\Action;
+use App\Enums\Donnee;
 use App\Http\Controllers\Controller;
 use App\Models\Candidature;
+use App\Support\Notifications\Notifier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -56,7 +59,32 @@ class ClientCandidatureController extends Controller
 
         $candidature->update($data);
 
+        if ($candidature->wasChanged('statut') && $candidature->deposee_par_id !== null) {
+            $this->alerterEquipeDeLaDecision($candidature);
+        }
+
         return back();
+    }
+
+    /**
+     * A candidature DAG deposited on behalf of a candidate: the team that
+     * placed them learns at once whether the entreprise kept or rejected them.
+     */
+    private function alerterEquipeDeLaDecision(Candidature $candidature): void
+    {
+        $candidature->load(['apprenant.user', 'offre.entreprise']);
+        $nom = $candidature->apprenant->user->name;
+        $entreprise = $candidature->offre->entreprise->nom;
+        $retenue = $candidature->statut === 'RETENUE';
+
+        Notifier::alerterEquipe(
+            Donnee::EntreprisesOffres,
+            Action::Creer,
+            $retenue ? 'candidature.retenue' : 'candidature.refusee',
+            ($retenue ? 'Candidature retenue' : 'Candidature refusée')." — {$nom}",
+            ($retenue ? "{$entreprise} a retenu" : "{$entreprise} a refusé")." la candidature de {$nom} pour l'offre « {$candidature->offre->titre} ».",
+            route('espace-admin.apprenants.show', $candidature->apprenant),
+        );
     }
 
     /**

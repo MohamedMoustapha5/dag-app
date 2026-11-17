@@ -70,6 +70,8 @@ class AdminEntrepriseController extends Controller
                 'ville' => $offre->ville,
                 'statut' => $offre->statut,
                 'candidaturesCount' => $offre->candidatures->count(),
+                'retenuesCount' => $offre->candidatures->whereIn('statut', ['RETENUE', 'PLACEE'])->count(),
+                'refuseesCount' => $offre->candidatures->where('statut', 'REFUSEE')->count(),
                 'postulable' => $this->estPostulable($offre),
                 'dateLimite' => $offre->date_limite?->toDateString(),
                 'expiree' => $offre->statut === 'PUBLIEE' && ! $this->estPostulable($offre),

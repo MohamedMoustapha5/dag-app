@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\MembreEquipeRole;
 use App\Models\Apprenant;
 use App\Models\Candidature;
 use App\Models\Client;
@@ -8,6 +9,8 @@ use App\Models\EntreprisePartenaire;
 use App\Models\Facture;
 use App\Models\MembreEquipe;
 use App\Models\OffreEmploi;
+use App\Notifications\AlerteEquipeNotification;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 
 test('an entreprise client without a validated partner link cannot reach the recruitment routes', function () {
@@ -230,4 +233,56 @@ test('an entreprise cannot reopen a candidature DAG has recorded as a placement'
         ->assertStatus(409);
 
     expect($candidature->fresh()->statut)->toBe('PLACEE');
+});
+
+test('the team that can apply is alerted when the entreprise decides on a candidature DAG deposited', function (string $statut, string $evenement, string $titre, string $message) {
+    Notification::fake();
+    $client = clientPartenaireValide();
+    $offre = OffreEmploi::factory()->create(['entreprise_id' => $client->entreprisePartenaire->id, 'titre' => 'Développeur web']);
+    $deposant = MembreEquipe::factory()->promotrice()->create();
+    $marketing = MembreEquipe::factory()->create(['role' => MembreEquipeRole::CommunicationMarketing]);
+    $juriste = MembreEquipe::factory()->juriste()->create();
+    $apprenant = Apprenant::factory()->create();
+    $apprenant->user->update(['name' => 'Awa Diallo']);
+    $candidature = Candidature::factory()->create([
+        'offre_id' => $offre->id,
+        'apprenant_id' => $apprenant->id,
+        'statut' => 'DEPOSEE',
+        'deposee_par_id' => $deposant->id,
+    ]);
+    $entreprise = $client->entreprisePartenaire->nom;
+
+    $this->actingAs($client->user)
+        ->patch(route('espace-client.candidatures.update', $candidature), ['statut' => $statut])
+        ->assertRedirect();
+
+    foreach ([$deposant, $marketing] as $membre) {
+        Notification::assertSentTo($membre, AlerteEquipeNotification::class, fn (AlerteEquipeNotification $alerte) => $alerte->evenement() === $evenement
+            && $alerte->titre() === $titre
+            && $alerte->message() === sprintf($message, $entreprise)
+            && $alerte->url($membre) === route('espace-admin.apprenants.show', $apprenant));
+    }
+    Notification::assertNotSentTo($juriste, AlerteEquipeNotification::class);
+})->with([
+    'selected' => ['RETENUE', 'candidature.retenue', 'Candidature retenue — Awa Diallo', "%s a retenu la candidature de Awa Diallo pour l'offre « Développeur web »."],
+    'rejected' => ['REFUSEE', 'candidature.refusee', 'Candidature refusée — Awa Diallo', "%s a refusé la candidature de Awa Diallo pour l'offre « Développeur web »."],
+]);
+
+test('no team alert for a candidature DAG did not deposit, nor when the decision does not change', function () {
+    Notification::fake();
+    $client = clientPartenaireValide();
+    $offre = OffreEmploi::factory()->create(['entreprise_id' => $client->entreprisePartenaire->id]);
+    MembreEquipe::factory()->promotrice()->create();
+    $sansDag = Candidature::factory()->create(['offre_id' => $offre->id, 'statut' => 'EN_ETUDE', 'deposee_par_id' => null]);
+    $dejaRetenue = Candidature::factory()->create([
+        'offre_id' => $offre->id,
+        'statut' => 'RETENUE',
+        'deposee_par_id' => MembreEquipe::factory()->promotrice()->create()->id,
+    ]);
+
+    $this->actingAs($client->user)->patch(route('espace-client.candidatures.update', $sansDag), ['statut' => 'RETENUE']);
+    $this->actingAs($client->user)->patch(route('espace-client.candidatures.update', $dejaRetenue), ['statut' => 'RETENUE']);
+
+    expect($sansDag->fresh()->statut)->toBe('RETENUE');
+    Notification::assertNothingSent();
 });

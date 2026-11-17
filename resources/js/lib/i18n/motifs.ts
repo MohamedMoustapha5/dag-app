@@ -218,6 +218,21 @@ export const motifs: [RegExp, Remplacement][] = [
         (m) =>
             `Delete the account of “${m[1]}”? Their file, enrolments, applications and certificates will be permanently deleted. Their existing invoices and contracts are kept.`,
     ],
+    // Results of the candidatures on a job offer, and the team alert
+    [/^(\d+) retenues?$/, (m) => `${m[1]} selected`],
+    [/^(\d+) refusées?$/, (m) => `${m[1]} rejected`],
+    [/^Candidature retenue — (.+)$/, (m) => `Application selected — ${m[1]}`],
+    [/^Candidature refusée — (.+)$/, (m) => `Application rejected — ${m[1]}`],
+    [
+        /^(.+) a retenu la candidature de (.+) pour l'offre « (.+) »\.$/,
+        (m) =>
+            `${m[1]} selected the application of ${m[2]} for the offer “${m[3]}”.`,
+    ],
+    [
+        /^(.+) a refusé la candidature de (.+) pour l'offre « (.+) »\.$/,
+        (m) =>
+            `${m[1]} rejected the application of ${m[2]} for the offer “${m[3]}”.`,
+    ],
     [
         /^Faire de « (.+) » un partenaire recrutement \? .*$/,
         (m) =>
