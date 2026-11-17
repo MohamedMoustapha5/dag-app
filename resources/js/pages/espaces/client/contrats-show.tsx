@@ -352,7 +352,7 @@ export default function ContratsShow({
                                 gap: 8,
                                 minHeight: 140,
                                 marginTop: 6,
-                                border: '2px dashed var(--dag-border)',
+                                border: `2px dashed ${form.errors.signature ? 'var(--dag-red)' : 'var(--dag-border)'}`,
                                 borderRadius: 14,
                                 background: '#f7f9fe',
                                 cursor: 'pointer',
@@ -381,12 +381,13 @@ export default function ContratsShow({
                             type="file"
                             accept="image/png,image/jpeg"
                             style={{ display: 'none' }}
-                            onChange={(event) =>
+                            onChange={(event) => {
                                 form.setData(
                                     'signature',
                                     event.target.files?.[0] ?? null,
-                                )
-                            }
+                                );
+                                form.clearErrors('signature');
+                            }}
                         />
                         {form.errors.signature && (
                             <p
@@ -438,9 +439,10 @@ export default function ContratsShow({
                         <input
                             type="checkbox"
                             checked={form.data.accepte}
-                            onChange={(event) =>
-                                form.setData('accepte', event.target.checked)
-                            }
+                            onChange={(event) => {
+                                form.setData('accepte', event.target.checked);
+                                form.clearErrors('accepte');
+                            }}
                             style={{ marginTop: 3 }}
                         />
                         J'ai lu le contrat ci-dessus et j'accepte ses termes.
@@ -455,11 +457,7 @@ export default function ContratsShow({
                         <button
                             type="submit"
                             className="btn-primary"
-                            disabled={
-                                form.processing ||
-                                form.data.signature === null ||
-                                !form.data.accepte
-                            }
+                            disabled={form.processing}
                         >
                             {form.processing ? 'Envoi…' : 'Signer le contrat'}
                         </button>

@@ -356,6 +356,12 @@ export const espacesEn: Record<string, string> = {
     'Nom complet du signataire': 'Full name of the signatory',
     "J'ai lu le contrat ci-dessus et j'accepte ses termes.":
         'I have read the contract above and accept its terms.',
+    'Importez une image de votre signature.':
+        'Upload an image of your signature.',
+    'La signature doit être une image (PNG ou JPG).':
+        'The signature must be an image (PNG or JPG).',
+    'Vous devez accepter les termes du contrat pour le signer.':
+        'You must accept the terms of the contract to sign it.',
     "Ce contrat n'est pas ouvert à la signature.":
         'This contract is not open for signature.',
 

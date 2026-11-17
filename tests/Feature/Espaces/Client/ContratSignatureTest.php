@@ -82,14 +82,14 @@ test('signing requires an image, the accepted terms and a contrat open to signat
 
     $this->actingAs($client->user)
         ->post(route('espace-client.contrats.signer', $contrat), ['nom' => 'Aïcha', 'accepte' => true])
-        ->assertSessionHasErrors('signature');
+        ->assertSessionHasErrors(['signature' => 'Importez une image de votre signature.']);
 
     $this->actingAs($client->user)
         ->post(route('espace-client.contrats.signer', $contrat), [
             'signature' => UploadedFile::fake()->image('s.png'),
             'nom' => 'Aïcha',
         ])
-        ->assertSessionHasErrors('accepte');
+        ->assertSessionHasErrors(['accepte' => 'Vous devez accepter les termes du contrat pour le signer.']);
 
     expect($contrat->fresh()->statut)->toBe('ENVOYE');
 
