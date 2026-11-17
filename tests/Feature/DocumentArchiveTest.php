@@ -151,3 +151,18 @@ test('the archiver rebuilds the PDF of signed contracts with the current layout 
     expect($contrat->contenu)->toBe("1. Objet\nTexte signé.");
     expect(Storage::disk('local')->get($contrat->fichier_pdf))->toStartWith('%PDF');
 });
+
+test('the archiver rebuilds the PDF of paid factures with the current layout only when asked', function () {
+    $facture = Facture::factory()->payee()->create();
+    $chemin = $facture->fresh()->fichier_pdf;
+    Storage::disk('local')->put($chemin, 'ANCIENNE MISE EN PAGE');
+
+    $this->artisan('documents:archiver')->assertSuccessful();
+    expect(Storage::disk('local')->get($chemin))->toBe('ANCIENNE MISE EN PAGE');
+
+    $this->artisan('documents:archiver', ['--factures' => true])
+        ->expectsOutputToContain('1 facture(s) payée(s) reconstruite(s)')
+        ->assertSuccessful();
+
+    expect(Storage::disk('local')->get($facture->fresh()->fichier_pdf))->toStartWith('%PDF');
+});

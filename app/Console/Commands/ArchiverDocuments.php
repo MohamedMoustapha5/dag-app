@@ -17,9 +17,12 @@ use Illuminate\Console\Command;
  *
  * With --contrats, the PDF of the contracts already signed is rebuilt too,
  * with the current layout: the signed content (text, signature, date, IP,
- * verification code) is unchanged, only its layout is.
+ * verification code) is unchanged, only its layout is. With --factures, the
+ * PDF of the paid factures already stored is rebuilt the same way.
  */
-#[Signature('documents:archiver {--contrats : Reconstruit aussi le PDF des contrats déjà signés avec la mise en page actuelle}')]
+#[Signature('documents:archiver
+    {--contrats : Reconstruit aussi le PDF des contrats déjà signés avec la mise en page actuelle}
+    {--factures : Reconstruit aussi le PDF des factures déjà payées avec la mise en page actuelle}')]
 #[Description('Construit et stocke le PDF des contrats, factures et attestations qui n\'en ont pas encore')]
 class ArchiverDocuments extends Command
 {
@@ -38,6 +41,17 @@ class ArchiverDocuments extends Command
             }
 
             $this->info("{$reconstruits} contrat(s) signé(s) reconstruit(s) avec la mise en page actuelle.");
+        }
+
+        if ($this->option('factures')) {
+            $reconstruites = 0;
+
+            foreach (Facture::query()->whereNotNull('fichier_pdf')->where('statut', 'PAYEE')->lazyById() as $facture) {
+                ConstruireDocumentPdf::dispatchSync($facture, true);
+                $reconstruites++;
+            }
+
+            $this->info("{$reconstruites} facture(s) payée(s) reconstruite(s) avec la mise en page actuelle.");
         }
 
         $documents = [
