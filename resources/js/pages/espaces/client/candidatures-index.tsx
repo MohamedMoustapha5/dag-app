@@ -55,7 +55,7 @@ export default function CandidaturesIndex({
                         </p>
                     ) : (
                         <div className="data-table-wrap">
-                            <table className="data-table">
+                            <table className="data-table cartes-mobile">
                                 <thead>
                                     <tr>
                                         <th>Apprenant</th>
@@ -68,29 +68,39 @@ export default function CandidaturesIndex({
                                 <tbody>
                                     {candidaturesList.map((candidature) => (
                                         <tr key={candidature.id}>
-                                            <td style={{ fontWeight: 600 }}>
+                                            <td
+                                                className="cellule-titre"
+                                                style={{ fontWeight: 600 }}
+                                            >
                                                 {candidature.apprenantNom}
                                                 {candidature.deposeeParDag && (
                                                     <span
-                                                        className="muted"
+                                                        className="chip chip-blue"
                                                         style={{
-                                                            display: 'block',
-                                                            fontSize: 11.5,
-                                                            fontWeight: 500,
+                                                            display: 'table',
+                                                            marginTop: 6,
+                                                            fontSize: 11,
+                                                            fontWeight: 600,
                                                         }}
                                                     >
                                                         Dossier transmis par DAG
                                                     </span>
                                                 )}
                                             </td>
-                                            <td className="muted">
+                                            <td
+                                                className="muted"
+                                                data-label="Offre"
+                                            >
                                                 {candidature.offreTitre}
                                             </td>
-                                            <td className="muted">
+                                            <td
+                                                className="muted"
+                                                data-label="Formation suivie"
+                                            >
                                                 {candidature.formationSuivie ??
                                                     '—'}
                                             </td>
-                                            <td>
+                                            <td data-label="Statut">
                                                 <span
                                                     className={`chip ${STATUT_CHIP[candidature.statut] ?? 'chip-gray'}`}
                                                 >
@@ -99,14 +109,17 @@ export default function CandidaturesIndex({
                                                     ] ?? candidature.statut}
                                                 </span>
                                             </td>
-                                            <td style={{ textAlign: 'right' }}>
+                                            <td
+                                                className="cellule-actions"
+                                                data-label=""
+                                                style={{ textAlign: 'right' }}
+                                            >
                                                 <div
                                                     style={{
                                                         display: 'flex',
-                                                        gap: 10,
-                                                        justifyContent:
-                                                            'flex-end',
-                                                        alignItems: 'center',
+                                                        flexDirection: 'column',
+                                                        gap: 8,
+                                                        alignItems: 'flex-end',
                                                     }}
                                                 >
                                                     <Link
@@ -117,11 +130,18 @@ export default function CandidaturesIndex({
                                                     >
                                                         Voir le dossier
                                                     </Link>
-                                                    {candidature.statut ===
+                                                    {(candidature.statut ===
                                                         'EN_ETUDE' ||
-                                                    candidature.statut ===
-                                                        'DEPOSEE' ? (
-                                                        <>
+                                                        candidature.statut ===
+                                                            'DEPOSEE') && (
+                                                        <div
+                                                            style={{
+                                                                display: 'flex',
+                                                                gap: 12,
+                                                                alignItems:
+                                                                    'center',
+                                                            }}
+                                                        >
                                                             <button
                                                                 type="button"
                                                                 className="link-action"
@@ -154,16 +174,7 @@ export default function CandidaturesIndex({
                                                             >
                                                                 Sélectionner
                                                             </button>
-                                                        </>
-                                                    ) : (
-                                                        <span
-                                                            className="muted"
-                                                            style={{
-                                                                fontSize: 12.5,
-                                                            }}
-                                                        >
-                                                            Décision prise
-                                                        </span>
+                                                        </div>
                                                     )}
                                                 </div>
                                             </td>

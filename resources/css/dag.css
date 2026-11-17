@@ -3899,10 +3899,38 @@
     box-shadow: var(--dag-shadow-sm);
     overflow-x: auto;
 }
+/* Tables fit their card: long texts wrap instead of pushing the table into
+   a horizontal scroll. Headers, status chips and buttons stay on one line. */
 .dag .data-table {
     width: 100%;
     border-collapse: collapse;
+    white-space: normal;
+}
+.dag .data-table th,
+.dag .data-table .chip,
+.dag .data-table .link-action,
+.dag .data-table [class^='btn-'] {
     white-space: nowrap;
+}
+/* The last-resort scroll (very narrow screens) stays thin and discreet
+   instead of the browser's default bar. */
+.dag .data-table-wrap,
+.dag .process-track-card {
+    scrollbar-width: thin;
+    scrollbar-color: #d3d9e5 transparent;
+}
+.dag .data-table-wrap::-webkit-scrollbar,
+.dag .process-track-card::-webkit-scrollbar {
+    height: 6px;
+}
+.dag .data-table-wrap::-webkit-scrollbar-track,
+.dag .process-track-card::-webkit-scrollbar-track {
+    background: transparent;
+}
+.dag .data-table-wrap::-webkit-scrollbar-thumb,
+.dag .process-track-card::-webkit-scrollbar-thumb {
+    background: #d3d9e5;
+    border-radius: 999px;
 }
 .dag .data-table th {
     text-align: left;
