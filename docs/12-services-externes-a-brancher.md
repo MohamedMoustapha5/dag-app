@@ -14,7 +14,7 @@ certains services, un petit adaptateur.
 
 | Service                                | État du code          | Ce qui manque                                                                | Priorité      |
 | -------------------------------------- | --------------------- | ---------------------------------------------------------------------------- | ------------- |
-| E-mail professionnel                   | Prêt, actif           | Un serveur d'envoi (SMTP) et la configuration du domaine                     | Indispensable |
+| E-mail professionnel                   | Branché sur Brevo     | La clé API Brevo et l'authentification du domaine (SPF, DKIM)                | Indispensable |
 | Adresses réelles de l'équipe           | Prêt                  | La liste des adresses à enregistrer                                          | Indispensable |
 | Paiement Orange Money, MTN MoMo, carte | Prêt, en simulation   | Un compte prestataire et ses clés API, un adaptateur                         | Indispensable |
 | SMS                                    | Canal prêt, désactivé | Un fournisseur, un nom d'expéditeur validé, un adaptateur                    | Plus tard     |
@@ -33,7 +33,32 @@ certains services, un petit adaptateur.
   **SPF**, **DKIM** et **DMARC**. Sans eux, une grande partie des e-mails arrive en courrier
   indésirable ou est refusée.
 
-### Configuration (fichier `.env` du serveur)
+### Configuration avec Brevo (branché)
+
+Les e-mails partent par l'API transactionnelle de Brevo
+(`App\Support\Messagerie\BrevoTransport`) : notifications, vérification d'adresse,
+mot de passe oublié, alertes de l'équipe.
+
+1. Dans Brevo : **Expéditeurs, domaines et IP dédiées > Domaines**, ajouter le domaine
+   de `MAIL_FROM_ADDRESS` et publier dans le DNS les enregistrements SPF, DKIM et DMARC
+   que Brevo indique, jusqu'à ce que le domaine soit « authentifié ».
+2. Dans Brevo : **SMTP & API > Clés API**, créer une clé (elle n'est affichée qu'une fois).
+3. Dans le `.env` du serveur :
+
+```
+MAIL_MAILER=brevo
+BREVO_API_KEY=<clé API Brevo>
+MAIL_FROM_ADDRESS="contact@agencydag.com"
+MAIL_FROM_NAME="DAG — Digital Agency Group"
+APP_URL=https://<domaine public de la plateforme>
+NOTIFICATIONS_QUEUE=database
+```
+
+La clé ne doit jamais être committée ni envoyée par message. Un e-mail que Brevo refuse
+(clé invalide, expéditeur non validé, quota) n'interrompt pas l'action en cours : l'erreur,
+avec la raison donnée par Brevo, est écrite dans `storage/logs/laravel.log`.
+
+### Autre serveur SMTP
 
 ```
 MAIL_MAILER=smtp
@@ -41,10 +66,6 @@ MAIL_HOST=<hôte SMTP>
 MAIL_PORT=<587 ou 465>
 MAIL_USERNAME=<identifiant>
 MAIL_PASSWORD=<mot de passe>
-MAIL_FROM_ADDRESS="contact@agencydag.com"
-MAIL_FROM_NAME="DAG — Digital Agency Group"
-APP_URL=https://<domaine public de la plateforme>
-NOTIFICATIONS_QUEUE=database
 ```
 
 - `APP_URL` doit être l'adresse publique en HTTPS : les liens des e-mails (payer, signer un

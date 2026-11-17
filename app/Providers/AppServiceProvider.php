@@ -3,11 +3,13 @@
 namespace App\Providers;
 
 use App\Listeners\JournaliserNotification;
+use App\Support\Messagerie\BrevoTransport;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Notifications\Events\NotificationFailed;
 use Illuminate\Notifications\Events\NotificationSent;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
@@ -29,6 +31,8 @@ class AppServiceProvider extends ServiceProvider
         Password::defaults(fn (): ?Password => $this->app->isProduction()
             ? Password::min(10)->letters()->mixedCase()->numbers()
             : null);
+
+        Mail::extend('brevo', fn (): BrevoTransport => new BrevoTransport(config('services.brevo.key')));
 
         Event::listen(NotificationSent::class, [JournaliserNotification::class, 'quandEnvoyee']);
         Event::listen(NotificationFailed::class, [JournaliserNotification::class, 'quandEchouee']);
