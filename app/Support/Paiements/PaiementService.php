@@ -128,8 +128,14 @@ class PaiementService
     public function moyens(): array
     {
         $moyens = [];
+        $acceptes = config('paiements.moyens_acceptes.'.config('paiements.passerelle'));
 
         foreach (config('paiements.moyens') as $valeur => $moyen) {
+            // The active provider may not take every method (Fapshi: no card).
+            if (is_array($acceptes) && ! in_array($valeur, $acceptes, true)) {
+                continue;
+            }
+
             $moyens[] = ['value' => $valeur, 'label' => $moyen['label'], 'mobile' => $moyen['mobile']];
         }
 

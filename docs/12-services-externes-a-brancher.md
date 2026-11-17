@@ -92,6 +92,28 @@ comptes sont mis à jour en une opération, ou la modification d'adresse est ajo
 
 Voir `docs/06-phase-5-paiement-facturation.md`, section « Brancher un prestataire réel ».
 
+### Fapshi (branché : Orange Money et MTN MoMo)
+
+`App\Support\Paiements\FapshiPasserelle`, activé par `PAIEMENT_PASSERELLE=fapshi`.
+Fapshi n'encaisse que le mobile money : avec cette passerelle, l'option « Carte
+bancaire » n'est pas proposée au payeur (et refusée par le serveur).
+
+- **Identifiants** : `FAPSHI_API_USER` et `FAPSHI_API_KEY` du service créé sur le
+  tableau de bord Fapshi. Ceux de test vont avec `FAPSHI_URL=https://sandbox.fapshi.com`,
+  ceux de production avec `https://live.fapshi.com`.
+- **Parcours** : par défaut, le payeur est envoyé sur la page de paiement Fapshi puis
+  revient sur `/paiements/retour/…`, où le statut est relu chez Fapshi. Avec
+  `FAPSHI_PAIEMENT_DIRECT=true`, la demande arrive directement sur son téléphone ; en
+  production, Fapshi doit d'abord activer ce paiement direct.
+- **Webhook** : sur le tableau de bord Fapshi, URL `https://<domaine>/webhooks/paiements`
+  et un secret ; la même valeur va dans `FAPSHI_WEBHOOK_SECRET`. Fapshi l'envoie dans
+  l'en-tête `x-wh-secret` et ne réessaie pas : le retour du payeur relit aussi le statut.
+- **Numéros de test (sandbox)** : succès MTN `670000000`, Orange `690000000` ; échec
+  MTN `670000001`, Orange `690000001`.
+- **Frais** : 3 % par transaction ; montant minimum 100 FCFA.
+- Les retraits (décaissements) ne passent pas par Fapshi : chez Fapshi, ils demandent un
+  service séparé, à brancher plus tard.
+
 ### À fournir
 
 - Un compte marchand chez le prestataire choisi : une passerelle unique couvrant Orange Money,

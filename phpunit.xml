@@ -30,6 +30,12 @@
         <env name="DB_URL" value=""/>
         <env name="INERTIA_SSR_ENABLED" value="false"/>
         <env name="MAIL_MAILER" value="array"/>
+        <env name="BREVO_API_KEY" value=""/>
+        <env name="PAIEMENT_PASSERELLE" value="simulation"/>
+        <env name="FAPSHI_API_USER" value=""/>
+        <env name="FAPSHI_API_KEY" value=""/>
+        <env name="FAPSHI_WEBHOOK_SECRET" value=""/>
+        <env name="MONEROO_SECRET_KEY" value=""/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="PULSE_ENABLED" value="false"/>

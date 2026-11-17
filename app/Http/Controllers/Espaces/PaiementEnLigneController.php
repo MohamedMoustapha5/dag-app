@@ -32,7 +32,7 @@ class PaiementEnLigneController extends Controller
         $moyens = config('paiements.moyens');
 
         $data = $request->validate([
-            'moyen' => ['required', Rule::in(array_keys($moyens))],
+            'moyen' => ['required', Rule::in(array_column($this->paiements->moyens(), 'value'))],
             'telephone' => ['nullable', 'string', 'max:30'],
         ]);
 

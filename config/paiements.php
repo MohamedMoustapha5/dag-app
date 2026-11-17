@@ -1,5 +1,6 @@
 <?php
 
+use App\Support\Paiements\FapshiPasserelle;
 use App\Support\Paiements\MonerooPasserelle;
 use App\Support\Paiements\SimulationPasserelle;
 
@@ -24,6 +25,15 @@ return [
     'passerelles' => [
         'simulation' => SimulationPasserelle::class,
         'moneroo' => MonerooPasserelle::class,
+        'fapshi' => FapshiPasserelle::class,
+    ],
+
+    /*
+    | Moyens proposés selon la passerelle active (tous par défaut). Fapshi
+    | n'encaisse que le mobile money : la carte n'est pas proposée.
+    */
+    'moyens_acceptes' => [
+        'fapshi' => ['OM', 'MTN_MOMO'],
     ],
 
     /*
@@ -62,6 +72,29 @@ return [
         'methodes_decaissement' => [
             'OM' => 'orange_cm',
             'MTN_MOMO' => 'mtn_cm',
+        ],
+    ],
+
+    /*
+    | Fapshi (https://docs.fapshi.com) : Orange Money et MTN MoMo, en XAF,
+    | 100 FCFA minimum. URL de test https://sandbox.fapshi.com, de
+    | production https://live.fapshi.com, chacune avec ses propres
+    | identifiants (apiuser / apikey). Le webhook est authentifié par
+    | l'en-tête x-wh-secret, égal au secret saisi sur le tableau de bord
+    | Fapshi. Paiement direct (demande envoyée sur le téléphone, sans page
+    | Fapshi) : à activer chez Fapshi pour la production avant de le
+    | mettre à true ; sinon le payeur passe par la page de paiement Fapshi.
+    */
+    'fapshi' => [
+        'url' => env('FAPSHI_URL', 'https://sandbox.fapshi.com'),
+        'api_user' => env('FAPSHI_API_USER'),
+        'api_key' => env('FAPSHI_API_KEY'),
+        'webhook_secret' => env('FAPSHI_WEBHOOK_SECRET', env('PAIEMENT_WEBHOOK_SECRET')),
+        'paiement_direct' => (bool) env('FAPSHI_PAIEMENT_DIRECT', false),
+        'timeout' => 15,
+        'mediums' => [
+            'OM' => 'orange money',
+            'MTN_MOMO' => 'mobile money',
         ],
     ],
 
