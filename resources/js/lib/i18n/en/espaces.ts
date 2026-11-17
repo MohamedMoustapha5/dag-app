@@ -435,6 +435,23 @@ export const espacesEn: Record<string, string> = {
         'Discover our plans for ongoing support.',
     'Voir les formules': 'See the plans',
 
+    // Card payment
+    'Cartes acceptées': 'Accepted cards',
+    'Vous êtes redirigé vers la page de paiement sécurisée de notre prestataire.':
+        'You are redirected to the secure payment page of our provider.',
+    'Vous saisissez le numéro de votre carte, sa date d’expiration et son code de sécurité (CVV).':
+        'You enter your card number, its expiry date and its security code (CVV).',
+    'Votre banque vous demande de confirmer le paiement (code reçu par SMS ou validation dans son application).':
+        'Your bank asks you to confirm the payment (code received by SMS or approval in its app).',
+    'Vous revenez automatiquement sur votre espace DAG : votre facture est mise à jour.':
+        'You come back automatically to your DAG area: your invoice is updated.',
+    'Les informations de votre carte sont saisies uniquement chez le prestataire de paiement : DAG n’y a jamais accès.':
+        'Your card details are entered only at the payment provider: DAG never has access to them.',
+    'Continuer vers le paiement sécurisé': 'Continue to secure payment',
+    'Carte de test': 'Test card',
+    'Sur la vraie page du prestataire, le client saisit ici sa carte puis confirme le paiement avec sa banque (code par SMS ou validation dans son application).':
+        'On the real provider page, the customer enters their card here, then confirms the payment with their bank (code by SMS or approval in its app).',
+
     // Access & collaborators (Entreprise / Organisation accounts)
     'Accès & collaborateurs': 'Access & collaborators',
     'Titulaire du compte': 'Account holder',
