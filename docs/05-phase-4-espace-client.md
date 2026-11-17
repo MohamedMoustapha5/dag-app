@@ -277,7 +277,32 @@ explicitement ce dossier sort du périmètre configuré du projet et déclenche
 de faux positifs (`$this` dans les closures `test()` mal résolu) sans
 rapport avec le code — seule la suite Pest valide ces fichiers.
 
-## 8. Hors périmètre (volontairement)
+## 8. Accès & collaborateurs (Entreprise et Organisation)
+
+Le titulaire d'un compte Entreprise ou Organisation donne accès à son espace aux
+personnes qui le gèrent avec lui (menu « Accès & collaborateurs »,
+`/espace-client/acces`).
+
+- **Invitation** : nom et adresse e-mail du collègue. Un compte lui est créé
+  (`client_collaborateurs` relie ce compte au client) et il reçoit un e-mail avec un
+  lien signé, valable 7 jours et utilisable une fois, pour choisir son mot de passe.
+  Ce lien vaut vérification de l'adresse. Une adresse qui a déjà un compte DAG ne
+  peut pas être invitée. Une invitation en attente peut être renvoyée.
+- **Droits** : le collaborateur fait tout ce que fait le titulaire (demandes, devis,
+  paiements, signature des contrats, offres et candidatures, documents, support),
+  sauf gérer les accès. Techniquement, `$user->client` renvoie le client du
+  titulaire pour un collaborateur, donc toutes les pages et contrôles d'accès de
+  l'espace client s'appliquent sans changement.
+- **Notifications** : tout ce qui est envoyé au titulaire par `Notifier::envoyer`
+  part aussi à ses collaborateurs actifs.
+- **Paramètres** : un collaborateur modifie son nom et son e-mail, jamais le nom ni
+  le téléphone du client.
+- **Retrait** : le titulaire retire un accès à tout moment ; le compte du collègue
+  est fermé (il est déconnecté partout), les demandes, contrats et factures restent.
+  Un collaborateur qui ferme son compte ne ferme que son accès ; la fermeture du
+  compte du client ferme aussi les accès qu'il a donnés.
+
+## 9. Hors périmètre (volontairement)
 
 - Paiement d'une demande ou d'une facture (devis → paiement en ligne) :
   phase 5.

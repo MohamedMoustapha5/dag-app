@@ -39,6 +39,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property-read Collection<int, Membership> $teamMemberships
  * @property-read Collection<int, Team> $teams
  * @property-read Client|null $client
+ * @property-read ClientCollaborateur|null $collaboration
  * @property-read Apprenant|null $apprenant
  */
 #[Fillable(['name', 'email', 'password', 'current_team_id', 'type', 'locale', 'notif_devis', 'notif_facture', 'notif_offres', 'notif_seances', 'notif_candidatures', 'notif_newsletter'])]
@@ -83,10 +84,44 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         ];
     }
 
-    /** @return HasOne<Client, $this> */
+    /**
+     * The client account this user holds. Read `$user->client` to get the
+     * client the user works in, which also covers collaborators.
+     *
+     * @return HasOne<Client, $this>
+     */
     public function client(): HasOne
     {
         return $this->hasOne(Client::class);
+    }
+
+    /**
+     * The access an Entreprise or Organisation client gave this user to its
+     * espace, when this account exists for that.
+     *
+     * @return HasOne<ClientCollaborateur, $this>
+     */
+    public function collaboration(): HasOne
+    {
+        return $this->hasOne(ClientCollaborateur::class);
+    }
+
+    /**
+     * The client this user works in: the one they hold, or the one that let
+     * them into its espace. Every espace-client page reads this, so a
+     * collaborator sees and manages the same client as the account holder.
+     */
+    public function getClientAttribute(): ?Client
+    {
+        return $this->getRelationValue('client')
+            ?? $this->getRelationValue('collaboration')?->client;
+    }
+
+    /** Whether this account was let into another client's espace. */
+    public function estCollaborateur(): bool
+    {
+        return $this->getRelationValue('client') === null
+            && $this->getRelationValue('collaboration') !== null;
     }
 
     /** @return HasOne<Apprenant, $this> */

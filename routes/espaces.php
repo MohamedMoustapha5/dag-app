@@ -31,6 +31,7 @@ use App\Http\Controllers\Espaces\ApprenantProfilController;
 use App\Http\Controllers\Espaces\ApprenantProgressionController;
 use App\Http\Controllers\Espaces\ClientAbonnementController;
 use App\Http\Controllers\Espaces\ClientCandidatureController;
+use App\Http\Controllers\Espaces\ClientCollaborateurController;
 use App\Http\Controllers\Espaces\ClientContratController;
 use App\Http\Controllers\Espaces\ClientDashboardController;
 use App\Http\Controllers\Espaces\ClientDemandeController;
@@ -45,6 +46,7 @@ use App\Http\Controllers\Espaces\ClientServiceController;
 use App\Http\Controllers\Espaces\NotificationCentreController;
 use App\Http\Controllers\Espaces\PaiementEnLigneController;
 use App\Http\Controllers\Espaces\SupportController;
+use App\Http\Controllers\InvitationCollaborateurController;
 use App\Http\Controllers\PaiementWebhookController;
 use App\Http\Middleware\EnsureMembreActif;
 use App\Http\Middleware\EnsurePartenaireValide;
@@ -94,6 +96,10 @@ Route::middleware(['auth', 'auth.session', 'verified', EnsureUserType::class.':C
         Route::get('parametres', [ClientParametreController::class, 'edit'])->name('espace-client.parametres');
         Route::patch('parametres', [ClientParametreController::class, 'update'])->name('espace-client.parametres.update');
         Route::patch('parametres/notifications', [ClientParametreController::class, 'updateNotifications'])->name('espace-client.parametres.notifications');
+        Route::get('acces', [ClientCollaborateurController::class, 'index'])->name('espace-client.collaborateurs.index');
+        Route::post('acces', [ClientCollaborateurController::class, 'store'])->middleware('throttle:10,1')->name('espace-client.collaborateurs.store');
+        Route::post('acces/{collaborateur}/renvoyer', [ClientCollaborateurController::class, 'renvoyer'])->middleware('throttle:6,1')->name('espace-client.collaborateurs.renvoyer');
+        Route::delete('acces/{collaborateur}', [ClientCollaborateurController::class, 'destroy'])->name('espace-client.collaborateurs.destroy');
         Route::get('paiements', ClientPaiementController::class)->name('espace-client.paiements');
         Route::get('support', [SupportController::class, 'index'])->name('espace-client.support.index');
         Route::post('support', [SupportController::class, 'store'])->middleware('throttle:10,1')->name('espace-client.support.store');
@@ -260,3 +266,13 @@ Route::middleware(['auth', 'verified'])->prefix('paiements')->group(function () 
 });
 
 Route::post('webhooks/paiements', PaiementWebhookController::class)->name('paiements.webhook');
+
+/*
+| A colleague invited into the espace of an Entreprise or Organisation
+| chooses their password here. The link is signed (relative, so it works on
+| any address of the platform), valid 7 days and used once.
+*/
+Route::middleware('signed:relative')->group(function () {
+    Route::get('invitation-entreprise/{collaborateur}', [InvitationCollaborateurController::class, 'show'])->name('collaborateurs.invitation');
+    Route::post('invitation-entreprise/{collaborateur}', [InvitationCollaborateurController::class, 'store'])->middleware('throttle:6,1')->name('collaborateurs.invitation.accepter');
+});

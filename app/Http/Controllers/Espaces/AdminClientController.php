@@ -10,6 +10,7 @@ use App\Models\ActivityLog;
 use App\Models\Apprenant;
 use App\Models\Client;
 use App\Notifications\PartenariatValideNotification;
+use App\Support\Notifications\Notifier;
 use App\Support\SuppressionCompte;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -84,7 +85,7 @@ class AdminClientController extends Controller
     {
         $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::EntreprisesOffres, Action::Valider), 403);
-        abort_unless($client->type === 'ENTREPRISE', 422, 'Seul un compte entreprise peut devenir partenaire recrutement.');
+        abort_unless($client->estStructure(), 422, 'Seul un compte entreprise ou organisation peut devenir partenaire recrutement.');
 
         if ($client->estPartenaireValide()) {
             return back();
@@ -101,7 +102,7 @@ class AdminClientController extends Controller
 
         ActivityLog::record($membre, 'a validé le partenaire', $partenaire, "{$partenaire->nom}, depuis son compte client.");
 
-        $client->user->notify(new PartenariatValideNotification);
+        Notifier::envoyer($client->user, new PartenariatValideNotification);
 
         Inertia::flash('toast', [
             'type' => 'success',

@@ -306,7 +306,9 @@ export default function AdminClients({ clients, apprenants, actions }: Props) {
                                             }}
                                         >
                                             {actions.nommerPartenaire &&
-                                                client.type === 'ENTREPRISE' &&
+                                                (client.type === 'ENTREPRISE' ||
+                                                    client.type ===
+                                                        'ORGANISATION') &&
                                                 client.statutPartenaire !==
                                                     'ACTIF' && (
                                                     <button

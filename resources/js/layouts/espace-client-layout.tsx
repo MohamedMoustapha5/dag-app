@@ -6,6 +6,7 @@ import {
     FolderOpen,
     Headphones,
     Home,
+    KeyRound,
     LayoutDashboard,
     LogOut,
     Menu,
@@ -26,6 +27,7 @@ import RechercheEspace from '@/components/espaces/recherche-espace';
 import notificationsEspace from '@/routes/notifications';
 import espaceClient from '@/routes/espace-client';
 import candidatures from '@/routes/espace-client/candidatures';
+import collaborateurs from '@/routes/espace-client/collaborateurs';
 import demandes from '@/routes/espace-client/demandes';
 import offres from '@/routes/espace-client/offres';
 
@@ -79,7 +81,10 @@ const NAV_PARTICULIER: NavGroup[] = [
     },
 ];
 
-function navEntreprise(estPartenaireValide: boolean): NavGroup[] {
+function navEntreprise(
+    estPartenaireValide: boolean,
+    gestionAcces: boolean,
+): NavGroup[] {
     const groups: NavGroup[] = [];
 
     if (estPartenaireValide) {
@@ -146,6 +151,15 @@ function navEntreprise(estPartenaireValide: boolean): NavGroup[] {
                 icon: FolderOpen,
                 href: espaceClient.documents(),
             },
+            ...(gestionAcces
+                ? [
+                      {
+                          label: 'Accès & collaborateurs',
+                          icon: KeyRound,
+                          href: collaborateurs.index(),
+                      },
+                  ]
+                : []),
             {
                 label: 'Profil / Paramètres',
                 icon: Settings,
@@ -165,8 +179,11 @@ export type EspaceClientInfo = {
 };
 
 export default function EspaceClientLayout({ children }: PropsWithChildren) {
-    const { url, props } = usePage<{ client: EspaceClientInfo }>();
-    const { client } = props;
+    const { url, props } = usePage<{
+        client: EspaceClientInfo;
+        gestionAcces: boolean;
+    }>();
+    const { client, gestionAcces } = props;
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const sidebarRef = useRef<HTMLDivElement>(null);
     const [scrollThumb, setScrollThumb] = useState<{
@@ -189,7 +206,7 @@ export default function EspaceClientLayout({ children }: PropsWithChildren) {
     // (recrutement, conventions...) : les deux types partagent cette nav.
     const navGroups =
         client.type === 'ENTREPRISE' || client.type === 'ORGANISATION'
-            ? navEntreprise(client.estPartenaireValide)
+            ? navEntreprise(client.estPartenaireValide, gestionAcces)
             : NAV_PARTICULIER;
 
     const updateScrollThumb = () => {

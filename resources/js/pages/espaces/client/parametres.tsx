@@ -8,6 +8,7 @@ import { update as updatePassword } from '@/routes/user-password';
 
 type Props = {
     client: EspaceClientInfo;
+    estCollaborateur: boolean;
     profil: {
         nom: string;
         telephone: string | null;
@@ -30,7 +31,12 @@ const ONGLETS: { value: Onglet; label: string }[] = [
     { value: 'notifications', label: 'Notifications' },
 ];
 
-export default function Parametres({ client, profil, notifications }: Props) {
+export default function Parametres({
+    client,
+    estCollaborateur,
+    profil,
+    notifications,
+}: Props) {
     const [onglet, setOnglet] = useState<Onglet>('infos');
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const currentPasswordInput = useRef<HTMLInputElement>(null);
@@ -85,7 +91,9 @@ export default function Parametres({ client, profil, notifications }: Props) {
                         </span>
                         <h1>{client.nom}</h1>
                         <p className="account-banner-sub">
-                            Cliente DAG
+                            {estCollaborateur
+                                ? `Collaborateur · ${profil.nom}`
+                                : 'Cliente DAG'}
                             {profil.ville ? ` · ${profil.ville}` : ''}
                         </p>
                     </div>
@@ -152,34 +160,36 @@ export default function Parametres({ client, profil, notifications }: Props) {
                                             </p>
                                         )}
                                     </div>
-                                    <div>
-                                        <label htmlFor="telephone">
-                                            Téléphone
-                                        </label>
-                                        <input
-                                            id="telephone"
-                                            type="text"
-                                            value={infosForm.data.telephone}
-                                            onChange={(event) =>
-                                                infosForm.setData(
-                                                    'telephone',
-                                                    event.target.value,
-                                                )
-                                            }
-                                            placeholder="+237 6 55 00 11 22"
-                                        />
-                                        {infosForm.errors.telephone && (
-                                            <p
-                                                style={{
-                                                    color: 'var(--dag-red)',
-                                                    fontSize: 12,
-                                                    marginTop: 4,
-                                                }}
-                                            >
-                                                {infosForm.errors.telephone}
-                                            </p>
-                                        )}
-                                    </div>
+                                    {!estCollaborateur && (
+                                        <div>
+                                            <label htmlFor="telephone">
+                                                Téléphone
+                                            </label>
+                                            <input
+                                                id="telephone"
+                                                type="text"
+                                                value={infosForm.data.telephone}
+                                                onChange={(event) =>
+                                                    infosForm.setData(
+                                                        'telephone',
+                                                        event.target.value,
+                                                    )
+                                                }
+                                                placeholder="+237 6 55 00 11 22"
+                                            />
+                                            {infosForm.errors.telephone && (
+                                                <p
+                                                    style={{
+                                                        color: 'var(--dag-red)',
+                                                        fontSize: 12,
+                                                        marginTop: 4,
+                                                    }}
+                                                >
+                                                    {infosForm.errors.telephone}
+                                                </p>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                                 <div>
                                     <label htmlFor="email">

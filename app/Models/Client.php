@@ -54,10 +54,35 @@ class Client extends Model
         return $this->entreprisePartenaire !== null && $this->entreprisePartenaire->statut === 'ACTIF';
     }
 
-    /** @return BelongsTo<User, $this> */
+    /**
+     * The account holder: the person who registered the client. Only they
+     * decide who else may enter the espace.
+     *
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /** @return HasMany<ClientCollaborateur, $this> */
+    public function collaborateurs(): HasMany
+    {
+        return $this->hasMany(ClientCollaborateur::class);
+    }
+
+    /**
+     * Entreprises and Organisations share the same espace: colleagues let in
+     * (collaborateurs) and, once DAG validates them, recruitment.
+     */
+    public function estStructure(): bool
+    {
+        return in_array($this->type, ['ENTREPRISE', 'ORGANISATION'], true);
+    }
+
+    public function estTitulaire(User $user): bool
+    {
+        return $this->user_id === $user->id;
     }
 
     /** @return HasOne<EntreprisePartenaire, $this> */

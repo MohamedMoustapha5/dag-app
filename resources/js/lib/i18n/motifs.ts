@@ -218,6 +218,52 @@ export const motifs: [RegExp, Remplacement][] = [
         (m) =>
             `Delete the account of “${m[1]}”? Their file, enrolments, applications and certificates will be permanently deleted. Their existing invoices and contracts are kept.`,
     ],
+    // Access & collaborators, and the invitation
+    [
+        /^Donnez accès à l'espace de (.+) aux personnes qui le gèrent avec vous\. Chacune se connecte avec son propre compte\.$/,
+        (m) =>
+            `Give the people who manage ${m[1]} with you access to its area. Each one signs in with their own account.`,
+    ],
+    [/^Actif depuis le (.+)$/, (m) => `Active since ${m[1]}`],
+    [
+        /^Retirer l'accès de « (.+) » \? .*$/,
+        (m) =>
+            `Remove the access of “${m[1]}”? This person will no longer be able to sign in to your organisation’s area. Requests, contracts and invoices stay unchanged.`,
+    ],
+    [/^Invitation envoyée à (.+)\.$/, (m) => `Invitation sent to ${m[1]}.`],
+    [
+        /^Invitation renvoyée à (.+)\.$/,
+        (m) => `Invitation sent again to ${m[1]}.`,
+    ],
+    [/^Accès retiré à (.+)\.$/, (m) => `Access removed for ${m[1]}.`],
+    [/^Collaborateur · (.+)$/, (m) => `Collaborator · ${m[1]}`],
+    [/^Bonjour (.+),$/, (m) => `Hello ${m[1]},`],
+    [
+        /^(.+) vous donne accès à l'espace DAG de (.+) : demandes, devis, paiements, contrats et documents\.$/,
+        (m) =>
+            `${m[1]} gives you access to the DAG area of ${m[2]}: requests, quotes, payments, contracts and documents.`,
+    ],
+    [
+        /^(.+) vous donne accès à l'espace DAG de (.+)\.$/,
+        (m) => `${m[1]} gives you access to the DAG area of ${m[2]}.`,
+    ],
+    [
+        /^Vous avez accès à l'espace DAG de (.+)\.$/,
+        (m) => `You have access to the DAG area of ${m[1]}.`,
+    ],
+    [
+        /^Votre accès à l'espace de (.+) est déjà activé\.$/,
+        (m) => `Your access to the area of ${m[1]} is already active.`,
+    ],
+    [
+        /^Bienvenue ! Vous avez maintenant accès à l'espace de (.+)\.$/,
+        (m) => `Welcome! You now have access to the area of ${m[1]}.`,
+    ],
+    [
+        /^Invitation à gérer l'espace DAG de (.+)$/,
+        (m) => `Invitation to manage the DAG area of ${m[1]}`,
+    ],
+
     // Results of the candidatures on a job offer, and the team alert
     [/^(\d+) retenues?$/, (m) => `${m[1]} selected`],
     [/^(\d+) refusées?$/, (m) => `${m[1]} rejected`],

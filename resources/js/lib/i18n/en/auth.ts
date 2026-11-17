@@ -74,6 +74,15 @@ export const authEn: Record<string, string> = {
     'Merci de confirmer votre e-mail en cliquant sur le lien que nous venons de vous envoyer.':
         'Please confirm your email by clicking the link we just sent you.',
 
+    // Invitation of a collaborator
+    'Activer votre accès': 'Activate your access',
+    'Accès déjà activé': 'Access already active',
+    'Choisissez un mot de passe': 'Choose a password',
+    'Activation…': 'Activating…',
+    'Activer mon accès': 'Activate my access',
+    'Choisissez votre mot de passe pour gérer l’espace de votre structure.':
+        'Choose your password to manage your organisation’s area.',
+
     // Error pages
     'Accès refusé': 'Access denied',
     "Vous n'avez pas l'autorisation d'ouvrir cette page.":

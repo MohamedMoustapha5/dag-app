@@ -5,6 +5,7 @@ use App\Models\Apprenant;
 use App\Models\Attestation;
 use App\Models\Candidature;
 use App\Models\Client;
+use App\Models\ClientCollaborateur;
 use App\Models\Contrat;
 use App\Models\Demande;
 use App\Models\EntreprisePartenaire;
@@ -63,6 +64,7 @@ beforeEach(function () {
             'ticket' => TicketSupport::factory()->create(['user_id' => $this->client->user_id]),
             'offre' => $offre,
             'candidature' => Candidature::factory()->create(['offre_id' => $offre->id, 'apprenant_id' => $this->apprenant->id]),
+            'collaborateur' => ClientCollaborateur::factory()->enAttente()->create(['client_id' => $this->client->id]),
         ],
         'espace-apprenant' => [
             'formationSession' => $session,

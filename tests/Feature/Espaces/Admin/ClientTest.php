@@ -125,11 +125,11 @@ test('an anonymised client can no longer sign in with their former credentials',
     $this->assertGuest();
 });
 
-test('a promotrice makes an entreprise client a recruitment partner from its account', function () {
+test('a promotrice makes an entreprise or organisation client a recruitment partner from its account', function (string $type) {
     Notification::fake();
     $promotrice = MembreEquipe::factory()->promotrice()->create();
     $client = Client::factory()->create([
-        'type' => 'ENTREPRISE',
+        'type' => $type,
         'nom' => 'Batiplus SARL',
         'secteur_activite' => 'BTP',
         'telephone' => '690112233',
@@ -149,7 +149,7 @@ test('a promotrice makes an entreprise client a recruitment partner from its acc
     ]);
     Notification::assertSentTo($client->user, PartenariatValideNotification::class);
     $this->actingAs($client->user, 'web')->get(route('espace-client.offres.index'))->assertOk();
-});
+})->with(['ENTREPRISE', 'ORGANISATION']);
 
 test('making a partner reactivates the existing partner record instead of creating another', function () {
     Notification::fake();
@@ -180,7 +180,7 @@ test('a role without the validation right cannot make a client a partner', funct
     Notification::assertNothingSent();
 });
 
-test('only an entreprise client can become a recruitment partner', function () {
+test('a particulier client cannot become a recruitment partner', function () {
     Notification::fake();
     $promotrice = MembreEquipe::factory()->promotrice()->create();
     $client = Client::factory()->create(['type' => 'PARTICULIER']);

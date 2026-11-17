@@ -434,4 +434,31 @@ export const espacesEn: Record<string, string> = {
     'Découvrez nos formules pour un accompagnement continu.':
         'Discover our plans for ongoing support.',
     'Voir les formules': 'See the plans',
+
+    // Access & collaborators (Entreprise / Organisation accounts)
+    'Accès & collaborateurs': 'Access & collaborators',
+    'Titulaire du compte': 'Account holder',
+    'Invitation envoyée': 'Invitation sent',
+    "Renvoyer l'invitation": 'Resend the invitation',
+    "Retirer l'accès": 'Remove access',
+    'Aucun collaborateur pour le moment. Invitez une personne de votre structure avec le formulaire.':
+        'No collaborator yet. Invite someone from your organisation with the form.',
+    'Inviter un collaborateur': 'Invite a collaborator',
+    'Adresse e-mail professionnelle': 'Work email address',
+    "Envoyer l'invitation": 'Send the invitation',
+    'Envoi…': 'Sending…',
+    'La personne reçoit un e-mail pour choisir son mot de passe. Le lien est valable 7 jours.':
+        'They receive an email to choose their password. The link is valid for 7 days.',
+    "Ce qu'un collaborateur peut faire": 'What a collaborator can do',
+    'Faire des demandes et suivre les devis': 'Make requests and follow quotes',
+    'Payer les factures': 'Pay invoices',
+    'Signer les contrats et conventions': 'Sign contracts and agreements',
+    'Gérer les offres et les candidatures':
+        'Manage job offers and applications',
+    'Consulter et télécharger les documents': 'View and download documents',
+    'Gérer les accès : réservé au titulaire du compte':
+        'Manage access: reserved to the account holder',
+    'Cette adresse e-mail a déjà un compte DAG. Invitez une autre adresse.':
+        'This email address already has a DAG account. Invite another address.',
+    'Cet accès est déjà activé.': 'This access is already active.',
 };
