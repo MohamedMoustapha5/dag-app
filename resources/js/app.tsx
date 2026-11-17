@@ -3,7 +3,9 @@ import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { initializeTheme } from '@/hooks/use-appearance';
 import { installerTraducteur } from '@/lib/i18n/traducteur';
+import { enregistrerServiceWorker } from '@/lib/pwa';
 import { installerTableauxMobiles } from '@/lib/tableaux-mobiles';
+import InstallerApplication from '@/components/installer-application';
 import AppLayout from '@/layouts/app-layout';
 import AuthLayout from '@/layouts/auth-layout';
 import EspaceAdminLayout from '@/layouts/espace-admin-layout';
@@ -48,6 +50,7 @@ void createInertiaApp({
             <TooltipProvider delayDuration={0}>
                 {app}
                 <Toaster />
+                <InstallerApplication />
             </TooltipProvider>
         );
     },
@@ -64,3 +67,6 @@ installerTraducteur();
 
 // Data tables shown as cards on phones, each cell labelled with its column.
 installerTableauxMobiles();
+
+// Installable application: home-screen icon, offline page.
+enregistrerServiceWorker();

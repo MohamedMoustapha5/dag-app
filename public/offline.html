@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="fr">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#071f41" />
+        <title>Hors connexion — DAG</title>
+        <link rel="icon" href="/images/pwa/icon-arrondi-192.png" />
+        <style>
+            * {
+                box-sizing: border-box;
+            }
+            body {
+                margin: 0;
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 24px;
+                font-family:
+                    'Plus Jakarta Sans',
+                    system-ui,
+                    -apple-system,
+                    'Segoe UI',
+                    Roboto,
+                    sans-serif;
+                color: #1b2338;
+                background: linear-gradient(
+                    160deg,
+                    #eaf1ff 0%,
+                    #f6f9ff 55%,
+                    #ffffff 100%
+                );
+            }
+            .carte {
+                width: 100%;
+                max-width: 420px;
+                background: #fff;
+                border-radius: 20px;
+                box-shadow: 0 18px 50px rgba(7, 31, 65, 0.14);
+                padding: 36px 28px 30px;
+                text-align: center;
+            }
+            .logo {
+                height: 46px;
+                margin-bottom: 26px;
+            }
+            .pastille {
+                width: 64px;
+                height: 64px;
+                margin: 0 auto 18px;
+                border-radius: 50%;
+                background: #eaf1ff;
+                display: grid;
+                place-items: center;
+            }
+            h1 {
+                font-size: 20px;
+                color: #071f41;
+                margin: 0 0 10px;
+            }
+            p {
+                font-size: 14px;
+                line-height: 1.6;
+                color: #5b6478;
+                margin: 0 0 26px;
+            }
+            button {
+                width: 100%;
+                padding: 13px 18px;
+                border: 0;
+                border-radius: 12px;
+                background: #0166fe;
+                color: #fff;
+                font: inherit;
+                font-weight: 700;
+                font-size: 15px;
+                cursor: pointer;
+                box-shadow: 0 10px 24px -8px rgba(1, 102, 254, 0.45);
+            }
+        </style>
+    </head>
+    <body>
+        <main class="carte">
+            <img
+                class="logo"
+                src="/images/brand/dag-logo-pdf.png"
+                alt="DAG — Digital Agency Group"
+            />
+            <div class="pastille" aria-hidden="true">
+                <svg
+                    width="30"
+                    height="30"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#0166fe"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+                    <path d="M12 20h.01" />
+                    <path d="M8.5 16.43a5 5 0 0 1 7 0" />
+                    <path d="M5 12.86a10 10 0 0 1 5.17-2.69" />
+                    <path d="M19 12.86a10 10 0 0 0-2-1.56" />
+                    <path d="M2 8.82a15 15 0 0 1 4.18-2.65" />
+                    <path d="M22 8.82a15 15 0 0 0-11.29-3.76" />
+                    <path d="m2 2 20 20" />
+                </svg>
+            </div>
+            <h1 id="titre">Vous êtes hors connexion</h1>
+            <p id="texte">
+                Vérifiez votre connexion Internet, puis réessayez. Votre espace
+                DAG s'affichera dès que le réseau sera revenu.
+            </p>
+            <button type="button" id="reessayer" onclick="location.reload()">
+                Réessayer
+            </button>
+        </main>
+        <script>
+            // Same language as the rest of the interface (language switcher cookie).
+            if (document.cookie.split('; ').indexOf('dag_lang=en') !== -1) {
+                document.documentElement.lang = 'en';
+                document.title = 'Offline — DAG';
+                document.getElementById('titre').textContent =
+                    'You are offline';
+                document.getElementById('texte').textContent =
+                    'Check your Internet connection, then try again. Your DAG area will show as soon as the network is back.';
+                document.getElementById('reessayer').textContent = 'Try again';
+            }
+
+            // Back online: reload by itself.
+            window.addEventListener('online', function () {
+                location.reload();
+            });
+        </script>
+    </body>
+</html>

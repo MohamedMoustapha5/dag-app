@@ -490,16 +490,29 @@
     background: #f7f9fd;
     border-color: #d4dae8;
 }
-.dag .lang-dropdown-trigger .flag {
-    font-size: 14px;
-    line-height: 1;
+/* Flags drawn in SVG: the same on every system (Windows has no flag emoji). */
+.dag .lang-dropdown .flag {
+    display: inline-flex;
+    flex: none;
+    overflow: hidden;
+    border-radius: 3px;
+    box-shadow: 0 0 0 1px rgba(7, 31, 65, 0.1);
 }
-.dag .lang-dropdown-trigger svg {
+.dag .lang-dropdown .flag svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+.dag .lang-dropdown-trigger .flag {
+    width: 20px;
+    height: 14px;
+}
+.dag .lang-dropdown-trigger > svg {
     color: var(--dag-text-faint);
     flex: none;
     transition: transform 0.15s var(--dag-ease);
 }
-.dag .lang-dropdown.open .lang-dropdown-trigger svg {
+.dag .lang-dropdown.open .lang-dropdown-trigger > svg {
     transform: rotate(180deg);
 }
 .dag .lang-dropdown-panel {
@@ -539,9 +552,8 @@
     color: var(--dag-blue);
 }
 .dag .lang-dropdown-option .flag {
-    font-size: 16px;
-    line-height: 1;
-    flex: none;
+    width: 22px;
+    height: 15px;
 }
 .dag .lang-dropdown-check {
     margin-left: auto;
@@ -3839,7 +3851,7 @@
         gap: 0;
     }
     .dag .espace-topbar .lang-dropdown-code,
-    .dag .espace-topbar .lang-dropdown-trigger svg {
+    .dag .espace-topbar .lang-dropdown-trigger > svg {
         /* Le chevron et le code texte ("FR") sont redondants avec le
            drapeau sur un espace déjà très dense en largeur mobile — le
            menu reste ouvrable au toucher sans ces indices visuels. */
@@ -5791,5 +5803,88 @@
     }
     .dag .demandes-recherche {
         flex: 1 1 100%;
+    }
+}
+
+/* ── Installable application (PWA): invitation card ─────────────────────── */
+.installer-application {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 70;
+    width: 360px;
+    max-width: calc(100vw - 24px);
+    padding: 18px 18px 16px;
+    background: #fff;
+    border: 1px solid var(--dag-border);
+    border-radius: 18px;
+    box-shadow: 0 18px 48px -12px rgba(7, 31, 65, 0.3);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    animation: installerApparition 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.installer-application-fermer {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--dag-text-faint);
+    cursor: pointer;
+}
+.installer-application-fermer:hover {
+    background: var(--dag-bg);
+    color: var(--dag-text);
+}
+.installer-application-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 16px;
+}
+.installer-application-actions button {
+    padding: 9px 16px;
+    border-radius: 10px;
+    font: inherit;
+    font-size: 13.5px;
+    font-weight: 700;
+    cursor: pointer;
+}
+.installer-application-secondaire {
+    border: 1.5px solid var(--dag-border);
+    background: #fff;
+    color: var(--dag-text);
+}
+.installer-application-principal {
+    border: 1.5px solid var(--dag-blue);
+    background: var(--dag-blue);
+    color: #fff;
+    box-shadow: var(--dag-shadow-blue);
+}
+@media (max-width: 640px) {
+    .installer-application {
+        left: 12px;
+        right: 12px;
+        bottom: 12px;
+        width: auto;
+    }
+}
+@keyframes installerApparition {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .installer-application {
+        animation: none;
     }
 }

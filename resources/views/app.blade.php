@@ -34,6 +34,14 @@
         <link rel="icon" href="/favicon-96x96.png" type="image/png" sizes="96x96">
         <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
+        {{-- Installable application (PWA): public/manifest.json and public/sw.js --}}
+        <link rel="manifest" href="/manifest.json">
+        <meta name="theme-color" content="#071f41">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-title" content="DAG">
+        <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
         @fonts
 
         @viteReactRefresh

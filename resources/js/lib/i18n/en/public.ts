@@ -155,7 +155,7 @@ export const publicEn: Record<string, string> = {
     'Question sur un abonnement': 'Question about a subscription',
     'Support client': 'Customer support',
     'Autre demande': 'Other request',
-    'Akwa, Douala, Cameroun': 'Akwa, Douala, Cameroon',
+    'Douala, Cameroun': 'Douala, Cameroon',
     'Lun – Ven, 8h – 18h': 'Mon – Fri, 8am – 6pm',
     'Contact — DAG': 'Contact — DAG',
     'Parlons de votre projet': 'Let’s talk about your project',
@@ -346,4 +346,16 @@ export const publicEn: Record<string, string> = {
     'Annuler et retourner à mes factures': 'Cancel and return to my invoices',
     'Transaction chiffrée. DAG ne conserve aucune donnée bancaire.':
         'Encrypted transaction. DAG does not store any banking data.',
+
+    // Installable application (PWA)
+    "Installer l'application DAG": 'Install the DAG app',
+    "Votre espace en un geste, depuis l'écran d'accueil.":
+        'Your area in one tap, from your home screen.',
+    'Plus tard': 'Later',
+    Installer: 'Install',
+    "J'ai compris": 'Got it',
+    Touchez: 'Tap',
+    "en bas de Safari, puis « Sur l'écran d'accueil ».":
+        'at the bottom of Safari, then “Add to Home Screen”.',
+    Partager: 'Share',
 };
