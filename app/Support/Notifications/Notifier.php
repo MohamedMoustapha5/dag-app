@@ -30,6 +30,10 @@ class Notifier
 
         self::notifier($destinataire, $notification);
 
+        if (! $notification->partageeAvecCollaborateurs()) {
+            return;
+        }
+
         // The colleagues an Entreprise or Organisation let into its espace
         // are kept informed like the account holder. Each gets its own copy
         // (its own identifier in the bell).

@@ -24,6 +24,12 @@ class SupportReponseNotification extends NotificationDag
         return 'support.reponse';
     }
 
+    /** A support thread is personal: colleagues cannot open it. */
+    public function partageeAvecCollaborateurs(): bool
+    {
+        return false;
+    }
+
     public function titre(): string
     {
         return "Réponse de l'équipe DAG — {$this->ticket->reference}";

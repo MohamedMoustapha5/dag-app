@@ -297,3 +297,18 @@ test('the directrice sees the notifications tab and other roles do not', functio
         ->get(route('espace-admin.statistiques', ['onglet' => 'notifications']))
         ->assertInertia(fn ($page) => $page->where('onglet', 'indicateurs')->where('notifications', null));
 });
+
+test('the e-mail layout of a DAG notification is in French even when the application runs in English', function () {
+    config(['mail.default' => 'array']);
+    app()->setLocale('en');
+    $client = Client::factory()->create();
+
+    $client->user->notifyNow(new AlerteEquipeNotification('test', 'Titre', 'Message.', 'https://dag.test/espace-client'));
+
+    $html = app('mailer')->getSymfonyTransport()->messages()->first()->getOriginalMessage()->getHtmlBody();
+    expect($html)
+        ->toContain("Si le bouton « Ouvrir dans l'administration » ne fonctionne pas")
+        ->toContain('Tous droits réservés.')
+        ->not->toContain('having trouble')
+        ->not->toContain('All rights reserved');
+});

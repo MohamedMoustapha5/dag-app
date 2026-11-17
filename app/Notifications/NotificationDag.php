@@ -23,6 +23,10 @@ abstract class NotificationDag extends Notification implements ShouldQueue
     public function __construct()
     {
         $this->connection = config('notifications.file_attente');
+
+        // The messages are written in French: the e-mail layout around them
+        // (greeting, footer, link help) follows, wherever it is sent from.
+        $this->locale = 'fr';
     }
 
     /** Stable identifier of the event, stored in the notification journal. */
@@ -51,6 +55,16 @@ abstract class NotificationDag extends Notification implements ShouldQueue
     public function preference(): ?string
     {
         return null;
+    }
+
+    /**
+     * Whether the colleagues an Entreprise or Organisation let into its
+     * espace get it too (Notifier). True for everything about the client's
+     * records; false for what only concerns the recipient personally.
+     */
+    public function partageeAvecCollaborateurs(): bool
+    {
+        return true;
     }
 
     /**

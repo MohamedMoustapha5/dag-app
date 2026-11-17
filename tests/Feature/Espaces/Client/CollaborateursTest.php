@@ -6,9 +6,12 @@ use App\Models\ClientCollaborateur;
 use App\Models\Contrat;
 use App\Models\Demande;
 use App\Models\Facture;
+use App\Models\MembreEquipe;
+use App\Models\TicketSupport;
 use App\Models\User;
 use App\Notifications\ContratValideNotification;
 use App\Notifications\InvitationCollaborateurNotification;
+use App\Notifications\SupportReponseNotification;
 use App\Support\Notifications\Notifier;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\URL;
@@ -221,4 +224,19 @@ test('a collaborator updates their own name in the settings, not the name of the
     expect($collaborateur->user->fresh()->name)->toBe('Awa Diallo');
     expect($client->fresh()->nom)->toBe($nomEntreprise);
     expect($client->fresh()->telephone)->not->toBe('600000000');
+});
+
+test('the answer to a personal support request goes to its author only, not to the colleagues', function () {
+    Notification::fake();
+    $collaborateur = ClientCollaborateur::factory()->create();
+    $titulaire = $collaborateur->client->user;
+    $ticket = TicketSupport::factory()->create(['user_id' => $titulaire->id]);
+    $ticket->ajouterMessage('Question du titulaire.');
+
+    $this->actingAs(MembreEquipe::factory()->promotrice()->create(), 'admin')
+        ->post(route('espace-admin.support.repondre', $ticket), ['message' => 'Voici notre réponse.'])
+        ->assertRedirect();
+
+    Notification::assertSentTo($titulaire, SupportReponseNotification::class);
+    Notification::assertNotSentTo($collaborateur->user, SupportReponseNotification::class);
 });

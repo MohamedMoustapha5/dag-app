@@ -7,7 +7,9 @@ use App\Models\Client;
 use App\Models\Team;
 use App\Models\TeamInvitation;
 use App\Models\User;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
+use Illuminate\Support\Facades\Notification;
 use Inertia\Testing\AssertableInertia as Assert;
 
 test('registration screen can be rendered', function () {
@@ -156,4 +158,28 @@ test('in production, registration accepts a strong password', function () {
 
     $response->assertSessionHasNoErrors();
     $this->assertAuthenticated();
+});
+
+test('a new client receives the e-mail to verify their address, in French', function () {
+    Notification::fake();
+
+    $this->post(route('register.store'), [
+        'compte_type' => 'entreprise',
+        'name' => 'Batiplus SARL',
+        'email' => 'contact@batiplus.cm',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+        'terms' => 'on',
+    ])->assertRedirect();
+
+    $user = User::where('email', 'contact@batiplus.cm')->firstOrFail();
+    expect($user->hasVerifiedEmail())->toBeFalse();
+    Notification::assertSentTo($user, VerifyEmail::class, function (VerifyEmail $email) use ($user) {
+        app()->setLocale('fr');
+        $mail = $email->toMail($user);
+
+        return $mail->subject === 'Vérifiez votre adresse e-mail'
+            && $mail->actionText === 'Vérifier mon adresse e-mail'
+            && str_contains($mail->actionUrl, '/email/verify/'.$user->id.'/');
+    });
 });
