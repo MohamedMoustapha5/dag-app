@@ -5888,3 +5888,14 @@
         animation: none;
     }
 }
+
+/* Single-form pages (e.g. "Nouvelle demande"): on a computer screen the
+   title and form sit in the middle of the page instead of against its left
+   edge. Tablets and phones keep the full-width layout. */
+@media (min-width: 1024px) {
+    .dag .formulaire-centre {
+        max-width: 560px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+}

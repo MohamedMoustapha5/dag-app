@@ -35,145 +35,165 @@ export default function DemandesCreate({
         <>
             <Head title="Nouvelle demande" />
 
-            <h1
-                style={{
-                    fontSize: 22,
-                    color: 'var(--dag-navy)',
-                    marginBottom: 24,
-                }}
-            >
-                Nouvelle demande
-            </h1>
-
-            <div className="card" style={{ padding: 32, maxWidth: 560 }}>
-                <form
-                    onSubmit={submit}
+            <div className="formulaire-centre">
+                <h1
                     style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 16,
+                        fontSize: 22,
+                        color: 'var(--dag-navy)',
+                        marginBottom: 24,
                     }}
                 >
-                    <div>
-                        <label htmlFor="type">Type de demande</label>
-                        <select
-                            id="type"
-                            value={data.type}
-                            onChange={(event) =>
-                                setData(
-                                    'type',
-                                    event.target.value as 'service' | 'formule',
-                                )
-                            }
-                        >
-                            <option value="service">Un service ponctuel</option>
-                            <option value="formule">Un abonnement</option>
-                        </select>
-                    </div>
+                    Nouvelle demande
+                </h1>
 
-                    {data.type === 'service' ? (
-                        <div>
-                            <label htmlFor="service_id">Service souhaité</label>
-                            <select
-                                id="service_id"
-                                value={data.service_id}
-                                onChange={(event) =>
-                                    setData('service_id', event.target.value)
-                                }
-                            >
-                                <option value="">
-                                    Sélectionnez un service
-                                </option>
-                                {services.map((service) => (
-                                    <option key={service.id} value={service.id}>
-                                        {service.nom} — {service.categorie}
-                                    </option>
-                                ))}
-                            </select>
-                            {errors.service_id && (
-                                <p
-                                    style={{
-                                        color: 'var(--dag-red)',
-                                        fontSize: 12,
-                                        marginTop: 4,
-                                    }}
-                                >
-                                    {errors.service_id}
-                                </p>
-                            )}
-                        </div>
-                    ) : (
-                        <div>
-                            <label htmlFor="formule_id">
-                                Formule souhaitée
-                            </label>
-                            <select
-                                id="formule_id"
-                                value={data.formule_id}
-                                onChange={(event) =>
-                                    setData('formule_id', event.target.value)
-                                }
-                            >
-                                <option value="">
-                                    Sélectionnez une formule
-                                </option>
-                                {formules.map((formule) => (
-                                    <option key={formule.id} value={formule.id}>
-                                        {formule.nom}
-                                        {formule.prix_affiche
-                                            ? ` — ${formule.prix_affiche}`
-                                            : ''}
-                                    </option>
-                                ))}
-                            </select>
-                            {errors.formule_id && (
-                                <p
-                                    style={{
-                                        color: 'var(--dag-red)',
-                                        fontSize: 12,
-                                        marginTop: 4,
-                                    }}
-                                >
-                                    {errors.formule_id}
-                                </p>
-                            )}
-                        </div>
-                    )}
-
-                    <div>
-                        <label htmlFor="description">
-                            Décrivez votre besoin
-                        </label>
-                        <textarea
-                            id="description"
-                            rows={5}
-                            value={data.description}
-                            onChange={(event) =>
-                                setData('description', event.target.value)
-                            }
-                            placeholder="Expliquez votre projet, vos attentes, vos délais..."
-                        />
-                        {errors.description && (
-                            <p
-                                style={{
-                                    color: 'var(--dag-red)',
-                                    fontSize: 12,
-                                    marginTop: 4,
-                                }}
-                            >
-                                {errors.description}
-                            </p>
-                        )}
-                    </div>
-
-                    <button
-                        type="submit"
-                        className="btn-primary btn-block"
-                        disabled={processing}
+                <div className="card" style={{ padding: 32, maxWidth: 560 }}>
+                    <form
+                        onSubmit={submit}
+                        style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 16,
+                        }}
                     >
-                        {processing ? 'Envoi…' : 'Envoyer ma demande'}
-                    </button>
-                </form>
+                        <div>
+                            <label htmlFor="type">Type de demande</label>
+                            <select
+                                id="type"
+                                value={data.type}
+                                onChange={(event) =>
+                                    setData(
+                                        'type',
+                                        event.target.value as
+                                            | 'service'
+                                            | 'formule',
+                                    )
+                                }
+                            >
+                                <option value="service">
+                                    Un service ponctuel
+                                </option>
+                                <option value="formule">Un abonnement</option>
+                            </select>
+                        </div>
+
+                        {data.type === 'service' ? (
+                            <div>
+                                <label htmlFor="service_id">
+                                    Service souhaité
+                                </label>
+                                <select
+                                    id="service_id"
+                                    value={data.service_id}
+                                    onChange={(event) =>
+                                        setData(
+                                            'service_id',
+                                            event.target.value,
+                                        )
+                                    }
+                                >
+                                    <option value="">
+                                        Sélectionnez un service
+                                    </option>
+                                    {services.map((service) => (
+                                        <option
+                                            key={service.id}
+                                            value={service.id}
+                                        >
+                                            {service.nom} — {service.categorie}
+                                        </option>
+                                    ))}
+                                </select>
+                                {errors.service_id && (
+                                    <p
+                                        style={{
+                                            color: 'var(--dag-red)',
+                                            fontSize: 12,
+                                            marginTop: 4,
+                                        }}
+                                    >
+                                        {errors.service_id}
+                                    </p>
+                                )}
+                            </div>
+                        ) : (
+                            <div>
+                                <label htmlFor="formule_id">
+                                    Formule souhaitée
+                                </label>
+                                <select
+                                    id="formule_id"
+                                    value={data.formule_id}
+                                    onChange={(event) =>
+                                        setData(
+                                            'formule_id',
+                                            event.target.value,
+                                        )
+                                    }
+                                >
+                                    <option value="">
+                                        Sélectionnez une formule
+                                    </option>
+                                    {formules.map((formule) => (
+                                        <option
+                                            key={formule.id}
+                                            value={formule.id}
+                                        >
+                                            {formule.nom}
+                                            {formule.prix_affiche
+                                                ? ` — ${formule.prix_affiche}`
+                                                : ''}
+                                        </option>
+                                    ))}
+                                </select>
+                                {errors.formule_id && (
+                                    <p
+                                        style={{
+                                            color: 'var(--dag-red)',
+                                            fontSize: 12,
+                                            marginTop: 4,
+                                        }}
+                                    >
+                                        {errors.formule_id}
+                                    </p>
+                                )}
+                            </div>
+                        )}
+
+                        <div>
+                            <label htmlFor="description">
+                                Décrivez votre besoin
+                            </label>
+                            <textarea
+                                id="description"
+                                rows={5}
+                                value={data.description}
+                                onChange={(event) =>
+                                    setData('description', event.target.value)
+                                }
+                                placeholder="Expliquez votre projet, vos attentes, vos délais..."
+                            />
+                            {errors.description && (
+                                <p
+                                    style={{
+                                        color: 'var(--dag-red)',
+                                        fontSize: 12,
+                                        marginTop: 4,
+                                    }}
+                                >
+                                    {errors.description}
+                                </p>
+                            )}
+                        </div>
+
+                        <button
+                            type="submit"
+                            className="btn-primary btn-block"
+                            disabled={processing}
+                        >
+                            {processing ? 'Envoi…' : 'Envoyer ma demande'}
+                        </button>
+                    </form>
+                </div>
             </div>
         </>
     );

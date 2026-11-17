@@ -232,9 +232,9 @@ export default function ClientDashboard({
                         <Plus size={16} />
                         Nouvelle demande
                     </Link>
-                    <span
-                        className="espace-action-btn inert"
-                        title="Disponible prochainement"
+                    <Link
+                        href={espaceClient.factures()}
+                        className="espace-action-btn"
                     >
                         <Wallet size={16} />
                         Payer ma facture
@@ -243,14 +243,19 @@ export default function ClientDashboard({
                                 {stats.facturesEnAttenteNombre}
                             </span>
                         )}
-                    </span>
-                    <span
-                        className="espace-action-btn inert"
-                        title="Disponible prochainement"
+                    </Link>
+                    <Link
+                        href={espaceClient.contrats()}
+                        className="espace-action-btn"
                     >
                         <FileSignature size={16} />
                         Importer ma signature
-                    </span>
+                        {stats.contratsASigner > 0 && (
+                            <span className="espace-action-badge">
+                                {stats.contratsASigner}
+                            </span>
+                        )}
+                    </Link>
                     <Link
                         href={espaceClient.abonnements()}
                         className="espace-action-btn"
