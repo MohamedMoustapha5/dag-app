@@ -113,6 +113,14 @@ return [
     */
     'delai_attente_minutes' => 15,
 
+    /*
+    | Pendant combien de jours la vérification automatique (commande
+    | paiements:verifier-en-attente, toutes les 10 minutes) redemande au
+    | prestataire le statut d'un paiement resté en attente. Un lien Fapshi
+    | non payé expire au bout de 24 heures.
+    */
+    'verification_en_attente_jours' => 7,
+
     'moyens' => [
         'OM' => ['label' => 'Orange Money', 'mobile' => true],
         'MTN_MOMO' => ['label' => 'MTN Mobile Money', 'mobile' => true],
