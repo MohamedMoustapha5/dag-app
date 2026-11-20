@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Concerns\RevoqueSessionsAuChangementDeMotDePasse;
 use App\Enums\Action;
+use App\Enums\Civilite;
 use App\Enums\Donnee;
 use App\Enums\MembreEquipeRole;
 use App\Support\DroitsMatrix;
@@ -22,11 +23,12 @@ use Illuminate\Notifications\Notifiable;
  *
  * @property string $id
  * @property string $name
+ * @property Civilite|null $civilite
  * @property string $email
  * @property MembreEquipeRole $role
  * @property string $statut
  */
-#[Fillable(['name', 'email', 'password', 'role', 'statut'])]
+#[Fillable(['name', 'civilite', 'email', 'password', 'role', 'statut'])]
 #[Hidden(['password', 'remember_token'])]
 class MembreEquipe extends Authenticatable
 {
@@ -39,6 +41,7 @@ class MembreEquipe extends Authenticatable
     {
         return [
             'role' => MembreEquipeRole::class,
+            'civilite' => Civilite::class,
             'password' => 'hashed',
         ];
     }
@@ -53,6 +56,15 @@ class MembreEquipe extends Authenticatable
     public function activityLogs(): HasMany
     {
         return $this->hasMany(ActivityLog::class);
+    }
+
+    /**
+     * The name as shown on the public pages, preceded by the courtesy
+     * title when one is set: « Mme Mandou ».
+     */
+    public function nomAvecCivilite(): string
+    {
+        return $this->civilite === null ? $this->name : "{$this->civilite->label()} {$this->name}";
     }
 
     public function estActif(): bool

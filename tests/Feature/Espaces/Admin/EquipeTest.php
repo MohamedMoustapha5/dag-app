@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\Action;
+use App\Enums\Civilite;
 use App\Enums\Donnee;
 use App\Enums\MembreEquipeRole;
 use App\Models\MembreEquipe;
@@ -45,6 +46,42 @@ test('creating a membre equipe account rejects an already used email', function 
         'password_confirmation' => 'mot-de-passe-sur',
         'role' => MembreEquipeRole::Juriste->value,
     ])->assertSessionHasErrors('email');
+});
+
+test('a promotrice sets a courtesy title on a new account and can change or clear it later', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+
+    $this->actingAs($promotrice, 'admin')->post(route('espace-admin.equipe.store'), [
+        'civilite' => Civilite::Madame->value,
+        'name' => 'Fadimatou',
+        'email' => 'fadimatou@dag.cm',
+        'password' => 'mot-de-passe-sur',
+        'password_confirmation' => 'mot-de-passe-sur',
+        'role' => MembreEquipeRole::ControleGestion->value,
+    ])->assertRedirect();
+
+    $membre = MembreEquipe::where('email', 'fadimatou@dag.cm')->sole();
+    expect($membre->civilite)->toBe(Civilite::Madame);
+
+    $this->actingAs($promotrice, 'admin')
+        ->patch(route('espace-admin.equipe.update', $membre), ['civilite' => Civilite::Monsieur->value])
+        ->assertRedirect();
+    expect($membre->fresh()->civilite)->toBe(Civilite::Monsieur);
+
+    $this->actingAs($promotrice, 'admin')
+        ->patch(route('espace-admin.equipe.update', $membre), ['civilite' => ''])
+        ->assertRedirect();
+    expect($membre->fresh()->civilite)->toBeNull();
+});
+
+test('an unknown courtesy title is refused', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $membre = MembreEquipe::factory()->create(['civilite' => Civilite::Madame]);
+
+    $this->actingAs($promotrice, 'admin')
+        ->patch(route('espace-admin.equipe.update', $membre), ['civilite' => 'DR'])
+        ->assertSessionHasErrors('civilite');
+    expect($membre->fresh()->civilite)->toBe(Civilite::Madame);
 });
 
 test('a promotrice can change a member role and deactivate their account', function () {

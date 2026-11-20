@@ -5,6 +5,7 @@ import equipeAdmin from '@/routes/espace-admin/equipe';
 type Membre = {
     id: string;
     nom: string;
+    civilite: string | null;
     email: string;
     role: string;
     roleLabel: string;
@@ -12,6 +13,7 @@ type Membre = {
     soiMeme: boolean;
 };
 
+type Civilite = { value: string; label: string };
 type Role = { value: string; label: string };
 type Domaine = { value: string; label: string };
 type Niveau = { value: string; label: string };
@@ -25,6 +27,7 @@ type MatriceRole = {
 
 type Props = {
     membres: Membre[];
+    civilites: Civilite[];
     roles: Role[];
     domaines: Domaine[];
     niveaux: Niveau[];
@@ -33,6 +36,7 @@ type Props = {
 
 export default function AdminEquipe({
     membres,
+    civilites,
     roles,
     domaines,
     niveaux,
@@ -60,6 +64,7 @@ export default function AdminEquipe({
     };
 
     const createForm = useForm({
+        civilite: '',
         name: '',
         email: '',
         password: '',
@@ -72,12 +77,21 @@ export default function AdminEquipe({
         createForm.post(equipeAdmin.store().url, {
             onSuccess: () =>
                 createForm.reset(
+                    'civilite',
                     'name',
                     'email',
                     'password',
                     'password_confirmation',
                 ),
         });
+    };
+
+    const changerCivilite = (membreId: string, civilite: string) => {
+        router.patch(
+            equipeAdmin.update(membreId).url,
+            { civilite },
+            { preserveScroll: true },
+        );
     };
 
     const changerRole = (membreId: string, role: string) => {
@@ -147,6 +161,40 @@ export default function AdminEquipe({
                         gap: 14,
                     }}
                 >
+                    <div>
+                        <label htmlFor="civilite">Civilité</label>
+                        <select
+                            id="civilite"
+                            value={createForm.data.civilite}
+                            onChange={(event) =>
+                                createForm.setData(
+                                    'civilite',
+                                    event.target.value,
+                                )
+                            }
+                        >
+                            <option value="">—</option>
+                            {civilites.map((civilite) => (
+                                <option
+                                    key={civilite.value}
+                                    value={civilite.value}
+                                >
+                                    {civilite.label}
+                                </option>
+                            ))}
+                        </select>
+                        {createForm.errors.civilite && (
+                            <p
+                                style={{
+                                    color: 'var(--dag-red)',
+                                    fontSize: 12,
+                                    marginTop: 4,
+                                }}
+                            >
+                                {createForm.errors.civilite}
+                            </p>
+                        )}
+                    </div>
                     <div>
                         <label htmlFor="name">Nom</label>
                         <input
@@ -301,6 +349,32 @@ export default function AdminEquipe({
                                 <tr key={membre.id}>
                                     <td>
                                         <p style={{ fontWeight: 600 }}>
+                                            <select
+                                                aria-label={`Civilité de ${membre.nom}`}
+                                                value={membre.civilite ?? ''}
+                                                style={{
+                                                    padding: '2px 6px',
+                                                    fontSize: 12.5,
+                                                    marginRight: 6,
+                                                    width: 'auto',
+                                                }}
+                                                onChange={(event) =>
+                                                    changerCivilite(
+                                                        membre.id,
+                                                        event.target.value,
+                                                    )
+                                                }
+                                            >
+                                                <option value="">—</option>
+                                                {civilites.map((civilite) => (
+                                                    <option
+                                                        key={civilite.value}
+                                                        value={civilite.value}
+                                                    >
+                                                        {civilite.label}
+                                                    </option>
+                                                ))}
+                                            </select>
                                             {membre.nom}
                                             {membre.soiMeme && (
                                                 <span

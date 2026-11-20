@@ -16,7 +16,7 @@ class AProposController extends Controller
 
             ->get()
             ->map(fn (MembreEquipe $membre) => [
-                'nom' => $membre->name,
+                'nom' => $membre->nomAvecCivilite(),
                 'role' => $membre->role->label(),
             ]);
 

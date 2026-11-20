@@ -278,6 +278,7 @@ export const adminEn: Record<string, string> = {
         'Only the Promoter can create an account or change a member’s role. Deactivating an account removes access immediately.',
     "Créer un compte membre de l'équipe": 'Create a team member account',
     Rôle: 'Role',
+    Civilité: 'Title',
     'Créer le compte': 'Create account',
     "Membres de l'équipe (": 'Team members (',
     Membre: 'Member',
