@@ -2,6 +2,7 @@
 
 use App\Support\Paiements\FapshiPasserelle;
 use App\Support\Paiements\MonerooPasserelle;
+use App\Support\Paiements\NotchPayPasserelle;
 use App\Support\Paiements\SimulationPasserelle;
 
 return [
@@ -26,14 +27,17 @@ return [
         'simulation' => SimulationPasserelle::class,
         'moneroo' => MonerooPasserelle::class,
         'fapshi' => FapshiPasserelle::class,
+        'notchpay' => NotchPayPasserelle::class,
     ],
 
     /*
     | Moyens proposés selon la passerelle active (tous par défaut). Fapshi
-    | n'encaisse que le mobile money : la carte n'est pas proposée.
+    | et Notch Pay n'encaissent ici que le mobile money : la carte n'est pas
+    | proposée.
     */
     'moyens_acceptes' => [
         'fapshi' => ['OM', 'MTN_MOMO'],
+        'notchpay' => ['OM', 'MTN_MOMO'],
     ],
 
     /*
@@ -95,6 +99,41 @@ return [
         'mediums' => [
             'OM' => 'orange money',
             'MTN_MOMO' => 'mobile money',
+        ],
+    ],
+
+    /*
+    | Notch Pay (https://developer.notchpay.co) : Orange Money et MTN MoMo,
+    | en XAF. Test et production partagent la même URL, c'est la clé qui
+    | décide : tant que NOTCHPAY_ENV vaut "sandbox" (par défaut), une clé
+    | publique qui n'est pas une clé de test est refusée. La clé privée ne
+    | sert pas à encaisser (seulement aux transferts) ; la clé de hachage
+    | authentifie le webhook (en-tête x-notch-signature). URL du webhook à
+    | déclarer chez Notch Pay : {APP_URL}/webhooks/paiements
+    */
+    'notchpay' => [
+        'url' => env('NOTCHPAY_URL', 'https://api.notchpay.co'),
+        'environnement' => env('NOTCHPAY_ENV', 'sandbox'),
+        'cle_publique' => env('NOTCHPAY_PUBLIC_KEY'),
+        'cle_privee' => env('NOTCHPAY_PRIVATE_KEY'),
+        'cle_hachage' => env('NOTCHPAY_HASH_KEY'),
+        'timeout' => 15,
+
+        /*
+        | true : la demande part directement sur le téléphone du payeur, qui
+        | attend la confirmation sur la page de résultat DAG. false : le
+        | payeur passe par la page de paiement hébergée par Notch Pay.
+        */
+        'paiement_direct' => (bool) env('NOTCHPAY_PAIEMENT_DIRECT', true),
+
+        /*
+        | Montant maximum accepté par Notch Pay pour une transaction (FCFA) ;
+        | au-delà, l'API répond « The amount must be lower or equal to 500000 ».
+        */
+        'montant_maximum' => (int) env('NOTCHPAY_MONTANT_MAXIMUM', 500000),
+        'canaux' => [
+            'OM' => 'cm.orange',
+            'MTN_MOMO' => 'cm.mtn',
         ],
     ],
 

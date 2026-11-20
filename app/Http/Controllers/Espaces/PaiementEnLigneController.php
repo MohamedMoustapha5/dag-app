@@ -71,13 +71,17 @@ class PaiementEnLigneController extends Controller
     }
 
     /**
-     * Where the provider sends the payer back after its checkout page. The
-     * query string it adds is never trusted: the outcome is asked to the
-     * provider, and the webhook stays the main confirmation path.
+     * Where the provider sends the payer back after its checkout page: a
+     * success, failure or pending screen, reloaded by the page while the
+     * payment is pending. The query string the provider adds is never
+     * trusted: the outcome is asked to the provider, and the webhook stays
+     * the main confirmation path.
      */
-    public function retourPrestataire(Request $request, Paiement $paiement): RedirectResponse
+    public function retourPrestataire(Request $request, Paiement $paiement): Response
     {
         abort_unless($paiement->facture->appartientA($request->user('web')), 404);
+
+        $conforme = true;
 
         if ($paiement->statut === 'EN_ATTENTE' && $paiement->reference_transaction !== null) {
             try {
@@ -86,21 +90,20 @@ class PaiementEnLigneController extends Controller
             } catch (PasserelleIndisponible) {
                 $conforme = true;
             }
-
-            if (! $conforme) {
-                Inertia::flash('toast', ['type' => 'error', 'message' => 'Le montant reçu ne correspond pas à la facture : l\'équipe DAG va vérifier votre paiement.']);
-
-                return redirect($this->retour($request));
-            }
         }
 
-        Inertia::flash('toast', match ($paiement->fresh()->statut) {
-            'CONFIRME' => ['type' => 'success', 'message' => 'Paiement confirmé. Votre facture est réglée.'],
-            'ECHEC' => ['type' => 'error', 'message' => 'Le paiement a échoué ou a été annulé. Vous pouvez réessayer.'],
-            default => ['type' => 'success', 'message' => 'Paiement en cours de confirmation : votre facture sera mise à jour dès sa validation.'],
-        });
+        $paiement->refresh();
 
-        return redirect($this->retour($request));
+        return Inertia::render('public/paiement-resultat', [
+            'paiement' => [
+                'montant' => (string) $paiement->montant,
+                'moyen' => config("paiements.moyens.{$paiement->moyen}.label"),
+                'reference' => $paiement->reference_transaction,
+                'facture' => $paiement->facture->reference,
+                'statut' => $conforme ? $paiement->statut : 'A_VERIFIER',
+            ],
+            'retour' => $this->retour($request),
+        ]);
     }
 
     /**

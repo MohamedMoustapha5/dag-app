@@ -151,7 +151,7 @@ test('the payer back from Moneroo sees the payment confirmed once Moneroo verifi
 
     $this->actingAs($client->user)
         ->get(route('paiements.retour', $paiement).'?paymentId=mnr_retour&paymentStatus=success')
-        ->assertRedirect(route('espace-client.factures'));
+        ->assertInertia(fn ($page) => $page->component('public/paiement-resultat')->where('paiement.statut', 'CONFIRME'));
 
     expect($paiement->fresh()->statut)->toBe('CONFIRME');
     expect($facture->fresh()->statut)->toBe('PAYEE');
@@ -168,7 +168,7 @@ test('the payer back from Moneroo cannot settle the payment through the query st
 
     $this->actingAs($client->user)
         ->get(route('paiements.retour', $paiement).'?paymentId=mnr_attente&paymentStatus=success')
-        ->assertRedirect(route('espace-client.factures'));
+        ->assertInertia(fn ($page) => $page->component('public/paiement-resultat')->where('paiement.statut', 'EN_ATTENTE'));
 
     expect($paiement->fresh()->statut)->toBe('EN_ATTENTE');
 });

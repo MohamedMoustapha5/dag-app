@@ -172,7 +172,7 @@ test('back from the Fapshi page, an expired link closes the payment', function (
 
     $this->actingAs($client->user)
         ->get(route('paiements.retour', $paiement))
-        ->assertRedirect(route('espace-client.factures'));
+        ->assertInertia(fn ($page) => $page->component('public/paiement-resultat')->where('paiement.statut', 'ECHEC'));
 
     expect($paiement->fresh()->statut)->toBe('ECHEC');
 });
