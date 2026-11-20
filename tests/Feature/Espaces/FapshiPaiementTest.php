@@ -176,3 +176,15 @@ test('back from the Fapshi page, an expired link closes the payment', function (
 
     expect($paiement->fresh()->statut)->toBe('ECHEC');
 });
+
+test('back from the Fapshi page with another amount than the facture, the payment is flagged for review', function () {
+    $paiement = paiementFapshiEnAttente(60000, 'fp_ecart');
+    $paiement->facture->update(['client_id' => ($client = Client::factory()->create())->id]);
+    fakeStatutFapshi('fp_ecart', ['status' => 'SUCCESSFUL', 'amount' => 100]);
+
+    $this->actingAs($client->user)
+        ->get(route('paiements.retour', $paiement))
+        ->assertInertia(fn ($page) => $page->component('public/paiement-resultat')->where('paiement.statut', 'A_VERIFIER'));
+
+    expect($paiement->fresh()->statut)->toBe('EN_ATTENTE');
+});
