@@ -3,6 +3,8 @@
 use App\Enums\MembreEquipeRole;
 use App\Models\MembreEquipe;
 use App\Models\Service;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 test('the index page exposes the actions allowed for the current role', function () {
     $juriste = MembreEquipe::factory()->juriste()->create();
@@ -17,6 +19,26 @@ test('the index page exposes the actions allowed for the current role', function
         ->where('actions.supprimer', false)
         ->where('droits.CATALOGUE', 'LECTURE')
         ->where('droitsResume', 'Visible par : Directrice (total), Responsable Marketing & Création de contenu (gestion), Juriste, Secrétaire & Développeur (lecture).'));
+});
+
+test('an uploaded service image is saved with an address relative to the site, whatever its domain', function () {
+    Storage::fake('public');
+    config(['app.url' => 'http://localhost:8000']);
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+
+    $this->actingAs($promotrice, 'admin')->post(route('espace-admin.services.store'), [
+        'nom' => 'Gestion des hôpitaux',
+        'description' => 'Logiciel de gestion hospitalière.',
+        'categorie' => 'Développement web',
+        'fournisseur' => 'DAG',
+        'statut' => 'PUBLIE',
+        'image' => UploadedFile::fake()->image('hopital.jpg'),
+    ])->assertSessionHasNoErrors();
+
+    $image = Service::where('nom', 'Gestion des hôpitaux')->sole()->image;
+
+    expect($image)->toStartWith('/storage/services/');
+    Storage::disk('public')->assertExists(substr($image, strlen('/storage/')));
 });
 
 test('a service can use any fournisseur name, not just DAG or Nova-Tech', function () {

@@ -10,7 +10,6 @@ use App\Models\Service;
 use App\Support\DroitsMatrix;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -129,6 +128,8 @@ class AdminServiceController extends Controller
 
         abort_if($path === false, 500, "Échec de l'enregistrement de l'image.");
 
-        return Storage::disk('public')->url($path);
+        // Relative to the site root, so the address survives a change of
+        // domain (localhost, then agencydag.com); needs `php artisan storage:link`.
+        return '/storage/'.$path;
     }
 }
