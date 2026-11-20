@@ -17,7 +17,6 @@ use App\Http\Controllers\Espaces\AdminGrilleTarifaireController;
 use App\Http\Controllers\Espaces\AdminInscriptionController;
 use App\Http\Controllers\Espaces\AdminMotDePasseController;
 use App\Http\Controllers\Espaces\AdminPresenceController;
-use App\Http\Controllers\Espaces\AdminRetraitController;
 use App\Http\Controllers\Espaces\AdminSeanceController;
 use App\Http\Controllers\Espaces\AdminServiceController;
 use App\Http\Controllers\Espaces\AdminStatistiqueController;
@@ -215,9 +214,6 @@ Route::middleware(['auth:admin', 'auth.session', EnsureMembreActif::class])
         Route::get('factures/{facture}', [AdminFactureController::class, 'show'])->name('espace-admin.factures.show');
         Route::post('factures/{facture}/paiements', [AdminFactureController::class, 'storePaiement'])->name('espace-admin.factures.paiements.store');
         Route::patch('paiements/{paiement}', [AdminFactureController::class, 'updatePaiement'])->name('espace-admin.paiements.update');
-        Route::get('retraits', [AdminRetraitController::class, 'index'])->name('espace-admin.retraits.index');
-        Route::post('retraits', [AdminRetraitController::class, 'store'])->name('espace-admin.retraits.store');
-        Route::post('retraits/{decaissement}/actualiser', [AdminRetraitController::class, 'actualiser'])->name('espace-admin.retraits.actualiser');
         Route::get('contrats', [AdminContratController::class, 'index'])->name('espace-admin.contrats.index');
         Route::post('contrats', [AdminContratController::class, 'store'])->name('espace-admin.contrats.store');
         Route::get('contrats/{contrat}', [AdminContratController::class, 'show'])->name('espace-admin.contrats.show');

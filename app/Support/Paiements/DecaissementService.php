@@ -127,7 +127,6 @@ class DecaissementService
                 'retrait.echoue',
                 'Retrait échoué',
                 'Le retrait de '.$this->montant($verrouille).' FCFA vers '.$verrouille->telephone.' a échoué'.($resultat->motifEchec !== null ? " : {$resultat->motifEchec}" : '.'),
-                route('espace-admin.retraits.index'),
             );
         });
     }

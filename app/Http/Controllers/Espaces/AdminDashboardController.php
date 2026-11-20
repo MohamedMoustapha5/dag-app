@@ -75,16 +75,12 @@ class AdminDashboardController extends Controller
     }
 
     /**
-     * @return array{enAttente: int, aTransmettreNovaTech: int}
+     * @return array{enAttente: int}
      */
     private function kpiDemandes(): array
     {
         return [
             'enAttente' => Demande::query()->whereIn('statut', ['BROUILLON', 'EN_ETUDE'])->count(),
-            'aTransmettreNovaTech' => Demande::query()
-                ->where('est_partenaire_nova_tech', true)
-                ->where('avancement_partenaire', 'A_TRANSMETTRE')
-                ->count(),
         ];
     }
 
@@ -225,7 +221,7 @@ class AdminDashboardController extends Controller
     }
 
     /**
-     * @return array<int, array{label: string, total: int, novaTech: bool}>
+     * @return array<int, array{label: string, total: int}>
      */
     private function servicesPlusDemandes(Carbon $debutMois): array
     {
@@ -242,7 +238,6 @@ class AdminDashboardController extends Controller
             ->map(fn (Collection $groupe, string $nom) => [
                 'label' => $nom,
                 'total' => $groupe->count(),
-                'novaTech' => $groupe->first()->service->fournisseur === 'Nova-Tech',
             ])
             ->sortByDesc('total')
             ->take(5)

@@ -29,7 +29,7 @@ type Props = {
     droits: Record<string, string>;
     kpis: {
         chiffreAffaires: { montant: number; evolution: number } | null;
-        demandes: { enAttente: number; aTransmettreNovaTech: number } | null;
+        demandes: { enAttente: number } | null;
         contrats: { aSigner: number; relances: number } | null;
         placement: { taux: number; apprenantsPlaces: number } | null;
     };
@@ -44,7 +44,7 @@ type Props = {
         segments: { label: string; montant: number }[];
     } | null;
     servicesPlusDemandes:
-        | { label: string; total: number; novaTech: boolean }[]
+        | { label: string; total: number }[]
         | null;
 };
 
@@ -234,10 +234,6 @@ export default function AdminDashboard({
                             >
                                 {kpis.demandes.enAttente}
                             </strong>
-                            <span className="muted" style={{ fontSize: 12.5 }}>
-                                {kpis.demandes.aTransmettreNovaTech} à
-                                transmettre à Nova-Tech
-                            </span>
                         </div>
                     )}
 
