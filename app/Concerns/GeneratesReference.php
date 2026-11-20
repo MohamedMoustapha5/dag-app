@@ -17,12 +17,24 @@ trait GeneratesReference
         });
     }
 
+    /**
+     * The next number follows the highest reference issued this year, not
+     * the number of rows: once a record is deleted, counting would hand out
+     * a reference that is already taken.
+     */
     public static function generateReference(): string
     {
-        $year = now()->year;
-        $sequence = static::query()->whereYear('created_at', $year)->count() + 1;
+        $prefixe = sprintf('%s-%d-', static::referencePrefix(), now()->year);
 
-        return sprintf('%s-%d-%04d', static::referencePrefix(), $year, $sequence);
+        $derniere = static::query()
+            ->where('reference', 'like', $prefixe.'%')
+            ->orderByRaw('LENGTH(reference) DESC')
+            ->orderByDesc('reference')
+            ->value('reference');
+
+        $sequence = $derniere === null ? 1 : (int) substr($derniere, strlen($prefixe)) + 1;
+
+        return sprintf('%s%04d', $prefixe, $sequence);
     }
 
     abstract public static function referencePrefix(): string;
