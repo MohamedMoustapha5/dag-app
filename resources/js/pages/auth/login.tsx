@@ -1,6 +1,7 @@
 import { Form, Head, Link } from '@inertiajs/react';
 import PasskeyVerify from '@/components/passkey-verify';
 import AuthPasswordField from '@/components/public/auth-password-field';
+import Recaptcha from '@/components/recaptcha';
 import TeamInvitationAlert from '@/components/team-invitation-alert';
 import { register } from '@/routes';
 import { store } from '@/routes/login';
@@ -151,6 +152,8 @@ export default function Login({
                             />
                             Se souvenir de moi
                         </label>
+
+                        <Recaptcha error={errors.recaptcha} />
 
                         <button
                             type="submit"

@@ -1,6 +1,7 @@
 import { useForm } from '@inertiajs/react';
 import { X } from 'lucide-react';
 import { useEffect } from 'react';
+import Recaptcha from '@/components/recaptcha';
 import { store } from '@/routes/candidatures-spontanees';
 
 type Props = {
@@ -17,6 +18,7 @@ export default function CandidatureSpontaneeModal({ open, onClose }: Props) {
             portfolio: '',
             message: '',
             cv: null as File | null,
+            recaptcha: '',
         });
 
     useEffect(() => {
@@ -257,6 +259,11 @@ export default function CandidatureSpontaneeModal({ open, onClose }: Props) {
                                 </p>
                             )}
                         </div>
+
+                        <Recaptcha
+                            onChange={(jeton) => setData('recaptcha', jeton)}
+                            error={errors.recaptcha}
+                        />
 
                         <button
                             type="submit"

@@ -10,6 +10,7 @@ use App\Http\Controllers\Public\FormuleController;
 use App\Http\Controllers\Public\GrilleTarifaireController;
 use App\Http\Controllers\Public\OffreEmploiController;
 use App\Http\Middleware\GarderDansSonEspace;
+use App\Http\Middleware\VerifierRecaptcha;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -50,7 +51,7 @@ Route::inertia('politique-de-confidentialite', 'public/politique-confidentialite
 Route::inertia('conditions-generales-vente', 'public/conditions-vente')->name('conditions-vente');
 Route::inertia('mentions-legales', 'public/mentions-legales')->name('mentions-legales');
 
-Route::middleware('throttle:formulaires-publics')->group(function () {
+Route::middleware(['throttle:formulaires-publics', VerifierRecaptcha::class])->group(function () {
     Route::post('contact', [ContactController::class, 'store'])->name('contact.store');
 
     Route::post('audit-gratuit', [AuditRequestController::class, 'store'])->name('audit-requests.store');

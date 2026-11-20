@@ -1,5 +1,6 @@
 import { Form, Head, Link } from '@inertiajs/react';
 import AuthPasswordField from '@/components/public/auth-password-field';
+import Recaptcha from '@/components/recaptcha';
 import TeamInvitationAlert from '@/components/team-invitation-alert';
 import {
     conditionsUtilisation,
@@ -237,6 +238,8 @@ export default function Register({
                                 {errors.terms}
                             </p>
                         )}
+
+                        <Recaptcha error={errors.recaptcha} />
 
                         <button
                             type="submit"

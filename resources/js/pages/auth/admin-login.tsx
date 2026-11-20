@@ -1,5 +1,6 @@
 import { Form, Head } from '@inertiajs/react';
 import AuthPasswordField from '@/components/public/auth-password-field';
+import Recaptcha from '@/components/recaptcha';
 import { store } from '@/routes/admin/connexion';
 
 export default function AdminLogin() {
@@ -73,6 +74,8 @@ export default function AdminLogin() {
                             <input type="checkbox" name="remember" />
                             Se souvenir de moi
                         </label>
+
+                        <Recaptcha error={errors.recaptcha} />
 
                         <button
                             type="submit"

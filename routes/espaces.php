@@ -51,6 +51,7 @@ use App\Http\Controllers\PaiementWebhookController;
 use App\Http\Middleware\EnsureMembreActif;
 use App\Http\Middleware\EnsurePartenaireValide;
 use App\Http\Middleware\EnsureUserType;
+use App\Http\Middleware\VerifierRecaptcha;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -151,7 +152,7 @@ Route::middleware(['auth', 'auth.session', 'verified', EnsureUserType::class.':A
 */
 Route::prefix('espace-admin')->group(function () {
     Route::get('connexion', [AdminAuthController::class, 'create'])->name('admin.connexion');
-    Route::post('connexion', [AdminAuthController::class, 'store'])->name('admin.connexion.store');
+    Route::post('connexion', [AdminAuthController::class, 'store'])->middleware(VerifierRecaptcha::class)->name('admin.connexion.store');
     Route::post('deconnexion', [AdminAuthController::class, 'destroy'])->middleware('auth:admin')->name('admin.deconnexion');
 });
 

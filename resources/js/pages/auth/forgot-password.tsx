@@ -1,4 +1,5 @@
 import { Form, Head, Link } from '@inertiajs/react';
+import Recaptcha from '@/components/recaptcha';
 import { login } from '@/routes';
 import { email } from '@/routes/password';
 
@@ -45,6 +46,10 @@ export default function ForgotPassword({ status }: { status?: string }) {
                                     {errors.email}
                                 </p>
                             )}
+                        </div>
+
+                        <div style={{ marginTop: 16 }}>
+                            <Recaptcha error={errors.recaptcha} />
                         </div>
 
                         <button

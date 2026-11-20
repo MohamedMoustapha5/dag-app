@@ -22,6 +22,17 @@ return [
         'key' => env('POSTMARK_API_KEY'),
     ],
 
+    /*
+    | Google reCAPTCHA v2 (case « Je ne suis pas un robot ») sur les
+    | formulaires publics. Désactivé tant que l'une des deux clés manque.
+    | Clés et domaines autorisés : https://www.google.com/recaptcha/admin
+    */
+    'recaptcha' => [
+        'site_key' => env('RECAPTCHA_SITE_KEY'),
+        'secret_key' => env('RECAPTCHA_SECRET_KEY'),
+        'timeout' => 5,
+    ],
+
     'resend' => [
         'key' => env('RESEND_API_KEY'),
     ],
