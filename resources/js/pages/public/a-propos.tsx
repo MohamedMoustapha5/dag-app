@@ -30,6 +30,10 @@ const PARTENAIRES = [
         nom: 'Nordex Consulting Group',
         logo: '/images/brand/partners/nordex-consulting-group.jpg',
     },
+    {
+        nom: 'Genis Academic',
+        logo: '/images/brand/partners/genis-academic.png',
+    },
 ];
 
 const EQUIPE_TAGLINES: Record<string, string> = {
@@ -264,6 +268,8 @@ export default function APropos({ stats, equipe }: AProposProps) {
                             key={partenaire.nom}
                             src={partenaire.logo}
                             alt={partenaire.nom}
+                            title={partenaire.nom}
+                            loading="lazy"
                             className="partner-logo-strip-item"
                         />
                     ))}
