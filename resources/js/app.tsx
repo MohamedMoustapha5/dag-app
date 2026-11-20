@@ -23,7 +23,7 @@ void createInertiaApp({
             case name === 'erreur':
             case name.startsWith('public/'):
                 return null;
-            case name.startsWith('espaces/admin-'):
+            case name.startsWith('espaces/admin/'):
                 // Kept mounted across navigations within the espace (no
                 // remount, no sidebar scroll reset) — see EspaceClientLayout.
                 return EspaceAdminLayout;

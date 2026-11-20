@@ -46,7 +46,7 @@ class AdminContratController extends Controller
             ->with(['service', 'formule'])
             ->get();
 
-        return Inertia::render('espaces/admin-contrats', [
+        return Inertia::render('espaces/admin/contrats', [
             ...$this->adminEspaceProps($membre),
             'peutCreer' => $membre->peut(Donnee::ContratsClauses, Action::Creer),
             'peutModifier' => $membre->peut(Donnee::ContratsClauses, Action::Modifier),
@@ -259,7 +259,7 @@ class AdminContratController extends Controller
 
         $contrat->load(['client', 'apprenant.user', 'entreprise', 'modeleContrat', 'demande', 'abonnement.formule', 'candidature.offre']);
 
-        return Inertia::render('espaces/admin-contrat-show', [
+        return Inertia::render('espaces/admin/contrat-show', [
             ...$this->adminEspaceProps($membre),
             'peutModifier' => $membre->peut(Donnee::ContratsClauses, Action::Modifier),
             'peutValider' => $membre->peut(Donnee::ContratsClauses, Action::Valider),

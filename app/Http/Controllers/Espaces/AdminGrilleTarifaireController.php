@@ -26,7 +26,7 @@ class AdminGrilleTarifaireController extends Controller
             ->orderBy('ordre')
             ->get();
 
-        return Inertia::render('espaces/admin-grille-tarifaire', [
+        return Inertia::render('espaces/admin/grille-tarifaire', [
             ...$this->adminEspaceProps($membre),
             'lignes' => $lignes->map(fn (LigneTarifaire $ligne) => [
                 'id' => $ligne->id,

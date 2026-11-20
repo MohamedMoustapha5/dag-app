@@ -39,7 +39,7 @@ class AdminApprenantController extends Controller
         $peutPostuler = $membre->peut(Donnee::EntreprisesOffres, Action::Creer)
             && $membre->peut(Donnee::DossiersApprenants, Action::Creer);
 
-        return Inertia::render('espaces/admin-apprenants', [
+        return Inertia::render('espaces/admin/apprenants', [
             ...$this->adminEspaceProps($membre),
             'peutPostuler' => $peutPostuler,
             'peutTelecharger' => $membre->peut(Donnee::DossiersApprenants, Action::Telecharger),
@@ -111,7 +111,7 @@ class AdminApprenantController extends Controller
                 ])
             : [];
 
-        return Inertia::render('espaces/admin-apprenant-show', [
+        return Inertia::render('espaces/admin/apprenant-show', [
             ...$this->adminEspaceProps($membre),
             'apprenant' => [
                 'id' => $apprenant->id,

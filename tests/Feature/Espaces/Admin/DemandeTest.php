@@ -16,7 +16,7 @@ test('a promotrice can list and view demandes from clients and entreprises', fun
         ->get(route('espace-admin.demandes.index'))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->component('espaces/admin-demandes')
+            ->component('espaces/admin/demandes')
             ->has('demandes', 1)
             ->where('demandes.0.client', 'Aïcha N.'));
 
@@ -24,7 +24,7 @@ test('a promotrice can list and view demandes from clients and entreprises', fun
         ->get(route('espace-admin.demandes.show', $demande))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->component('espaces/admin-demande-show')
+            ->component('espaces/admin/demande-show')
             ->where('demande.client', 'Aïcha N.')
             ->where('suivi.etapeActuelle', 1));
 });

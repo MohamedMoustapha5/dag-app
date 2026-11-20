@@ -15,7 +15,7 @@ test('a promotrice can validate a pending entreprise partner', function () {
         ->get(route('espace-admin.entreprises.index'))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->component('espaces/admin-entreprises')
+            ->component('espaces/admin/entreprises')
             ->has('entreprises', 1)
             ->where('entreprises.0.statut', 'EN_ATTENTE')
             ->where('peutValider', true));

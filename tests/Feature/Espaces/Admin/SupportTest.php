@@ -22,7 +22,7 @@ test('the team sees the support inbox, requests to handle first', function () {
         ->get(route('espace-admin.support.index'))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->component('espaces/admin-support')
+            ->component('espaces/admin/support')
             ->has('tickets', 2)
             ->where('tickets.0.id', $ouvert->id)
             ->where('tickets.0.provenance', 'Visiteur (formulaire de contact)')

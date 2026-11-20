@@ -44,7 +44,7 @@ class AdminPresenceController extends Controller
         $inscrits = FeuillePresence::inscrits($session);
         $dernier = $seance->presences->whereNotNull('pointee_at')->sortByDesc('pointee_at')->first();
 
-        return Inertia::render('espaces/admin-seance-presences', [
+        return Inertia::render('espaces/admin/seance-presences', [
             ...$this->adminEspaceProps($membre),
             'session' => [
                 'id' => $session->id,

@@ -9,7 +9,7 @@ test('a team member changes their own password with the current one', function (
     $this->actingAs($membre, 'admin')
         ->get(route('espace-admin.mot-de-passe'))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page->component('espaces/admin-mot-de-passe'));
+        ->assertInertia(fn ($page) => $page->component('espaces/admin/mot-de-passe'));
 
     $this->actingAs($membre, 'admin')
         ->put(route('espace-admin.mot-de-passe.update'), [

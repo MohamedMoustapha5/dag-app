@@ -22,7 +22,7 @@ class AdminMotDePasseController extends Controller
 
     public function edit(Request $request): Response
     {
-        return Inertia::render('espaces/admin-mot-de-passe', [
+        return Inertia::render('espaces/admin/mot-de-passe', [
             ...$this->adminEspaceProps($this->membre($request)),
         ]);
     }

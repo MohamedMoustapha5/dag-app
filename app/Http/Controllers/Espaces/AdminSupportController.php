@@ -38,7 +38,7 @@ class AdminSupportController extends Controller
             ->latest('dernier_message_at')
             ->get();
 
-        return Inertia::render('espaces/admin-support', [
+        return Inertia::render('espaces/admin/support', [
             ...$this->adminEspaceProps($membre),
             'tickets' => $tickets->map(fn (TicketSupport $ticket) => [
                 'id' => $ticket->id,
@@ -60,7 +60,7 @@ class AdminSupportController extends Controller
 
         $ticket->load(['messages.membre', 'user']);
 
-        return Inertia::render('espaces/admin-support-show', [
+        return Inertia::render('espaces/admin/support-show', [
             ...$this->adminEspaceProps($membre),
             'peutRepondre' => $membre->peut(Donnee::Support, Action::Modifier),
             'ticket' => [

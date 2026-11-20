@@ -41,7 +41,7 @@ class AdminRetraitController extends Controller
             $options[] = ['value' => $valeur, 'label' => $label];
         }
 
-        return Inertia::render('espaces/admin-retraits', [
+        return Inertia::render('espaces/admin/retraits', [
             ...$this->adminEspaceProps($membre),
             'peutRetirer' => $membre->peut(Donnee::FacturesPaiements, Action::Valider),
             'retraitsDisponibles' => $this->decaissements->disponible(),

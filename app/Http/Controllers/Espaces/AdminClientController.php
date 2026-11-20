@@ -51,7 +51,7 @@ class AdminClientController extends Controller
                 ])
             : null;
 
-        return Inertia::render('espaces/admin-clients', [
+        return Inertia::render('espaces/admin/clients', [
             ...$this->adminEspaceProps($membre),
             'apprenants' => $apprenants,
             'clients' => $clients->map(fn (Client $client) => [

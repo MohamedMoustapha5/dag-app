@@ -29,7 +29,7 @@ class AdminEquipeController extends Controller
             ->orderBy('name')
             ->get();
 
-        return Inertia::render('espaces/admin-equipe', [
+        return Inertia::render('espaces/admin/equipe', [
             ...$this->adminEspaceProps($this->membre($request)),
             'membres' => $membres->map(fn (MembreEquipe $membre) => [
                 'id' => $membre->id,

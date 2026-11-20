@@ -37,7 +37,7 @@ class AdminFactureController extends Controller
             ->with(['client', 'entreprise', 'service', 'formule'])
             ->get();
 
-        return Inertia::render('espaces/admin-factures', [
+        return Inertia::render('espaces/admin/factures', [
             ...$this->adminEspaceProps($membre),
             'peutCreer' => $membre->peut(Donnee::FacturesPaiements, Action::Creer),
             'peutGenererContrat' => $membre->peut(Donnee::ContratsClauses, Action::Creer),
@@ -99,7 +99,7 @@ class AdminFactureController extends Controller
 
         $facture->load(['client', 'entreprise', 'demande', 'abonnement.formule', 'inscription.formation', 'paiements']);
 
-        return Inertia::render('espaces/admin-facture-show', [
+        return Inertia::render('espaces/admin/facture-show', [
             ...$this->adminEspaceProps($membre),
             'peutCreer' => $membre->peut(Donnee::FacturesPaiements, Action::Creer),
             'peutModifier' => $membre->peut(Donnee::FacturesPaiements, Action::Modifier),

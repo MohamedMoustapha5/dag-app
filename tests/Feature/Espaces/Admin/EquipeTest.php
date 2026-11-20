@@ -12,7 +12,7 @@ test('the index page exposes the access matrix, confirming the juriste role gran
 
     $response->assertOk();
     $response->assertInertia(fn ($page) => $page
-        ->component('espaces/admin-equipe')
+        ->component('espaces/admin/equipe')
         ->has('matriceRoles', 6)
         ->where('matriceRoles.1.role', 'JURISTE')
         ->where('matriceRoles.1.droits.CONTRATS_CLAUSES', 'TOTAL')

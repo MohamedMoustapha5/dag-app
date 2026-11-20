@@ -31,7 +31,7 @@ class AdminFormationController extends Controller
             ->orderByDesc('date_debut')
             ->get();
 
-        return Inertia::render('espaces/admin-formations', [
+        return Inertia::render('espaces/admin/formations', [
             ...$this->adminEspaceProps($membre),
             'peutCreer' => $membre->peut(Donnee::Formations, Action::Creer),
             'peutModifier' => $membre->peut(Donnee::Formations, Action::Modifier),
@@ -140,7 +140,7 @@ class AdminFormationController extends Controller
 
         $formation->load(['sessions' => fn ($query) => $query->withCount('seances')->orderByDesc('date_debut')]);
 
-        return Inertia::render('espaces/admin-formation-show', [
+        return Inertia::render('espaces/admin/formation-show', [
             ...$this->adminEspaceProps($membre),
             'peutModifier' => $membre->peut(Donnee::Formations, Action::Modifier),
             'peutCreer' => $membre->peut(Donnee::Formations, Action::Creer),

@@ -28,7 +28,7 @@ class AdminServiceController extends Controller
             ->orderBy('nom')
             ->get();
 
-        return Inertia::render('espaces/admin-services', [
+        return Inertia::render('espaces/admin/services', [
             ...$this->adminEspaceProps($membre),
             'droitsResume' => DroitsMatrix::resume(Donnee::Catalogue),
             'services' => $services->map(fn (Service $service) => [

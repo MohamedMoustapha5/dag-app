@@ -58,7 +58,7 @@ test('a promotrice can generate a contrat for a demande and move it through sign
         ->get(route('espace-admin.contrats.index'))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->component('espaces/admin-contrats')
+            ->component('espaces/admin/contrats')
             ->has('demandesAContractualiser', 1)
             ->has('modeles', 1));
 
@@ -75,7 +75,7 @@ test('a promotrice can generate a contrat for a demande and move it through sign
         ->get(route('espace-admin.contrats.show', $contrat))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->component('espaces/admin-contrat-show')
+            ->component('espaces/admin/contrat-show')
             ->where('contrat.reference', $contrat->reference));
 
     $this->actingAs($promotrice, 'admin')

@@ -170,7 +170,7 @@ test('a read-only role sees the retraits but cannot withdraw', function () {
     $this->actingAs($developpeur, 'admin')
         ->get(route('espace-admin.retraits.index'))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page->component('espaces/admin-retraits')
+        ->assertInertia(fn ($page) => $page->component('espaces/admin/retraits')
             ->where('peutRetirer', false)
             ->has('retraits', 1));
 

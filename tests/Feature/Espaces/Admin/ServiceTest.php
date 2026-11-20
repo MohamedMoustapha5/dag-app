@@ -11,7 +11,7 @@ test('the index page exposes the actions allowed for the current role', function
 
     $response->assertOk();
     $response->assertInertia(fn ($page) => $page
-        ->component('espaces/admin-services')
+        ->component('espaces/admin/services')
         ->where('actions.creer', false)
         ->where('actions.modifier', false)
         ->where('actions.supprimer', false)

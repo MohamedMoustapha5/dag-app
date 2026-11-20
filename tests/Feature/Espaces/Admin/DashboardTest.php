@@ -25,7 +25,7 @@ test('a membre can see the dashboard with its kpis', function () {
 
     $response->assertOk();
     $response->assertInertia(fn ($page) => $page
-        ->component('espaces/admin-dashboard')
+        ->component('espaces/admin/dashboard')
         ->where('kpis.chiffreAffaires.montant', 100000)
         ->where('kpis.demandes.enAttente', 1)
         ->where('repartitionCa.total', 100000)
@@ -51,7 +51,7 @@ test('an unconfirmed paiement is excluded from the chiffre affaires', function (
 
     $response->assertOk();
     $response->assertInertia(fn ($page) => $page
-        ->component('espaces/admin-dashboard')
+        ->component('espaces/admin/dashboard')
         ->where('kpis.chiffreAffaires.montant', 0));
 });
 

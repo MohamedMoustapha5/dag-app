@@ -25,7 +25,7 @@ test('a membre with voir can list the client accounts', function () {
 
     $response->assertOk();
     $response->assertInertia(fn ($page) => $page
-        ->component('espaces/admin-clients')
+        ->component('espaces/admin/clients')
         ->where('clients.0.nom', 'Entreprise ACME')
         ->where('clients.0.demandesCount', 1)
         ->where('actions.supprimer', false));

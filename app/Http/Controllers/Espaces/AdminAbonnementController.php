@@ -54,7 +54,7 @@ class AdminAbonnementController extends Controller
             ->orderBy('nom')
             ->get();
 
-        return Inertia::render('espaces/admin-abonnements', [
+        return Inertia::render('espaces/admin/abonnements', [
             ...$this->adminEspaceProps($membre),
             'peutCreer' => $membre->peut(Donnee::Abonnements, Action::Creer),
             'peutModifier' => $membre->peut(Donnee::Abonnements, Action::Modifier),

@@ -28,7 +28,7 @@ class AdminSeanceController extends Controller
         $formationSession->load(['formation', 'seances' => fn ($query) => $query->orderBy('date')->orderBy('created_at')->with('presences')]);
         $inscrits = FeuillePresence::inscrits($formationSession);
 
-        return Inertia::render('espaces/admin-session-show', [
+        return Inertia::render('espaces/admin/session-show', [
             ...$this->adminEspaceProps($membre),
             'peutModifier' => $membre->peut(Donnee::Formations, Action::Modifier),
             'peutCreer' => $membre->peut(Donnee::Formations, Action::Creer),

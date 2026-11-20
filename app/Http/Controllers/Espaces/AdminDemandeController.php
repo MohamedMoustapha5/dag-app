@@ -36,7 +36,7 @@ class AdminDemandeController extends Controller
             ->latest('updated_at')
             ->get();
 
-        return Inertia::render('espaces/admin-demandes', [
+        return Inertia::render('espaces/admin/demandes', [
             ...$this->adminEspaceProps($membre),
             'peutModifier' => $membre->peut(Donnee::DemandesClients, Action::Modifier),
             'peutEnvoyerDevis' => $membre->peut(Donnee::DemandesClients, Action::Modifier)
@@ -87,7 +87,7 @@ class AdminDemandeController extends Controller
 
         $etapeActuelle = array_search($demande->statut, Demande::SUIVI_STEPS, true);
 
-        return Inertia::render('espaces/admin-demande-show', [
+        return Inertia::render('espaces/admin/demande-show', [
             ...$this->adminEspaceProps($membre),
             'peutModifier' => $membre->peut(Donnee::DemandesClients, Action::Modifier),
             'peutGenererContrat' => $membre->peut(Donnee::ContratsClauses, Action::Creer),

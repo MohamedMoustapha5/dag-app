@@ -46,7 +46,7 @@ class AdminEntrepriseController extends Controller
 
         $peutPostuler = $this->peutPostuler($membre);
 
-        return Inertia::render('espaces/admin-entreprises', [
+        return Inertia::render('espaces/admin/entreprises', [
             ...$this->adminEspaceProps($membre),
             'peutPostuler' => $peutPostuler,
             'apprenants' => $peutPostuler ? $this->apprenantsPostulables() : [],

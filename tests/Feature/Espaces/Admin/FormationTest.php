@@ -13,7 +13,7 @@ test('a promotrice can quick-create a session, which creates its formation on fi
         ->get(route('espace-admin.formations.index'))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->component('espaces/admin-formations')
+            ->component('espaces/admin/formations')
             ->has('sessions', 0));
 
     $this->actingAs($promotrice, 'admin')->post(route('espace-admin.sessions.store-rapide'), [
@@ -57,7 +57,7 @@ test('a promotrice can add a session to an existing formation and manage its sea
         ->get(route('espace-admin.formations.show', $formation))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->component('espaces/admin-formation-show')
+            ->component('espaces/admin/formation-show')
             ->has('sessions', 0));
 
     $this->actingAs($promotrice, 'admin')->post(route('espace-admin.formations.sessions.store', $formation), [
@@ -74,7 +74,7 @@ test('a promotrice can add a session to an existing formation and manage its sea
         ->get(route('espace-admin.sessions.show', $session))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->component('espaces/admin-session-show')
+            ->component('espaces/admin/session-show')
             ->where('session.ville', 'Douala'));
 
     $this->actingAs($promotrice, 'admin')->post(route('espace-admin.sessions.seances.store', $session), [

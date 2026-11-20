@@ -26,7 +26,7 @@ test('a membre equipe can reach only the espace admin, which exposes its droits'
 
     $response->assertOk();
     $response->assertInertia(fn ($page) => $page
-        ->component('espaces/admin-dashboard')
+        ->component('espaces/admin/dashboard')
         ->where('membre.role', 'JURISTE')
         ->where('droits.CONTRATS_CLAUSES', 'TOTAL')
         ->where('droits.FACTURES_PAIEMENTS', 'AUCUN'),

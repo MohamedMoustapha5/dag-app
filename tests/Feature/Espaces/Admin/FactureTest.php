@@ -14,7 +14,7 @@ test('a controle de gestion can generate a facture for a demande awaiting paymen
         ->get(route('espace-admin.factures.index'))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->component('espaces/admin-factures')
+            ->component('espaces/admin/factures')
             ->has('demandesAFacturer', 1)
             ->where('demandesAFacturer.0.id', $demande->id));
 
@@ -54,7 +54,7 @@ test('recording a full payment marks the facture and the linked demande as paid'
         ->get(route('espace-admin.factures.show', $facture))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->component('espaces/admin-facture-show')
+            ->component('espaces/admin/facture-show')
             ->where('facture.reference', $facture->reference));
 
     $this->actingAs($membre, 'admin')->post(route('espace-admin.factures.paiements.store', $facture), [

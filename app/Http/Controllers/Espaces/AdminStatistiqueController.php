@@ -65,7 +65,7 @@ class AdminStatistiqueController extends Controller
 
         // Statistics are only computed for the domains the viewer may see;
         // the rest stays null so the page shows nothing about it.
-        return Inertia::render('espaces/admin-statistiques', [
+        return Inertia::render('espaces/admin/statistiques', [
             ...$this->adminEspaceProps($membre),
             'onglet' => $onglet,
             'onglets' => $onglets,

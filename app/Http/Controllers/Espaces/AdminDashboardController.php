@@ -38,7 +38,7 @@ class AdminDashboardController extends Controller
         $contrats = $peutVoir(Donnee::ContratsClauses);
         $apprenants = $peutVoir(Donnee::DossiersApprenants);
 
-        return Inertia::render('espaces/admin-dashboard', [
+        return Inertia::render('espaces/admin/dashboard', [
             ...$this->adminEspaceProps($membre),
             'kpis' => [
                 'chiffreAffaires' => $finances ? $this->kpiChiffreAffaires($debutMois) : null,

@@ -43,7 +43,7 @@ test('the attendance sheet lists only the apprenants whose seat is confirmed, by
         ->get(route('espace-admin.seances.presences.show', $this->seance))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->component('espaces/admin-seance-presences')
+            ->component('espaces/admin/seance-presences')
             ->where('seance.pointable', true)
             ->where('peutPointer', true)
             ->has('apprenants', 2)
