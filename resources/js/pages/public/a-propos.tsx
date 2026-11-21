@@ -252,7 +252,7 @@ export default function APropos({ stats, equipe }: AProposProps) {
                         color: 'var(--dag-navy)',
                     }}
                 >
-                    Nos partenariats
+                    Nos partenaires
                 </h2>
                 <p className="muted" style={{ marginTop: 10, maxWidth: 560 }}>
                     Des partenaires de confiance, choisis pour leur sérieux et

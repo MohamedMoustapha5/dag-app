@@ -14,9 +14,31 @@ import EspaceClientLayout from '@/layouts/espace-client-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const marque = 'Digital Agency Group';
+
+/**
+ * Browser tab title. A title that already names the agency (home page) is
+ * shown as is; administration pages end with the agency name alone, without
+ * the « DAG — » prefix; the other pages keep the full site name.
+ */
+function titreOnglet(title: string): string {
+    if (!title) {
+        return appName;
+    }
+
+    if (title.includes(marque)) {
+        return title;
+    }
+
+    if (title.endsWith('— Administration')) {
+        return `${title} - ${marque}`;
+    }
+
+    return `${title} - ${appName}`;
+}
 
 void createInertiaApp({
-    title: (title) => (title ? `${title} - ${appName}` : appName),
+    title: titreOnglet,
     layout: (name) => {
         switch (true) {
             case name === 'welcome':

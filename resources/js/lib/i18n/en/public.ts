@@ -107,7 +107,6 @@ export const publicEn: Record<string, string> = {
     'Contrats signés en ligne': 'Contracts signed online',
     "Membres de l'équipe": 'Team members',
     'Écosystème DAG': 'DAG ecosystem',
-    'Nos partenariats': 'Our partnerships',
     'Des partenaires de confiance, choisis pour leur sérieux et leur exigence de qualité.':
         'Trusted partners, chosen for their reliability and quality standards.',
     "Découvrir l'ensemble de nos services →": 'Discover all our services →',
@@ -133,7 +132,7 @@ export const publicEn: Record<string, string> = {
     'Création & communication': 'Creation & communication',
     'Technique & digital': 'Technical & digital',
     'Catalogue de services — DAG': 'Service catalogue — DAG',
-    'Le catalogue de services DAG': 'The DAG service catalogue',
+    'Le catalogue des services DAG': 'The DAG service catalogue',
     'Tous les services sont proposés, gérés et facturés par DAG. Un seul interlocuteur, du devis à la livraison.':
         'All services are offered, managed and invoiced by DAG. One point of contact, from quote to delivery.',
     'Demander un devis': 'Request a quote',
@@ -190,8 +189,8 @@ export const publicEn: Record<string, string> = {
     'Formations — DAG': 'Training — DAG',
     'Module formation': 'Training module',
     'Formations & placement en entreprise': 'Training & job placement',
-    'Formez-vous en community management et création de contenu, puis candidatez aux offres de nos entreprises partenaires. Prix non affiché publiquement — négocié une fois connecté.':
-        'Train in community management and content creation, then apply to our partner companies’ offers. Price not shown publicly — negotiated once signed in.',
+    'Des parcours concrets, conçus pour vous rendre rapidement opérationnel et vous accompagner jusqu’à l’emploi.':
+        'Hands-on programmes designed to make you job-ready fast and support you all the way to employment.',
     'Sessions en petits groupes': 'Small-group sessions',
     'Des formations pratiques, animées par des professionnels en activité':
         'Hands-on training led by working professionals',
@@ -289,12 +288,14 @@ export const publicEn: Record<string, string> = {
     'Bienvenue chez DAG': 'Welcome to DAG',
     'Plus de clients. Plus de ventes.': 'More customers. More sales.',
     'Passez au digital': 'Go digital',
-    'Du marketing digital au site web, de la formation à l’emploi, DAG fait grandir votre activité et votre carrière. Un projet en tête ? Soumettez-le à DAG : nous trouvons comment le propulser, surtout dans le digital. Et pour les hôpitaux, notre application de gestion simplifie le quotidien des équipes de santé.':
-        'From digital marketing to websites, from training to employment, DAG grows your business and your career. Got a project in mind? Submit it to DAG: we find how to propel it, especially through digital. And for hospitals, our management application simplifies the daily work of healthcare teams.',
+    'Du marketing digital au site web, de la formation à l’emploi, DAG fait grandir votre activité et votre carrière. Un projet en tête ? Soumettez-le à DAG : nous trouvons comment le propulser.':
+        'From digital marketing to websites, from training to employment, DAG grows your business and your career. Got a project in mind? Submit it to DAG: we find how to propel it.',
     'Découvrir nos services →': 'Discover our services →',
     'Contrats numériques': 'Digital contracts',
     'Moyens de paiement': 'Payment methods',
     'Nos services': 'Our services',
+    'Nos partenaires': 'Our partners',
+    'Ils avancent avec nous': 'They move forward with us',
     'Comment demander un service': 'How to request a service',
     'Du premier message à la livraison de votre service, quatre étapes simples et suivies de bout en bout.':
         'From the first message to the delivery of your service, four simple steps tracked from start to finish.',

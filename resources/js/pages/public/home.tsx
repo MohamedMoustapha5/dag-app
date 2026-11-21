@@ -78,6 +78,34 @@ const TRUST_ITEMS = [
     { icon: CheckCircle2, texte: 'Un seul interlocuteur : DAG' },
 ];
 
+/**
+ * Partner logos of the scrolling band. `sombre`: a logo drawn on its own
+ * dark background, shown on a tile of the same colour.
+ */
+const PARTENAIRES = [
+    {
+        nom: 'Nova-Tech',
+        logo: '/images/brand/partners/nova-tech-logo.png',
+        sombre: false,
+    },
+    {
+        nom: 'Nordex Consulting Group',
+        logo: '/images/brand/partners/nordex-consulting-group-logo.jpg',
+        sombre: true,
+    },
+    {
+        nom: 'Genis Academic',
+        logo: '/images/brand/partners/genis-academic.png',
+        sombre: false,
+    },
+];
+
+/**
+ * How many times the partners repeat in one half of the band, so that it
+ * is wider than the screen and the loop never shows a gap.
+ */
+const REPETITIONS_PARTENAIRES = 3;
+
 const PAIEMENT_CHECKLIST = [
     'Montant total affiché en FCFA, sans frais cachés',
     'Devis verrouillé 24h, le temps de finaliser',
@@ -202,7 +230,7 @@ export default function Home({ stats, equipe }: HomeProps) {
 
     return (
         <PublicLayout>
-            <Head title="DAG — Digital Agency Group" />
+            <Head title="Digital Agency Group" />
 
             <section
                 className="hero-full home-hero"
@@ -222,9 +250,7 @@ export default function Home({ stats, equipe }: HomeProps) {
                         Du marketing digital au site web, de la formation à
                         l’emploi, DAG fait grandir votre activité et votre
                         carrière. Un projet en tête ? Soumettez-le à DAG : nous
-                        trouvons comment le propulser, surtout dans le digital.
-                        Et pour les hôpitaux, notre application de gestion
-                        simplifie le quotidien des équipes de santé.
+                        trouvons comment le propulser.
                     </p>
                     <div className="home-hero-actions">
                         <Link
@@ -288,6 +314,66 @@ export default function Home({ stats, equipe }: HomeProps) {
                             </span>
                         </div>
                     ))}
+                </div>
+            </section>
+
+            <section
+                className="home-partenaires reveal"
+                aria-labelledby="home-partenaires-titre"
+            >
+                <div className="container home-partenaires-entete">
+                    <span className="badge badge-partner">Nos partenaires</span>
+                    <h2 id="home-partenaires-titre">
+                        Ils avancent avec nous
+                    </h2>
+                </div>
+
+                <div className="logo-defilant">
+                    <div className="logo-defilant-piste">
+                        {[0, 1].map((copie) => (
+                            <ul
+                                key={copie}
+                                className="logo-defilant-groupe"
+                                aria-hidden={copie === 1 ? true : undefined}
+                            >
+                                {Array.from(
+                                    { length: REPETITIONS_PARTENAIRES },
+                                    (_, tour) =>
+                                        PARTENAIRES.map((partenaire) => {
+                                            const original =
+                                                copie === 0 && tour === 0;
+
+                                            return (
+                                                <li
+                                                    key={`${tour}-${partenaire.nom}`}
+                                                    className={
+                                                        original
+                                                            ? undefined
+                                                            : 'logo-defilant-repetition'
+                                                    }
+                                                >
+                                                    <div
+                                                        className={`logo-defilant-carte${partenaire.sombre ? ' logo-defilant-carte--sombre' : ''}`}
+                                                        title={partenaire.nom}
+                                                    >
+                                                        <img
+                                                            src={partenaire.logo}
+                                                            alt={
+                                                                original
+                                                                    ? partenaire.nom
+                                                                    : ''
+                                                            }
+                                                            loading="lazy"
+                                                            draggable={false}
+                                                        />
+                                                    </div>
+                                                </li>
+                                            );
+                                        }),
+                                )}
+                            </ul>
+                        ))}
+                    </div>
                 </div>
             </section>
 
