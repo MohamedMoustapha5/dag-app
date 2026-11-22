@@ -61,7 +61,7 @@ const TYPES_CLIENT: {
     {
         cle: 'entreprise',
         libelle: 'Entreprises & organisations',
-        description: 'Devis et contrat signé, puis paiement',
+        description: 'Devis proforma validé, contrat signé, puis paiement',
         icone: Building2,
     },
 ];
@@ -99,7 +99,7 @@ const ONGLETS: {
     {
         cle: 'nouvelles',
         libelle: 'Nouvelles',
-        aide: 'Demandes reçues, pas encore chiffrées : étudiez-les et envoyez le devis, le contrat part avec.',
+        aide: 'Demandes reçues, pas encore chiffrées : étudiez-les et envoyez le devis proforma. Une fois validé par le client, son contrat lui est envoyé automatiquement.',
         vide: 'Aucune nouvelle demande : tout a été étudié.',
     },
     {
@@ -111,7 +111,7 @@ const ONGLETS: {
     {
         cle: 'attente_client',
         libelle: 'En attente du client',
-        aide: 'Le client doit signer son contrat ou régler sa facture. Les plus anciennes sont en tête : relancez celles qui attendent depuis plus d’une semaine.',
+        aide: 'Le client doit valider son devis, signer son contrat ou régler sa facture. Les plus anciennes sont en tête : relancez celles qui attendent depuis plus d’une semaine.',
         vide: 'Aucune demande n’attend le client.',
     },
     {
@@ -389,7 +389,7 @@ export default function AdminDemandes({
                 >
                     {particulier
                         ? 'Particuliers : devis proforma envoyé, validé en ligne par le client, paiement, puis réalisation. Sans contrat.'
-                        : 'Entreprises & organisations : devis et contrat envoyés ensemble, signature du client, validation du contrat par DAG, paiement, puis réalisation.'}
+                        : 'Entreprises & organisations : devis proforma validé en ligne par le client, contrat envoyé automatiquement et signé, validation du contrat par DAG, paiement, puis réalisation.'}
                 </p>
             </div>
 
@@ -522,7 +522,9 @@ export default function AdminDemandes({
                                     {!termine && <th>Prochaine étape</th>}
                                     {onglet !== 'nouvelles' && (
                                         <th>
-                                            {particulier ? 'Devis' : 'Contrat'}
+                                            {particulier
+                                                ? 'Devis'
+                                                : 'Devis / contrat'}
                                         </th>
                                     )}
                                     <th>Actions</th>
@@ -656,10 +658,15 @@ export default function AdminDemandes({
                                                     data-label={
                                                         particulier
                                                             ? 'Devis'
-                                                            : 'Contrat'
+                                                            : 'Devis / contrat'
                                                     }
                                                 >
-                                                    {particulier ? (
+                                                    {/* An entreprise's contract only exists once its devis is validated. */}
+                                                    {particulier ||
+                                                    demande.contratStatut ===
+                                                        null ||
+                                                    demande.contratStatut ===
+                                                        'BROUILLON' ? (
                                                         <EtatDevis
                                                             demande={demande}
                                                         />
@@ -746,8 +753,7 @@ export default function AdminDemandes({
                                                             Voir le contrat
                                                         </Link>
                                                     )}
-                                                    {particulier &&
-                                                        demande.montantNegocie &&
+                                                    {demande.montantNegocie &&
                                                         ![
                                                             'BROUILLON',
                                                             'EN_ETUDE',
@@ -926,7 +932,7 @@ function DevisModal({
                 >
                     {demande.typeClient === 'particulier'
                         ? 'Le client particulier reçoit le devis (facture proforma), le valide en ligne puis règle la facture. Pas de contrat.'
-                        : 'Le client reçoit le devis avec son contrat : il le signe, DAG le valide, puis il règle la facture.'}
+                        : 'Le client reçoit le devis (facture proforma) et le valide en ligne : son contrat lui est alors envoyé automatiquement. Il le signe, DAG le valide, puis il règle la facture.'}
                 </p>
 
                 <form

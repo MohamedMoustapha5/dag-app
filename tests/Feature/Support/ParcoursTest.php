@@ -46,8 +46,9 @@ test('each stage of a demande tells who acts next, for the client and for the te
     expect(etapeEnCours($pourAdmin))->toBe([$etape, $acteur, $acteur === 'dag']);
 })->with([
     'just sent' => ['EN_ETUDE', null, null, 'devis', 'dag'],
-    'devis and contract sent' => ['DEVIS_ENVOYE', 'ENVOYE', 'EN_ATTENTE', 'signature', 'client'],
-    'rectification requested' => ['DEVIS_ENVOYE', 'BROUILLON', 'EN_ATTENTE', 'signature', 'dag'],
+    'devis to validate' => ['DEVIS_ENVOYE', null, 'EN_ATTENTE', 'acceptation', 'client'],
+    'new devis, contract back in draft' => ['DEVIS_ENVOYE', 'BROUILLON', 'EN_ATTENTE', 'acceptation', 'client'],
+    'contract sent' => ['DEVIS_ENVOYE', 'ENVOYE', 'EN_ATTENTE', 'signature', 'client'],
     'signed, to validate' => ['CONTRAT_SIGNE', 'SIGNE', 'EN_ATTENTE', 'validation', 'dag'],
     'validated, to pay' => ['CONTRAT_SIGNE', 'ACTIF', 'EN_ATTENTE', 'paiement', 'client'],
     'paid' => ['PAYEE', 'ACTIF', 'PAYEE', 'prestation', 'dag'],
@@ -140,7 +141,7 @@ test('a demande handled under the earlier procedure is never sent back to a pass
     expect($parcours['prochaine']['cle'])->toBe('signature');
     expect($parcours['prochaine']['acteur'])->toBe('dag');
     expect(collect($parcours['etapes'])->where('etat', 'faite')->pluck('cle')->all())
-        ->toBe(['demande', 'devis', 'signature', 'validation', 'paiement']);
+        ->toBe(['demande', 'devis', 'acceptation', 'signature', 'validation', 'paiement']);
 });
 
 test('an enrolment paid before dossiers existed waits for DAG to confirm the seat, not for a payment', function () {

@@ -33,6 +33,11 @@ function demandeAvecContratDag(): array
         ->post(route('espace-admin.demandes.devis', $demande), ['montant' => 60000])
         ->assertRedirect();
 
+    // The entreprise validates the devis: its contract is drafted and sent.
+    test()->actingAs($client->user, 'web')
+        ->post(route('espace-client.demandes.devis.valider', $demande))
+        ->assertRedirect();
+
     return [$client, $demande, Contrat::where('demande_id', $demande->id)->sole()];
 }
 
@@ -194,6 +199,13 @@ test('a new devis is a new contract, with its rectification allowance restored',
 
     $this->actingAs(MembreEquipe::factory()->promotrice()->create(), 'admin')
         ->post(route('espace-admin.demandes.devis', $demande), ['montant' => 75000])
+        ->assertRedirect();
+
+    // Out of the client's sight until the new devis is validated.
+    expect($contrat->fresh()->statut)->toBe('BROUILLON');
+
+    $this->actingAs($client->user, 'web')
+        ->post(route('espace-client.demandes.devis.valider', $demande))
         ->assertRedirect();
 
     $contrat->refresh();

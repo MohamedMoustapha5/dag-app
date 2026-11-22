@@ -9,7 +9,6 @@ use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\Demande;
 use App\Notifications\DevisRecuNotification;
-use App\Support\ContratRedaction;
 use App\Support\Notifications\Notifier;
 use App\Support\Paiements\PaiementService;
 use App\Support\Parcours\ParcoursDemande;
@@ -177,18 +176,14 @@ class AdminDemandeController extends Controller
             $demande->update($data);
 
             // Moving a demande to "Devis envoyé" with an amount issues the
-            // facture, whichever screen the change comes from: with the
-            // contract to sign for an entreprise; for a particulier, a new
-            // amount is a new devis the client validates again.
+            // facture, whichever screen the change comes from. A new amount,
+            // or a proposal after a refusal, is a new devis the client
+            // validates again; an entreprise's contract waits for it.
             if ($demande->statut === 'DEVIS_ENVOYE' && (float) $demande->montant_negocie > 0) {
                 $paiements->emettreFacturePourDevis($demande, (float) $demande->montant_negocie);
 
-                if (! $demande->estParticulier()) {
-                    ContratRedaction::envoyerAvecDevis($demande);
-                } elseif ((float) $demande->montant_negocie !== $montantAvant || $demande->devisEstRefuse()) {
-                    // A new amount, or a proposal after a refusal, is a new
-                    // devis for the client to answer.
-                    $demande->update(['devis_valide_le' => null, 'devis_refuse_le' => null, 'motif_refus_devis' => null]);
+                if ((float) $demande->montant_negocie !== $montantAvant || $demande->devisEstRefuse()) {
+                    $this->nouveauDevis($demande);
                 }
             }
         });
@@ -198,6 +193,23 @@ class AdminDemandeController extends Controller
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Demande mise à jour.']);
 
         return back();
+    }
+
+    /**
+     * A devis just sent waits for the client's answer: any earlier
+     * validation or refusal is cleared, and an entreprise's contract not
+     * signed yet goes back to draft (out of the client's sight) until the
+     * new devis is validated, which redrafts and sends it.
+     */
+    private function nouveauDevis(Demande $demande): void
+    {
+        $demande->update(['devis_valide_le' => null, 'devis_refuse_le' => null, 'motif_refus_devis' => null]);
+
+        $contrat = $demande->contrat()->first();
+
+        if ($contrat !== null && ! $contrat->estSigne()) {
+            $contrat->update(['statut' => 'BROUILLON', 'motif_rectification' => null, 'rectification_demandee_at' => null]);
+        }
     }
 
     /**
@@ -301,16 +313,10 @@ class AdminDemandeController extends Controller
                 'montant_negocie' => $data['montant'],
                 'message_devis' => $data['message'] ?? null,
                 'statut' => 'DEVIS_ENVOYE',
-                'devis_valide_le' => null,
-                'devis_refuse_le' => null,
-                'motif_refus_devis' => null,
             ]);
 
             $paiements->emettreFacturePourDevis($demande, (float) $data['montant']);
-
-            if (! $demande->estParticulier()) {
-                ContratRedaction::envoyerAvecDevis($demande);
-            }
+            $this->nouveauDevis($demande);
         });
 
         Notifier::envoyer(Notifier::utilisateurDe($demande), new DevisRecuNotification($demande));

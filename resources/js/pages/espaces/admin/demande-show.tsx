@@ -183,7 +183,7 @@ export default function AdminDemandeShow({
                     className="grid-3 espace-stats-grid"
                     style={{ marginBottom: 24 }}
                 >
-                    {demande.estParticulier && demande.devis && (
+                    {demande.devis && (
                         <div className="card" style={{ padding: 20 }}>
                             <p className="muted" style={{ fontSize: 12.5 }}>
                                 Devis proforma
@@ -239,6 +239,7 @@ export default function AdminDemandeShow({
                     )}
                     {!demande.contrat &&
                         demande.facture &&
+                        demande.devis?.valideLe &&
                         peutGenererContrat && (
                             <div className="card" style={{ padding: 20 }}>
                                 <p className="muted" style={{ fontSize: 12.5 }}>

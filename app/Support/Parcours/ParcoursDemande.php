@@ -9,7 +9,8 @@ use App\Models\Demande;
  * client and for the DAG team: every step, who acts on it, the current one,
  * and what has to be done next, worded for whoever is looking.
  *
- * Entreprise or organisation: demande → devis (DAG) → signature of the
+ * Entreprise or organisation: demande → devis proforma (DAG) → validation
+ * of the devis (client), which sends the contract → signature of the
  * contract (client) → validation of the contract (DAG) → payment (client)
  * → prestation (DAG) → clôture (DAG).
  *
@@ -91,7 +92,8 @@ class ParcoursDemande
      */
     private const ETAPES = [
         'demande' => ['Demande envoyée', Acteur::CLIENT],
-        'devis' => ['Devis et contrat', Acteur::DAG],
+        'devis' => ['Devis proforma', Acteur::DAG],
+        'acceptation' => ['Validation du devis', Acteur::CLIENT],
         'signature' => ['Signature du contrat', Acteur::CLIENT],
         'validation' => ['Validation du contrat', Acteur::DAG],
         'paiement' => ['Paiement', Acteur::CLIENT],
@@ -143,9 +145,7 @@ class ParcoursDemande
             return [
                 'demande' => true,
                 'devis' => $demande->aAtteint('DEVIS_ENVOYE'),
-                // A demande started under the contract procedure counts its
-                // signed contract as the client's agreement.
-                'acceptation' => $demande->devisEstValide() || $demande->contratEstSigne(),
+                'acceptation' => $demande->devisAccepte(),
                 'paiement' => $facturePayee || $demande->aAtteint('PAYEE'),
                 'prestation' => $demande->aAtteint('LIVREE'),
                 'cloture' => $demande->statut === 'TERMINEE',
@@ -155,6 +155,7 @@ class ParcoursDemande
         return [
             'demande' => true,
             'devis' => $demande->aAtteint('DEVIS_ENVOYE'),
+            'acceptation' => $demande->devisAccepte(),
             'signature' => $demande->contratEstSigne(),
             'validation' => $demande->contratEstValide(),
             'paiement' => $facturePayee || $demande->aAtteint('PAYEE'),
@@ -177,7 +178,7 @@ class ParcoursDemande
             : null;
 
         [$acteur, $titre, $texte, $action] = match ($etape) {
-            'devis' => $particulier && $demande->devisEstRefuse() ? [
+            'devis' => $demande->devisEstRefuse() ? [
                 Acteur::DAG,
                 $client ? 'Nouvelle proposition en préparation' : 'Envoyer une nouvelle proposition',
                 $client
@@ -189,18 +190,21 @@ class ParcoursDemande
                 $client ? 'Étude de votre demande' : 'Envoyer le devis',
                 match (true) {
                     $client && $particulier => "L'équipe DAG étudie votre demande. Vous recevrez ici votre devis (proforma) à valider.",
-                    $client => "L'équipe DAG étudie votre demande. Vous recevrez ici le devis et le contrat à signer.",
+                    $client => "L'équipe DAG étudie votre demande. Vous recevrez ici votre devis (proforma) à valider, puis votre contrat à signer.",
                     $particulier => 'Étudiez la demande puis envoyez le devis : le client particulier le valide en ligne, sans contrat.',
-                    default => 'Étudiez la demande puis envoyez le devis : le contrat à signer part avec.',
+                    default => 'Étudiez la demande puis envoyez le devis proforma : une fois validé par le client, son contrat lui est envoyé automatiquement.',
                 },
                 $client ? null : 'envoyer_devis',
             ],
             'acceptation' => [
                 Acteur::CLIENT,
                 $client ? 'Valider votre devis' : 'Validation du devis par le client',
-                $client
-                    ? 'Consultez votre devis (proforma), puis validez-le : le paiement s’ouvre aussitôt.'
-                    : 'Devis envoyé : en attente de sa validation par le client.',
+                match (true) {
+                    $client && $particulier => 'Consultez votre devis (proforma), puis validez-le : le paiement s’ouvre aussitôt.',
+                    $client => 'Consultez votre devis (proforma), puis validez-le : votre contrat vous est aussitôt envoyé pour signature.',
+                    $particulier => 'Devis envoyé : en attente de sa validation par le client.',
+                    default => 'Devis envoyé : en attente de sa validation par le client, qui déclenche l’envoi du contrat.',
+                },
                 $client ? 'valider_devis' : null,
             ],
             'signature' => match (true) {
@@ -208,7 +212,7 @@ class ParcoursDemande
                     Acteur::CLIENT,
                     $client ? 'Signer votre contrat' : 'Signature du client',
                     $client
-                        ? 'Lisez le contrat qui accompagne votre devis, puis signez-le en quelques minutes.'
+                        ? 'Votre devis est validé : lisez le contrat qui en découle, puis signez-le en quelques minutes.'
                         : 'Le contrat est envoyé : en attente de la signature du client.',
                     $client ? 'signer_contrat' : 'ouvrir_contrat',
                 ],

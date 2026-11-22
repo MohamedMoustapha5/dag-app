@@ -141,8 +141,8 @@ test('a contract cannot be generated for a demande from a modele of another cont
 test('validating a signed demande contract tells the client the payment is open', function () {
     Notification::fake();
     $promotrice = MembreEquipe::factory()->promotrice()->create();
-    $client = Client::factory()->create();
-    $demande = Demande::factory()->create(['client_id' => $client->id, 'statut' => 'CONTRAT_SIGNE']);
+    $client = Client::factory()->entreprise()->create();
+    $demande = Demande::factory()->create(['client_id' => $client->id, 'statut' => 'CONTRAT_SIGNE', 'devis_valide_le' => now()]);
     $contrat = Contrat::factory()->signe()->create(['client_id' => $client->id, 'demande_id' => $demande->id]);
     $facture = Facture::factory()->create(['client_id' => $client->id, 'demande_id' => $demande->id, 'montant' => 50000]);
 

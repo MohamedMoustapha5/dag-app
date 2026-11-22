@@ -74,7 +74,7 @@ test('the payment only opens once the particulier validated the devis, and the t
     expect(Paiement::count())->toBe(1);
 });
 
-test('a devis can be validated once, only by its client, and only for a particulier', function () {
+test('a devis can be validated once, only by its client, and only once sent', function () {
     [$client, $demande] = devisEnvoyeAuParticulier();
 
     $this->actingAs(Client::factory()->create()->user, 'web')
@@ -83,12 +83,6 @@ test('a devis can be validated once, only by its client, and only for a particul
 
     $this->actingAs($client->user, 'web')->post(route('espace-client.demandes.devis.valider', $demande))->assertRedirect();
     $this->actingAs($client->user, 'web')->post(route('espace-client.demandes.devis.valider', $demande))->assertStatus(409);
-
-    $entreprise = Client::factory()->entreprise()->create();
-    $demandeEntreprise = Demande::factory()->create(['client_id' => $entreprise->id, 'statut' => 'DEVIS_ENVOYE', 'montant_negocie' => 50000]);
-    $this->actingAs($entreprise->user, 'web')
-        ->post(route('espace-client.demandes.devis.valider', $demandeEntreprise))
-        ->assertNotFound();
 
     $sansDevis = Demande::factory()->create(['client_id' => $client->id, 'statut' => 'EN_ETUDE']);
     $this->actingAs($client->user, 'web')
@@ -286,6 +280,24 @@ test('declining a devis needs a known reason, details for « autre », and an op
         ->post(route('espace-client.demandes.devis.refuser', $demande), ['motif' => 'PRIX', 'suite' => 'abandon'])
         ->assertStatus(409);
     expect($demande->fresh()->devisEstValide())->toBeTrue();
+});
+
+test('an entreprise also receives a proforma it can decline, and no contract is sent then', function () {
+    $entreprise = Client::factory()->entreprise()->create();
+    $demande = Demande::factory()->create(['client_id' => $entreprise->id, 'statut' => 'EN_ETUDE']);
+    $this->actingAs(MembreEquipe::factory()->promotrice()->create(), 'admin')
+        ->post(route('espace-admin.demandes.devis', $demande), ['montant' => 250000]);
+
+    $this->actingAs($entreprise->user, 'web')
+        ->get(route('espace-client.demandes.proforma', $demande))
+        ->assertOk();
+
+    $this->actingAs($entreprise->user, 'web')
+        ->post(route('espace-client.demandes.devis.refuser', $demande), ['motif' => 'DELAI', 'suite' => 'nouveau_devis'])
+        ->assertRedirect();
+
+    expect($demande->fresh()->statut)->toBe('EN_ETUDE');
+    expect(Contrat::count())->toBe(0);
 });
 
 test('a particulier demande started under the contract procedure keeps going', function () {

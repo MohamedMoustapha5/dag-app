@@ -94,10 +94,33 @@ class Demande extends Model
     }
 
     /**
+     * Whether the client accepted the devis. Every client validates the
+     * devis (proforma) online; a demande started earlier, when the contract
+     * left with the devis, counts its contract as the acceptance (sent, for
+     * an entreprise; signed, for a particulier).
+     */
+    public function devisAccepte(): bool
+    {
+        if ($this->devisEstValide()) {
+            return true;
+        }
+
+        if ($this->estParticulier()) {
+            return $this->contratEstSigne();
+        }
+
+        // A contract sent, signed or under correction at the client's request
+        // was only possible once the devis was agreed.
+        return $this->contrat !== null
+            && ($this->contrat->statut !== 'BROUILLON' || $this->contrat->motif_rectification !== null);
+    }
+
+    /**
      * Whether the payment of the facture is open. A particulier validates
-     * the devis; an entreprise has its signed contract validated by DAG. A
-     * particulier's demande started under the contract procedure keeps
-     * going once that contract is validated.
+     * the devis; an entreprise validates the devis, signs the contract then
+     * sent to it, and has it validated by DAG. A particulier's demande
+     * started under the contract procedure keeps going once that contract
+     * is validated.
      */
     public function paiementEstOuvert(): bool
     {

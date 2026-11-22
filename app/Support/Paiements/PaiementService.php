@@ -64,13 +64,14 @@ class PaiementService
 
     /**
      * Whether the facture still waits for the client to sign the contract of
-     * its demande (entreprises and organisations only: a particulier
-     * validates the devis instead).
+     * its demande, sent once the devis is validated (entreprises and
+     * organisations only: a particulier has no contract).
      */
     public function attendSignatureContrat(Facture $facture): bool
     {
         return $facture->demande_id !== null
             && ! $facture->demande->estParticulier()
+            && $facture->demande->devisAccepte()
             && ! $facture->demande->contratEstSigne();
     }
 
@@ -81,19 +82,19 @@ class PaiementService
     public function attendValidationContrat(Facture $facture): bool
     {
         return $facture->demande_id !== null
-            && ! $facture->demande->estParticulier()
             && $facture->demande->contratEstSigne()
-            && ! $facture->demande->contratEstValide();
+            && ! $facture->demande->contratEstValide()
+            && ! $facture->demande->paiementEstOuvert();
     }
 
     /**
-     * Whether the facture of a particulier's demande still waits for the
-     * client to validate the devis (proforma).
+     * Whether the facture of a demande still waits for the client to
+     * validate the devis (proforma), the first step for every client.
      */
     public function attendValidationDevis(Facture $facture): bool
     {
         return $facture->demande_id !== null
-            && $facture->demande->estParticulier()
+            && ! $facture->demande->devisAccepte()
             && ! $facture->demande->paiementEstOuvert();
     }
 

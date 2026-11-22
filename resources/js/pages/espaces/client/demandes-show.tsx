@@ -482,6 +482,7 @@ export default function DemandesShow({
                     numero={devis.numero}
                     objet={demande.objet}
                     montant={demande.montantNegocie}
+                    particulier={demande.estParticulier}
                     onClose={() => setValidationOuverte(false)}
                 />
             )}
@@ -695,12 +696,14 @@ function ValiderDevisModal({
     numero,
     objet,
     montant,
+    particulier,
     onClose,
 }: {
     demandeId: string;
     numero: string;
     objet: string;
     montant: string | null;
+    particulier: boolean;
     onClose: () => void;
 }) {
     const [envoi, setEnvoi] = useState(false);
@@ -772,8 +775,10 @@ function ValiderDevisModal({
                             <strong>{formatMontant(montant)}</strong>
                         </>
                     ) : null}
-                    . Le paiement s'ouvre aussitôt, et la prestation démarre
-                    dès réception de votre règlement.
+
+                    {particulier
+                        ? ". Le paiement s'ouvre aussitôt, et la prestation démarre dès réception de votre règlement."
+                        : '. Votre contrat vous est aussitôt envoyé pour signature ; après sa validation par DAG, vous réglez la facture.'}
                 </p>
 
                 <div

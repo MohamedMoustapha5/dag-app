@@ -6,9 +6,12 @@ use App\Enums\Action;
 use App\Enums\Donnee;
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
+use App\Models\Contrat;
 use App\Models\Demande;
 use App\Models\Formule;
 use App\Models\Service;
+use App\Notifications\ContratASignerNotification;
+use App\Support\ContratRedaction;
 use App\Support\Notifications\Notifier;
 use App\Support\Paiements\PaiementService;
 use App\Support\Parcours\ParcoursDemande;
@@ -16,6 +19,7 @@ use App\Support\ProformaPdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
@@ -124,12 +128,12 @@ class ClientDemandeController extends Controller
                 'messageDevis' => $demande->message_devis,
                 'createdAt' => $demande->created_at,
                 'estParticulier' => $demande->estParticulier(),
-                'devis' => $demande->estParticulier() && ProformaPdf::disponible($demande) ? [
+                'devis' => ProformaPdf::disponible($demande) ? [
                     'numero' => ProformaPdf::numero($demande),
                     'valideLe' => $demande->devis_valide_le?->toIso8601String(),
                     'peutValider' => $this->peutValiderDevis($demande),
                 ] : null,
-                'refusDevis' => $demande->estParticulier() && $demande->devisEstRefuse() ? [
+                'refusDevis' => $demande->devisEstRefuse() ? [
                     'le' => $demande->devis_refuse_le->toIso8601String(),
                     'motif' => $demande->motif_refus_devis,
                     'abandon' => $demande->statut === 'REFUSEE',
@@ -168,17 +172,24 @@ class ClientDemandeController extends Controller
     }
 
     /**
-     * A particulier accepts the devis DAG sent (the proforma), which opens
-     * the payment of the facture. No contract is signed.
+     * The client accepts the devis DAG sent (the proforma). A particulier
+     * can then pay. For an entreprise or an organisation, the contract is
+     * drafted from the accepted devis and sent at once for signature; DAG
+     * validates it once signed, which opens the payment.
      */
     public function validerDevis(Request $request, Demande $demande): RedirectResponse
     {
         Gate::authorize('view', $demande);
 
-        abort_unless($demande->estParticulier(), 404);
         abort_unless($this->peutValiderDevis($demande), 409, 'Ce devis ne peut pas être validé : il a déjà été validé ou n’est plus d’actualité.');
 
-        $demande->update(['devis_valide_le' => now()]);
+        $particulier = $demande->estParticulier();
+
+        $contrat = DB::transaction(function () use ($demande, $particulier): ?Contrat {
+            $demande->update(['devis_valide_le' => now()]);
+
+            return $particulier ? null : ContratRedaction::envoyerAvecDevis($demande);
+        });
 
         $montant = number_format((float) $demande->montant_negocie, 0, ',', ' ');
 
@@ -189,17 +200,27 @@ class ClientDemandeController extends Controller
             Action::Voir,
             'devis.valide',
             "Devis validé — {$demande->reference}",
-            "{$demande->client->nom} a validé le devis de {$montant} FCFA ({$demande->libelleObjet()}) : le paiement est ouvert.",
+            "{$demande->client->nom} a validé le devis de {$montant} FCFA ({$demande->libelleObjet()}) : "
+                .($particulier ? 'le paiement est ouvert.' : "le contrat {$contrat?->reference} lui est envoyé pour signature."),
             route('espace-admin.demandes.show', $demande),
         );
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => 'Devis validé : vous pouvez maintenant régler la facture.']);
+        if ($contrat !== null) {
+            Notifier::envoyer(Notifier::utilisateurDe($contrat), new ContratASignerNotification($contrat));
+        }
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => $particulier
+                ? 'Devis validé : vous pouvez maintenant régler la facture.'
+                : 'Devis validé : votre contrat est prêt, signez-le pour passer au paiement.',
+        ]);
 
         return back();
     }
 
     /**
-     * A particulier declines the devis, with a reason. Either they want a
+     * The client declines the devis, with a reason. Either they want a
      * revised proposal (the demande goes back to DAG, under study) or they
      * do not wish to go on (the demande is closed). DAG is told either way.
      */
@@ -207,7 +228,6 @@ class ClientDemandeController extends Controller
     {
         Gate::authorize('view', $demande);
 
-        abort_unless($demande->estParticulier(), 404);
         abort_unless($this->peutValiderDevis($demande), 409, 'Ce devis ne peut plus être refusé : il a déjà été validé ou n’est plus d’actualité.');
 
         $data = $request->validate([
@@ -260,8 +280,6 @@ class ClientDemandeController extends Controller
     public function proforma(Request $request, Demande $demande): HttpResponse
     {
         Gate::authorize('view', $demande);
-
-        abort_unless($demande->estParticulier(), 404);
 
         return ProformaPdf::telecharger($demande);
     }

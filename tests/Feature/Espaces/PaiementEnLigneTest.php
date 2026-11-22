@@ -12,6 +12,7 @@ use App\Models\MembreEquipe;
 use App\Models\Paiement;
 use App\Models\Service;
 use App\Notifications\AlerteEquipeNotification;
+use App\Notifications\ContratASignerNotification;
 use App\Support\Paiements\PaiementService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Notification;
@@ -254,6 +255,17 @@ test('the full journey: request a service, receive the devis and contract, sign,
     expect((float) $facture->montant)->toBe(150000.0);
     expect($facture->statut)->toBe('EN_ATTENTE');
 
+    // The devis (proforma) comes alone: the contract follows its validation.
+    expect(Contrat::count())->toBe(0);
+    $this->actingAs($client->user, 'web')
+        ->get(route('espace-client.demandes.show', $demande))
+        ->assertInertia(fn ($page) => $page
+            ->where('demande.facture.attendValidationDevis', true)
+            ->where('parcours.prochaine.action', 'valider_devis'));
+    $this->actingAs($client->user, 'web')
+        ->post(route('espace-client.demandes.devis.valider', $demande))
+        ->assertRedirect();
+
     $contrat = Contrat::where('demande_id', $demande->id)->firstOrFail();
     expect($contrat->statut)->toBe('ENVOYE');
     expect((float) $contrat->montant)->toBe(150000.0);
@@ -387,25 +399,39 @@ test('staff cannot record a payment on a demande facture whose contract is not s
     expect($demande->fresh()->statut)->toBe('DEVIS_ENVOYE');
 });
 
-test('sending the devis also sends the contract to sign, and re-sending it updates the unsigned contract', function () {
+test('an entreprise devis comes alone; validating it sends the contract, and a new devis puts the unsigned contract back to draft', function () {
+    Notification::fake();
     $promotrice = MembreEquipe::factory()->promotrice()->create();
     $demande = Demande::factory()->entreprise()->create(['statut' => 'EN_ETUDE']);
+    $client = $demande->client;
 
     $this->actingAs($promotrice, 'admin')->post(route('espace-admin.demandes.devis', $demande), ['montant' => 100000]);
-    $this->actingAs($promotrice, 'admin')->post(route('espace-admin.demandes.devis', $demande), ['montant' => 120000]);
+    expect(Contrat::count())->toBe(0);
 
+    $this->actingAs($client->user, 'web')->post(route('espace-client.demandes.devis.valider', $demande))->assertRedirect();
     $contrat = Contrat::where('demande_id', $demande->id)->sole();
     expect($contrat->statut)->toBe('ENVOYE');
     expect($contrat->type)->toBe('PRESTATION_SERVICE');
-    expect((float) $contrat->montant)->toBe(120000.0);
+    Notification::assertSentTo($client->user, ContratASignerNotification::class);
+
+    $this->actingAs($promotrice, 'admin')->post(route('espace-admin.demandes.devis', $demande), ['montant' => 120000]);
+    expect($contrat->fresh()->statut)->toBe('BROUILLON');
+    expect($demande->fresh()->devisEstValide())->toBeFalse();
+
+    $this->actingAs($client->user, 'web')->post(route('espace-client.demandes.devis.valider', $demande))->assertRedirect();
+    expect($contrat->fresh()->statut)->toBe('ENVOYE');
+    expect((float) $contrat->fresh()->montant)->toBe(120000.0);
 });
 
-test('a formule devis comes with a subscription contract', function () {
+test('a formule devis leads to a subscription contract once validated', function () {
     $promotrice = MembreEquipe::factory()->promotrice()->create();
     $demande = Demande::factory()->entreprise()->create(['statut' => 'EN_ETUDE', 'service_id' => null, 'formule_id' => Formule::factory()]);
 
     $this->actingAs($promotrice, 'admin')
         ->post(route('espace-admin.demandes.devis', $demande), ['montant' => 45000])
+        ->assertRedirect();
+    $this->actingAs($demande->client->user, 'web')
+        ->post(route('espace-client.demandes.devis.valider', $demande))
         ->assertRedirect();
 
     $contrat = Contrat::where('demande_id', $demande->id)->sole();
