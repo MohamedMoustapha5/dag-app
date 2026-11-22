@@ -93,6 +93,14 @@ class MonerooPasserelle implements PasserelleDecaissement, PasserellePaiement
     }
 
     /**
+     * The number pre-fills the Moneroo checkout for the payer.
+     */
+    public function demandeTelephone(): bool
+    {
+        return true;
+    }
+
+    /**
      * Moneroo only queues the payout here: its outcome arrives through the
      * payout.* webhook events or verifierDecaissement().
      */

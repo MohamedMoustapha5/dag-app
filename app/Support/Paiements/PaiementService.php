@@ -146,12 +146,13 @@ class PaiementService
     /**
      * The payment methods offered to payers, in display order.
      *
-     * @return list<array{value: string, label: string, mobile: bool}>
+     * @return list<array{value: string, label: string, mobile: bool, telephone: bool}>
      */
     public function moyens(): array
     {
         $moyens = [];
         $acceptes = config('paiements.moyens_acceptes.'.config('paiements.passerelle'));
+        $demandeTelephone = $this->passerelle()->demandeTelephone();
 
         foreach (config('paiements.moyens') as $valeur => $moyen) {
             // The active provider may not take every method (Fapshi: no card).
@@ -159,7 +160,13 @@ class PaiementService
                 continue;
             }
 
-            $moyens[] = ['value' => $valeur, 'label' => $moyen['label'], 'mobile' => $moyen['mobile']];
+            $moyens[] = [
+                'value' => $valeur,
+                'label' => $moyen['label'],
+                'mobile' => $moyen['mobile'],
+                // Whether DAG asks the number, or the provider's page does.
+                'telephone' => $moyen['mobile'] && $demandeTelephone,
+            ];
         }
 
         return $moyens;

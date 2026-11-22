@@ -38,7 +38,9 @@ class PaiementEnLigneController extends Controller
 
         $telephone = null;
 
-        if ($moyens[$data['moyen']]['mobile']) {
+        // The number is only asked here when the provider needs it from DAG:
+        // otherwise the payer types it on the provider's own payment page.
+        if ($moyens[$data['moyen']]['mobile'] && $this->paiements->passerelle()->demandeTelephone()) {
             $telephone = TelephoneMobile::normaliser($data['telephone'] ?? '');
 
             if ($telephone === null) {

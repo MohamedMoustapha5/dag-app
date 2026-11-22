@@ -84,6 +84,33 @@ test('starting a payment opens a Fapshi payment page and redirects the payer to 
         && $requete['redirectUrl'] === route('paiements.retour', $paiement));
 });
 
+test('with the Fapshi payment page, the payer goes straight to it without typing a number on DAG', function () {
+    Http::fake([
+        'sandbox.fapshi.com/initiate-pay' => Http::response(['link' => 'https://checkout.fapshi.com/payment/xyz', 'transId' => 'fp_page']),
+    ]);
+    $client = Client::factory()->create();
+    $facture = Facture::factory()->create(['client_id' => $client->id, 'montant' => 20000]);
+
+    $this->actingAs($client->user)
+        ->post(route('paiements.initier', $facture), ['moyen' => 'MTN_MOMO'])
+        ->assertSessionHasNoErrors()
+        ->assertRedirect('https://checkout.fapshi.com/payment/xyz');
+
+    expect(Paiement::sole()->reference_transaction)->toBe('fp_page');
+});
+
+test('with direct payment on, the number is required', function () {
+    config(['paiements.fapshi.paiement_direct' => true]);
+    $client = Client::factory()->create();
+    $facture = Facture::factory()->create(['client_id' => $client->id, 'montant' => 20000]);
+
+    $this->actingAs($client->user)
+        ->post(route('paiements.initier', $facture), ['moyen' => 'OM'])
+        ->assertSessionHasErrors('telephone');
+
+    Http::assertNothingSent();
+});
+
 test('with direct payment on, the request goes straight to the payer\'s phone', function (string $moyen, string $medium) {
     config(['paiements.fapshi.paiement_direct' => true]);
     Http::fake(['sandbox.fapshi.com/direct-pay' => Http::response(['message' => 'Request successful', 'transId' => 'fp_direct'])]);
@@ -112,8 +139,8 @@ test('Fapshi only takes mobile money: the card is neither offered nor accepted',
     $this->actingAs($client->user)
         ->get(route('espace-client.factures'))
         ->assertInertia(fn ($page) => $page->where('moyensPaiement', [
-            ['value' => 'OM', 'label' => 'Orange Money', 'mobile' => true],
-            ['value' => 'MTN_MOMO', 'label' => 'MTN Mobile Money', 'mobile' => true],
+            ['value' => 'OM', 'label' => 'Orange Money', 'mobile' => true, 'telephone' => false],
+            ['value' => 'MTN_MOMO', 'label' => 'MTN Mobile Money', 'mobile' => true, 'telephone' => false],
         ]));
 
     $this->actingAs($client->user)

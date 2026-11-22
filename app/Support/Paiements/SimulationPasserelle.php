@@ -69,6 +69,11 @@ class SimulationPasserelle implements PasserelleDecaissement, PasserellePaiement
         return true;
     }
 
+    public function demandeTelephone(): bool
+    {
+        return true;
+    }
+
     /**
      * A simulated retrait succeeds at once: there is no money to move.
      */

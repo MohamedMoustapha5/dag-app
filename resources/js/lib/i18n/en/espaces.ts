@@ -470,6 +470,9 @@ export const espacesEn: Record<string, string> = {
     'Les informations de votre carte sont saisies uniquement chez le prestataire de paiement : DAG n’y a jamais accès.':
         'Your card details are entered only at the payment provider: DAG never has access to them.',
     'Continuer vers le paiement sécurisé': 'Continue to secure payment',
+    'Confirmation sur la page de paiement sécurisée':
+        'Confirmation on the secure payment page',
+    'Redirection…': 'Redirecting…',
     'Carte de test': 'Test card',
     'Sur la vraie page du prestataire, le client saisit ici sa carte puis confirme le paiement avec sa banque (code par SMS ou validation dans son application).':
         'On the real provider page, the customer enters their card here, then confirms the payment with their bank (code by SMS or approval in its app).',

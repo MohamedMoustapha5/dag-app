@@ -105,6 +105,15 @@ class FapshiPasserelle implements PasserellePaiement
     }
 
     /**
+     * Only the direct payment needs the number: otherwise the payer types
+     * it on the Fapshi payment page.
+     */
+    public function demandeTelephone(): bool
+    {
+        return (bool) config('paiements.fapshi.paiement_direct');
+    }
+
+    /**
      * CREATED and PENDING are still in progress; a link left unpaid for
      * 24 hours ends EXPIRED, which closes the attempt like a failure.
      */

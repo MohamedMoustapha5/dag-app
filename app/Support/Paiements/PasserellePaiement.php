@@ -49,4 +49,11 @@ interface PasserellePaiement
      * provider's page.
      */
     public function ecranLocal(): bool;
+
+    /**
+     * Whether DAG asks the payer's mobile money number before handing over.
+     * False when the provider's own payment page asks for it: the payer
+     * then goes straight to that page.
+     */
+    public function demandeTelephone(): bool;
 }

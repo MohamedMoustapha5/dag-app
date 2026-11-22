@@ -2,7 +2,13 @@ import { useForm } from '@inertiajs/react';
 import { Check, CreditCard, Lock, ShieldCheck, X } from 'lucide-react';
 import paiements from '@/routes/paiements';
 
-export type MoyenPaiement = { value: string; label: string; mobile: boolean };
+export type MoyenPaiement = {
+    value: string;
+    label: string;
+    mobile: boolean;
+    /** Whether DAG asks the number; false when the provider's page does. */
+    telephone: boolean;
+};
 
 type Props = {
     facture: { id: string; reference: string; objet: string; solde: string };
@@ -213,6 +219,11 @@ export default function PayerFactureModal({ facture, moyens, onClose }: Props) {
 
     const moyenChoisi = moyens.find((moyen) => moyen.value === form.data.moyen);
     const montant = Number(facture.solde).toLocaleString('fr-FR');
+    // Mobile money confirmed on the provider's own page: no number here.
+    const pageDuPrestataire =
+        moyenChoisi !== undefined &&
+        moyenChoisi.mobile &&
+        !moyenChoisi.telephone;
 
     const submit = (event: React.FormEvent) => {
         event.preventDefault();
@@ -432,12 +443,45 @@ export default function PayerFactureModal({ facture, moyens, onClose }: Props) {
                             }}
                         >
                             2.{' '}
-                            {moyenChoisi?.mobile
-                                ? `Numéro ${moyenChoisi.label}`
-                                : 'Paiement par carte'}
+                            {pageDuPrestataire
+                                ? 'Confirmation sur la page de paiement sécurisée'
+                                : moyenChoisi?.mobile
+                                  ? `Numéro ${moyenChoisi.label}`
+                                  : 'Paiement par carte'}
                         </p>
 
-                        {moyenChoisi?.mobile ? (
+                        {pageDuPrestataire ? (
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    gap: 10,
+                                    alignItems: 'flex-start',
+                                    padding: '14px 16px',
+                                    borderRadius: 12,
+                                    background: '#f4f6fb',
+                                    fontSize: 13,
+                                    lineHeight: 1.55,
+                                    color: 'var(--dag-text-muted)',
+                                }}
+                            >
+                                <ShieldCheck
+                                    size={18}
+                                    style={{
+                                        flex: 'none',
+                                        marginTop: 1,
+                                        color: 'var(--dag-green)',
+                                    }}
+                                />
+                                <span>
+                                    Vous allez être redirigé vers la page de
+                                    paiement sécurisée de notre partenaire. Saisissez-y
+                                    votre numéro {moyenChoisi?.label}, puis
+                                    validez la demande reçue sur votre téléphone
+                                    avec votre code secret. Vous revenez
+                                    ensuite automatiquement sur DAG.
+                                </span>
+                            </div>
+                        ) : moyenChoisi?.mobile ? (
                             <>
                                 <div
                                     style={{
@@ -560,9 +604,10 @@ export default function PayerFactureModal({ facture, moyens, onClose }: Props) {
                             >
                                 <Lock size={15} />
                                 {form.processing
-                                    ? 'Traitement…'
-                                    : moyenChoisi && !moyenChoisi.mobile
-                                      ? 'Continuer vers le paiement sécurisé'
+                                    ? 'Redirection…'
+                                    : pageDuPrestataire ||
+                                        (moyenChoisi && !moyenChoisi.mobile)
+                                      ? `Payer ${montant} FCFA sur la page sécurisée`
                                       : `Payer ${montant} FCFA`}
                             </button>
                         </div>
