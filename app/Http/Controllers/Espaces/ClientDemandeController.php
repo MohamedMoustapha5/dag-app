@@ -128,6 +128,7 @@ class ClientDemandeController extends Controller
                 'messageDevis' => $demande->message_devis,
                 'createdAt' => $demande->created_at,
                 'estParticulier' => $demande->estParticulier(),
+                'exigeContrat' => $demande->exigeContrat(),
                 'devis' => ProformaPdf::disponible($demande) ? [
                     'numero' => ProformaPdf::numero($demande),
                     'valideLe' => $demande->devis_valide_le?->toIso8601String(),
@@ -172,10 +173,11 @@ class ClientDemandeController extends Controller
     }
 
     /**
-     * The client accepts the devis DAG sent (the proforma). A particulier
-     * can then pay. For an entreprise or an organisation, the contract is
-     * drafted from the accepted devis and sent at once for signature; DAG
-     * validates it once signed, which opens the payment.
+     * The client accepts the devis DAG sent (the proforma). Without a
+     * contract to sign (a particulier, or a service that needs none), the
+     * client can then pay. Otherwise the contract is drafted from the
+     * accepted devis and sent at once for signature; DAG validates it once
+     * signed, which opens the payment.
      */
     public function validerDevis(Request $request, Demande $demande): RedirectResponse
     {
@@ -183,12 +185,12 @@ class ClientDemandeController extends Controller
 
         abort_unless($this->peutValiderDevis($demande), 409, 'Ce devis ne peut pas être validé : il a déjà été validé ou n’est plus d’actualité.');
 
-        $particulier = $demande->estParticulier();
+        $sansContrat = ! $demande->exigeContrat();
 
-        $contrat = DB::transaction(function () use ($demande, $particulier): ?Contrat {
+        $contrat = DB::transaction(function () use ($demande, $sansContrat): ?Contrat {
             $demande->update(['devis_valide_le' => now()]);
 
-            return $particulier ? null : ContratRedaction::envoyerAvecDevis($demande);
+            return $sansContrat ? null : ContratRedaction::envoyerAvecDevis($demande);
         });
 
         $montant = number_format((float) $demande->montant_negocie, 0, ',', ' ');
@@ -201,7 +203,7 @@ class ClientDemandeController extends Controller
             'devis.valide',
             "Devis validé — {$demande->reference}",
             "{$demande->client->nom} a validé le devis de {$montant} FCFA ({$demande->libelleObjet()}) : "
-                .($particulier ? 'le paiement est ouvert.' : "le contrat {$contrat?->reference} lui est envoyé pour signature."),
+                .($sansContrat ? 'le paiement est ouvert.' : "le contrat {$contrat?->reference} lui est envoyé pour signature."),
             route('espace-admin.demandes.show', $demande),
         );
 
@@ -211,7 +213,7 @@ class ClientDemandeController extends Controller
 
         Inertia::flash('toast', [
             'type' => 'success',
-            'message' => $particulier
+            'message' => $sansContrat
                 ? 'Devis validé : vous pouvez maintenant régler la facture.'
                 : 'Devis validé : votre contrat est prêt, signez-le pour passer au paiement.',
         ]);

@@ -5,8 +5,10 @@ use App\Models\Client;
 use App\Models\Contrat;
 use App\Models\Demande;
 use App\Models\Facture;
+use App\Models\Formule;
 use App\Models\MembreEquipe;
 use App\Models\Paiement;
+use App\Models\Service;
 use App\Notifications\AlerteEquipeNotification;
 use App\Notifications\DevisRecuNotification;
 use App\Support\Parcours\ParcoursDemande;
@@ -298,6 +300,50 @@ test('an entreprise also receives a proforma it can decline, and no contract is 
 
     expect($demande->fresh()->statut)->toBe('EN_ETUDE');
     expect(Contrat::count())->toBe(0);
+});
+
+test('for a service that needs no contract, an entreprise pays as soon as it validates the devis', function () {
+    $entreprise = Client::factory()->entreprise()->create();
+    $demande = Demande::factory()->create([
+        'client_id' => $entreprise->id,
+        'service_id' => Service::factory()->sansContrat(),
+        'statut' => 'EN_ETUDE',
+    ]);
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $this->actingAs($promotrice, 'admin')->post(route('espace-admin.demandes.devis', $demande), ['montant' => 90000]);
+    $facture = Facture::where('demande_id', $demande->id)->sole();
+
+    expect($demande->fresh()->exigeContrat())->toBeFalse();
+
+    $this->actingAs($entreprise->user, 'web')
+        ->post(route('espace-client.demandes.devis.valider', $demande))
+        ->assertRedirect();
+
+    expect(Contrat::count())->toBe(0);
+    $parcours = ParcoursDemande::pour($demande->fresh(), 'client');
+    expect(collect($parcours['etapes'])->pluck('cle')->all())->toBe(['demande', 'devis', 'acceptation', 'paiement', 'prestation', 'cloture']);
+    expect($parcours['prochaine']['action'])->toBe('payer');
+
+    $this->actingAs($promotrice, 'admin')
+        ->post(route('espace-admin.contrats.store'), ['demande_id' => $demande->id])
+        ->assertStatus(409);
+
+    $this->actingAs($entreprise->user, 'web')
+        ->post(route('paiements.initier', $facture), ['moyen' => 'OM', 'telephone' => '690000000'])
+        ->assertSessionHasNoErrors();
+    expect(Paiement::count())->toBe(1);
+});
+
+test('a formule keeps its contract for an entreprise, whatever the services', function () {
+    $entreprise = Client::factory()->entreprise()->create();
+    $demande = Demande::factory()->create([
+        'client_id' => $entreprise->id,
+        'service_id' => null,
+        'formule_id' => Formule::factory(),
+    ]);
+
+    expect($demande->exigeContrat())->toBeTrue();
+    expect(Demande::factory()->create(['service_id' => Service::factory()])->exigeContrat())->toBeFalse();
 });
 
 test('a particulier demande started under the contract procedure keeps going', function () {

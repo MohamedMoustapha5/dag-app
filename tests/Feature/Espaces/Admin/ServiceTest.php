@@ -41,6 +41,31 @@ test('an uploaded service image is saved with an address relative to the site, w
     Storage::disk('public')->assertExists(substr($image, strlen('/storage/')));
 });
 
+test('DAG chooses per service whether entreprises must sign a contract, unticked by default', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $champs = ['description' => 'Description.', 'categorie' => 'Conseil', 'fournisseur' => 'DAG', 'statut' => 'PUBLIE'];
+
+    $this->actingAs($promotrice, 'admin')
+        ->post(route('espace-admin.services.store'), ['nom' => 'Audit sans contrat'] + $champs)
+        ->assertSessionHasNoErrors();
+    $this->actingAs($promotrice, 'admin')
+        ->post(route('espace-admin.services.store'), ['nom' => 'Projet sous contrat', 'contrat_requis' => true] + $champs)
+        ->assertSessionHasNoErrors();
+
+    $sansContrat = Service::where('nom', 'Audit sans contrat')->sole();
+    expect($sansContrat->contrat_requis)->toBeFalse();
+    expect(Service::where('nom', 'Projet sous contrat')->sole()->contrat_requis)->toBeTrue();
+
+    $this->actingAs($promotrice, 'admin')
+        ->patch(route('espace-admin.services.update', $sansContrat), ['contrat_requis' => true])
+        ->assertSessionHasNoErrors();
+    expect($sansContrat->fresh()->contrat_requis)->toBeTrue();
+
+    $this->actingAs($promotrice, 'admin')
+        ->get(route('espace-admin.services.index'))
+        ->assertInertia(fn ($page) => $page->where('services', fn ($services) => collect($services)->every(fn ($service) => $service['contratRequis'] === true)));
+});
+
 test('a service can use any fournisseur name, not just DAG or Nova-Tech', function () {
     $promotrice = MembreEquipe::factory()->promotrice()->create();
 

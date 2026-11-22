@@ -11,6 +11,7 @@ type Service = {
     fournisseur: string;
     image: string | null;
     prix: string | null;
+    contratRequis: boolean;
     statut: string;
 };
 
@@ -133,12 +134,26 @@ export default function AdminServices({
                                                         }}
                                                     />
                                                 )}
-                                                <span
-                                                    style={{
-                                                        fontWeight: 600,
-                                                    }}
-                                                >
-                                                    {service.nom}
+                                                <span>
+                                                    <span
+                                                        style={{
+                                                            fontWeight: 600,
+                                                        }}
+                                                    >
+                                                        {service.nom}
+                                                    </span>
+                                                    <span
+                                                        className={`chip ${service.contratRequis ? 'chip-blue' : 'chip-gray'}`}
+                                                        style={{
+                                                            display: 'table',
+                                                            marginTop: 4,
+                                                        }}
+                                                        title="Pour les entreprises et organisations"
+                                                    >
+                                                        {service.contratRequis
+                                                            ? 'Contrat obligatoire (entreprises)'
+                                                            : 'Sans contrat'}
+                                                    </span>
                                                 </span>
                                             </div>
                                         </td>
@@ -251,6 +266,7 @@ function ServiceModal({
         fournisseur: string;
         description: string;
         image: File | null;
+        contrat_requis: boolean;
         statut: string;
     }>({
         nom: service?.nom ?? '',
@@ -258,6 +274,7 @@ function ServiceModal({
         fournisseur: service?.fournisseur ?? 'DAG',
         description: service?.description ?? '',
         image: null,
+        contrat_requis: service?.contratRequis ?? false,
         statut: service?.statut ?? 'BROUILLON',
     });
 
@@ -507,6 +524,41 @@ function ServiceModal({
                             />
                         )}
                     </div>
+
+                    <label className="choix">
+                        <input
+                            type="checkbox"
+                            checked={form.data.contrat_requis}
+                            onChange={(event) =>
+                                form.setData(
+                                    'contrat_requis',
+                                    event.target.checked,
+                                )
+                            }
+                        />
+                        <span>
+                            <strong>
+                                Contrat obligatoire pour les entreprises et
+                                organisations
+                            </strong>
+                            <small>
+                                {form.data.contrat_requis
+                                    ? 'Après validation du devis, l’entreprise signe un contrat, DAG le valide, puis elle paie.'
+                                    : 'L’entreprise paie dès qu’elle a validé le devis, sans contrat à signer. Les particuliers n’ont jamais de contrat.'}
+                            </small>
+                        </span>
+                    </label>
+                    {form.errors.contrat_requis && (
+                        <p
+                            style={{
+                                color: 'var(--dag-red)',
+                                fontSize: 12,
+                                marginTop: -8,
+                            }}
+                        >
+                            {form.errors.contrat_requis}
+                        </p>
+                    )}
 
                     <div>
                         <label htmlFor="statut">Statut</label>

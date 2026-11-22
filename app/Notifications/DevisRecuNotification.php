@@ -43,7 +43,7 @@ class DevisRecuNotification extends NotificationDag
 
         $lignes[] = 'Votre devis (facture proforma) vous attend dans votre espace : consultez-le et validez-le en un clic.';
 
-        $lignes[] = $this->demande->estParticulier()
+        $lignes[] = ! $this->demande->exigeContrat()
             ? 'Une fois le devis validé, vous réglez la facture en ligne et la prestation démarre.'
             : 'Une fois le devis validé, votre contrat vous est envoyé pour signature ; après sa validation par DAG, vous réglez la facture en ligne.';
 

@@ -14,7 +14,7 @@ use App\Models\Demande;
  * contract (client) → validation of the contract (DAG) → payment (client)
  * → prestation (DAG) → clôture (DAG).
  *
- * Particulier, without contract: demande → devis proforma (DAG) →
+ * Particulier, or entreprise for a service needing no contract: demande → devis proforma (DAG) →
  * validation of the devis (client) → payment (client) → prestation (DAG)
  * → clôture (DAG).
  */
@@ -31,7 +31,7 @@ class ParcoursDemande
      */
     public static function pour(Demande $demande, string $audience): array
     {
-        $demande->loadMissing(['client', 'contrat', 'facture']);
+        $demande->loadMissing(['client', 'service', 'contrat', 'facture']);
 
         $faites = self::etapesFaites($demande);
 
@@ -102,11 +102,11 @@ class ParcoursDemande
     ];
 
     /**
-     * A particulier validates the devis instead of signing a contract.
+     * Without a contract to sign (a particulier, or a service that needs none), the client validates the devis then pays.
      *
      * @var array<string, array{0: string, 1: string}>
      */
-    private const ETAPES_PARTICULIER = [
+    private const ETAPES_SANS_CONTRAT = [
         'demande' => ['Demande envoyée', Acteur::CLIENT],
         'devis' => ['Devis proforma', Acteur::DAG],
         'acceptation' => ['Validation du devis', Acteur::CLIENT],
@@ -120,7 +120,7 @@ class ParcoursDemande
      */
     private static function etapes(Demande $demande): array
     {
-        return $demande->estParticulier() ? self::ETAPES_PARTICULIER : self::ETAPES;
+        return $demande->exigeContrat() ? self::ETAPES : self::ETAPES_SANS_CONTRAT;
     }
 
     /**
@@ -131,7 +131,7 @@ class ParcoursDemande
      */
     private static function etapeAFaire(Demande $demande, string $courante): string
     {
-        return $courante === 'prestation' && ! $demande->estParticulier() && ! $demande->contratEstSigne() ? 'signature' : $courante;
+        return $courante === 'prestation' && $demande->exigeContrat() && ! $demande->contratEstSigne() ? 'signature' : $courante;
     }
 
     /**
@@ -141,7 +141,7 @@ class ParcoursDemande
     {
         $facturePayee = $demande->facture !== null && $demande->facture->statut === 'PAYEE';
 
-        if ($demande->estParticulier()) {
+        if (! $demande->exigeContrat()) {
             return [
                 'demande' => true,
                 'devis' => $demande->aAtteint('DEVIS_ENVOYE'),
@@ -171,7 +171,7 @@ class ParcoursDemande
     private static function prochaine(Demande $demande, string $etape, string $audience): array
     {
         $client = $audience === 'client';
-        $particulier = $demande->estParticulier();
+        $sansContrat = ! $demande->exigeContrat();
         $contrat = $demande->contrat;
         $solde = $demande->facture !== null
             ? number_format(max(0, (float) $demande->facture->montant - (float) $demande->facture->montant_paye), 0, ',', Acteur::ESPACE_INSECABLE).Acteur::ESPACE_INSECABLE.'FCFA'
@@ -189,9 +189,9 @@ class ParcoursDemande
                 Acteur::DAG,
                 $client ? 'Étude de votre demande' : 'Envoyer le devis',
                 match (true) {
-                    $client && $particulier => "L'équipe DAG étudie votre demande. Vous recevrez ici votre devis (proforma) à valider.",
+                    $client && $sansContrat => "L'équipe DAG étudie votre demande. Vous recevrez ici votre devis (proforma) à valider.",
                     $client => "L'équipe DAG étudie votre demande. Vous recevrez ici votre devis (proforma) à valider, puis votre contrat à signer.",
-                    $particulier => 'Étudiez la demande puis envoyez le devis : le client particulier le valide en ligne, sans contrat.',
+                    $sansContrat => 'Étudiez la demande puis envoyez le devis : le client le valide en ligne, sans contrat à signer.',
                     default => 'Étudiez la demande puis envoyez le devis proforma : une fois validé par le client, son contrat lui est envoyé automatiquement.',
                 },
                 $client ? null : 'envoyer_devis',
@@ -200,9 +200,9 @@ class ParcoursDemande
                 Acteur::CLIENT,
                 $client ? 'Valider votre devis' : 'Validation du devis par le client',
                 match (true) {
-                    $client && $particulier => 'Consultez votre devis (proforma), puis validez-le : le paiement s’ouvre aussitôt.',
+                    $client && $sansContrat => 'Consultez votre devis (proforma), puis validez-le : le paiement s’ouvre aussitôt.',
                     $client => 'Consultez votre devis (proforma), puis validez-le : votre contrat vous est aussitôt envoyé pour signature.',
-                    $particulier => 'Devis envoyé : en attente de sa validation par le client.',
+                    $sansContrat => 'Devis envoyé : en attente de sa validation par le client.',
                     default => 'Devis envoyé : en attente de sa validation par le client, qui déclenche l’envoi du contrat.',
                 },
                 $client ? 'valider_devis' : null,
@@ -253,8 +253,8 @@ class ParcoursDemande
                 Acteur::CLIENT,
                 $client ? 'Régler votre facture' : 'Paiement du client',
                 $client
-                    ? ($particulier ? 'Votre devis est validé' : 'Votre contrat est validé').'. Réglez la facture'.($solde !== null ? " ({$solde})" : '').' pour lancer la prestation.'
-                    : ($particulier ? 'Devis validé' : 'Contrat validé').' : en attente du paiement du client'.($solde !== null ? " ({$solde} restant)" : '').'.',
+                    ? ($sansContrat ? 'Votre devis est validé' : 'Votre contrat est validé').'. Réglez la facture'.($solde !== null ? " ({$solde})" : '').' pour lancer la prestation.'
+                    : ($sansContrat ? 'Devis validé' : 'Contrat validé').' : en attente du paiement du client'.($solde !== null ? " ({$solde} restant)" : '').'.',
                 $client ? 'payer' : null,
             ],
             'prestation' => [

@@ -30,6 +30,7 @@ type Props = {
         messageDevis: string | null;
         createdAt: string;
         estParticulier: boolean;
+        exigeContrat: boolean;
         devis: {
             numero: string;
             valideLe: string | null;
@@ -482,7 +483,7 @@ export default function DemandesShow({
                     numero={devis.numero}
                     objet={demande.objet}
                     montant={demande.montantNegocie}
-                    particulier={demande.estParticulier}
+                    particulier={!demande.exigeContrat}
                     onClose={() => setValidationOuverte(false)}
                 />
             )}

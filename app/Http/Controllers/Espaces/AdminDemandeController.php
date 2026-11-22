@@ -52,6 +52,7 @@ class AdminDemandeController extends Controller
                 'objet' => $demande->libelleObjet(),
                 'statut' => $demande->statut,
                 'montantNegocie' => $demande->montant_negocie,
+                'exigeContrat' => $demande->exigeContrat(),
                 'devisValide' => $demande->devisEstValide(),
                 'devisRefuse' => $demande->devisEstRefuse(),
                 'motifRefusDevis' => $demande->motif_refus_devis,
@@ -96,12 +97,13 @@ class AdminDemandeController extends Controller
         return Inertia::render('espaces/admin/demande-show', [
             ...$this->adminEspaceProps($membre),
             'peutModifier' => $membre->peut(Donnee::DemandesClients, Action::Modifier),
-            'peutGenererContrat' => $membre->peut(Donnee::ContratsClauses, Action::Creer) && ! $demande->estParticulier(),
+            'peutGenererContrat' => $membre->peut(Donnee::ContratsClauses, Action::Creer) && $demande->exigeContrat(),
             'demande' => [
                 'id' => $demande->id,
                 'reference' => $demande->reference,
                 'client' => $this->nomClient($demande),
                 'estParticulier' => $demande->estParticulier(),
+                'exigeContrat' => $demande->exigeContrat(),
                 'devis' => ProformaPdf::disponible($demande) ? [
                     'numero' => ProformaPdf::numero($demande),
                     'valideLe' => $demande->devis_valide_le?->toIso8601String(),
@@ -164,8 +166,8 @@ class AdminDemandeController extends Controller
             ]);
         }
 
-        if ($demande->estParticulier()) {
-            $this->verifierEtapeParticulier($demande, $data['statut']);
+        if (! $demande->exigeContrat()) {
+            $this->verifierEtapeSansContrat($demande, $data['statut']);
         } else {
             $this->verifierEtapeAvecContrat($demande, $data['statut']);
         }
@@ -238,16 +240,17 @@ class AdminDemandeController extends Controller
     }
 
     /**
-     * Particulier: no contract. The prestation only starts once the client
-     * validated the devis, and the devis can no longer change once paid.
+     * No contract to sign (a particulier, or a service that needs none):
+     * the prestation only starts once the client validated the devis, and
+     * the devis can no longer change once paid.
      *
      * @throws ValidationException
      */
-    private function verifierEtapeParticulier(Demande $demande, string $statut): void
+    private function verifierEtapeSansContrat(Demande $demande, string $statut): void
     {
         if ($statut === 'CONTRAT_SIGNE') {
             throw ValidationException::withMessages([
-                'statut' => 'Un client particulier n’a pas de contrat : il valide son devis en ligne.',
+                'statut' => 'Cette demande ne passe pas par un contrat : le client valide son devis en ligne.',
             ]);
         }
 

@@ -24,6 +24,7 @@ type Demande = {
     objet: string;
     statut: string;
     montantNegocie: string | null;
+    exigeContrat: boolean;
     devisValide: boolean;
     devisRefuse: boolean;
     motifRefusDevis: string | null;
@@ -598,6 +599,21 @@ export default function AdminDemandes({
                                                 style={{ fontWeight: 600 }}
                                             >
                                                 {demande.client}
+                                                {!particulier &&
+                                                    !demande.exigeContrat && (
+                                                        <span
+                                                            className="muted"
+                                                            style={{
+                                                                display:
+                                                                    'block',
+                                                                fontSize: 12,
+                                                                fontWeight: 400,
+                                                            }}
+                                                        >
+                                                            Service sans
+                                                            contrat
+                                                        </span>
+                                                    )}
                                             </td>
                                             <td
                                                 data-label={

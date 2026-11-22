@@ -16,6 +16,7 @@ type Props = {
         reference: string;
         client: string;
         estParticulier: boolean;
+        exigeContrat: boolean;
         devis: { numero: string; valideLe: string | null } | null;
         refusDevis: {
             le: string;
@@ -89,7 +90,9 @@ export default function AdminDemandeShow({
                         {demande.reference} · {demande.client} ·{' '}
                         {demande.estParticulier
                             ? 'Particulier'
-                            : 'Entreprise / organisation'}
+                            : demande.exigeContrat
+                              ? 'Entreprise / organisation · avec contrat'
+                              : 'Entreprise / organisation · service sans contrat'}
                     </span>
                 </div>
                 <span

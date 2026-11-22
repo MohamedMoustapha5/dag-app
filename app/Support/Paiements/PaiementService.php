@@ -70,7 +70,7 @@ class PaiementService
     public function attendSignatureContrat(Facture $facture): bool
     {
         return $facture->demande_id !== null
-            && ! $facture->demande->estParticulier()
+            && $facture->demande->exigeContrat()
             && $facture->demande->devisAccepte()
             && ! $facture->demande->contratEstSigne();
     }

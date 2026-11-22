@@ -38,6 +38,7 @@ class AdminServiceController extends Controller
                 'fournisseur' => $service->fournisseur,
                 'image' => $service->image,
                 'prix' => $service->prix,
+                'contratRequis' => $service->contrat_requis,
                 'statut' => $service->statut,
             ]),
             'categoriesExistantes' => $services
@@ -101,7 +102,7 @@ class AdminServiceController extends Controller
     }
 
     /**
-     * @return array{nom?: string, description?: string, categorie?: string, fournisseur?: string, image?: mixed, prix?: ?float, statut?: string}
+     * @return array{nom?: string, description?: string, categorie?: string, fournisseur?: string, image?: mixed, prix?: ?float, contrat_requis?: bool, statut?: string}
      */
     private function validated(Request $request, bool $sometimes = false): array
     {
@@ -114,6 +115,8 @@ class AdminServiceController extends Controller
             'fournisseur' => [$required, 'string', 'max:191'],
             'image' => ['nullable', 'image', 'max:5120'],
             'prix' => ['nullable', 'numeric', 'min:0'],
+            // Whether an entreprise or an organisation signs a contract for it.
+            'contrat_requis' => ['sometimes', 'boolean'],
             'statut' => [$required, 'string', 'in:BROUILLON,PUBLIE'],
         ]);
     }

@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['nom', 'description', 'categorie', 'fournisseur', 'image', 'prix', 'statut'])]
+#[Fillable(['nom', 'description', 'categorie', 'fournisseur', 'image', 'prix', 'contrat_requis', 'statut'])]
 class Service extends Model
 {
     /** @use HasFactory<ServiceFactory> */
@@ -21,6 +21,7 @@ class Service extends Model
     {
         return [
             'prix' => 'decimal:2',
+            'contrat_requis' => 'boolean',
         ];
     }
 

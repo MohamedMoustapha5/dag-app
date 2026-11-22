@@ -65,6 +65,25 @@ class Demande extends Model
     }
 
     /**
+     * Whether the client signs a contract before paying. Only an entreprise
+     * or an organisation does, for a formule (a subscription) or for a
+     * service DAG marked as requiring one; otherwise the devis validated
+     * online is enough, as for a particulier.
+     */
+    public function exigeContrat(): bool
+    {
+        if ($this->estParticulier()) {
+            return false;
+        }
+
+        if ($this->formule_id !== null) {
+            return true;
+        }
+
+        return $this->service_id === null || (bool) $this->service?->contrat_requis;
+    }
+
+    /**
      * Whether the client validated the devis (proforma) online.
      */
     public function devisEstValide(): bool
@@ -105,7 +124,7 @@ class Demande extends Model
             return true;
         }
 
-        if ($this->estParticulier()) {
+        if (! $this->exigeContrat()) {
             return $this->contratEstSigne();
         }
 
@@ -116,15 +135,14 @@ class Demande extends Model
     }
 
     /**
-     * Whether the payment of the facture is open. A particulier validates
-     * the devis; an entreprise validates the devis, signs the contract then
-     * sent to it, and has it validated by DAG. A particulier's demande
-     * started under the contract procedure keeps going once that contract
-     * is validated.
+     * Whether the payment of the facture is open. Without a contract to
+     * sign, once the devis is validated; with one, once the contract the
+     * client signed is validated by DAG. A demande started under the
+     * contract procedure keeps going once that contract is validated.
      */
     public function paiementEstOuvert(): bool
     {
-        if ($this->estParticulier()) {
+        if (! $this->exigeContrat()) {
             return $this->devisEstValide() || $this->contratEstValide();
         }
 
@@ -132,14 +150,14 @@ class Demande extends Model
     }
 
     /**
-     * The steps of the status list that apply to this demande: a
-     * particulier never goes through « Contrat signé ».
+     * The steps of the status list that apply to this demande: without a
+     * contract to sign, there is no « Contrat signé ».
      *
      * @return list<string>
      */
     public function etapesSuivi(): array
     {
-        return $this->estParticulier()
+        return ! $this->exigeContrat()
             ? array_values(array_diff(self::SUIVI_STEPS, ['CONTRAT_SIGNE']))
             : self::SUIVI_STEPS;
     }
