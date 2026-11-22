@@ -139,7 +139,10 @@ export default function AdminSessionShow({
 
     const submitEdit = (event: React.FormEvent) => {
         event.preventDefault();
-        editForm.patch(sessionsAdmin.update(session.id).url, {
+        // Sent as a POST spoofing PATCH: PHP only reads an uploaded image
+        // from a POST request, so a real PATCH would silently drop it.
+        editForm.transform((data) => ({ ...data, _method: 'patch' }));
+        editForm.post(sessionsAdmin.update(session.id).url, {
             preserveScroll: true,
         });
     };

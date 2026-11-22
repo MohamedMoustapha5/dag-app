@@ -284,7 +284,10 @@ function ServiceModal({
         if (mode === 'create') {
             form.post(servicesAdmin.store().url, { onSuccess: onClose });
         } else if (service) {
-            form.patch(servicesAdmin.update(service.id).url, {
+            // Sent as a POST spoofing PATCH: PHP only reads an uploaded image
+            // from a POST request, so a real PATCH would silently drop it.
+            form.transform((data) => ({ ...data, _method: 'patch' }));
+            form.post(servicesAdmin.update(service.id).url, {
                 onSuccess: onClose,
             });
         }

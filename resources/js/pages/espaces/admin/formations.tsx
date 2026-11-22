@@ -1317,7 +1317,10 @@ function SessionModal({
                 onSuccess: onClose,
             });
         } else if (session) {
-            form.patch(sessionsAdmin.update(session.id).url, {
+            // Sent as a POST spoofing PATCH: PHP only reads an uploaded image
+            // from a POST request, so a real PATCH would silently drop it.
+            form.transform((data) => ({ ...data, _method: 'patch' }));
+            form.post(sessionsAdmin.update(session.id).url, {
                 onSuccess: onClose,
             });
         }

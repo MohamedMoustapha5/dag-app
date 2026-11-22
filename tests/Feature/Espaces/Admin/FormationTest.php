@@ -5,6 +5,38 @@ use App\Models\Formation;
 use App\Models\FormationSession;
 use App\Models\MembreEquipe;
 use App\Models\Seance;
+use App\Models\Service;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+
+test('a new image replaces the old one when editing a session or a service', function () {
+    // The edit forms send the image the way the browser can: a POST that
+    // Laravel treats as the PATCH route (PHP drops files sent with PATCH).
+    Storage::fake('public');
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $session = FormationSession::factory()->create(['image' => '/storage/formations/ancienne.jpg']);
+    $service = Service::factory()->create(['image' => '/storage/services/ancienne.jpg']);
+
+    $this->actingAs($promotrice, 'admin')
+        ->post(route('espace-admin.sessions.update', $session), [
+            '_method' => 'patch',
+            'ville' => $session->ville,
+            'mode' => $session->mode,
+            'places' => $session->places,
+            'prix' => 50000,
+            'statut' => $session->statut,
+            'image' => UploadedFile::fake()->image('nouvelle.jpg'),
+        ])
+        ->assertSessionHasNoErrors();
+    $this->actingAs($promotrice, 'admin')
+        ->post(route('espace-admin.services.update', $service), ['_method' => 'patch', 'image' => UploadedFile::fake()->image('service.jpg')])
+        ->assertSessionHasNoErrors();
+
+    foreach ([$session->fresh()->image, $service->fresh()->image] as $image) {
+        expect($image)->toStartWith('/storage/')->not->toContain('ancienne');
+        Storage::disk('public')->assertExists(substr($image, strlen('/storage/')));
+    }
+});
 
 test('a promotrice can quick-create a session, which creates its formation on first use', function () {
     $promotrice = MembreEquipe::factory()->promotrice()->create();
