@@ -37,7 +37,7 @@ const PARTENAIRES = [
 ];
 
 const EQUIPE_TAGLINES: Record<string, string> = {
-    Directrice: 'Pilote la vision et la relation client.',
+    CEO: 'Pilote la vision et la relation client.',
     Juriste: 'Sécurise chaque contrat, à la lettre.',
     'Responsable Marketing':
         'Orchestre vos campagnes et votre présence en ligne.',
@@ -47,7 +47,7 @@ const EQUIPE_TAGLINES: Record<string, string> = {
 };
 
 const EQUIPE_PHOTOS: Record<string, string> = {
-    Directrice: '/images/photos/afsa-maira-directrice.jpg',
+    CEO: '/images/photos/afsa-maira-directrice.jpg',
     Juriste: '/images/photos/pascal-juriste.jpg',
     'Responsable Marketing': '/images/photos/senghor-responsable-marketing.jpg',
     Secrétaire: '/images/photos/layana-d-secretaire.jpg',

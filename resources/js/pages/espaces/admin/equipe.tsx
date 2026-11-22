@@ -479,7 +479,7 @@ export default function AdminEquipe({
                     changer son rôle change ses droits immédiatement. Ajustez
                     ici ce que chaque rôle autorise, domaine par domaine ; les
                     cellules orange s'écartent des valeurs par défaut du cahier
-                    des charges. Les droits de la Directrice sont fixes.
+                    des charges. Les droits de la CEO sont fixes.
                 </p>
                 <div className="data-table-wrap">
                     <table className="data-table">

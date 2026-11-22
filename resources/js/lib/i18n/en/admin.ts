@@ -286,8 +286,8 @@ export const adminEn: Record<string, string> = {
     'Vous ne pouvez pas modifier votre propre rôle':
         'You cannot change your own role',
     'Droits par rôle': 'Rights by role',
-    "Le rôle d'un membre détermine ce qu'il peut voir et gérer : changer son rôle change ses droits immédiatement. Ajustez ici ce que chaque rôle autorise, domaine par domaine ; les cellules orange s'écartent des valeurs par défaut du cahier des charges. Les droits de la Directrice sont fixes.":
-        'A member’s role determines what they can see and manage: changing their role changes their rights immediately. Adjust here what each role allows, domain by domain; orange cells differ from the default values of the specification. The Director’s rights are fixed.',
+    "Le rôle d'un membre détermine ce qu'il peut voir et gérer : changer son rôle change ses droits immédiatement. Ajustez ici ce que chaque rôle autorise, domaine par domaine ; les cellules orange s'écartent des valeurs par défaut du cahier des charges. Les droits de la CEO sont fixes.":
+        'A member’s role determines what they can see and manage: changing their role changes their rights immediately. Adjust here what each role allows, domain by domain; orange cells differ from the default values of the specification. The CEO’s rights are fixed.',
     Domaine: 'Domain',
     'Accès accordés par ce rôle :': 'Access granted by this role:',
     Espèces: 'Cash',

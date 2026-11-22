@@ -142,8 +142,8 @@
                     <img src="{{ $cachet }}" style="height: 112px;" alt="">
                 @endif
             </div>
-            <div>La Directrice</div>
-            <div class="muted">Directrice, Digital Agency Group</div>
+            <div>La CEO</div>
+            <div class="muted">CEO, Digital Agency Group</div>
         </td>
     </tr>
 </table>

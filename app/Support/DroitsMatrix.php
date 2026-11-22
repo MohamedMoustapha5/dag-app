@@ -135,7 +135,7 @@ class DroitsMatrix
     public static function definir(MembreEquipeRole $role, Donnee $donnee, NiveauDroit $niveau): void
     {
         if ($role === MembreEquipeRole::Promotrice) {
-            throw new InvalidArgumentException('Les droits de la Directrice ne sont pas modifiables.');
+            throw new InvalidArgumentException('Les droits de la CEO ne sont pas modifiables.');
         }
 
         if ($niveau === self::defaut($role, $donnee)) {
@@ -178,7 +178,7 @@ class DroitsMatrix
 
     /**
      * A one-line French summary of who can see/manage this domain and at
-     * what level, e.g. "Visible par : Directrice (total), Responsable
+     * what level, e.g. "Visible par : CEO (total), Responsable
      * Marketing & Création de contenu (gestion), Juriste & Secrétaire
      * (lecture)." — used as a transparent droits reminder on the admin
      * pages gated by that domain, grouping roles by access level in

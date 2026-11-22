@@ -16,7 +16,7 @@ enum MembreEquipeRole: string
         return match ($this) {
             // Case name kept as Promotrice (cahier des charges §3.2, access
             // matrix key) — only the public-facing title changed.
-            self::Promotrice => 'Directrice',
+            self::Promotrice => 'CEO',
             self::Juriste => 'Juriste',
             // Case name kept as CommunicationMarketing (same cahier des
             // charges key) — only the public-facing title changed.

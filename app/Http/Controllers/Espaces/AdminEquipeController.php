@@ -175,7 +175,7 @@ class AdminEquipeController extends Controller
         abort_unless(
             $this->membre($request)->role === MembreEquipeRole::Promotrice,
             403,
-            "Seule la Directrice peut gérer l'équipe et les droits."
+            "Seule la CEO peut gérer l'équipe et les droits."
         );
     }
 }

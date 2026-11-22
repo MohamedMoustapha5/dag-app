@@ -146,7 +146,7 @@ const TEAM_PHOTOS = [
 ];
 
 const TEAM_TAGLINES: Record<string, string> = {
-    Directrice: 'Pilote chaque dossier du premier message à la livraison.',
+    CEO: 'Pilote chaque dossier du premier message à la livraison.',
     Juriste: 'Sécurise chaque contrat, à la lettre.',
     'Responsable Marketing': 'Fait rayonner vos marques sur les réseaux.',
     Secrétaire: 'Veille sur chaque facture et chaque paiement.',
