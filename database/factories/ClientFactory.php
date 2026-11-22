@@ -28,4 +28,13 @@ class ClientFactory extends Factory
     {
         return $this->state(['statut' => 'EN_ATTENTE']);
     }
+
+    /**
+     * A company: its demandes follow the contract procedure (devis, signed
+     * contract, validation by DAG, payment), unlike a particulier's.
+     */
+    public function entreprise(): static
+    {
+        return $this->state(['type' => 'ENTREPRISE']);
+    }
 }

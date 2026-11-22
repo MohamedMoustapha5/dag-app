@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Storage;
 
 test('generating a contrat drafts it from the active modele and the clauses', function () {
     $promotrice = MembreEquipe::factory()->promotrice()->create();
-    $client = Client::factory()->create(['nom' => 'Aïcha N.']);
+    $client = Client::factory()->entreprise()->create(['nom' => 'Aïcha N.']);
     $demande = Demande::factory()->create(['client_id' => $client->id, 'statut' => 'PAYEE', 'montant_negocie' => 700000]);
     ModeleContrat::create([
         'nom' => 'Prestation', 'type' => 'PRESTATION_SERVICE', 'statut' => 'ACTIF',

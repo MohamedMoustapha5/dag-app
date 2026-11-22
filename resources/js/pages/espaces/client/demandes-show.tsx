@@ -1,5 +1,11 @@
-import { Head, Link } from '@inertiajs/react';
-import { Download } from 'lucide-react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
+import {
+    CheckCircle2,
+    Download,
+    FileText,
+    MessageSquareX,
+    X,
+} from 'lucide-react';
 import { useState } from 'react';
 import PayerFactureModal, {
     type MoyenPaiement,
@@ -23,6 +29,17 @@ type Props = {
         montantNegocie: string | null;
         messageDevis: string | null;
         createdAt: string;
+        estParticulier: boolean;
+        devis: {
+            numero: string;
+            valideLe: string | null;
+            peutValider: boolean;
+        } | null;
+        refusDevis: {
+            le: string;
+            motif: string | null;
+            abandon: boolean;
+        } | null;
         contrat: {
             reference: string;
             statut: string;
@@ -40,19 +57,37 @@ type Props = {
             paiementEnAttente: boolean;
             attendSignatureContrat: boolean;
             attendValidationContrat: boolean;
+            attendValidationDevis: boolean;
         } | null;
     };
     moyensPaiement: MoyenPaiement[];
+    motifsRefusDevis: MotifRefus[];
     parcours: Parcours;
 };
+
+type MotifRefus = { value: string; label: string };
+
+/** "21 novembre 2026" from an ISO date. */
+function dateLongue(iso: string): string {
+    return new Date(iso).toLocaleDateString('fr-FR', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+    });
+}
 
 export default function DemandesShow({
     demande,
     parcours,
     moyensPaiement,
+    motifsRefusDevis,
 }: Props) {
     const [paiementOuvert, setPaiementOuvert] = useState(false);
+    const [validationOuverte, setValidationOuverte] = useState(false);
+    const [refusOuvert, setRefusOuvert] = useState(false);
+    const refus = demande.refusDevis;
     const facture = demande.facture;
+    const devis = demande.devis;
     const aPayer =
         facture !== null &&
         (facture.statut === 'EN_ATTENTE' ||
@@ -109,6 +144,31 @@ export default function DemandesShow({
                             Lire et signer le contrat
                         </Link>
                     )}
+                {parcours.prochaine?.action === 'valider_devis' &&
+                    devis?.peutValider && (
+                        <>
+                            <a
+                                href={demandes.proforma(demande.id).url}
+                                className="btn-outline"
+                            >
+                                Consulter le devis
+                            </a>
+                            <button
+                                type="button"
+                                className="btn-outline btn-refus"
+                                onClick={() => setRefusOuvert(true)}
+                            >
+                                Refuser
+                            </button>
+                            <button
+                                type="button"
+                                className="btn-primary"
+                                onClick={() => setValidationOuverte(true)}
+                            >
+                                Valider le devis
+                            </button>
+                        </>
+                    )}
                 {parcours.prochaine?.action === 'payer' &&
                     aPayer &&
                     facture &&
@@ -126,6 +186,35 @@ export default function DemandesShow({
                         </button>
                     ))}
             </SuiviProcedure>
+
+            {refus && (
+                <div
+                    className="card devis-refuse"
+                    style={{ padding: 20, marginBottom: 24 }}
+                >
+                    <p
+                        style={{
+                            fontWeight: 700,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 8,
+                        }}
+                    >
+                        <MessageSquareX size={16} aria-hidden="true" />
+                        Devis refusé le {dateLongue(refus.le)}
+                    </p>
+                    {refus.motif && (
+                        <p style={{ fontSize: 13.5, marginTop: 6 }}>
+                            Motif : {refus.motif}
+                        </p>
+                    )}
+                    <p className="muted" style={{ fontSize: 13, marginTop: 6 }}>
+                        {refus.abandon
+                            ? 'Vous ne donnez pas suite : votre demande est close. Vous pouvez en déposer une nouvelle à tout moment.'
+                            : 'L’équipe DAG prépare une nouvelle proposition : vous la recevrez ici et par e-mail.'}
+                    </p>
+                </div>
+            )}
 
             <div className="card" style={{ padding: 24, marginBottom: 24 }}>
                 <h2 style={{ fontSize: 15, marginBottom: 8 }}>Description</h2>
@@ -151,8 +240,87 @@ export default function DemandesShow({
                 )}
             </div>
 
-            {(demande.contrat || demande.facture) && (
+            {(devis || demande.contrat || demande.facture) && (
                 <div className="grid-3">
+                    {devis && (
+                        <div className="card" style={{ padding: 20 }}>
+                            <p
+                                className="muted"
+                                style={{
+                                    fontSize: 12.5,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 6,
+                                }}
+                            >
+                                <FileText size={14} aria-hidden="true" />
+                                Devis proforma
+                            </p>
+                            <p style={{ fontWeight: 600, marginBottom: 6 }}>
+                                {devis.numero}
+                            </p>
+                            {devis.valideLe ? (
+                                <span className="chip chip-green">
+                                    Validé le {dateLongue(devis.valideLe)}
+                                </span>
+                            ) : (
+                                <span className="chip chip-orange">
+                                    À valider
+                                </span>
+                            )}
+                            {demande.montantNegocie && (
+                                <p style={{ fontSize: 13, marginTop: 8 }}>
+                                    {formatMontant(demande.montantNegocie)}
+                                </p>
+                            )}
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    flexWrap: 'wrap',
+                                    alignItems: 'center',
+                                    gap: 12,
+                                    marginTop: 12,
+                                }}
+                            >
+                                {devis.peutValider && (
+                                    <button
+                                        type="button"
+                                        className="btn-primary"
+                                        style={{
+                                            padding: '8px 18px',
+                                            fontSize: 13,
+                                        }}
+                                        onClick={() =>
+                                            setValidationOuverte(true)
+                                        }
+                                    >
+                                        Valider le devis
+                                    </button>
+                                )}
+                                <a
+                                    href={demandes.proforma(demande.id).url}
+                                    className="link-action"
+                                    style={{
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: 6,
+                                    }}
+                                >
+                                    <Download size={14} /> Télécharger le
+                                    devis
+                                </a>
+                                {devis.peutValider && (
+                                    <button
+                                        type="button"
+                                        className="link-action link-refus"
+                                        onClick={() => setRefusOuvert(true)}
+                                    >
+                                        Refuser le devis
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    )}
                     {demande.contrat && (
                         <div className="card" style={{ padding: 20 }}>
                             <p className="muted" style={{ fontSize: 12.5 }}>
@@ -226,7 +394,15 @@ export default function DemandesShow({
                                 / {formatMontant(demande.facture.montant)} payés
                             </p>
                             {aPayer &&
-                                (demande.facture.attendSignatureContrat ? (
+                                (demande.facture.attendValidationDevis ? (
+                                    <p
+                                        className="muted"
+                                        style={{ fontSize: 12, marginTop: 12 }}
+                                    >
+                                        Le paiement s'ouvre dès que vous
+                                        validez le devis.
+                                    </p>
+                                ) : demande.facture.attendSignatureContrat ? (
                                     <p
                                         className="muted"
                                         style={{ fontSize: 12, marginTop: 12 }}
@@ -299,6 +475,332 @@ export default function DemandesShow({
                     onClose={() => setPaiementOuvert(false)}
                 />
             )}
+
+            {validationOuverte && devis && (
+                <ValiderDevisModal
+                    demandeId={demande.id}
+                    numero={devis.numero}
+                    objet={demande.objet}
+                    montant={demande.montantNegocie}
+                    onClose={() => setValidationOuverte(false)}
+                />
+            )}
+
+            {refusOuvert && devis && (
+                <RefuserDevisModal
+                    demandeId={demande.id}
+                    numero={devis.numero}
+                    motifs={motifsRefusDevis}
+                    onClose={() => setRefusOuvert(false)}
+                />
+            )}
         </>
+    );
+}
+
+/**
+ * Declining the devis: a reason, an optional comment, and whether the client
+ * wants a revised proposal or does not wish to go on.
+ */
+function RefuserDevisModal({
+    demandeId,
+    numero,
+    motifs,
+    onClose,
+}: {
+    demandeId: string;
+    numero: string;
+    motifs: MotifRefus[];
+    onClose: () => void;
+}) {
+    const form = useForm({
+        motif: motifs[0]?.value ?? '',
+        commentaire: '',
+        suite: 'nouveau_devis',
+    });
+
+    const envoyer = (event: React.FormEvent) => {
+        event.preventDefault();
+        form.post(demandes.devis.refuser(demandeId).url, {
+            preserveScroll: true,
+            onSuccess: onClose,
+        });
+    };
+
+    const erreur = (message?: string) =>
+        message ? (
+            <p style={{ color: 'var(--dag-red)', fontSize: 12, marginTop: 4 }}>
+                {message}
+            </p>
+        ) : null;
+
+    return (
+        <div
+            className="modal-backdrop"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Refuser le devis"
+            onClick={(event) => {
+                if (event.target === event.currentTarget) {
+                    onClose();
+                }
+            }}
+        >
+            <div className="modal-panel">
+                <button
+                    type="button"
+                    className="modal-close"
+                    onClick={onClose}
+                    aria-label="Fermer"
+                >
+                    <X size={16} />
+                </button>
+
+                <h2 style={{ fontSize: 19, color: 'var(--dag-navy)' }}>
+                    Refuser le devis
+                </h2>
+                <p
+                    style={{
+                        marginTop: 8,
+                        fontSize: 13.5,
+                        lineHeight: 1.6,
+                        color: 'var(--dag-text-muted)',
+                    }}
+                >
+                    Dites-nous ce qui ne vous convient pas dans le devis{' '}
+                    <strong>{numero}</strong> : l’équipe DAG en tient compte.
+                </p>
+
+                <form
+                    onSubmit={envoyer}
+                    style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 18,
+                        marginTop: 20,
+                    }}
+                >
+                    <fieldset className="choix-liste">
+                        <legend>Raison du refus</legend>
+                        {motifs.map((motif) => (
+                            <label key={motif.value} className="choix">
+                                <input
+                                    type="radio"
+                                    name="motif"
+                                    value={motif.value}
+                                    checked={form.data.motif === motif.value}
+                                    onChange={() =>
+                                        form.setData('motif', motif.value)
+                                    }
+                                />
+                                <span>{motif.label}</span>
+                            </label>
+                        ))}
+                        {erreur(form.errors.motif)}
+                    </fieldset>
+
+                    <div>
+                        <label htmlFor="refus-commentaire">
+                            Précisions{' '}
+                            {form.data.motif === 'AUTRE'
+                                ? '(obligatoire)'
+                                : '(facultatif)'}
+                        </label>
+                        <textarea
+                            id="refus-commentaire"
+                            rows={3}
+                            maxLength={1000}
+                            value={form.data.commentaire}
+                            placeholder="Par exemple : budget visé, délai souhaité…"
+                            onChange={(event) =>
+                                form.setData('commentaire', event.target.value)
+                            }
+                        />
+                        {erreur(form.errors.commentaire)}
+                    </div>
+
+                    <fieldset className="choix-liste">
+                        <legend>Et ensuite ?</legend>
+                        <label className="choix">
+                            <input
+                                type="radio"
+                                name="suite"
+                                value="nouveau_devis"
+                                checked={form.data.suite === 'nouveau_devis'}
+                                onChange={() =>
+                                    form.setData('suite', 'nouveau_devis')
+                                }
+                            />
+                            <span>
+                                <strong>
+                                    Je souhaite une nouvelle proposition
+                                </strong>
+                                <small>
+                                    DAG revoit le devis et vous l’envoie ici.
+                                </small>
+                            </span>
+                        </label>
+                        <label className="choix">
+                            <input
+                                type="radio"
+                                name="suite"
+                                value="abandon"
+                                checked={form.data.suite === 'abandon'}
+                                onChange={() => form.setData('suite', 'abandon')}
+                            />
+                            <span>
+                                <strong>Je ne donne pas suite</strong>
+                                <small>Votre demande sera close.</small>
+                            </span>
+                        </label>
+                        {erreur(form.errors.suite)}
+                    </fieldset>
+
+                    <div
+                        style={{
+                            display: 'flex',
+                            justifyContent: 'flex-end',
+                            gap: 12,
+                        }}
+                    >
+                        <button
+                            type="button"
+                            className="btn-outline"
+                            onClick={onClose}
+                        >
+                            Annuler
+                        </button>
+                        <button
+                            type="submit"
+                            className="btn-primary"
+                            disabled={form.processing}
+                        >
+                            {form.processing
+                                ? 'Envoi…'
+                                : 'Confirmer le refus'}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+}
+
+/**
+ * Confirmation before the client accepts the devis: what they agree to,
+ * and that the payment opens right after.
+ */
+function ValiderDevisModal({
+    demandeId,
+    numero,
+    objet,
+    montant,
+    onClose,
+}: {
+    demandeId: string;
+    numero: string;
+    objet: string;
+    montant: string | null;
+    onClose: () => void;
+}) {
+    const [envoi, setEnvoi] = useState(false);
+
+    const valider = () => {
+        router.post(
+            demandes.devis.valider(demandeId).url,
+            {},
+            {
+                preserveScroll: true,
+                onStart: () => setEnvoi(true),
+                onFinish: () => setEnvoi(false),
+                onSuccess: onClose,
+            },
+        );
+    };
+
+    return (
+        <div
+            className="modal-backdrop"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Valider le devis"
+            onClick={(event) => {
+                if (event.target === event.currentTarget) {
+                    onClose();
+                }
+            }}
+        >
+            <div className="modal-panel">
+                <button
+                    type="button"
+                    className="modal-close"
+                    onClick={onClose}
+                    aria-label="Fermer"
+                >
+                    <X size={16} />
+                </button>
+
+                <h2
+                    style={{
+                        fontSize: 19,
+                        color: 'var(--dag-navy)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                    }}
+                >
+                    <CheckCircle2
+                        size={20}
+                        color="var(--dag-green)"
+                        aria-hidden="true"
+                    />
+                    Valider le devis
+                </h2>
+                <p
+                    style={{
+                        marginTop: 10,
+                        fontSize: 13.5,
+                        lineHeight: 1.6,
+                        color: 'var(--dag-text-muted)',
+                    }}
+                >
+                    Vous acceptez le devis <strong>{numero}</strong> pour «{' '}
+                    {objet} »
+                    {montant ? (
+                        <>
+                            , d'un montant de{' '}
+                            <strong>{formatMontant(montant)}</strong>
+                        </>
+                    ) : null}
+                    . Le paiement s'ouvre aussitôt, et la prestation démarre
+                    dès réception de votre règlement.
+                </p>
+
+                <div
+                    style={{
+                        display: 'flex',
+                        justifyContent: 'flex-end',
+                        flexWrap: 'wrap',
+                        gap: 12,
+                        marginTop: 24,
+                    }}
+                >
+                    <a
+                        href={demandes.proforma(demandeId).url}
+                        className="btn-outline"
+                    >
+                        Relire le devis
+                    </a>
+                    <button
+                        type="button"
+                        className="btn-primary"
+                        disabled={envoi}
+                        onClick={valider}
+                    >
+                        {envoi ? 'Validation…' : 'Je valide le devis'}
+                    </button>
+                </div>
+            </div>
+        </div>
     );
 }

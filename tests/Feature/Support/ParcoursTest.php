@@ -25,7 +25,7 @@ function etapeEnCours(array $parcours): array
 }
 
 test('each stage of a demande tells who acts next, for the client and for the team', function (string $statut, ?string $contrat, ?string $facture, string $etape, string $acteur) {
-    $demande = Demande::factory()->create(['statut' => $statut, 'montant_negocie' => 50000]);
+    $demande = Demande::factory()->entreprise()->create(['statut' => $statut, 'montant_negocie' => 50000]);
 
     if ($contrat !== null) {
         Contrat::factory()->create([
@@ -94,7 +94,7 @@ test('each stage of an enrolment tells who acts next', function (string $statut,
 ]);
 
 test('the client and the team see the procedure of a demande on their pages and lists', function () {
-    $client = Client::factory()->create();
+    $client = Client::factory()->entreprise()->create();
     $promotrice = MembreEquipe::factory()->promotrice()->create();
     $demande = Demande::factory()->create(['client_id' => $client->id, 'statut' => 'DEVIS_ENVOYE']);
     Contrat::factory()->create(['client_id' => $client->id, 'demande_id' => $demande->id, 'statut' => 'ENVOYE']);
@@ -125,14 +125,14 @@ test('the client and the team see the procedure of a demande on their pages and 
 });
 
 test('a demande handled under the earlier procedure is never sent back to a passed step', function () {
-    $terminee = Demande::factory()->create(['statut' => 'TERMINEE']);
+    $terminee = Demande::factory()->entreprise()->create(['statut' => 'TERMINEE']);
     Contrat::factory()->signe()->create(['demande_id' => $terminee->id]);
 
     expect(ParcoursDemande::pour($terminee->fresh(), 'admin')['termine'])->toBeTrue();
 
     // Paid before its contract existed: the prestation cannot start without
     // it, so getting the contract out is what DAG has to do.
-    $payeeSansContrat = Demande::factory()->create(['statut' => 'PAYEE']);
+    $payeeSansContrat = Demande::factory()->entreprise()->create(['statut' => 'PAYEE']);
     Facture::factory()->payee()->create(['demande_id' => $payeeSansContrat->id]);
     $parcours = ParcoursDemande::pour($payeeSansContrat->fresh(), 'admin');
 

@@ -82,6 +82,9 @@ Route::middleware(['auth', 'auth.session', 'verified', EnsureUserType::class.':C
         Route::get('demandes/creer', [ClientDemandeController::class, 'create'])->name('espace-client.demandes.create');
         Route::post('demandes', [ClientDemandeController::class, 'store'])->name('espace-client.demandes.store');
         Route::get('demandes/{demande}', [ClientDemandeController::class, 'show'])->name('espace-client.demandes.show');
+        Route::post('demandes/{demande}/devis/valider', [ClientDemandeController::class, 'validerDevis'])->middleware('throttle:10,1')->name('espace-client.demandes.devis.valider');
+        Route::post('demandes/{demande}/devis/refuser', [ClientDemandeController::class, 'refuserDevis'])->middleware('throttle:10,1')->name('espace-client.demandes.devis.refuser');
+        Route::get('demandes/{demande}/proforma', [ClientDemandeController::class, 'proforma'])->name('espace-client.demandes.proforma');
         Route::get('abonnements', ClientAbonnementController::class)->name('espace-client.abonnements');
         Route::get('formules', ClientFormuleController::class)->name('espace-client.formules');
         Route::post('abonnements/{abonnement}/renouvellement', [ClientAbonnementController::class, 'renouveler'])->name('espace-client.abonnements.renouveler');
@@ -187,6 +190,7 @@ Route::middleware(['auth:admin', 'auth.session', EnsureMembreActif::class])
         Route::get('demandes/{demande}', [AdminDemandeController::class, 'show'])->name('espace-admin.demandes.show');
         Route::patch('demandes/{demande}', [AdminDemandeController::class, 'update'])->name('espace-admin.demandes.update');
         Route::post('demandes/{demande}/devis', [AdminDemandeController::class, 'envoyerDevis'])->name('espace-admin.demandes.devis');
+        Route::get('demandes/{demande}/proforma', [AdminDemandeController::class, 'proforma'])->name('espace-admin.demandes.proforma');
         Route::get('clients', [AdminClientController::class, 'index'])->name('espace-admin.clients.index');
         Route::delete('clients/{client}', [AdminClientController::class, 'destroy'])->name('espace-admin.clients.destroy');
         Route::post('clients/{client}/partenaire', [AdminClientController::class, 'nommerPartenaire'])->name('espace-admin.clients.partenaire');

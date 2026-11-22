@@ -41,6 +41,13 @@ class DevisRecuNotification extends NotificationDag
             $lignes[] = $this->demande->message_devis;
         }
 
+        if ($this->demande->estParticulier()) {
+            $lignes[] = 'Votre devis (facture proforma) vous attend dans votre espace : consultez-le et validez-le en un clic.';
+            $lignes[] = 'Une fois le devis validé, vous réglez la facture en ligne et la prestation démarre.';
+
+            return $lignes;
+        }
+
         $lignes[] = 'Le contrat correspondant vous attend dans votre espace : lisez-le et signez-le en quelques minutes.';
         $lignes[] = 'Une fois le contrat signé, vous réglez la facture en ligne : Orange Money, MTN Mobile Money ou carte.';
 
@@ -54,6 +61,6 @@ class DevisRecuNotification extends NotificationDag
 
     public function libelleAction(): string
     {
-        return 'Voir le devis et signer le contrat';
+        return $this->demande->estParticulier() ? 'Voir et valider le devis' : 'Voir le devis et signer le contrat';
     }
 }

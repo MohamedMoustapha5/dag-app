@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\Storage;
 function demandeAvecContratDag(): array
 {
     test()->seed(ContratDagSeeder::class);
-    $client = Client::factory()->create(['nom' => 'Aïcha Ngono', 'telephone' => '690000000', 'ville' => 'Douala']);
+    $client = Client::factory()->entreprise()->create(['nom' => 'Aïcha Ngono', 'telephone' => '690000000', 'ville' => 'Douala']);
     $demande = Demande::factory()->create([
         'client_id' => $client->id,
         'statut' => 'EN_ETUDE',

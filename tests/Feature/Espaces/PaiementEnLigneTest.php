@@ -230,7 +230,7 @@ test('a lecture-only admin role cannot settle a pending payment', function () {
 
 test('the full journey: request a service, receive the devis and contract, sign, pay and download the facture', function () {
     Storage::fake('local');
-    $client = Client::factory()->create();
+    $client = Client::factory()->entreprise()->create();
     $promotrice = MembreEquipe::factory()->promotrice()->create();
     $service = Service::factory()->create();
 
@@ -352,7 +352,7 @@ test('moving a demande to devis envoyé from the status form also issues the fac
 });
 
 test('a demande facture cannot be paid online until its contract is signed and validated', function (?string $statutContrat) {
-    $client = Client::factory()->create();
+    $client = Client::factory()->entreprise()->create();
     $demande = Demande::factory()->create(['client_id' => $client->id, 'statut' => 'DEVIS_ENVOYE']);
     if ($statutContrat !== null) {
         Contrat::factory()->create(['client_id' => $client->id, 'demande_id' => $demande->id, 'statut' => $statutContrat]);
@@ -375,7 +375,7 @@ test('a demande facture cannot be paid online until its contract is signed and v
 
 test('staff cannot record a payment on a demande facture whose contract is not signed', function () {
     $promotrice = MembreEquipe::factory()->promotrice()->create();
-    $demande = Demande::factory()->create(['statut' => 'DEVIS_ENVOYE']);
+    $demande = Demande::factory()->entreprise()->create(['statut' => 'DEVIS_ENVOYE']);
     Contrat::factory()->create(['demande_id' => $demande->id, 'statut' => 'ENVOYE']);
     $facture = Facture::factory()->create(['demande_id' => $demande->id, 'montant' => 50000]);
 
@@ -389,7 +389,7 @@ test('staff cannot record a payment on a demande facture whose contract is not s
 
 test('sending the devis also sends the contract to sign, and re-sending it updates the unsigned contract', function () {
     $promotrice = MembreEquipe::factory()->promotrice()->create();
-    $demande = Demande::factory()->create(['statut' => 'EN_ETUDE']);
+    $demande = Demande::factory()->entreprise()->create(['statut' => 'EN_ETUDE']);
 
     $this->actingAs($promotrice, 'admin')->post(route('espace-admin.demandes.devis', $demande), ['montant' => 100000]);
     $this->actingAs($promotrice, 'admin')->post(route('espace-admin.demandes.devis', $demande), ['montant' => 120000]);
@@ -402,7 +402,7 @@ test('sending the devis also sends the contract to sign, and re-sending it updat
 
 test('a formule devis comes with a subscription contract', function () {
     $promotrice = MembreEquipe::factory()->promotrice()->create();
-    $demande = Demande::factory()->create(['statut' => 'EN_ETUDE', 'service_id' => null, 'formule_id' => Formule::factory()]);
+    $demande = Demande::factory()->entreprise()->create(['statut' => 'EN_ETUDE', 'service_id' => null, 'formule_id' => Formule::factory()]);
 
     $this->actingAs($promotrice, 'admin')
         ->post(route('espace-admin.demandes.devis', $demande), ['montant' => 45000])
@@ -416,7 +416,7 @@ test('a formule devis comes with a subscription contract', function () {
 
 test('the devis can no longer be changed once the client signed the contract', function () {
     $promotrice = MembreEquipe::factory()->promotrice()->create();
-    $demande = Demande::factory()->create(['statut' => 'CONTRAT_SIGNE', 'montant_negocie' => 100000]);
+    $demande = Demande::factory()->entreprise()->create(['statut' => 'CONTRAT_SIGNE', 'montant_negocie' => 100000]);
     Contrat::factory()->signe()->create(['demande_id' => $demande->id, 'montant' => 100000]);
     Facture::factory()->create(['demande_id' => $demande->id, 'montant' => 100000]);
 
@@ -433,7 +433,7 @@ test('the devis can no longer be changed once the client signed the contract', f
 
 test('only the client signature moves a demande to contrat signé', function () {
     $promotrice = MembreEquipe::factory()->promotrice()->create();
-    $demande = Demande::factory()->create(['statut' => 'DEVIS_ENVOYE']);
+    $demande = Demande::factory()->entreprise()->create(['statut' => 'DEVIS_ENVOYE']);
     Contrat::factory()->create(['demande_id' => $demande->id, 'statut' => 'ENVOYE']);
 
     $this->actingAs($promotrice, 'admin')
@@ -445,7 +445,7 @@ test('only the client signature moves a demande to contrat signé', function () 
 
 test('the prestation cannot start, be delivered or closed without a signed contract', function () {
     $promotrice = MembreEquipe::factory()->promotrice()->create();
-    $demande = Demande::factory()->create(['statut' => 'PAYEE']);
+    $demande = Demande::factory()->entreprise()->create(['statut' => 'PAYEE']);
 
     foreach (['EN_COURS', 'LIVREE', 'TERMINEE'] as $statut) {
         $this->actingAs($promotrice, 'admin')
@@ -468,9 +468,9 @@ test('the prestation cannot start, be delivered or closed without a signed contr
 
 test('the demandes list tells where the contract of each paid demande stands', function () {
     $promotrice = MembreEquipe::factory()->promotrice()->create();
-    $sansContrat = Demande::factory()->create(['statut' => 'PAYEE']);
+    $sansContrat = Demande::factory()->entreprise()->create(['statut' => 'PAYEE']);
     Facture::factory()->payee()->create(['demande_id' => $sansContrat->id]);
-    $aSigner = Demande::factory()->create(['statut' => 'PAYEE']);
+    $aSigner = Demande::factory()->entreprise()->create(['statut' => 'PAYEE']);
     Facture::factory()->payee()->create(['demande_id' => $aSigner->id]);
     Contrat::factory()->create(['demande_id' => $aSigner->id, 'statut' => 'ENVOYE']);
 

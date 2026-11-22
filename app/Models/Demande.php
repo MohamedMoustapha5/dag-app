@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  */
 #[Fillable([
     'reference', 'client_id', 'entreprise_id', 'service_id', 'formule_id', 'description',
-    'montant_negocie', 'message_devis', 'statut', 'est_partenaire_nova_tech', 'avancement_partenaire', 'derniere_relance_at',
+    'montant_negocie', 'message_devis', 'devis_valide_le', 'devis_refuse_le', 'motif_refus_devis', 'statut', 'est_partenaire_nova_tech', 'avancement_partenaire', 'derniere_relance_at',
 ])]
 class Demande extends Model
 {
@@ -53,6 +53,75 @@ class Demande extends Model
     }
 
     /**
+     * A demande from a private individual: no contract, the devis is a
+     * proforma the client validates online before paying. Demandes from an
+     * entreprise or an organisation keep the signed contract.
+     */
+    public function estParticulier(): bool
+    {
+        return $this->client_id !== null
+            && $this->entreprise_id === null
+            && $this->client->type === 'PARTICULIER';
+    }
+
+    /**
+     * Whether the client validated the devis (proforma) online.
+     */
+    public function devisEstValide(): bool
+    {
+        return $this->devis_valide_le !== null;
+    }
+
+    /**
+     * Reasons a particulier can give when declining a devis.
+     *
+     * @var array<string, string>
+     */
+    public const MOTIFS_REFUS_DEVIS = [
+        'PRIX' => 'Le prix est trop élevé',
+        'DELAI' => 'Le délai ne me convient pas',
+        'BESOIN' => 'Mon besoin a changé',
+        'AUTRE' => 'Autre raison',
+    ];
+
+    /**
+     * Whether the client declined the last devis DAG sent. A new devis
+     * clears it.
+     */
+    public function devisEstRefuse(): bool
+    {
+        return $this->devis_refuse_le !== null;
+    }
+
+    /**
+     * Whether the payment of the facture is open. A particulier validates
+     * the devis; an entreprise has its signed contract validated by DAG. A
+     * particulier's demande started under the contract procedure keeps
+     * going once that contract is validated.
+     */
+    public function paiementEstOuvert(): bool
+    {
+        if ($this->estParticulier()) {
+            return $this->devisEstValide() || $this->contratEstValide();
+        }
+
+        return $this->contratEstValide();
+    }
+
+    /**
+     * The steps of the status list that apply to this demande: a
+     * particulier never goes through « Contrat signé ».
+     *
+     * @return list<string>
+     */
+    public function etapesSuivi(): array
+    {
+        return $this->estParticulier()
+            ? array_values(array_diff(self::SUIVI_STEPS, ['CONTRAT_SIGNE']))
+            : self::SUIVI_STEPS;
+    }
+
+    /**
      * Whether the client signed the contract of this demande.
      */
     public function contratEstSigne(): bool
@@ -78,6 +147,8 @@ class Demande extends Model
     {
         return [
             'montant_negocie' => 'decimal:2',
+            'devis_valide_le' => 'datetime',
+            'devis_refuse_le' => 'datetime',
             'est_partenaire_nova_tech' => 'boolean',
             'derniere_relance_at' => 'datetime',
         ];

@@ -5813,7 +5813,163 @@
     }
 }
 
+/* ── Devis d'un particulier : refus ─────────────────────────────────── */
+.dag .btn-refus {
+    color: var(--dag-red);
+    border-color: #f1c4c4;
+}
+.dag .btn-refus:hover {
+    background: #fdf1f1;
+    border-color: var(--dag-red);
+}
+.dag .link-action.link-refus {
+    color: var(--dag-red);
+}
+.dag .devis-refuse {
+    border-left: 4px solid var(--dag-red);
+    background: #fdf6f6;
+}
+.dag .choix-liste {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    border: none;
+}
+.dag .choix-liste legend {
+    margin-bottom: 8px;
+    padding: 0;
+    font-size: 13px;
+    font-weight: 600;
+}
+.dag .choix {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--dag-border);
+    border-radius: var(--dag-radius-sm);
+    font-size: 13.5px;
+    cursor: pointer;
+    transition:
+        border-color 0.15s var(--dag-ease),
+        background 0.15s var(--dag-ease);
+}
+.dag .choix:hover {
+    border-color: var(--dag-blue);
+}
+.dag .choix:has(input:checked) {
+    border-color: var(--dag-blue);
+    background: #f2f7ff;
+}
+.dag .choix input {
+    width: auto;
+    margin-top: 2px;
+    accent-color: var(--dag-blue);
+}
+.dag .choix span {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.dag .choix small {
+    font-size: 12px;
+    color: var(--dag-text-muted);
+}
+
 /* ── Demandes clients (administration) : résumé, onglets, repères ───── */
+/* Particuliers / Entreprises : two procedures, handled apart. */
+.dag .demandes-types {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+}
+.dag .demandes-type {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 18px;
+    background: #fff;
+    border: 1.5px solid var(--dag-border);
+    border-radius: var(--dag-radius-md);
+    text-align: left;
+    cursor: pointer;
+    transition:
+        border-color 0.15s var(--dag-ease),
+        box-shadow 0.15s var(--dag-ease),
+        background 0.15s var(--dag-ease);
+}
+.dag .demandes-type:hover {
+    border-color: var(--dag-blue);
+}
+.dag .demandes-type:focus-visible {
+    outline: 2px solid var(--dag-blue);
+    outline-offset: 2px;
+}
+.dag .demandes-type.active {
+    border-color: var(--dag-blue);
+    background: #f2f7ff;
+    box-shadow: 0 8px 22px -16px rgba(1, 102, 254, 0.55);
+}
+.dag .demandes-type-icone {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: #eef1f8;
+    color: var(--dag-navy);
+}
+.dag .demandes-type.active .demandes-type-icone {
+    background: var(--dag-blue);
+    color: #fff;
+}
+.dag .demandes-type-texte {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+.dag .demandes-type-texte strong {
+    font-size: 14.5px;
+    color: var(--dag-navy);
+}
+.dag .demandes-type-texte > span {
+    font-size: 12.5px;
+    color: var(--dag-text-muted);
+}
+.dag .demandes-type-total {
+    margin-left: 4px;
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: #e7eaf2;
+    font-size: 12px;
+    font-weight: 700;
+}
+.dag .demandes-type.active .demandes-type-total {
+    background: var(--dag-blue);
+    color: #fff;
+}
+.dag .demandes-type-badge {
+    flex-shrink: 0;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #fff4e0;
+    color: #b45309;
+    font-size: 11.5px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+@media (max-width: 720px) {
+    .dag .demandes-types {
+        grid-template-columns: 1fr;
+    }
+}
 .dag .demandes-resume {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));

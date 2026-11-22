@@ -5,14 +5,17 @@ namespace App\Http\Controllers\Espaces;
 use App\Enums\Action;
 use App\Enums\Donnee;
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\Demande;
 use App\Models\Formule;
 use App\Models\Service;
 use App\Support\Notifications\Notifier;
 use App\Support\Paiements\PaiementService;
 use App\Support\Parcours\ParcoursDemande;
+use App\Support\ProformaPdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
@@ -105,9 +108,9 @@ class ClientDemandeController extends Controller
     {
         Gate::authorize('view', $demande);
 
-        $demande->load(['service', 'formule', 'contrat', 'facture']);
+        $demande->load(['client', 'service', 'formule', 'contrat', 'facture']);
 
-        $etapeActuelle = array_search($demande->statut, Demande::SUIVI_STEPS, true);
+        $etapeActuelle = array_search($demande->statut, $demande->etapesSuivi(), true);
 
         return Inertia::render('espaces/client/demandes-show', [
             'client' => $request->user('web')->client->espaceHeaderProps(),
@@ -120,6 +123,17 @@ class ClientDemandeController extends Controller
                 'montantNegocie' => $demande->montant_negocie,
                 'messageDevis' => $demande->message_devis,
                 'createdAt' => $demande->created_at,
+                'estParticulier' => $demande->estParticulier(),
+                'devis' => $demande->estParticulier() && ProformaPdf::disponible($demande) ? [
+                    'numero' => ProformaPdf::numero($demande),
+                    'valideLe' => $demande->devis_valide_le?->toIso8601String(),
+                    'peutValider' => $this->peutValiderDevis($demande),
+                ] : null,
+                'refusDevis' => $demande->estParticulier() && $demande->devisEstRefuse() ? [
+                    'le' => $demande->devis_refuse_le->toIso8601String(),
+                    'motif' => $demande->motif_refus_devis,
+                    'abandon' => $demande->statut === 'REFUSEE',
+                ] : null,
                 'contrat' => $demande->contrat && $demande->contrat->statut !== 'BROUILLON' ? [
                     'reference' => $demande->contrat->reference,
                     'statut' => $demande->contrat->statut,
@@ -137,15 +151,131 @@ class ClientDemandeController extends Controller
                     'paiementEnAttente' => $paiements->paiementEnAttente($demande->facture),
                     'attendSignatureContrat' => $paiements->attendSignatureContrat($demande->facture),
                     'attendValidationContrat' => $paiements->attendValidationContrat($demande->facture),
+                    'attendValidationDevis' => $paiements->attendValidationDevis($demande->facture),
                 ] : null,
             ],
             'moyensPaiement' => $paiements->moyens(),
+            'motifsRefusDevis' => collect(Demande::MOTIFS_REFUS_DEVIS)
+                ->map(fn (string $libelle, string $valeur) => ['value' => $valeur, 'label' => $libelle])
+                ->values(),
             'parcours' => ParcoursDemande::pour($demande, 'client'),
             'suivi' => [
-                'etapes' => Demande::SUIVI_STEPS,
+                'etapes' => $demande->etapesSuivi(),
                 'etapeActuelle' => $etapeActuelle === false ? null : $etapeActuelle,
                 'refusee' => $demande->statut === 'REFUSEE',
             ],
         ]);
+    }
+
+    /**
+     * A particulier accepts the devis DAG sent (the proforma), which opens
+     * the payment of the facture. No contract is signed.
+     */
+    public function validerDevis(Request $request, Demande $demande): RedirectResponse
+    {
+        Gate::authorize('view', $demande);
+
+        abort_unless($demande->estParticulier(), 404);
+        abort_unless($this->peutValiderDevis($demande), 409, 'Ce devis ne peut pas être validé : il a déjà été validé ou n’est plus d’actualité.');
+
+        $demande->update(['devis_valide_le' => now()]);
+
+        $montant = number_format((float) $demande->montant_negocie, 0, ',', ' ');
+
+        ActivityLog::record(null, 'devis validé par le client', $demande, "{$demande->reference} : {$montant} FCFA, validé par {$demande->client->nom}.");
+
+        Notifier::alerterEquipe(
+            Donnee::DemandesClients,
+            Action::Voir,
+            'devis.valide',
+            "Devis validé — {$demande->reference}",
+            "{$demande->client->nom} a validé le devis de {$montant} FCFA ({$demande->libelleObjet()}) : le paiement est ouvert.",
+            route('espace-admin.demandes.show', $demande),
+        );
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Devis validé : vous pouvez maintenant régler la facture.']);
+
+        return back();
+    }
+
+    /**
+     * A particulier declines the devis, with a reason. Either they want a
+     * revised proposal (the demande goes back to DAG, under study) or they
+     * do not wish to go on (the demande is closed). DAG is told either way.
+     */
+    public function refuserDevis(Request $request, Demande $demande): RedirectResponse
+    {
+        Gate::authorize('view', $demande);
+
+        abort_unless($demande->estParticulier(), 404);
+        abort_unless($this->peutValiderDevis($demande), 409, 'Ce devis ne peut plus être refusé : il a déjà été validé ou n’est plus d’actualité.');
+
+        $data = $request->validate([
+            'motif' => ['required', Rule::in(array_keys(Demande::MOTIFS_REFUS_DEVIS))],
+            'commentaire' => ['nullable', 'string', 'max:1000', 'required_if:motif,AUTRE'],
+            'suite' => ['required', Rule::in(['nouveau_devis', 'abandon'])],
+        ], [
+            'commentaire.required_if' => 'Précisez la raison de votre refus.',
+        ]);
+
+        $motif = Demande::MOTIFS_REFUS_DEVIS[$data['motif']]
+            .(filled($data['commentaire'] ?? null) ? ' — '.trim($data['commentaire']) : '');
+        $abandon = $data['suite'] === 'abandon';
+
+        $demande->update([
+            'devis_refuse_le' => now(),
+            'motif_refus_devis' => $motif,
+            'devis_valide_le' => null,
+            // A revised proposal is studied again; otherwise the demande ends.
+            'statut' => $abandon ? 'REFUSEE' : 'EN_ETUDE',
+        ]);
+
+        $montant = number_format((float) $demande->montant_negocie, 0, ',', ' ');
+
+        ActivityLog::record(null, 'devis refusé par le client', $demande, "{$demande->reference} : {$montant} FCFA, refusé par {$demande->client->nom} ({$motif})".($abandon ? ', sans suite.' : ', nouvelle proposition demandée.'));
+
+        Notifier::alerterEquipe(
+            Donnee::DemandesClients,
+            Action::Modifier,
+            'devis.refuse',
+            "Devis refusé — {$demande->reference}",
+            "{$demande->client->nom} a refusé le devis de {$montant} FCFA ({$demande->libelleObjet()}). Motif : {$motif}. "
+                .($abandon ? 'Le client ne donne pas suite.' : 'Le client attend une nouvelle proposition.'),
+            route('espace-admin.demandes.show', $demande),
+        );
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => $abandon
+                ? 'Devis refusé : votre demande est close. Merci de votre retour.'
+                : 'Devis refusé : l’équipe DAG vous fera une nouvelle proposition.',
+        ]);
+
+        return back();
+    }
+
+    /**
+     * The devis of the demande as a proforma PDF.
+     */
+    public function proforma(Request $request, Demande $demande): HttpResponse
+    {
+        Gate::authorize('view', $demande);
+
+        abort_unless($demande->estParticulier(), 404);
+
+        return ProformaPdf::telecharger($demande);
+    }
+
+    /**
+     * The devis waits for the client: sent with an amount, not yet
+     * validated, and its facture not paid yet.
+     */
+    private function peutValiderDevis(Demande $demande): bool
+    {
+        return $demande->statut === 'DEVIS_ENVOYE'
+            && ProformaPdf::disponible($demande)
+            && ! $demande->devisEstValide()
+            && $demande->facture !== null
+            && (float) $demande->facture->montant_paye <= 0;
     }
 }

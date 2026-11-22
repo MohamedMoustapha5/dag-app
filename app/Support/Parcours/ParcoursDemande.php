@@ -9,8 +9,12 @@ use App\Models\Demande;
  * client and for the DAG team: every step, who acts on it, the current one,
  * and what has to be done next, worded for whoever is looking.
  *
- * Steps: demande → devis (DAG) → signature of the contract (client) →
- * validation of the contract (DAG) → payment (client) → prestation (DAG)
+ * Entreprise or organisation: demande → devis (DAG) → signature of the
+ * contract (client) → validation of the contract (DAG) → payment (client)
+ * → prestation (DAG) → clôture (DAG).
+ *
+ * Particulier, without contract: demande → devis proforma (DAG) →
+ * validation of the devis (client) → payment (client) → prestation (DAG)
  * → clôture (DAG).
  */
 class ParcoursDemande
@@ -26,7 +30,7 @@ class ParcoursDemande
      */
     public static function pour(Demande $demande, string $audience): array
     {
-        $demande->loadMissing(['contrat', 'facture']);
+        $demande->loadMissing(['client', 'contrat', 'facture']);
 
         $faites = self::etapesFaites($demande);
 
@@ -52,12 +56,19 @@ class ParcoursDemande
             }
         }
 
-        $interrompu = $demande->statut === 'REFUSEE'
-            ? ($audience === 'client' ? "Votre demande n'a pas pu être retenue. Contactez l'équipe DAG pour en savoir plus." : 'Demande refusée : la procédure est arrêtée.')
-            : null;
+        $interrompu = match (true) {
+            $demande->statut !== 'REFUSEE' => null,
+            // Closed because the client declined the devis, not by DAG.
+            $demande->devisEstRefuse() => $audience === 'client'
+                ? 'Vous avez décliné le devis : votre demande est close. Vous pouvez déposer une nouvelle demande à tout moment.'
+                : "Le client a décliné le devis ({$demande->motif_refus_devis}) : la demande est close.",
+            default => $audience === 'client'
+                ? "Votre demande n'a pas pu être retenue. Contactez l'équipe DAG pour en savoir plus."
+                : 'Demande refusée : la procédure est arrêtée.',
+        };
 
         $etapes = [];
-        foreach (self::ETAPES as $cle => [$libelle, $acteur]) {
+        foreach (self::etapes($demande) as $cle => [$libelle, $acteur]) {
             $etapes[] = [
                 'cle' => $cle,
                 'libelle' => $libelle,
@@ -89,13 +100,36 @@ class ParcoursDemande
     ];
 
     /**
+     * A particulier validates the devis instead of signing a contract.
+     *
+     * @var array<string, array{0: string, 1: string}>
+     */
+    private const ETAPES_PARTICULIER = [
+        'demande' => ['Demande envoyée', Acteur::CLIENT],
+        'devis' => ['Devis proforma', Acteur::DAG],
+        'acceptation' => ['Validation du devis', Acteur::CLIENT],
+        'paiement' => ['Paiement', Acteur::CLIENT],
+        'prestation' => ['Réalisation', Acteur::DAG],
+        'cloture' => ['Clôture', Acteur::DAG],
+    ];
+
+    /**
+     * @return array<string, array{0: string, 1: string}>
+     */
+    private static function etapes(Demande $demande): array
+    {
+        return $demande->estParticulier() ? self::ETAPES_PARTICULIER : self::ETAPES;
+    }
+
+    /**
      * What actually has to be done at the current step. A demande paid
      * before its contract was signed (earlier procedure) cannot start
-     * without it: getting the contract signed comes first.
+     * without it: getting the contract signed comes first. A particulier
+     * has no contract to sign.
      */
     private static function etapeAFaire(Demande $demande, string $courante): string
     {
-        return $courante === 'prestation' && ! $demande->contratEstSigne() ? 'signature' : $courante;
+        return $courante === 'prestation' && ! $demande->estParticulier() && ! $demande->contratEstSigne() ? 'signature' : $courante;
     }
 
     /**
@@ -104,6 +138,19 @@ class ParcoursDemande
     private static function etapesFaites(Demande $demande): array
     {
         $facturePayee = $demande->facture !== null && $demande->facture->statut === 'PAYEE';
+
+        if ($demande->estParticulier()) {
+            return [
+                'demande' => true,
+                'devis' => $demande->aAtteint('DEVIS_ENVOYE'),
+                // A demande started under the contract procedure counts its
+                // signed contract as the client's agreement.
+                'acceptation' => $demande->devisEstValide() || $demande->contratEstSigne(),
+                'paiement' => $facturePayee || $demande->aAtteint('PAYEE'),
+                'prestation' => $demande->aAtteint('LIVREE'),
+                'cloture' => $demande->statut === 'TERMINEE',
+            ];
+        }
 
         return [
             'demande' => true,
@@ -123,19 +170,38 @@ class ParcoursDemande
     private static function prochaine(Demande $demande, string $etape, string $audience): array
     {
         $client = $audience === 'client';
+        $particulier = $demande->estParticulier();
         $contrat = $demande->contrat;
         $solde = $demande->facture !== null
             ? number_format(max(0, (float) $demande->facture->montant - (float) $demande->facture->montant_paye), 0, ',', Acteur::ESPACE_INSECABLE).Acteur::ESPACE_INSECABLE.'FCFA'
             : null;
 
         [$acteur, $titre, $texte, $action] = match ($etape) {
-            'devis' => [
+            'devis' => $particulier && $demande->devisEstRefuse() ? [
+                Acteur::DAG,
+                $client ? 'Nouvelle proposition en préparation' : 'Envoyer une nouvelle proposition',
+                $client
+                    ? 'Vous avez refusé le devis. L’équipe DAG prépare une nouvelle proposition, que vous recevrez ici.'
+                    : "Le client a refusé le devis ({$demande->motif_refus_devis}) : envoyez une nouvelle proposition, ou passez la demande à « Refusée ».",
+                $client ? null : 'envoyer_devis',
+            ] : [
                 Acteur::DAG,
                 $client ? 'Étude de votre demande' : 'Envoyer le devis',
-                $client
-                    ? "L'équipe DAG étudie votre demande. Vous recevrez ici le devis et le contrat à signer."
-                    : 'Étudiez la demande puis envoyez le devis : le contrat à signer part avec.',
+                match (true) {
+                    $client && $particulier => "L'équipe DAG étudie votre demande. Vous recevrez ici votre devis (proforma) à valider.",
+                    $client => "L'équipe DAG étudie votre demande. Vous recevrez ici le devis et le contrat à signer.",
+                    $particulier => 'Étudiez la demande puis envoyez le devis : le client particulier le valide en ligne, sans contrat.',
+                    default => 'Étudiez la demande puis envoyez le devis : le contrat à signer part avec.',
+                },
                 $client ? null : 'envoyer_devis',
+            ],
+            'acceptation' => [
+                Acteur::CLIENT,
+                $client ? 'Valider votre devis' : 'Validation du devis par le client',
+                $client
+                    ? 'Consultez votre devis (proforma), puis validez-le : le paiement s’ouvre aussitôt.'
+                    : 'Devis envoyé : en attente de sa validation par le client.',
+                $client ? 'valider_devis' : null,
             ],
             'signature' => match (true) {
                 $contrat !== null && $contrat->statut === 'ENVOYE' => [
@@ -183,8 +249,8 @@ class ParcoursDemande
                 Acteur::CLIENT,
                 $client ? 'Régler votre facture' : 'Paiement du client',
                 $client
-                    ? 'Votre contrat est validé. Réglez la facture'.($solde !== null ? " ({$solde})" : '').' pour lancer la prestation.'
-                    : 'Contrat validé : en attente du paiement du client'.($solde !== null ? " ({$solde} restant)" : '').'.',
+                    ? ($particulier ? 'Votre devis est validé' : 'Votre contrat est validé').'. Réglez la facture'.($solde !== null ? " ({$solde})" : '').' pour lancer la prestation.'
+                    : ($particulier ? 'Devis validé' : 'Contrat validé').' : en attente du paiement du client'.($solde !== null ? " ({$solde} restant)" : '').'.',
                 $client ? 'payer' : null,
             ],
             'prestation' => [

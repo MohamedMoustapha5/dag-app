@@ -13,8 +13,10 @@ use App\Support\ContratRedaction;
 use App\Support\Notifications\Notifier;
 use App\Support\Paiements\PaiementService;
 use App\Support\Parcours\ParcoursDemande;
+use App\Support\ProformaPdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -47,9 +49,13 @@ class AdminDemandeController extends Controller
                 'id' => $demande->id,
                 'reference' => $demande->reference,
                 'client' => $this->nomClient($demande),
+                'typeClient' => $demande->estParticulier() ? 'particulier' : 'entreprise',
                 'objet' => $demande->libelleObjet(),
                 'statut' => $demande->statut,
                 'montantNegocie' => $demande->montant_negocie,
+                'devisValide' => $demande->devisEstValide(),
+                'devisRefuse' => $demande->devisEstRefuse(),
+                'motifRefusDevis' => $demande->motif_refus_devis,
                 'aContrat' => $demande->contrat_exists,
                 'contratStatut' => $demande->contrat !== null ? $demande->contrat->statut : null,
                 'contratId' => $demande->contrat !== null ? $demande->contrat->id : null,
@@ -85,16 +91,27 @@ class AdminDemandeController extends Controller
 
         $demande->load(['client', 'entreprise', 'service', 'formule', 'contrat', 'facture']);
 
-        $etapeActuelle = array_search($demande->statut, Demande::SUIVI_STEPS, true);
+        $etapes = $demande->etapesSuivi();
+        $etapeActuelle = array_search($demande->statut, $etapes, true);
 
         return Inertia::render('espaces/admin/demande-show', [
             ...$this->adminEspaceProps($membre),
             'peutModifier' => $membre->peut(Donnee::DemandesClients, Action::Modifier),
-            'peutGenererContrat' => $membre->peut(Donnee::ContratsClauses, Action::Creer),
+            'peutGenererContrat' => $membre->peut(Donnee::ContratsClauses, Action::Creer) && ! $demande->estParticulier(),
             'demande' => [
                 'id' => $demande->id,
                 'reference' => $demande->reference,
                 'client' => $this->nomClient($demande),
+                'estParticulier' => $demande->estParticulier(),
+                'devis' => ProformaPdf::disponible($demande) ? [
+                    'numero' => ProformaPdf::numero($demande),
+                    'valideLe' => $demande->devis_valide_le?->toIso8601String(),
+                ] : null,
+                'refusDevis' => $demande->devisEstRefuse() ? [
+                    'le' => $demande->devis_refuse_le->toIso8601String(),
+                    'motif' => $demande->motif_refus_devis,
+                    'abandon' => $demande->statut === 'REFUSEE',
+                ] : null,
                 'clientTelephone' => $demande->client_id !== null ? $demande->client->telephone : null,
                 'objet' => $demande->libelleObjet(),
                 'description' => $demande->description,
@@ -114,7 +131,7 @@ class AdminDemandeController extends Controller
             ],
             'parcours' => ParcoursDemande::pour($demande, 'admin'),
             'suivi' => [
-                'etapes' => Demande::SUIVI_STEPS,
+                'etapes' => $etapes,
                 'etapeActuelle' => $etapeActuelle === false ? null : $etapeActuelle,
                 'refusee' => $demande->statut === 'REFUSEE',
             ],
@@ -148,33 +165,31 @@ class AdminDemandeController extends Controller
             ]);
         }
 
-        // The contract is mandatory and signed before payment: only the client's
-        // signature moves a demande to "Contrat signé", and no prestation starts,
-        // is delivered or closed without it.
-        if (in_array($data['statut'], ['CONTRAT_SIGNE', 'EN_COURS', 'LIVREE', 'TERMINEE'], true) && ! $demande->contratEstSigne()) {
-            throw ValidationException::withMessages([
-                'statut' => $data['statut'] === 'CONTRAT_SIGNE'
-                    ? 'Une demande passe à « Contrat signé » quand le client signe son contrat, pas à la main.'
-                    : 'Le contrat doit être signé par le client avant de démarrer la prestation.',
-            ]);
-        }
-
-        // The signed contract carries the amount the client agreed to.
-        if ($data['statut'] === 'DEVIS_ENVOYE' && $demande->contratEstSigne()) {
-            throw ValidationException::withMessages([
-                'statut' => 'Le client a déjà signé le contrat : le devis ne peut plus être modifié.',
-            ]);
+        if ($demande->estParticulier()) {
+            $this->verifierEtapeParticulier($demande, $data['statut']);
+        } else {
+            $this->verifierEtapeAvecContrat($demande, $data['statut']);
         }
 
         DB::transaction(function () use ($demande, $data, $paiements): void {
+            $montantAvant = (float) $demande->montant_negocie;
+
             $demande->update($data);
 
             // Moving a demande to "Devis envoyé" with an amount issues the
-            // facture and sends the contract the client signs before paying,
-            // whichever screen the change comes from.
+            // facture, whichever screen the change comes from: with the
+            // contract to sign for an entreprise; for a particulier, a new
+            // amount is a new devis the client validates again.
             if ($demande->statut === 'DEVIS_ENVOYE' && (float) $demande->montant_negocie > 0) {
                 $paiements->emettreFacturePourDevis($demande, (float) $demande->montant_negocie);
-                ContratRedaction::envoyerAvecDevis($demande);
+
+                if (! $demande->estParticulier()) {
+                    ContratRedaction::envoyerAvecDevis($demande);
+                } elseif ((float) $demande->montant_negocie !== $montantAvant || $demande->devisEstRefuse()) {
+                    // A new amount, or a proposal after a refusal, is a new
+                    // devis for the client to answer.
+                    $demande->update(['devis_valide_le' => null, 'devis_refuse_le' => null, 'motif_refus_devis' => null]);
+                }
             }
         });
 
@@ -183,6 +198,68 @@ class AdminDemandeController extends Controller
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Demande mise à jour.']);
 
         return back();
+    }
+
+    /**
+     * Entreprise or organisation: the contract is mandatory and signed before
+     * payment. Only the client's signature moves a demande to « Contrat
+     * signé », no prestation starts, is delivered or closed without it, and
+     * the signed contract fixes the amount.
+     *
+     * @throws ValidationException
+     */
+    private function verifierEtapeAvecContrat(Demande $demande, string $statut): void
+    {
+        if (in_array($statut, ['CONTRAT_SIGNE', 'EN_COURS', 'LIVREE', 'TERMINEE'], true) && ! $demande->contratEstSigne()) {
+            throw ValidationException::withMessages([
+                'statut' => $statut === 'CONTRAT_SIGNE'
+                    ? 'Une demande passe à « Contrat signé » quand le client signe son contrat, pas à la main.'
+                    : 'Le contrat doit être signé par le client avant de démarrer la prestation.',
+            ]);
+        }
+
+        if ($statut === 'DEVIS_ENVOYE' && $demande->contratEstSigne()) {
+            throw ValidationException::withMessages([
+                'statut' => 'Le client a déjà signé le contrat : le devis ne peut plus être modifié.',
+            ]);
+        }
+    }
+
+    /**
+     * Particulier: no contract. The prestation only starts once the client
+     * validated the devis, and the devis can no longer change once paid.
+     *
+     * @throws ValidationException
+     */
+    private function verifierEtapeParticulier(Demande $demande, string $statut): void
+    {
+        if ($statut === 'CONTRAT_SIGNE') {
+            throw ValidationException::withMessages([
+                'statut' => 'Un client particulier n’a pas de contrat : il valide son devis en ligne.',
+            ]);
+        }
+
+        if (in_array($statut, ['EN_COURS', 'LIVREE', 'TERMINEE'], true) && ! $demande->paiementEstOuvert()) {
+            throw ValidationException::withMessages([
+                'statut' => 'Le client doit d’abord valider son devis avant le démarrage de la prestation.',
+            ]);
+        }
+
+        if ($statut === 'DEVIS_ENVOYE' && (float) $demande->facture?->montant_paye > 0) {
+            throw ValidationException::withMessages([
+                'statut' => 'Un paiement a déjà été enregistré : le devis ne peut plus être modifié.',
+            ]);
+        }
+    }
+
+    /**
+     * The devis of a particulier's demande, as a proforma PDF.
+     */
+    public function proforma(Request $request, Demande $demande): HttpResponse
+    {
+        abort_unless($this->membre($request)->peut(Donnee::DemandesClients, Action::Voir), 403);
+
+        return ProformaPdf::telecharger($demande);
     }
 
     public function envoyerDevis(Request $request, Demande $demande, PaiementService $paiements): RedirectResponse
@@ -216,17 +293,24 @@ class AdminDemandeController extends Controller
             'Le client a déjà signé le contrat : le devis ne peut plus être modifié.'
         );
 
-        // The devis comes with its contract: the client reads and signs it
-        // first, then pays the facture.
+        // An entreprise receives the devis with its contract, signs it, then
+        // pays. A particulier receives the devis alone (a proforma), validates
+        // it online, then pays: every devis sent is validated anew.
         DB::transaction(function () use ($demande, $data, $paiements): void {
             $demande->update([
                 'montant_negocie' => $data['montant'],
                 'message_devis' => $data['message'] ?? null,
                 'statut' => 'DEVIS_ENVOYE',
+                'devis_valide_le' => null,
+                'devis_refuse_le' => null,
+                'motif_refus_devis' => null,
             ]);
 
             $paiements->emettreFacturePourDevis($demande, (float) $data['montant']);
-            ContratRedaction::envoyerAvecDevis($demande);
+
+            if (! $demande->estParticulier()) {
+                ContratRedaction::envoyerAvecDevis($demande);
+            }
         });
 
         Notifier::envoyer(Notifier::utilisateurDe($demande), new DevisRecuNotification($demande));

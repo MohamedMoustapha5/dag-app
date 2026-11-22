@@ -1,9 +1,11 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import {
+    Building2,
     CheckCircle2,
     Clock,
     Inbox,
     Search,
+    UserRound,
     UserRoundCheck,
     X,
 } from 'lucide-react';
@@ -18,9 +20,13 @@ type Demande = {
     id: string;
     reference: string;
     client: string;
+    typeClient: TypeClient;
     objet: string;
     statut: string;
     montantNegocie: string | null;
+    devisValide: boolean;
+    devisRefuse: boolean;
+    motifRefusDevis: string | null;
     aContrat: boolean;
     contratStatut: string | null;
     contratId: string | null;
@@ -33,6 +39,32 @@ type Demande = {
         libelleActeur: string;
     } | null;
 };
+
+/**
+ * Particuliers validate a devis (proforma) online; entreprises and
+ * organisations sign a contract. The two are handled apart.
+ */
+type TypeClient = 'particulier' | 'entreprise';
+
+const TYPES_CLIENT: {
+    cle: TypeClient;
+    libelle: string;
+    description: string;
+    icone: typeof Inbox;
+}[] = [
+    {
+        cle: 'particulier',
+        libelle: 'Particuliers',
+        description: 'Devis proforma validé en ligne, puis paiement',
+        icone: UserRound,
+    },
+    {
+        cle: 'entreprise',
+        libelle: 'Entreprises & organisations',
+        description: 'Devis et contrat signé, puis paiement',
+        icone: Building2,
+    },
+];
 
 type Onglet =
     | 'nouvelles'
@@ -101,6 +133,48 @@ const ONGLETS: {
         vide: 'Aucune demande pour le moment.',
     },
 ];
+
+/** Help line of a tab, worded for particuliers (no contract) when needed. */
+function aideOnglet(onglet: (typeof ONGLETS)[number], type: TypeClient): string {
+    if (type === 'entreprise') {
+        return onglet.aide;
+    }
+
+    switch (onglet.cle) {
+        case 'nouvelles':
+            return 'Demandes reçues, pas encore chiffrées : étudiez-les et envoyez le devis. Le client particulier le valide en ligne, sans contrat.';
+        case 'a_traiter':
+            return 'Demandes en cours où DAG doit agir : démarrer, livrer ou clôturer la prestation.';
+        case 'attente_client':
+            return 'Le client doit valider son devis ou régler sa facture. Les plus anciennes sont en tête : relancez celles qui attendent depuis plus d’une semaine.';
+        default:
+            return onglet.aide;
+    }
+}
+
+function typeInitial(demandes: Demande[]): TypeClient {
+    try {
+        const type = new URLSearchParams(window.location.search).get('type');
+
+        if (type === 'particulier' || type === 'entreprise') {
+            return type;
+        }
+    } catch {
+        // No window (server rendering): fall through to the default.
+    }
+
+    // Otherwise open the side with the most demandes waiting on DAG.
+    const enAttenteDeDag = (type: TypeClient) =>
+        demandes.filter(
+            (demande) =>
+                demande.typeClient === type &&
+                ['nouvelles', 'a_traiter'].includes(ongletDe(demande)),
+        ).length;
+
+    return enAttenteDeDag('entreprise') > enAttenteDeDag('particulier')
+        ? 'entreprise'
+        : 'particulier';
+}
 
 /** Where a demande belongs in the page: every demande is in exactly one tab. */
 function ongletDe(demande: Demande): Exclude<Onglet, 'toutes'> {
@@ -188,29 +262,56 @@ export default function AdminDemandes({
 }: Props) {
     const [devisPour, setDevisPour] = useState<Demande | null>(null);
     const [recherche, setRecherche] = useState('');
+    const [type, setType] = useState<TypeClient>(() => typeInitial(demandes));
 
-    const compte = (onglet: Onglet) =>
+    const demandesDuType = (cle: TypeClient) =>
+        demandes.filter((demande) => demande.typeClient === cle);
+    const demandesDuGroupe = demandesDuType(type);
+    const particulier = type === 'particulier';
+
+    const compte = (onglet: Onglet, groupe: Demande[] = demandesDuGroupe) =>
         onglet === 'toutes'
-            ? demandes.length
-            : demandes.filter((demande) => ongletDe(demande) === onglet).length;
+            ? groupe.length
+            : groupe.filter((demande) => ongletDe(demande) === onglet).length;
 
-    const [onglet, setOnglet] = useState<Onglet>(() => ongletInitial(compte));
+    const [onglet, setOnglet] = useState<Onglet>(() =>
+        ongletInitial((cle) => compte(cle)),
+    );
 
-    const choisirOnglet = (cle: Onglet) => {
-        setOnglet(cle);
-
-        // Kept in the address so coming back from a demande reopens the tab.
+    /** Kept in the address so coming back from a demande reopens the view. */
+    const memoriser = (parametres: Record<string, string>) => {
         try {
             const url = new URL(window.location.href);
-            url.searchParams.set('onglet', cle);
+            Object.entries(parametres).forEach(([cle, valeur]) =>
+                url.searchParams.set(cle, valeur),
+            );
             window.history.replaceState(window.history.state, '', url);
         } catch {
-            // Address not writable: the tab simply is not remembered.
+            // Address not writable: the view simply is not remembered.
         }
     };
 
+    const choisirOnglet = (cle: Onglet) => {
+        setOnglet(cle);
+        memoriser({ onglet: cle });
+    };
+
+    const choisirType = (cle: TypeClient) => {
+        const groupe = demandesDuType(cle);
+        const ongletSuivant: Onglet =
+            compte('nouvelles', groupe) > 0
+                ? 'nouvelles'
+                : compte('a_traiter', groupe) > 0
+                  ? 'a_traiter'
+                  : 'toutes';
+
+        setType(cle);
+        setOnglet(ongletSuivant);
+        memoriser({ type: cle, onglet: ongletSuivant });
+    };
+
     const terme = recherche.trim().toLowerCase();
-    const demandesAffichees = demandes
+    const demandesAffichees = demandesDuGroupe
         .filter(
             (demande) => onglet === 'toutes' || ongletDe(demande) === onglet,
         )
@@ -286,9 +387,59 @@ export default function AdminDemandes({
                     className="muted"
                     style={{ marginTop: 6, fontSize: 14, lineHeight: 1.6 }}
                 >
-                    Devis et contrat envoyés ensemble, signature du client,
-                    validation du contrat par DAG, paiement, puis réalisation.
+                    {particulier
+                        ? 'Particuliers : devis proforma envoyé, validé en ligne par le client, paiement, puis réalisation. Sans contrat.'
+                        : 'Entreprises & organisations : devis et contrat envoyés ensemble, signature du client, validation du contrat par DAG, paiement, puis réalisation.'}
                 </p>
+            </div>
+
+            <div
+                className="demandes-types"
+                role="group"
+                aria-label="Type de client"
+            >
+                {TYPES_CLIENT.map(
+                    ({ cle, libelle, description, icone: Icone }) => {
+                        const groupe = demandesDuType(cle);
+                        const aTraiter =
+                            compte('nouvelles', groupe) +
+                            compte('a_traiter', groupe);
+
+                        return (
+                            <button
+                                key={cle}
+                                type="button"
+                                aria-pressed={type === cle}
+                                className={`demandes-type${type === cle ? ' active' : ''}`}
+                                onClick={() => choisirType(cle)}
+                            >
+                                <span
+                                    className="demandes-type-icone"
+                                    aria-hidden="true"
+                                >
+                                    <Icone size={18} />
+                                </span>
+                                <span className="demandes-type-texte">
+                                    <strong>
+                                        {libelle}{' '}
+                                        <span className="demandes-type-total">
+                                            {groupe.length}
+                                        </span>
+                                    </strong>
+                                    <span>{description}</span>
+                                </span>
+                                {aTraiter > 0 && (
+                                    <span
+                                        className="demandes-type-badge"
+                                        title="Nouvelles ou à traiter par DAG"
+                                    >
+                                        {aTraiter} à traiter
+                                    </span>
+                                )}
+                            </button>
+                        );
+                    },
+                )}
             </div>
 
             <div className="demandes-resume">
@@ -344,7 +495,7 @@ export default function AdminDemandes({
                 </label>
             </div>
 
-            <p className="demandes-aide">{ongletCourant.aide}</p>
+            <p className="demandes-aide">{aideOnglet(ongletCourant, type)}</p>
 
             <div className="card" style={{ padding: 24 }}>
                 {demandesAffichees.length === 0 ? (
@@ -369,7 +520,11 @@ export default function AdminDemandes({
                                     </th>
                                     <th>Statut</th>
                                     {!termine && <th>Prochaine étape</th>}
-                                    {onglet !== 'nouvelles' && <th>Contrat</th>}
+                                    {onglet !== 'nouvelles' && (
+                                        <th>
+                                            {particulier ? 'Devis' : 'Contrat'}
+                                        </th>
+                                    )}
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -411,6 +566,17 @@ export default function AdminDemandes({
                                                 {nouvelle && (
                                                     <span className="demande-nouvelle">
                                                         Nouveau
+                                                    </span>
+                                                )}
+                                                {demande.devisRefuse && (
+                                                    <span
+                                                        className="demande-relance"
+                                                        title={
+                                                            demande.motifRefusDevis ??
+                                                            undefined
+                                                        }
+                                                    >
+                                                        Devis refusé
                                                     </span>
                                                 )}
                                                 <span
@@ -486,10 +652,22 @@ export default function AdminDemandes({
                                                 </td>
                                             )}
                                             {onglet !== 'nouvelles' && (
-                                                <td data-label="Contrat">
-                                                    <EtatContrat
-                                                        demande={demande}
-                                                    />
+                                                <td
+                                                    data-label={
+                                                        particulier
+                                                            ? 'Devis'
+                                                            : 'Contrat'
+                                                    }
+                                                >
+                                                    {particulier ? (
+                                                        <EtatDevis
+                                                            demande={demande}
+                                                        />
+                                                    ) : (
+                                                        <EtatContrat
+                                                            demande={demande}
+                                                        />
+                                                    )}
                                                 </td>
                                             )}
                                             <td
@@ -538,6 +716,7 @@ export default function AdminDemandes({
                                                         Voir
                                                     </Link>
                                                     {peutGenererContrat &&
+                                                        !particulier &&
                                                         !STATUTS_DEVIS.includes(
                                                             demande.statut,
                                                         ) &&
@@ -567,6 +746,26 @@ export default function AdminDemandes({
                                                             Voir le contrat
                                                         </Link>
                                                     )}
+                                                    {particulier &&
+                                                        demande.montantNegocie &&
+                                                        ![
+                                                            'BROUILLON',
+                                                            'EN_ETUDE',
+                                                            'REFUSEE',
+                                                        ].includes(
+                                                            demande.statut,
+                                                        ) && (
+                                                            <a
+                                                                href={
+                                                                    demandesAdmin.proforma(
+                                                                        demande.id,
+                                                                    ).url
+                                                                }
+                                                                className="link-action"
+                                                            >
+                                                                Proforma (PDF)
+                                                            </a>
+                                                        )}
                                                     {demande.contratId &&
                                                         demande.contratStatut ===
                                                             'BROUILLON' &&
@@ -603,6 +802,41 @@ export default function AdminDemandes({
             )}
         </>
     );
+}
+
+/**
+ * A particulier's devis: sent, validated online by the client, then paid.
+ */
+function EtatDevis({ demande }: { demande: Demande }) {
+    if (demande.payee) {
+        return <span className="chip chip-green">Payé</span>;
+    }
+
+    if (demande.devisValide) {
+        return <span className="chip chip-green">Validé</span>;
+    }
+
+    if (demande.devisRefuse) {
+        return (
+            <span
+                className="chip chip-red"
+                title={demande.motifRefusDevis ?? undefined}
+            >
+                Refusé
+            </span>
+        );
+    }
+
+    if (demande.statut === 'DEVIS_ENVOYE') {
+        return <span className="chip chip-orange">À valider</span>;
+    }
+
+    if (demande.aContrat) {
+        // Started under the contract procedure, before particuliers dropped it.
+        return <span className="chip chip-gray">Contrat (ancien)</span>;
+    }
+
+    return <span className="muted">—</span>;
 }
 
 /**
@@ -690,8 +924,9 @@ function DevisModal({
                         color: 'var(--dag-text-muted)',
                     }}
                 >
-                    Le client reçoit le montant proposé et peut payer
-                    directement depuis son espace.
+                    {demande.typeClient === 'particulier'
+                        ? 'Le client particulier reçoit le devis (facture proforma), le valide en ligne puis règle la facture. Pas de contrat.'
+                        : 'Le client reçoit le devis avec son contrat : il le signe, DAG le valide, puis il règle la facture.'}
                 </p>
 
                 <form

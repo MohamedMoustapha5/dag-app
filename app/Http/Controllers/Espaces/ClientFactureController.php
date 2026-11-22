@@ -51,6 +51,7 @@ class ClientFactureController extends Controller
                 'paiementEnAttente' => $paiements->paiementEnAttente($facture),
                 'attendSignatureContrat' => $paiements->attendSignatureContrat($facture),
                 'attendValidationContrat' => $paiements->attendValidationContrat($facture),
+                'attendValidationDevis' => $paiements->attendValidationDevis($facture),
                 'demandeId' => $facture->demande_id,
             ]),
             'moyensPaiement' => $paiements->moyens(),

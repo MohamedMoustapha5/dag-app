@@ -130,7 +130,7 @@ test('a role with only lecture cannot send a devis', function () {
 
 test('a demande is flagged as paid from its facture, whatever its progress status', function () {
     $promotrice = MembreEquipe::factory()->promotrice()->create();
-    $payeeEnCours = Demande::factory()->create(['statut' => 'EN_COURS']);
+    $payeeEnCours = Demande::factory()->entreprise()->create(['statut' => 'EN_COURS']);
     Facture::factory()->payee()->create(['demande_id' => $payeeEnCours->id]);
     $terminee = Demande::factory()->create(['statut' => 'TERMINEE']);
     $impayee = Demande::factory()->create(['statut' => 'DEVIS_ENVOYE']);

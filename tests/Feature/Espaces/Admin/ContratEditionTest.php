@@ -128,7 +128,7 @@ test('saving a draft without sending it keeps it in draft', function () {
 
 test('a contract cannot be generated for a demande from a modele of another contract type', function () {
     $promotrice = MembreEquipe::factory()->promotrice()->create();
-    $demande = Demande::factory()->create(['statut' => 'DEVIS_ENVOYE']);
+    $demande = Demande::factory()->entreprise()->create(['statut' => 'DEVIS_ENVOYE']);
     $partenaire = ModeleContrat::create(['nom' => 'Partenaire', 'type' => 'CONTRAT_PARTENAIRE', 'contenu' => 'Contrat-cadre avec {{entreprise}}.', 'statut' => 'ACTIF']);
 
     $this->actingAs($promotrice, 'admin')

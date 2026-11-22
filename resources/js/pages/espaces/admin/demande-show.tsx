@@ -1,4 +1,5 @@
 import { Head, Link, useForm } from '@inertiajs/react';
+import { Download } from 'lucide-react';
 import GenererContratButton from '@/components/espaces/generer-contrat-button';
 import SuiviProcedure, {
     type Parcours,
@@ -14,6 +15,13 @@ type Props = {
         id: string;
         reference: string;
         client: string;
+        estParticulier: boolean;
+        devis: { numero: string; valideLe: string | null } | null;
+        refusDevis: {
+            le: string;
+            motif: string | null;
+            abandon: boolean;
+        } | null;
         clientTelephone: string | null;
         objet: string;
         description: string;
@@ -78,7 +86,10 @@ export default function AdminDemandeShow({
                         {demande.objet}
                     </h1>
                     <span className="muted" style={{ fontSize: 13 }}>
-                        {demande.reference} · {demande.client}
+                        {demande.reference} · {demande.client} ·{' '}
+                        {demande.estParticulier
+                            ? 'Particulier'
+                            : 'Entreprise / organisation'}
                     </span>
                 </div>
                 <span
@@ -126,6 +137,31 @@ export default function AdminDemandeShow({
                     )}
             </SuiviProcedure>
 
+            {demande.refusDevis && (
+                <div
+                    className="card devis-refuse"
+                    style={{ padding: 20, marginBottom: 24 }}
+                >
+                    <p style={{ fontWeight: 700 }}>
+                        Devis refusé par le client le{' '}
+                        {new Date(demande.refusDevis.le).toLocaleDateString(
+                            'fr-FR',
+                            { day: 'numeric', month: 'long', year: 'numeric' },
+                        )}
+                    </p>
+                    {demande.refusDevis.motif && (
+                        <p style={{ fontSize: 13.5, marginTop: 6 }}>
+                            Motif : {demande.refusDevis.motif}
+                        </p>
+                    )}
+                    <p className="muted" style={{ fontSize: 13, marginTop: 6 }}>
+                        {demande.refusDevis.abandon
+                            ? 'Le client ne donne pas suite : la demande est close.'
+                            : 'Le client attend une nouvelle proposition : envoyez un devis révisé.'}
+                    </p>
+                </div>
+            )}
+
             <div className="card" style={{ padding: 24, marginBottom: 24 }}>
                 <h2 style={{ fontSize: 15, marginBottom: 8 }}>Description</h2>
                 <p
@@ -142,11 +178,49 @@ export default function AdminDemandeShow({
                 </p>
             </div>
 
-            {(demande.contrat || demande.facture) && (
+            {(demande.devis || demande.contrat || demande.facture) && (
                 <div
                     className="grid-3 espace-stats-grid"
                     style={{ marginBottom: 24 }}
                 >
+                    {demande.estParticulier && demande.devis && (
+                        <div className="card" style={{ padding: 20 }}>
+                            <p className="muted" style={{ fontSize: 12.5 }}>
+                                Devis proforma
+                            </p>
+                            <p style={{ fontWeight: 600, marginBottom: 6 }}>
+                                {demande.devis.numero}
+                            </p>
+                            {demande.devis.valideLe ? (
+                                <span className="chip chip-green">
+                                    Validé par le client le{' '}
+                                    {new Date(
+                                        demande.devis.valideLe,
+                                    ).toLocaleDateString('fr-FR', {
+                                        day: 'numeric',
+                                        month: 'long',
+                                        year: 'numeric',
+                                    })}
+                                </span>
+                            ) : (
+                                <span className="chip chip-orange">
+                                    En attente de validation
+                                </span>
+                            )}
+                            <a
+                                href={demandesAdmin.proforma(demande.id).url}
+                                className="link-action"
+                                style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: 6,
+                                    marginTop: 12,
+                                }}
+                            >
+                                <Download size={14} /> Proforma (PDF)
+                            </a>
+                        </div>
+                    )}
                     {demande.contrat && (
                         <div className="card" style={{ padding: 20 }}>
                             <p className="muted" style={{ fontSize: 12.5 }}>

@@ -46,7 +46,7 @@ test('a promotrice can add and delete a clause', function () {
 
 test('a promotrice can generate a contrat for a demande and move it through signature', function () {
     $promotrice = MembreEquipe::factory()->promotrice()->create();
-    $demande = Demande::factory()->create(['statut' => 'DEVIS_ENVOYE', 'montant_negocie' => 85000]);
+    $demande = Demande::factory()->entreprise()->create(['statut' => 'DEVIS_ENVOYE', 'montant_negocie' => 85000]);
     $modele = ModeleContrat::create([
         'nom' => 'Prestation standard',
         'type' => 'PRESTATION_SERVICE',

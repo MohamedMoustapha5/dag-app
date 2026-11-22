@@ -18,6 +18,7 @@ type Facture = {
     paiementEnAttente: boolean;
     attendSignatureContrat: boolean;
     attendValidationContrat: boolean;
+    attendValidationDevis: boolean;
     demandeId: string | null;
 };
 
@@ -149,8 +150,19 @@ export default function FacturesIndex({
                                         {facture.statut === 'EN_ATTENTE' ||
                                         facture.statut ===
                                             'PARTIELLEMENT_PAYEE' ? (
-                                            facture.attendSignatureContrat &&
+                                            facture.attendValidationDevis &&
                                             facture.demandeId ? (
+                                                <Link
+                                                    href={demandesRoutes.show(
+                                                        facture.demandeId,
+                                                    )}
+                                                    className="link-action"
+                                                    style={{ fontSize: 12.5 }}
+                                                >
+                                                    Valider le devis d'abord
+                                                </Link>
+                                            ) : facture.attendSignatureContrat &&
+                                              facture.demandeId ? (
                                                 <Link
                                                     href={demandesRoutes.show(
                                                         facture.demandeId,

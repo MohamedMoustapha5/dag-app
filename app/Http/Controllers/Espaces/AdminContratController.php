@@ -230,6 +230,7 @@ class AdminContratController extends Controller
         $demande = Demande::where('id', $data['demande_id'])->firstOrFail();
 
         abort_if($demande->contrat()->exists(), 409, 'Cette demande a déjà un contrat.');
+        abort_if($demande->estParticulier(), 409, 'Un client particulier n’a pas de contrat : il valide son devis en ligne.');
 
         $modele = isset($data['modele_contrat_id'])
             ? ModeleContrat::where('id', $data['modele_contrat_id'])->first()

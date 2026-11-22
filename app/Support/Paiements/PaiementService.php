@@ -64,11 +64,14 @@ class PaiementService
 
     /**
      * Whether the facture still waits for the client to sign the contract of
-     * its demande.
+     * its demande (entreprises and organisations only: a particulier
+     * validates the devis instead).
      */
     public function attendSignatureContrat(Facture $facture): bool
     {
-        return $facture->demande_id !== null && ! $facture->demande->contratEstSigne();
+        return $facture->demande_id !== null
+            && ! $facture->demande->estParticulier()
+            && ! $facture->demande->contratEstSigne();
     }
 
     /**
@@ -78,18 +81,37 @@ class PaiementService
     public function attendValidationContrat(Facture $facture): bool
     {
         return $facture->demande_id !== null
+            && ! $facture->demande->estParticulier()
             && $facture->demande->contratEstSigne()
             && ! $facture->demande->contratEstValide();
     }
 
     /**
-     * A service or a formule is only paid once its contract is signed by the
-     * client and then validated by DAG.
+     * Whether the facture of a particulier's demande still waits for the
+     * client to validate the devis (proforma).
+     */
+    public function attendValidationDevis(Facture $facture): bool
+    {
+        return $facture->demande_id !== null
+            && $facture->demande->estParticulier()
+            && ! $facture->demande->paiementEstOuvert();
+    }
+
+    /**
+     * A service or a formule is only paid once its devis is validated by a
+     * particulier, or its contract signed by the client then validated by
+     * DAG for an entreprise or an organisation.
      *
      * @throws ValidationException
      */
     private function exigerContratValide(Facture $facture, string $champ): void
     {
+        if ($this->attendValidationDevis($facture)) {
+            throw ValidationException::withMessages([
+                $champ => 'Validez d\'abord le devis depuis votre demande : le paiement s\'ouvre aussitôt.',
+            ]);
+        }
+
         if ($this->attendSignatureContrat($facture)) {
             throw ValidationException::withMessages([
                 $champ => 'Le contrat doit être signé puis validé par DAG avant le paiement : signez-le depuis votre espace.',

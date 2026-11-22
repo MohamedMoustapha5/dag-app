@@ -26,4 +26,13 @@ class DemandeFactory extends Factory
             'statut' => 'EN_ETUDE',
         ];
     }
+
+    /**
+     * A demande from a company: devis, signed contract validated by DAG,
+     * then payment.
+     */
+    public function entreprise(): static
+    {
+        return $this->state(['client_id' => Client::factory()->entreprise()]);
+    }
 }
