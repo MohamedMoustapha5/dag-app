@@ -39,7 +39,11 @@ type Session = {
     seancesAPointer: number;
     statut: string;
     image: string | null;
+    vignette: string | null;
 };
+
+/** Same default photo as the public training cards. */
+const VIGNETTE_PAR_DEFAUT = '/images/photos/lms-dashboard.jpg';
 
 type Props = {
     sessions: Session[];
@@ -296,7 +300,32 @@ export default function AdminFormations({
                                             data-label="Session"
                                             style={{ fontWeight: 600 }}
                                         >
-                                            {session.formationNom}
+                                            <div
+                                                style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: 12,
+                                                }}
+                                            >
+                                                <img
+                                                    src={
+                                                        session.vignette ??
+                                                        VIGNETTE_PAR_DEFAUT
+                                                    }
+                                                    alt=""
+                                                    loading="lazy"
+                                                    style={{
+                                                        width: 40,
+                                                        height: 40,
+                                                        borderRadius: 8,
+                                                        objectFit: 'cover',
+                                                        flex: 'none',
+                                                    }}
+                                                />
+                                                <span>
+                                                    {session.formationNom}
+                                                </span>
+                                            </div>
                                         </td>
                                         <td
                                             data-label="Ville"

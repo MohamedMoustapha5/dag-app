@@ -56,6 +56,9 @@ class AdminFormationController extends Controller
                 'seancesAPointer' => FeuillePresence::seancesAPointer($session),
                 'statut' => $session->statut,
                 'image' => $session->image,
+                // Thumbnail of the list: the session's own image, else the
+                // training's (null: the page shows the default photo).
+                'vignette' => $session->image ?? $session->formation->image,
             ]),
         ]);
     }
