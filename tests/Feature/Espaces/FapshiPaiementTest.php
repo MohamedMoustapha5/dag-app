@@ -99,6 +99,60 @@ test('with the Fapshi payment page, the payer goes straight to it without typing
     expect(Paiement::sole()->reference_transaction)->toBe('fp_page');
 });
 
+test('a payer who left the Fapshi page without paying goes back to the same page, without a second payment', function () {
+    Http::fake([
+        'sandbox.fapshi.com/initiate-pay' => Http::response(['link' => 'https://checkout.fapshi.com/payment/abc', 'transId' => 'fp_quitte']),
+        'sandbox.fapshi.com/payment-status/fp_quitte' => Http::response(['transId' => 'fp_quitte', 'status' => 'CREATED', 'amount' => 20000]),
+    ]);
+    $client = Client::factory()->create();
+    $facture = Facture::factory()->create(['client_id' => $client->id, 'montant' => 20000]);
+
+    $this->actingAs($client->user)->post(route('paiements.initier', $facture), ['moyen' => 'OM']);
+
+    $this->actingAs($client->user)
+        ->post(route('paiements.reprendre', $facture))
+        ->assertRedirect('https://checkout.fapshi.com/payment/abc');
+
+    expect(Paiement::count())->toBe(1);
+    expect(Paiement::sole()->statut)->toBe('EN_ATTENTE');
+
+    $this->actingAs(Client::factory()->create()->user)
+        ->post(route('paiements.reprendre', $facture))
+        ->assertNotFound();
+});
+
+test('resuming a payment Fapshi already received credits it instead of paying again', function () {
+    $paiement = paiementFapshiEnAttente(60000, 'fp_paye_entre_temps');
+    $paiement->facture->update(['client_id' => ($client = Client::factory()->create())->id]);
+    fakeStatutFapshi('fp_paye_entre_temps', ['status' => 'SUCCESSFUL', 'amount' => 60000]);
+
+    $this->actingAs($client->user)
+        ->post(route('paiements.reprendre', $paiement->facture))
+        ->assertRedirect(route('paiements.retour', $paiement));
+
+    expect($paiement->fresh()->statut)->toBe('CONFIRME');
+    expect($paiement->facture->fresh()->statut)->toBe('PAYEE');
+});
+
+test('resuming an expired Fapshi payment closes it and lets the payer start again', function () {
+    $paiement = paiementFapshiEnAttente(60000, 'fp_expire_reprise');
+    $paiement->facture->update(['client_id' => ($client = Client::factory()->create())->id]);
+    fakeStatutFapshi('fp_expire_reprise', ['status' => 'EXPIRED', 'amount' => 60000]);
+
+    $this->actingAs($client->user)
+        ->get(route('espace-client.factures'))
+        ->assertInertia(fn ($page) => $page->where('factures.0.paiementEnAttente', true));
+
+    $this->actingAs($client->user)
+        ->post(route('paiements.reprendre', $paiement->facture))
+        ->assertRedirect();
+
+    expect($paiement->fresh()->statut)->toBe('ECHEC');
+    $this->actingAs($client->user)
+        ->get(route('espace-client.factures'))
+        ->assertInertia(fn ($page) => $page->where('factures.0.paiementEnAttente', false));
+});
+
 test('with direct payment on, the number is required', function () {
     config(['paiements.fapshi.paiement_direct' => true]);
     $client = Client::factory()->create();

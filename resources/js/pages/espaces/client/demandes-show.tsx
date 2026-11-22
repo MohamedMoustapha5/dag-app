@@ -7,6 +7,7 @@ import {
     X,
 } from 'lucide-react';
 import { useState } from 'react';
+import ReprendrePaiement from '@/components/espaces/reprendre-paiement';
 import PayerFactureModal, {
     type MoyenPaiement,
 } from '@/components/espaces/payer-facture-modal';
@@ -174,9 +175,7 @@ export default function DemandesShow({
                     aPayer &&
                     facture &&
                     (facture.paiementEnAttente ? (
-                        <span className="muted" style={{ fontSize: 13 }}>
-                            Paiement en attente de confirmation
-                        </span>
+                        <ReprendrePaiement factureId={facture.id} />
                     ) : (
                         <button
                             type="button"
@@ -420,12 +419,12 @@ export default function DemandesShow({
                                         par DAG : le paiement s'ouvre ensuite.
                                     </p>
                                 ) : demande.facture.paiementEnAttente ? (
-                                    <p
-                                        className="muted"
-                                        style={{ fontSize: 12, marginTop: 12 }}
-                                    >
-                                        Paiement en attente de confirmation
-                                    </p>
+                                    <div style={{ marginTop: 12 }}>
+                                        <ReprendrePaiement
+                                            factureId={demande.facture.id}
+                                            alignement="start"
+                                        />
+                                    </div>
                                 ) : (
                                     <button
                                         type="button"

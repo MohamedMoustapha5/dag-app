@@ -261,6 +261,7 @@ Route::middleware(['auth', 'verified'])->prefix('notifications')->group(function
 
 Route::middleware(['auth', 'verified'])->prefix('paiements')->group(function () {
     Route::post('factures/{facture}', [PaiementEnLigneController::class, 'initier'])->name('paiements.initier');
+    Route::post('factures/{facture}/reprendre', [PaiementEnLigneController::class, 'reprendre'])->middleware('throttle:20,1')->name('paiements.reprendre');
     Route::get('retour/{paiement}', [PaiementEnLigneController::class, 'retourPrestataire'])->name('paiements.retour');
     Route::get('simulation/{paiement}', [PaiementEnLigneController::class, 'simulation'])->name('paiements.simulation');
     Route::post('simulation/{paiement}', [PaiementEnLigneController::class, 'decision'])->name('paiements.simulation.decision');

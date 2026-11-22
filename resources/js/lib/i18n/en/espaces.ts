@@ -473,6 +473,9 @@ export const espacesEn: Record<string, string> = {
     'Confirmation sur la page de paiement sécurisée':
         'Confirmation on the secure payment page',
     'Redirection…': 'Redirecting…',
+    'Reprendre le paiement': 'Resume payment',
+    'Vérification…': 'Checking…',
+    'Paiement commencé, pas encore finalisé': 'Payment started, not finished yet',
     'Carte de test': 'Test card',
     'Sur la vraie page du prestataire, le client saisit ici sa carte puis confirme le paiement avec sa banque (code par SMS ou validation dans son application).':
         'On the real provider page, the customer enters their card here, then confirms the payment with their bank (code by SMS or approval in its app).',

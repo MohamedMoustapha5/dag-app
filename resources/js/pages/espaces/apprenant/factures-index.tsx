@@ -1,5 +1,6 @@
 import { Head } from '@inertiajs/react';
 import { useState } from 'react';
+import ReprendrePaiement from '@/components/espaces/reprendre-paiement';
 import PayerFactureModal, {
     type MoyenPaiement,
 } from '@/components/espaces/payer-facture-modal';
@@ -146,13 +147,9 @@ export default function ApprenantFacturesIndex({
                                         facture.statut ===
                                             'PARTIELLEMENT_PAYEE' ? (
                                             facture.paiementEnAttente ? (
-                                                <span
-                                                    className="muted"
-                                                    style={{ fontSize: 12 }}
-                                                >
-                                                    Paiement en attente de
-                                                    confirmation
-                                                </span>
+                                                <ReprendrePaiement
+                                                    factureId={facture.id}
+                                                />
                                             ) : (
                                                 <button
                                                     type="button"

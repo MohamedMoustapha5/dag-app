@@ -219,9 +219,72 @@ class PaiementService
             throw $erreur;
         }
 
-        $paiement->update(['reference_transaction' => $initiation->reference]);
+        $paiement->update([
+            'reference_transaction' => $initiation->reference,
+            'lien_paiement' => $initiation->urlPaiement,
+        ]);
 
         return new PaiementInitie($paiement, $initiation->urlPaiement);
+    }
+
+    /**
+     * The online attempt still waiting on the facture, if any.
+     */
+    public function tentativeEnAttente(Facture $facture): ?Paiement
+    {
+        return $facture->paiements()
+            ->where('statut', 'EN_ATTENTE')
+            ->where('created_at', '>', now()->subMinutes((int) config('paiements.delai_attente_minutes')))
+            ->latest()
+            ->first();
+    }
+
+    /**
+     * A payer comes back to an attempt they left unfinished (closed the
+     * provider's page, came back too early). The provider is asked where it
+     * stands first, so nothing is paid twice:
+     * - paid: it is credited ('confirme');
+     * - failed or expired: it is closed and a new payment can start ('cloture');
+     * - still open: the payer goes back to the same payment page ('page'),
+     *   or validates the request already sent to their phone ('telephone').
+     *
+     * @return array{etat: 'aucune'|'confirme'|'cloture'|'page'|'telephone', paiement: Paiement|null, url: string|null}
+     */
+    public function reprendre(Facture $facture): array
+    {
+        $paiement = $this->tentativeEnAttente($facture);
+
+        if ($paiement === null) {
+            return ['etat' => 'aucune', 'paiement' => null, 'url' => null];
+        }
+
+        if ($paiement->reference_transaction !== null && ! $this->passerelle()->ecranLocal()) {
+            try {
+                $resultat = $this->passerelle()->verifier($paiement->reference_transaction);
+
+                if ($resultat->issue === IssueTransaction::Reussi) {
+                    $this->appliquerResultat($paiement, $resultat);
+
+                    return ['etat' => 'confirme', 'paiement' => $paiement, 'url' => null];
+                }
+
+                if ($resultat->issue === IssueTransaction::Echoue) {
+                    $this->echouer($paiement);
+
+                    return ['etat' => 'cloture', 'paiement' => $paiement, 'url' => null];
+                }
+            } catch (PasserelleIndisponible) {
+                // Provider unreachable: the payer can still go back to the page.
+            }
+        }
+
+        $url = $this->passerelle()->ecranLocal()
+            ? route('paiements.simulation', $paiement)
+            : $paiement->lien_paiement;
+
+        return $url !== null
+            ? ['etat' => 'page', 'paiement' => $paiement, 'url' => $url]
+            : ['etat' => 'telephone', 'paiement' => $paiement, 'url' => null];
     }
 
     /**

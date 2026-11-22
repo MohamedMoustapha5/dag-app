@@ -25,6 +25,35 @@ class PaiementEnLigneController extends Controller
 {
     public function __construct(private PaiementService $paiements) {}
 
+    /**
+     * Resumes the payment the payer left unfinished: back to the same
+     * payment page while it is still open, or straight to the outcome when
+     * the provider already settled it (see PaiementService::reprendre()).
+     */
+    public function reprendre(Request $request, Facture $facture): SymfonyResponse
+    {
+        abort_unless($facture->appartientA($request->user('web')), 404);
+
+        $reprise = $this->paiements->reprendre($facture);
+
+        return match ($reprise['etat']) {
+            'page' => Inertia::location($reprise['url']),
+            'confirme' => to_route('paiements.retour', $reprise['paiement']),
+            default => $this->retourAvecMessage($reprise['etat']),
+        };
+    }
+
+    private function retourAvecMessage(string $etat): RedirectResponse
+    {
+        Inertia::flash('toast', match ($etat) {
+            'telephone' => ['type' => 'info', 'message' => 'Une demande de paiement attend sur votre téléphone : validez-la avec votre code secret.'],
+            'cloture' => ['type' => 'info', 'message' => 'La tentative précédente n’a pas abouti : vous pouvez relancer le paiement.'],
+            default => ['type' => 'info', 'message' => 'Aucun paiement en cours : vous pouvez régler la facture.'],
+        });
+
+        return back();
+    }
+
     public function initier(Request $request, Facture $facture): SymfonyResponse
     {
         abort_unless($facture->appartientA($request->user('web')), 404);
