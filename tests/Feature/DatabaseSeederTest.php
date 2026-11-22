@@ -14,7 +14,8 @@ test('on the production server the seeder creates the reference data but no demo
     app(DatabaseSeeder::class)->setContainer(app())->__invoke();
 
     expect(User::count())->toBe(0);
-    expect(MembreEquipe::count())->toBe(6);
+    expect(MembreEquipe::count())->toBe(5);
+    expect(MembreEquipe::where('email', 'senghortams@gmail.com')->exists())->toBeTrue();
     expect(Service::count())->toBeGreaterThan(0);
     expect(Clause::count())->toBe(7);
     expect(ModeleContrat::where('type', 'PRESTATION_SERVICE')->exists())->toBeTrue();

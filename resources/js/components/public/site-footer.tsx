@@ -22,13 +22,37 @@ import {
 import espaceApprenant from '@/routes/espace-apprenant';
 import espaceClient from '@/routes/espace-client';
 
-const SOCIALS = [
-    { key: 'facebook', icon: Facebook },
-    { key: 'instagram', icon: Instagram },
-    { key: 'avis', icon: MessageCircle },
-    { key: 'tiktok', icon: Music2 },
-    { key: 'linkedin', icon: Linkedin },
-] as const;
+/**
+ * DAG's social accounts. An entry without `href` has no account yet: it
+ * stays a plain icon until its link is known.
+ */
+const SOCIALS: {
+    key: string;
+    icon: typeof Facebook;
+    label: string;
+    href?: string;
+}[] = [
+    {
+        key: 'facebook',
+        icon: Facebook,
+        label: 'Digital Agency Group sur Facebook',
+        href: 'https://www.facebook.com/share/1JeFmbk479/',
+    },
+    { key: 'instagram', icon: Instagram, label: 'Instagram' },
+    {
+        key: 'whatsapp',
+        icon: MessageCircle,
+        label: 'Écrire à Digital Agency Group sur WhatsApp',
+        href: 'https://wa.me/237698572893',
+    },
+    {
+        key: 'tiktok',
+        icon: Music2,
+        label: 'Digital Agency Group sur TikTok',
+        href: 'https://www.tiktok.com/@digitalagency61',
+    },
+    { key: 'linkedin', icon: Linkedin, label: 'LinkedIn' },
+];
 
 export default function SiteFooter() {
     return (
@@ -60,15 +84,29 @@ export default function SiteFooter() {
                         <div
                             style={{ display: 'flex', gap: 10, marginTop: 20 }}
                         >
-                            {SOCIALS.map((social) => (
-                                <span
-                                    key={social.key}
-                                    className="social-icon social-icon-placeholder"
-                                    aria-hidden="true"
-                                >
-                                    <social.icon size={16} color="#fff" />
-                                </span>
-                            ))}
+                            {SOCIALS.map((social) =>
+                                social.href ? (
+                                    <a
+                                        key={social.key}
+                                        href={social.href}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="social-icon"
+                                        aria-label={social.label}
+                                        title={social.label}
+                                    >
+                                        <social.icon size={16} color="#fff" />
+                                    </a>
+                                ) : (
+                                    <span
+                                        key={social.key}
+                                        className="social-icon social-icon-placeholder"
+                                        aria-hidden="true"
+                                    >
+                                        <social.icon size={16} color="#fff" />
+                                    </span>
+                                ),
+                            )}
                         </div>
                     </div>
 

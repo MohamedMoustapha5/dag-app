@@ -19,9 +19,8 @@ class MembresEquipeSeeder extends Seeder
         $membres = [
             ['name' => 'Mandou', 'civilite' => Civilite::Madame, 'email' => 'afsamandou15@gmail.com', 'role' => MembreEquipeRole::Promotrice],
             ['name' => 'Pascal', 'civilite' => Civilite::Monsieur, 'email' => 'ndoumnkambenoitpascal@gmail.com', 'role' => MembreEquipeRole::Juriste],
-            ['name' => 'Senghor', 'civilite' => Civilite::Monsieur, 'email' => 'jules.k@dag.cm', 'role' => MembreEquipeRole::CommunicationMarketing],
+            ['name' => 'Senghor', 'civilite' => Civilite::Monsieur, 'email' => 'senghortams@gmail.com', 'role' => MembreEquipeRole::CommunicationMarketing],
             ['name' => 'Fadimatou', 'civilite' => Civilite::Madame, 'email' => 'herve.n@dag.cm', 'role' => MembreEquipeRole::ControleGestion],
-            ['name' => 'Hussein', 'civilite' => Civilite::Monsieur, 'email' => 'rosine.t@dag.cm', 'role' => MembreEquipeRole::CreationContenu],
             ['name' => 'Mustapha', 'civilite' => Civilite::Monsieur, 'email' => 'moustondegeneve1111@gmail.com', 'role' => MembreEquipeRole::Developpeur],
         ];
 
