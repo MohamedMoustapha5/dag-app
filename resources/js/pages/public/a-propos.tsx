@@ -85,7 +85,7 @@ export default function APropos({ stats, equipe }: AProposProps) {
                             L'agence qui simplifie votre transformation digitale
                         </h1>
                         <p>
-                            DAG — Digital Agency Group réunit, sous un seul toit
+                            Digital Agency Group réunit, sous un seul toit
                             à Douala, la création de contenu, le community
                             management, la publicité, la formation, le
                             développement web et la cybersécurité. Un seul

@@ -33,13 +33,13 @@ class ContratDagSeeder extends Seeder
             }
 
             $this->activerModele(self::NOM_MODELE_PRESTATION, 'PRESTATION_SERVICE', <<<'TXT'
-                Le présent contrat de prestation de service est conclu entre DAG — Digital Agency Group, ci-après « DAG », et {{client}}, ci-après « l'intéressé », dont l'identité figure en tête du contrat.
+                Le présent contrat de prestation de service est conclu entre Digital Agency Group, ci-après « DAG », et {{client}}, ci-après « l'intéressé », dont l'identité figure en tête du contrat.
 
                 Il se rapporte à la demande {{reference}} et a été établi le {{date}}.
                 TXT);
 
             $this->activerModele(self::NOM_MODELE_ABONNEMENT, 'ABONNEMENT', <<<'TXT'
-                Le présent contrat d'abonnement à la formule {{formule}} est conclu entre DAG — Digital Agency Group, ci-après « DAG », et {{client}}, ci-après « l'intéressé », dont l'identité figure en tête du contrat.
+                Le présent contrat d'abonnement à la formule {{formule}} est conclu entre Digital Agency Group, ci-après « DAG », et {{client}}, ci-après « l'intéressé », dont l'identité figure en tête du contrat.
 
                 Il se rapporte à la demande {{reference}} et a été établi le {{date}}.
                 TXT);

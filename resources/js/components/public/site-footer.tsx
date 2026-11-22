@@ -42,7 +42,7 @@ export default function SiteFooter() {
                         <Link href={home()} className="topbar-logo">
                             <img
                                 src="/images/brand/dag-logo.jpg"
-                                alt="DAG — Digital Agency Group"
+                                alt="Digital Agency Group"
                                 style={{ height: 72 }}
                             />
                         </Link>
@@ -55,7 +55,7 @@ export default function SiteFooter() {
                                 maxWidth: 320,
                             }}
                         >
-                            DAG — Digital Agency Group. Douala, Cameroun.
+                            Digital Agency Group. Douala, Cameroun.
                         </p>
                         <div
                             style={{ display: 'flex', gap: 10, marginTop: 20 }}
@@ -171,7 +171,7 @@ export default function SiteFooter() {
 
             <div className="site-footer-bottom">
                 <span>
-                    © {new Date().getFullYear()} DAG — Digital Agency Group ·
+                    © {new Date().getFullYear()} Digital Agency Group ·
                     Douala, Cameroun
                 </span>
                 <div className="site-footer-legal">

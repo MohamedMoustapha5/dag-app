@@ -147,7 +147,7 @@ export default function PaiementResultat({ paiement, retour }: Props) {
             >
                 <img
                     src="/images/brand/dag-logo-pdf.png"
-                    alt="DAG — Digital Agency Group"
+                    alt="Digital Agency Group"
                     style={{ height: 54 }}
                 />
 

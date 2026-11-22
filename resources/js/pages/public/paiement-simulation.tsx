@@ -167,7 +167,7 @@ export default function PaiementSimulation({ paiement, retour }: Props) {
             >
                 <img
                     src="/images/brand/dag-logo-pdf.png"
-                    alt="DAG — Digital Agency Group"
+                    alt="Digital Agency Group"
                     style={{ height: 54 }}
                 />
 
@@ -223,7 +223,7 @@ export default function PaiementSimulation({ paiement, retour }: Props) {
                     <div style={{ padding: '10px 28px 26px' }}>
                         <Ligne
                             libelle="Marchand"
-                            valeur="DAG — Digital Agency Group"
+                            valeur="Digital Agency Group"
                         />
                         <Ligne libelle="Facture" valeur={paiement.facture} />
                         <Ligne

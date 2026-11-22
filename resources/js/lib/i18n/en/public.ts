@@ -43,8 +43,8 @@ export const publicEn: Record<string, string> = {
     Accepter: 'Accept',
     Refuser: 'Decline',
     'Choisir la langue': 'Choose language',
-    'DAG — Digital Agency Group. Douala, Cameroun.':
-        'DAG — Digital Agency Group. Douala, Cameroon.',
+    'Digital Agency Group. Douala, Cameroun.':
+        'Digital Agency Group. Douala, Cameroon.',
     Services: 'Services',
     Catalogue: 'Catalogue',
     Formations: 'Training',
@@ -58,8 +58,8 @@ export const publicEn: Record<string, string> = {
     Contact: 'Contact',
     'Nous contacter': 'Contact us',
     'À propos': 'About',
-    'DAG — Digital Agency Group · Douala, Cameroun':
-        'DAG — Digital Agency Group · Douala, Cameroon',
+    'Digital Agency Group · Douala, Cameroun':
+        'Digital Agency Group · Douala, Cameroon',
     'Mentions légales': 'Legal notice',
     Confidentialité: 'Privacy',
     CGU: 'Terms of use',
@@ -95,8 +95,8 @@ export const publicEn: Record<string, string> = {
     'À propos de DAG': 'About DAG',
     "L'agence qui simplifie votre transformation digitale":
         'The agency that simplifies your digital transformation',
-    'DAG — Digital Agency Group réunit, sous un seul toit à Douala, la création de contenu, le community management, la publicité, la formation, le développement web et la cybersécurité. Un seul interlocuteur, du premier message à la livraison.':
-        'DAG — Digital Agency Group brings together, under one roof in Douala, content creation, community management, advertising, training, web development and cybersecurity. One point of contact, from the first message to delivery.',
+    'Digital Agency Group réunit, sous un seul toit à Douala, la création de contenu, le community management, la publicité, la formation, le développement web et la cybersécurité. Un seul interlocuteur, du premier message à la livraison.':
+        'Digital Agency Group brings together, under one roof in Douala, content creation, community management, advertising, training, web development and cybersecurity. One point of contact, from the first message to delivery.',
     'Notre mission': 'Our mission',
     'Rendre le digital accessible à toutes les entreprises camerounaises':
         'Making digital accessible to every Cameroonian business',

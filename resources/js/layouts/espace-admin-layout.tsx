@@ -275,7 +275,7 @@ export default function EspaceAdminLayout({ children }: PropsWithChildren) {
                         >
                             <img
                                 src="/images/brand/dag-logo.jpg"
-                                alt="DAG — Digital Agency Group"
+                                alt="Digital Agency Group"
                             />
                             <span className="espace-sidebar-badge-admin">
                                 Admin
@@ -336,7 +336,7 @@ export default function EspaceAdminLayout({ children }: PropsWithChildren) {
 
                         <img
                             src="/images/brand/dag-logo.jpg"
-                            alt="DAG — Digital Agency Group"
+                            alt="Digital Agency Group"
                             className="espace-topbar-logo"
                         />
 

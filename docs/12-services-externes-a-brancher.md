@@ -49,7 +49,7 @@ mot de passe oublié, alertes de l'équipe.
 MAIL_MAILER=brevo
 BREVO_API_KEY=<clé API Brevo>
 MAIL_FROM_ADDRESS="contact@agencydag.com"
-MAIL_FROM_NAME="DAG — Digital Agency Group"
+MAIL_FROM_NAME="Digital Agency Group"
 APP_URL=https://<domaine public de la plateforme>
 NOTIFICATIONS_QUEUE=database
 ```

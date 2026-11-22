@@ -16,7 +16,7 @@ export const motifs: [RegExp, Remplacement][] = [
     [/^(\d+)\. (.+)$/, (m, t) => `${m[1]}. ${t(m[2])}`],
 
     // Page title: "<page> - <application name>"
-    [/^(.+) - (DAG — Digital Agency Group)$/, (m, t) => `${t(m[1])} - ${m[2]}`],
+    [/^(.+) - (Digital Agency Group)$/, (m, t) => `${t(m[1])} - ${m[2]}`],
 
     // "Novembre 2026" in the session filters
     [

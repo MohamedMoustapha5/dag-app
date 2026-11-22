@@ -13,7 +13,7 @@ test('the manifest is installable: name, standalone display and existing icons',
     $manifeste = json_decode((string) file_get_contents(public_path('manifest.json')), true, flags: JSON_THROW_ON_ERROR);
 
     expect($manifeste)
-        ->toHaveKey('name', 'DAG — Digital Agency Group')
+        ->toHaveKey('name', 'Digital Agency Group')
         ->toHaveKey('short_name', 'DAG')
         ->toHaveKey('start_url', '/')
         ->toHaveKey('display', 'standalone');

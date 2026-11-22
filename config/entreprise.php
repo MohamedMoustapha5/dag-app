@@ -13,7 +13,7 @@
 
 return [
 
-    'nom' => 'DAG — Digital Agency Group',
+    'nom' => 'Digital Agency Group',
 
     'activite' => 'Agence digitale',
 

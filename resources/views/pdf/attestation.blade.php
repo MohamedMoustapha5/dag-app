@@ -27,7 +27,7 @@
 </head>
 <body>
     <img class="abs fond" src="{{ public_path('images/brand/pdf/attestation-fond.svg') }}" alt="">
-    <img class="abs logo" src="{{ public_path('images/brand/pdf/dag-logo-fond-attestation.png') }}" alt="DAG — Digital Agency Group">
+    <img class="abs logo" src="{{ public_path('images/brand/pdf/dag-logo-fond-attestation.png') }}" alt="Digital Agency Group">
 
     <div class="abs titre">Attestation</div>
     <div class="abs sous-titre">DE FORMATION</div>
@@ -37,7 +37,7 @@
 
     <div class="abs formation">{{ $formation }}</div>
     <div class="abs texte">
-        DAG — Digital Agency Group atteste que la personne ci-dessus a suivi avec assiduité
+        Digital Agency Group atteste que la personne ci-dessus a suivi avec assiduité
         et mené à son terme cette formation @if($duree)(durée : {{ $duree }})@endif.
         Cette attestation a été vérifiée et validée par l'équipe DAG avant sa délivrance.
     </div>
@@ -63,6 +63,6 @@
     <div class="abs sceau-2">DAG</div>
     <div class="abs sceau-3">FORMATION</div>
 
-    <div class="abs ref">Réf. {{ $attestation->reference }} &nbsp;·&nbsp; Délivrée par DAG — Digital Agency Group, Douala, Cameroun</div>
+    <div class="abs ref">Réf. {{ $attestation->reference }} &nbsp;·&nbsp; Délivrée par Digital Agency Group, Douala, Cameroun</div>
 </body>
 </html>

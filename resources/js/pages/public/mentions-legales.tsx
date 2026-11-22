@@ -14,7 +14,7 @@ const SECTIONS: SectionJuridique[] = [
         contenu: (
             <ul>
                 <li>
-                    <strong>Dénomination</strong> : DAG — Digital Agency Group
+                    <strong>Dénomination</strong> : Digital Agency Group
                 </li>
                 <li>
                     <strong>Activité</strong> : agence digitale (création de
@@ -42,7 +42,7 @@ const SECTIONS: SectionJuridique[] = [
         contenu: (
             <p>
                 La directrice de la publication est Mme Mandou, directrice de
-                DAG — Digital Agency Group.
+                Digital Agency Group.
             </p>
         ),
     },

@@ -38,9 +38,9 @@
 <table width="100%">
     <tr>
         <td width="52%" style="vertical-align: top;">
-            <img src="{{ public_path('images/brand/pdf/dag-logo-fond-blanc.png') }}" style="width: 175px;" alt="DAG — Digital Agency Group">
+            <img src="{{ public_path('images/brand/pdf/dag-logo-fond-blanc.png') }}" style="width: 175px;" alt="Digital Agency Group">
             <div class="societe">
-                DAG — Digital Agency Group<br>
+                Digital Agency Group<br>
                 Siège : Douala, Cameroun<br>
                 contact@agencydag.com
             </div>
@@ -64,7 +64,7 @@
 
 <h3>Parties et objet</h3>
 <table class="parties" width="100%">
-    <tr><td class="k">Prestataire</td><td>DAG — Digital Agency Group, Douala, Cameroun</td></tr>
+    <tr><td class="k">Prestataire</td><td>Digital Agency Group, Douala, Cameroun</td></tr>
     <tr><td class="k">{{ $contrat->exigeIdentite() ? "Nom et prénom de l'intéressé" : 'Cocontractant' }}</td><td><strong>{{ $contrat->signataire_nom ?? $partie }}</strong>@if($contrat->signataire_nom !== null && $partie !== "—" && $contrat->signataire_nom !== $partie) <span class="muted">(compte : {{ $partie }})</span>@endif</td></tr>
     @if($contrat->telephone_cocontractant !== null)
         <tr><td class="k">Téléphone</td><td>{{ $contrat->telephone_cocontractant }}</td></tr>
@@ -133,7 +133,7 @@
             <div class="muted">Date : {{ $dateSignatureCourte }}</div>
         </td>
         <td>
-            <div class="tete">Pour DAG — Digital Agency Group</div>
+            <div class="tete">Pour Digital Agency Group</div>
             <div class="zone">
                 @if($signatureDirectrice)
                     <img src="{{ $signatureDirectrice }}" style="height: 80px;" alt="">
@@ -143,7 +143,7 @@
                 @endif
             </div>
             <div>La Directrice</div>
-            <div class="muted">Directrice, DAG — Digital Agency Group</div>
+            <div class="muted">Directrice, Digital Agency Group</div>
         </td>
     </tr>
 </table>
@@ -151,7 +151,7 @@
 </div>
 
 <p class="muted" style="margin-top: 30px; font-size: 10px;">
-    Généré par la plateforme DAG — Digital Agency Group © {{ now()->year }}.
+    Généré par la plateforme Digital Agency Group © {{ now()->year }}.
 </p>
 </body>
 </html>

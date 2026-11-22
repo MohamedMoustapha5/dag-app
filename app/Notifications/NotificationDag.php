@@ -118,7 +118,7 @@ abstract class NotificationDag extends Notification implements ShouldQueue
             $mail->action($this->libelleAction(), $url);
         }
 
-        return $mail->salutation('L\'équipe DAG — Digital Agency Group');
+        return $mail->salutation('L\'équipe Digital Agency Group');
     }
 
     /**

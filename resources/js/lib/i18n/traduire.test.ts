@@ -56,8 +56,8 @@ describe('catalogue content', () => {
 
 describe('titles and months', () => {
     it('translates the page title and the month filters', () => {
-        expect(traduire('Connexion - DAG — Digital Agency Group')).toBe(
-            'Sign in - DAG — Digital Agency Group',
+        expect(traduire('Connexion - Digital Agency Group')).toBe(
+            'Sign in - Digital Agency Group',
         );
         expect(traduire('Novembre 2026')).toBe('November 2026');
     });
