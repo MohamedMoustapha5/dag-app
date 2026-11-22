@@ -116,6 +116,17 @@ test('the formations page only lists sessions that are open or full', function (
         ->where('sessions.0.sessionId', $openSession->id));
 });
 
+test('each public session card shows the image chosen for the session, else its training\'s', function () {
+    $formation = Formation::factory()->create(['statut' => 'PUBLIEE', 'image' => '/storage/formations/formation.jpg']);
+    FormationSession::factory()->for($formation)->create(['statut' => 'OUVERTE', 'image' => '/storage/formations/session.jpg', 'date_debut' => now()->addDays(5)]);
+    FormationSession::factory()->for($formation)->create(['statut' => 'OUVERTE', 'image' => null, 'date_debut' => now()->addDays(10)]);
+
+    $this->get(route('formations'))
+        ->assertInertia(fn ($page) => $page
+            ->where('sessions.0.image', '/storage/formations/session.jpg')
+            ->where('sessions.1.image', '/storage/formations/formation.jpg'));
+});
+
 test('the formations page exposes the average seats per session', function () {
     $formation = Formation::factory()->create(['statut' => 'PUBLIEE']);
     FormationSession::factory()->for($formation)->create(['statut' => 'OUVERTE', 'places' => 10]);

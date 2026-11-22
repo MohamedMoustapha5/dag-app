@@ -101,7 +101,9 @@ class FormationController extends Controller
             'placesRestantes' => $session->placesRestantes(),
             'prix' => $session->prix,
             'statut' => $session->statut,
-            'image' => $formation->image,
+            // The image chosen for the session, else the training's (the
+            // page falls back to a default photo).
+            'image' => $session->image ?? $formation->image,
         ];
     }
 }
