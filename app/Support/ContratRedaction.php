@@ -138,8 +138,13 @@ class ContratRedaction
             '{{formule}}' => 'Nom de la formule (abonnement)',
             '{{description}}' => 'Description de la demande du client',
             '{{montant}}' => 'Montant du devis (FCFA)',
-            '{{reference}}' => 'Référence de la demande',
+            '{{reference}}' => 'Référence de la demande (du partenariat pour un contrat de partenariat)',
             '{{date}}' => 'Date de rédaction',
+            '{{entreprise}}' => 'Nom de la structure partenaire (contrat de partenariat)',
+            '{{secteur}}' => 'Secteur d’activité du partenaire (contrat de partenariat)',
+            '{{ville}}' => 'Ville du partenaire (contrat de partenariat)',
+            '{{domaines}}' => 'Domaines de collaboration (contrat de partenariat)',
+            '{{duree}}' => 'Durée du partenariat (contrat de partenariat)',
         ];
     }
 }

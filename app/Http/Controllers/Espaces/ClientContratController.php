@@ -11,6 +11,7 @@ use App\Models\Contrat;
 use App\Notifications\ContratSigneNotification;
 use App\Support\ContratPdf;
 use App\Support\Notifications\Notifier;
+use App\Support\Partenariats\GestionPartenariats;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
@@ -161,6 +162,26 @@ class ClientContratController extends Controller
         ConstruireDocumentPdf::dispatch($contrat);
 
         Notifier::envoyer($request->user('web'), new ContratSigneNotification($contrat));
+
+        $partenariat = app(GestionPartenariats::class)->pourContrat($contrat);
+
+        if ($partenariat !== null) {
+            Notifier::alerterEquipe(
+                Donnee::ContratsClauses,
+                Action::Valider,
+                'partenariat.signe',
+                "Contrat de partenariat signé à valider — {$contrat->nomPartie()}",
+                "{$data['nom']} a signé le contrat de partenariat de {$contrat->nomPartie()} ({$partenariat->libelleDuree()}). Validez-le pour en faire un Partenaire officiel de DAG.",
+                route('espace-admin.partenariats.index'),
+            );
+
+            ActivityLog::record(null, 'contrat de partenariat signé', $contrat, "{$contrat->reference} signé par {$data['nom']}.");
+
+            Inertia::flash('toast', ['type' => 'success', 'message' => 'Contrat signé, merci ! L’équipe DAG le valide, puis votre partenariat devient actif.']);
+
+            return to_route('espace-client.partenariat');
+        }
+
         Notifier::alerterEquipe(
             Donnee::ContratsClauses,
             Action::Modifier,

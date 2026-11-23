@@ -32,6 +32,7 @@ class AdminClientController extends Controller
             ->withMax(['accesRecrutement as fin_acces_recrutement' => fn ($query) => $query
                 ->where('statut', 'ACTIF')
                 ->whereDate('fin', '>=', now()->toDateString())], 'fin')
+            ->withExists(['partenariats as partenaire_officiel' => fn ($query) => $query->enVigueur()])
             ->withCount('demandes')
             ->orderByDesc('created_at')
             ->get();
@@ -67,6 +68,7 @@ class AdminClientController extends Controller
                 'ville' => $client->ville,
                 'telephone' => $client->telephone,
                 'statut' => $client->statut,
+                'partenaireOfficiel' => (bool) $client->partenaire_officiel,
                 'finAccesRecrutement' => $client->fin_acces_recrutement
                     ? Carbon::parse($client->fin_acces_recrutement)->toDateString()
                     : null,

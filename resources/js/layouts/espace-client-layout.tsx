@@ -5,6 +5,7 @@ import {
     FileSignature,
     FileText,
     FolderOpen,
+    Handshake,
     Headphones,
     Home,
     KeyRound,
@@ -136,6 +137,11 @@ function navEntreprise(
                 icon: FileSignature,
                 href: espaceClient.contrats(),
             },
+            {
+                label: 'Partenariat DAG',
+                icon: Handshake,
+                href: espaceClient.partenariat(),
+            },
         ],
     });
 
@@ -196,6 +202,7 @@ export type EspaceClientInfo = {
     typeLabel: string;
     type: string;
     estPartenaireValide: boolean;
+    estPartenaireOfficiel?: boolean;
 };
 
 export default function EspaceClientLayout({ children }: PropsWithChildren) {
@@ -378,6 +385,18 @@ export default function EspaceClientLayout({ children }: PropsWithChildren) {
                                     </p>
                                     <p className="espace-user-type">
                                         {client.typeLabel}
+                                        {client.estPartenaireOfficiel && (
+                                            <span
+                                                className="espace-badge-partenaire"
+                                                title="Partenaire officiel de Digital Agency Group"
+                                            >
+                                                <BadgeCheck
+                                                    size={12}
+                                                    aria-hidden="true"
+                                                />
+                                                Partenaire officiel
+                                            </span>
+                                        )}
                                     </p>
                                 </div>
                             </div>

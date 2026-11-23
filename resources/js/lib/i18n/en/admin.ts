@@ -483,4 +483,77 @@ export const adminEn: Record<string, string> = {
     'Prix (FCFA)': 'Price (FCFA)',
     Offert: 'Offered',
     État: 'Status',
+
+    // Partnerships
+    Partenariats: 'Partnerships',
+    'Contrat de partenariat': 'Partnership contract',
+    'Étudiez les demandes des entreprises, proposez un partenariat et validez les contrats signés.':
+        'Review requests from companies, propose a partnership and validate signed contracts.',
+    'Proposer un partenariat': 'Propose a partnership',
+    'En signature': 'Out for signature',
+    'Partenaires actifs': 'Active partners',
+    Clos: 'Closed',
+    Tous: 'All',
+    'À étudier': 'To review',
+    'Signé, à valider': 'Signed, to validate',
+    'Partenaire actif': 'Active partner',
+    'Aucun partenariat pour le moment. Les demandes des entreprises arrivent ici ; vous pouvez aussi proposer un partenariat.':
+        'No partnership yet. Requests from companies arrive here; you can also propose a partnership.',
+    'Aucun partenariat dans cette catégorie.':
+        'No partnership in this category.',
+    'Proposé par DAG': 'Proposed by DAG',
+    'Demande de la structure': 'Request from the organisation',
+    'Message envoyé à la structure': 'Message sent to the organisation',
+    'Présentation de la structure': 'Presentation of the organisation',
+    'Partenariat en vigueur.': 'Partnership in force.',
+    'Partenariat terminé.': 'Partnership ended.',
+    'Durée du partenariat': 'Partnership duration',
+    'Accepter et envoyer le contrat': 'Accept and send the contract',
+    'Motif du refus (transmis à la structure)':
+        'Reason for refusal (sent to the organisation)',
+    'Confirmer le refus': 'Confirm refusal',
+    'Le contrat de partenariat est rédigé à partir du modèle actif et envoyé tout de suite à la structure, qui le signe depuis son espace. Vous le validez ensuite.':
+        'The partnership contract is drafted from the active template and sent right away to the organisation, which signs it from its space. You then validate it.',
+    'Toutes les entreprises et organisations ont déjà un partenariat en cours.':
+        'Every company and organisation already has a partnership under way.',
+    'Choisir une structure…': 'Choose an organisation…',
+    'Message à la structure (facultatif)':
+        'Message to the organisation (optional)',
+    'Quelques mots pour présenter la proposition de DAG.':
+        'A few words to present DAG’s proposal.',
+    'Envoyer le contrat à signer': 'Send the contract for signature',
+    'Acceptez la demande en choisissant la durée du partenariat : le contrat est rédigé et envoyé à la structure. Sinon, refusez-la avec un motif.':
+        'Accept the request by choosing the partnership duration: the contract is drafted and sent to the organisation. Otherwise, refuse it with a reason.',
+    'Le contrat attend la signature de la structure. Elle est prévenue et le retrouve dans son espace.':
+        'The contract is waiting for the organisation’s signature. It has been notified and finds it in its space.',
+    'Le contrat est repassé en brouillon : corrigez-le puis renvoyez-le à la structure depuis la page du contrat.':
+        'The contract is back to draft: correct it, then send it back to the organisation from the contract page.',
+    'La structure a signé. Validez le contrat pour en faire un Partenaire officiel de DAG.':
+        'The organisation has signed. Validate the contract to make it an Official partner of DAG.',
+
+    // Partner logos of the public site
+    'Logos partenaires': 'Partner logos',
+    'Les logos affichés sur le site public : bande défilante de l’accueil et page « À propos ».':
+        'The logos shown on the public site: the scrolling band of the home page and the “About” page.',
+    'Aperçu sur le site': 'Preview on the site',
+    'Aucun logo affiché : la rubrique « Nos partenaires » est masquée sur le site.':
+        'No logo shown: the “Our partners” section is hidden on the site.',
+    'Ajouter un logo': 'Add a logo',
+    'Choisir le logo': 'Choose the logo',
+    'PNG, JPG ou WebP · 2 Mo max': 'PNG, JPG or WebP · 2 MB max',
+    'Nom du partenaire': 'Partner name',
+    'Ex. Nordex Consulting Group': 'E.g. Nordex Consulting Group',
+    'Site web (facultatif)': 'Website (optional)',
+    'https:// (facultatif)': 'https:// (optional)',
+    'Logo sur fond foncé (il remplit sa tuile)':
+        'Logo on a dark background (it fills its tile)',
+    'Ajouter au site': 'Add to the site',
+    'Ajout…': 'Adding…',
+    Masqué: 'Hidden',
+    'Fond foncé': 'Dark background',
+    'Remplacer l’image': 'Replace the image',
+    'Plus tôt dans la bande': 'Earlier in the band',
+    'Plus tard dans la bande': 'Later in the band',
+    'Masquer du site': 'Hide from the site',
+    'Afficher sur le site': 'Show on the site',
 };

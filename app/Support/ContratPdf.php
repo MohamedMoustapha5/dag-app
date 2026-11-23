@@ -20,7 +20,7 @@ class ContratPdf
         'PRESTATION_SERVICE' => 'Contrat de prestation de service',
         'ABONNEMENT' => "Contrat d'abonnement",
         'CONVENTION_STAGE' => 'Convention de stage',
-        'CONTRAT_PARTENAIRE' => 'Contrat partenaire',
+        'CONTRAT_PARTENAIRE' => 'Contrat de partenariat',
     ];
 
     /**

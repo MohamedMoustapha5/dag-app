@@ -12,7 +12,7 @@ const TYPE_LABEL: Record<string, string> = {
     PRESTATION_SERVICE: 'Prestation de service',
     ABONNEMENT: 'Abonnement',
     CONVENTION_STAGE: 'Convention de stage',
-    CONTRAT_PARTENAIRE: 'Contrat partenaire',
+    CONTRAT_PARTENAIRE: 'Contrat de partenariat',
 };
 
 type Modele = {

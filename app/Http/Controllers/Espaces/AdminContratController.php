@@ -17,6 +17,7 @@ use App\Notifications\ContratValideNotification;
 use App\Support\ContratPdf;
 use App\Support\ContratRedaction;
 use App\Support\Notifications\Notifier;
+use App\Support\Partenariats\GestionPartenariats;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
@@ -372,9 +373,11 @@ class AdminContratController extends Controller
         Inertia::flash('toast', ['type' => 'success', 'message' => match ($data['statut']) {
             'ENVOYE' => 'Contrat envoyé au client pour signature.',
             'BROUILLON' => 'Contrat repassé en brouillon : vous pouvez le corriger.',
-            'ACTIF' => $contrat->demande_id !== null
-                ? 'Contrat validé : le client est prévenu et peut régler sa facture.'
-                : 'Contrat validé : il est maintenant actif.',
+            'ACTIF' => match (true) {
+                $contrat->demande_id !== null => 'Contrat validé : le client est prévenu et peut régler sa facture.',
+                $contrat->type === 'CONTRAT_PARTENAIRE' => "Partenariat validé : {$contrat->nomPartie()} est Partenaire officiel de Digital Agency Group.",
+                default => 'Contrat validé : il est maintenant actif.',
+            },
             'TERMINE' => 'Contrat marqué comme terminé.',
             'RESILIE' => 'Contrat résilié.',
             'REFUSE' => 'Contrat marqué comme refusé.',
@@ -401,6 +404,11 @@ class AdminContratController extends Controller
         // Validating a demande's signed contract opens the payment of its facture.
         if ($statut === 'ACTIF' && $contrat->demande_id !== null) {
             Notifier::envoyer(Notifier::utilisateurDe($contrat), new ContratValideNotification($contrat));
+        }
+
+        // A partnership contract opens or closes its partnership.
+        if ($contrat->type === 'CONTRAT_PARTENAIRE') {
+            app(GestionPartenariats::class)->contratMisAJour($contrat);
         }
 
         ActivityLog::record($membre, 'a changé le statut du contrat', $contrat, "{$contrat->reference} : {$contrat->libelleStatut()}.");

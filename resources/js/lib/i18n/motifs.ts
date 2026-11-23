@@ -103,6 +103,63 @@ export const motifs: [RegExp, Remplacement][] = [
         /^Abonnement recrutement — (.+)$/,
         (m, t) => `Recruitment subscription — ${t(m[1])}`,
     ],
+
+    // Partnerships
+    [/^Contrat de partenariat — (.+)$/, (m) => `Partnership contract — ${m[1]}`],
+    [/^Contrat (DAG-CTR-.+)$/, (m) => `Contract ${m[1]}`],
+    [/^traité par (.+)$/, (m) => `handled by ${m[1]}`],
+    [
+        /^Partenaire officiel du (.+) au (.+)$/,
+        (m) => `Official partner from ${m[1]} to ${m[2]}`,
+    ],
+    [/^Du (.+) au (.+)$/, (m) => `From ${m[1]} to ${m[2]}`],
+    [/^durée (.+)$/, (m, t) => `duration ${t(m[1])}`],
+    [/^Demande (DAG-PAR-.+) envoyée\. .+$/, (m) => `Request ${m[1]} sent. The DAG team is reviewing it and will get back to you shortly.`],
+    [
+        /^Demande acceptée : le contrat de partenariat est envoyé à (.+) pour signature\.$/,
+        (m) => `Request accepted: the partnership contract is sent to ${m[1]} for signature.`,
+    ],
+    [
+        /^Demande refusée : (.+) est informé du motif\.$/,
+        (m) => `Request refused: ${m[1]} is informed of the reason.`,
+    ],
+    [
+        /^Partenariat proposé : le contrat est envoyé à (.+) pour signature\.$/,
+        (m) => `Partnership proposed: the contract is sent to ${m[1]} for signature.`,
+    ],
+    [
+        /^Partenariat validé : (.+) est Partenaire officiel de Digital Agency Group\.$/,
+        (m) => `Partnership validated: ${m[1]} is an Official partner of Digital Agency Group.`,
+    ],
+    [/^Demande de partenariat — (.+)$/, (m) => `Partnership request — ${m[1]}`],
+    [
+        /^Contrat de partenariat signé à valider — (.+)$/,
+        (m) => `Signed partnership contract to validate — ${m[1]}`,
+    ],
+    [
+        /^Votre demande n'a pas été retenue\. Motif : (.+)$/,
+        (m) => `Your request was not accepted. Reason: ${m[1]}`,
+    ],
+    [/^Demande refusée\. Motif : (.+)$/, (m) => `Request refused. Reason: ${m[1]}`],
+
+    // Partner logos
+    [
+        /^Logo « (.+) » ajouté : il apparaît sur le site public\.$/,
+        (m) => `Logo “${m[1]}” added: it appears on the public site.`,
+    ],
+    [/^Logo « (.+) » enregistré\.$/, (m) => `Logo “${m[1]}” saved.`],
+    [/^Logo « (.+) » supprimé du site\.$/, (m) => `Logo “${m[1]}” removed from the site.`],
+    [
+        /^« (.+) » est de nouveau affiché sur le site\.$/,
+        (m) => `“${m[1]}” is shown on the site again.`,
+    ],
+    [/^« (.+) » est masqué du site\.$/, (m) => `“${m[1]}” is hidden from the site.`],
+    [/^(\d+) logos? affichés?$/, (m) => `${m[1]} logo${Number(m[1]) > 1 ? 's' : ''} shown`],
+    [/^Placer (.+) plus tôt$/, (m) => `Move ${m[1]} earlier`],
+    [/^Placer (.+) plus tard$/, (m) => `Move ${m[1]} later`],
+    [/^Masquer (.+) du site$/, (m) => `Hide ${m[1]} from the site`],
+    [/^Afficher (.+) sur le site$/, (m) => `Show ${m[1]} on the site`],
+    [/^(.+) \(nouvel onglet\)$/, (m) => `${m[1]} (new tab)`],
     [/^Numéro (.+)$/, (m) => `Number ${m[1]}`],
     [/^(\d+) séances?$/, (m) => `${m[1]} ${pluriel(m[1], 'sitting')}`],
     [/^(\d+) événements?$/, (m) => `${m[1]} ${pluriel(m[1], 'event')}`],

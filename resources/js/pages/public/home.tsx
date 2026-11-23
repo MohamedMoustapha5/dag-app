@@ -13,6 +13,10 @@ import {
 import { useEffect, useState } from 'react';
 import AuditRequestModal from '@/components/public/audit-request-modal';
 import Compteur from '@/components/public/compteur';
+import {
+    BandeLogosPartenaires,
+    type PartenairePublic,
+} from '@/components/public/logos-partenaires';
 import PublicLayout from '@/layouts/public-layout';
 import { abonnement, catalogue, contact, formations } from '@/routes';
 
@@ -21,6 +25,7 @@ type HomeProps = {
         services: number;
     };
     equipe: Array<{ nom: string; role: string }>;
+    partenaires: PartenairePublic[];
 };
 
 const PROCESS_STEPS = [
@@ -77,34 +82,6 @@ const TRUST_ITEMS = [
     { icon: Users, texte: 'Formation + placement en entreprise' },
     { icon: CheckCircle2, texte: 'Un seul interlocuteur : DAG' },
 ];
-
-/**
- * Partner logos of the scrolling band. `sombre`: a logo drawn on its own
- * dark background, shown on a tile of the same colour.
- */
-const PARTENAIRES = [
-    {
-        nom: 'Nova-Tech',
-        logo: '/images/brand/partners/nova-tech-logo.png',
-        sombre: false,
-    },
-    {
-        nom: 'Nordex Consulting Group',
-        logo: '/images/brand/partners/nordex-consulting-group-logo.jpg',
-        sombre: true,
-    },
-    {
-        nom: 'Genis Academic',
-        logo: '/images/brand/partners/genis-academic.png',
-        sombre: false,
-    },
-];
-
-/**
- * How many times the partners repeat in one half of the band, so that it
- * is wider than the screen and the loop never shows a gap.
- */
-const REPETITIONS_PARTENAIRES = 3;
 
 const PAIEMENT_CHECKLIST = [
     'Montant total affiché en FCFA, sans frais cachés',
@@ -199,7 +176,7 @@ const TESTIMONIALS = [
     },
 ];
 
-export default function Home({ stats, equipe }: HomeProps) {
+export default function Home({ stats, equipe, partenaires }: HomeProps) {
     const [teamIndex, setTeamIndex] = useState(0);
     const [testimonialIndex, setTestimonialIndex] = useState(0);
     const [auditModalOpen, setAuditModalOpen] = useState(false);
@@ -317,6 +294,7 @@ export default function Home({ stats, equipe }: HomeProps) {
                 </div>
             </section>
 
+            {partenaires.length > 0 && (
             <section
                 className="home-partenaires reveal"
                 aria-labelledby="home-partenaires-titre"
@@ -328,54 +306,9 @@ export default function Home({ stats, equipe }: HomeProps) {
                     </h2>
                 </div>
 
-                <div className="logo-defilant">
-                    <div className="logo-defilant-piste">
-                        {[0, 1].map((copie) => (
-                            <ul
-                                key={copie}
-                                className="logo-defilant-groupe"
-                                aria-hidden={copie === 1 ? true : undefined}
-                            >
-                                {Array.from(
-                                    { length: REPETITIONS_PARTENAIRES },
-                                    (_, tour) =>
-                                        PARTENAIRES.map((partenaire) => {
-                                            const original =
-                                                copie === 0 && tour === 0;
-
-                                            return (
-                                                <li
-                                                    key={`${tour}-${partenaire.nom}`}
-                                                    className={
-                                                        original
-                                                            ? undefined
-                                                            : 'logo-defilant-repetition'
-                                                    }
-                                                >
-                                                    <div
-                                                        className={`logo-defilant-carte${partenaire.sombre ? ' logo-defilant-carte--sombre' : ''}`}
-                                                        title={partenaire.nom}
-                                                    >
-                                                        <img
-                                                            src={partenaire.logo}
-                                                            alt={
-                                                                original
-                                                                    ? partenaire.nom
-                                                                    : ''
-                                                            }
-                                                            loading="lazy"
-                                                            draggable={false}
-                                                        />
-                                                    </div>
-                                                </li>
-                                            );
-                                        }),
-                                )}
-                            </ul>
-                        ))}
-                    </div>
-                </div>
+                <BandeLogosPartenaires partenaires={partenaires} />
             </section>
+            )}
 
             <section className="section-gap reveal container">
                 <span className="badge">Nos services</span>

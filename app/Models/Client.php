@@ -43,6 +43,7 @@ class Client extends Model
             'typeLabel' => $this->typeLabel(),
             'type' => $this->type,
             'estPartenaireValide' => $this->estPartenaireValide(),
+            'estPartenaireOfficiel' => $this->estPartenaireOfficiel(),
         ];
     }
 
@@ -109,6 +110,21 @@ class Client extends Model
     public function estTitulaire(User $user): bool
     {
         return $this->user_id === $user->id;
+    }
+
+    /**
+     * Whether the client is an official partner of DAG today: a partnership
+     * contract signed and validated, still in force.
+     */
+    public function estPartenaireOfficiel(): bool
+    {
+        return $this->estStructure() && $this->partenariats()->enVigueur()->exists();
+    }
+
+    /** @return HasMany<Partenariat, $this> */
+    public function partenariats(): HasMany
+    {
+        return $this->hasMany(Partenariat::class);
     }
 
     /** @return HasOne<EntreprisePartenaire, $this> */

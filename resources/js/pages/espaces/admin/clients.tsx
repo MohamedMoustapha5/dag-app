@@ -14,6 +14,7 @@ type Client = {
     telephone: string | null;
     statut: string;
     finAccesRecrutement: string | null;
+    partenaireOfficiel: boolean;
     demandesCount: number;
     inscritLe: string | null;
 };
@@ -275,6 +276,14 @@ export default function AdminClients({ clients, apprenants, actions }: Props) {
                                         </td>
                                         <td className="muted">
                                             {client.typeLabel}
+                                            {client.partenaireOfficiel && (
+                                                <span
+                                                    className="chip chip-blue"
+                                                    style={{ marginLeft: 6 }}
+                                                >
+                                                    Partenaire officiel
+                                                </span>
+                                            )}
                                             {client.finAccesRecrutement && (
                                                 <span
                                                     className="chip chip-green"

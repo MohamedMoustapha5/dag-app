@@ -1,5 +1,9 @@
 import { Head, Link } from '@inertiajs/react';
 import Compteur from '@/components/public/compteur';
+import {
+    BandeauLogosPartenaires,
+    type PartenairePublic,
+} from '@/components/public/logos-partenaires';
 import PublicLayout from '@/layouts/public-layout';
 import { catalogue, contact } from '@/routes';
 
@@ -11,6 +15,7 @@ type AProposProps = {
         membresEquipe: number;
     };
     equipe: Array<{ nom: string; role: string }>;
+    partenaires: PartenairePublic[];
 };
 
 const VALEURS = [
@@ -19,21 +24,6 @@ const VALEURS = [
     'Innovante sans être agressive',
     'Accessible & dynamique',
     'Orientée résultats',
-];
-
-const PARTENAIRES = [
-    {
-        nom: 'Nova-Tech',
-        logo: '/images/brand/partners/nova-tech.png',
-    },
-    {
-        nom: 'Nordex Consulting Group',
-        logo: '/images/brand/partners/nordex-consulting-group.jpg',
-    },
-    {
-        nom: 'Genis Academic',
-        logo: '/images/brand/partners/genis-academic.png',
-    },
 ];
 
 const EQUIPE_TAGLINES: Record<string, string> = {
@@ -55,7 +45,11 @@ const EQUIPE_PHOTOS: Record<string, string> = {
     Développeur: '/images/photos/mustapha-developpeur.jpg',
 };
 
-export default function APropos({ stats, equipe }: AProposProps) {
+export default function APropos({
+    stats,
+    equipe,
+    partenaires,
+}: AProposProps) {
     const equipeAffichee = equipe.map((membre) => ({
         nom: membre.nom,
         role: membre.role,
@@ -235,6 +229,7 @@ export default function APropos({ stats, equipe }: AProposProps) {
                 </div>
             </section>
 
+            {partenaires.length > 0 && (
             <section
                 className="section-gap reveal container"
                 style={{
@@ -259,21 +254,7 @@ export default function APropos({ stats, equipe }: AProposProps) {
                     leur exigence de qualité.
                 </p>
 
-                <div
-                    className="card partner-logo-strip"
-                    style={{ marginTop: 32 }}
-                >
-                    {PARTENAIRES.map((partenaire) => (
-                        <img
-                            key={partenaire.nom}
-                            src={partenaire.logo}
-                            alt={partenaire.nom}
-                            title={partenaire.nom}
-                            loading="lazy"
-                            className="partner-logo-strip-item"
-                        />
-                    ))}
-                </div>
+                <BandeauLogosPartenaires partenaires={partenaires} />
 
                 <p className="muted" style={{ marginTop: 20, fontSize: 13 }}>
                     <Link href={catalogue()}>
@@ -281,6 +262,7 @@ export default function APropos({ stats, equipe }: AProposProps) {
                     </Link>
                 </p>
             </section>
+            )}
 
             <section
                 id="equipe"

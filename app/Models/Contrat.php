@@ -238,7 +238,7 @@ class Contrat extends Model
         }
 
         if ($this->type === 'CONTRAT_PARTENAIRE') {
-            return 'Contrat partenaire — '.($this->entreprise_id !== null ? $this->entreprise->nom : $this->reference);
+            return 'Contrat de partenariat — '.($this->client_id !== null || $this->entreprise_id !== null ? $this->nomPartie() : $this->reference);
         }
 
         if ($this->type === 'CONVENTION_STAGE') {

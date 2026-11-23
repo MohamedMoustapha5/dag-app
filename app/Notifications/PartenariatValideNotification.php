@@ -2,12 +2,19 @@
 
 namespace App\Notifications;
 
+use App\Models\Partenariat;
+
 /**
- * Tells an Entreprise client that DAG made it an official recruitment
- * partner: job offers and candidates are now open in its espace.
+ * DAG validated the signed partnership contract: the client is now an
+ * official partner until the end of the partnership.
  */
 class PartenariatValideNotification extends NotificationDag
 {
+    public function __construct(private Partenariat $partenariat)
+    {
+        parent::__construct();
+    }
+
     public function evenement(): string
     {
         return 'partenariat.valide';
@@ -15,26 +22,28 @@ class PartenariatValideNotification extends NotificationDag
 
     public function titre(): string
     {
-        return 'Votre entreprise est partenaire recrutement de DAG';
+        return 'Vous êtes Partenaire officiel de Digital Agency Group';
     }
 
     public function message(): string
     {
-        return "L'équipe DAG a validé votre entreprise comme partenaire recrutement. Vous pouvez maintenant publier vos offres d'emploi et recevoir les candidats que DAG vous transmet.";
+        $fin = $this->partenariat->fin?->locale('fr')->translatedFormat('j F Y');
+
+        return "L'équipe DAG a validé votre contrat de partenariat : votre structure est Partenaire officiel de Digital Agency Group jusqu'au {$fin}. Bienvenue parmi nos partenaires !";
     }
 
     protected function lignes(): array
     {
-        return ['Chaque offre est vérifiée par DAG avant sa mise en ligne.'];
+        return ['Votre contrat signé est disponible dans votre espace, rubrique « Partenariat DAG ».'];
     }
 
     public function url(object $notifiable): ?string
     {
-        return route('espace-client.offres.index');
+        return route('espace-client.partenariat');
     }
 
     public function libelleAction(): string
     {
-        return 'Publier une offre';
+        return 'Voir mon partenariat';
     }
 }

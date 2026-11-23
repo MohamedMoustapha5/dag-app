@@ -103,4 +103,55 @@ export const serveurEn: Record<string, string> = {
         'A payment of your subscription is already in progress: complete it from the invoice.',
     'L’abonnement recrutement est réservé aux entreprises et organisations.':
         'The recruitment subscription is reserved to companies and organisations.',
+
+    // Partnerships
+    'Digital Agency Group vous propose un partenariat':
+        'Digital Agency Group proposes a partnership to you',
+    'Votre demande de partenariat est acceptée':
+        'Your partnership request is accepted',
+    'Une fois votre signature validée par DAG, votre structure devient « Partenaire officiel de Digital Agency Group ».':
+        'Once DAG has validated your signature, your organisation becomes an “Official partner of Digital Agency Group”.',
+    'Votre demande de partenariat n’a pas été retenue':
+        'Your partnership request was not accepted',
+    'Vous pourrez présenter une nouvelle demande depuis votre espace lorsque votre situation aura évolué.':
+        'You can submit a new request from your space once your situation has changed.',
+    'Voir ma demande': 'View my request',
+    'Vous êtes Partenaire officiel de Digital Agency Group':
+        'You are an Official partner of Digital Agency Group',
+    'Votre contrat signé est disponible dans votre espace, rubrique « Partenariat DAG ».':
+        'Your signed contract is available in your space, under “DAG partnership”.',
+    'Voir mon partenariat': 'View my partnership',
+    'Votre contrat de partenariat avec Digital Agency Group est disponible dans votre espace. Sa signature est nécessaire pour que le partenariat prenne effet.':
+        'Your partnership contract with Digital Agency Group is available in your space. It must be signed for the partnership to take effect.',
+    'Le partenariat est réservé aux entreprises et organisations.':
+        'Partnerships are reserved to companies and organisations.',
+    'Un partenariat est déjà en cours avec cette structure.':
+        'A partnership is already under way with this organisation.',
+    'Choisissez au moins un domaine de collaboration.':
+        'Choose at least one area of collaboration.',
+    'Présentez votre structure et votre projet de partenariat.':
+        'Present your organisation and your partnership project.',
+    'Présentez votre projet en quelques phrases (30 caractères au moins).':
+        'Present your project in a few sentences (at least 30 characters).',
+    'Indiquez le motif du refus : il est transmis à la structure.':
+        'Give the reason for the refusal: it is sent to the organisation.',
+    'Expliquez le refus en une phrase au moins.':
+        'Explain the refusal in at least one sentence.',
+    'Choisissez la structure à qui proposer le partenariat.':
+        'Choose the organisation to propose the partnership to.',
+    'Contrat signé, merci ! L’équipe DAG le valide, puis votre partenariat devient actif.':
+        'Contract signed, thank you! The DAG team validates it, then your partnership becomes active.',
+    'Cette demande de partenariat a déjà été traitée.':
+        'This partnership request has already been handled.',
+
+    // Partner logos
+    'Indiquez le nom du partenaire.': 'Give the partner’s name.',
+    'Importez le logo du partenaire.': 'Upload the partner’s logo.',
+    'Le logo doit être une image PNG, JPG ou WebP.':
+        'The logo must be a PNG, JPG or WebP image.',
+    'Le logo ne doit pas dépasser 2 Mo.': 'The logo must not exceed 2 MB.',
+    'Le logo est trop petit : 80 × 40 pixels au moins.':
+        'The logo is too small: at least 80 × 40 pixels.',
+    'Le lien doit être une adresse web complète (https://…).':
+        'The link must be a full web address (https://…).',
 };

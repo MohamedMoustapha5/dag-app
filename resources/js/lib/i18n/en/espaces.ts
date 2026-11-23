@@ -535,4 +535,74 @@ export const espacesEn: Record<string, string> = {
     'Offert par DAG': 'Offered by DAG',
     '1 mois': '1 month',
     '1 an': '1 year',
+
+    // Partnership with DAG
+    'Partenariat DAG': 'DAG partnership',
+    'Partenaire officiel': 'Official partner',
+    'Partenariat Digital Agency Group': 'Digital Agency Group partnership',
+    'Un cadre contractuel pour collaborer durablement avec DAG : talents, formation, projets digitaux et visibilité commune.':
+        'A contractual framework to work with DAG over time: talent, training, digital projects and shared visibility.',
+    'Statut officiel': 'Official status',
+    'Votre structure devient « Partenaire officiel de Digital Agency Group », un gage de confiance auprès de vos clients et des talents.':
+        'Your organisation becomes an “Official partner of Digital Agency Group”, a mark of trust for your clients and for talent.',
+    'Interlocuteur dédié': 'Dedicated contact',
+    'Un contact unique chez DAG suit vos besoins et traite vos demandes en priorité.':
+        'A single contact at DAG follows your needs and handles your requests first.',
+    'Accès en priorité': 'Priority access',
+    'Vous êtes informé en premier de nos programmes, de nos sessions de formation et des profils que nous formons.':
+        'You are the first to hear about our programmes, our training sessions and the profiles we train.',
+    'En cours d’étude': 'Under review',
+    'Contrat à signer': 'Contract to sign',
+    'Contrat en révision': 'Contract being revised',
+    'En validation': 'Being validated',
+    'Non retenue': 'Not accepted',
+    'Annulé': 'Cancelled',
+    'Proposition de partenariat de DAG': 'Partnership proposal from DAG',
+    'Votre demande de partenariat': 'Your partnership request',
+    'Lire et signer le contrat': 'Read and sign the contract',
+    'Le mot de l’équipe DAG': 'A word from the DAG team',
+    'Domaines de collaboration': 'Areas of collaboration',
+    'Partenariats précédents': 'Previous partnerships',
+    'Voir le contrat': 'View the contract',
+    'Télécharger le contrat signé': 'Download the signed contract',
+    'Présenter une nouvelle demande': 'Submit a new request',
+    'Demander un partenariat': 'Request a partnership',
+    'Votre demande est étudiée par l’équipe DAG. Si elle est acceptée, le contrat de partenariat est rédigé et vous est envoyé ici pour signature.':
+        'Your request is reviewed by the DAG team. If it is accepted, the partnership contract is drafted and sent to you here for signature.',
+    'Domaines de collaboration envisagés': 'Intended areas of collaboration',
+    'Présentez votre structure et votre projet': 'Present your organisation and your project',
+    'Qui êtes-vous, que souhaitez-vous construire avec DAG, et quels sont vos besoins (recrutements, formations, projets) ?':
+        'Who are you, what would you like to build with DAG, and what are your needs (hiring, training, projects)?',
+    'Recrutement et stages des talents formés par DAG':
+        'Hiring and internships of DAG-trained talent',
+    'Formation et montée en compétences des équipes':
+        'Training and upskilling of teams',
+    'Prestations digitales (site, marketing, communication)':
+        'Digital services (website, marketing, communication)',
+    'Événements, conférences et visibilité commune':
+        'Events, conferences and shared visibility',
+    'Partenariat terminé. Merci pour cette collaboration !':
+        'Partnership ended. Thank you for this collaboration!',
+    'Proposition de DAG': 'Proposal from DAG',
+    'Demande de partenariat': 'Partnership request',
+    'Étude par DAG': 'Review by DAG',
+    'Signature du contrat': 'Contract signature',
+    'Validation par DAG': 'Validation by DAG',
+    'Équipe DAG': 'DAG team',
+    Vous: 'You',
+    Structure: 'Organisation',
+    'Étude de la demande': 'Review of the request',
+    "L'équipe DAG étudie votre demande et vous répond rapidement. Si elle l'accepte, le contrat de partenariat vous est envoyé ici même.":
+        'The DAG team is reviewing your request and will get back to you shortly. If it accepts it, the partnership contract is sent to you right here.',
+    'Signature du contrat de partenariat': 'Signing the partnership contract',
+    "Lisez le contrat, importez l'image de votre signature, puis confirmez. Cela ne prend que quelques minutes.":
+        'Read the contract, upload a picture of your signature, then confirm. It only takes a few minutes.',
+    'Révision du contrat': 'Contract revision',
+    "L'équipe DAG met à jour votre contrat de partenariat. Il vous sera renvoyé pour signature.":
+        'The DAG team is updating your partnership contract. It will be sent back to you for signature.',
+    'Validation du contrat signé': 'Validation of the signed contract',
+    "Merci pour votre signature. L'équipe DAG valide le contrat, puis votre structure devient Partenaire officiel de Digital Agency Group.":
+        'Thank you for signing. The DAG team validates the contract, then your organisation becomes an Official partner of Digital Agency Group.',
+    "Le contrat de partenariat n'a pas été signé : le partenariat est annulé.":
+        'The partnership contract was not signed: the partnership is cancelled.',
 };
