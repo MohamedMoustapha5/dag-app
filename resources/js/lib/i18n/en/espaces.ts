@@ -506,4 +506,33 @@ export const espacesEn: Record<string, string> = {
     'Cette adresse e-mail a déjà un compte DAG. Invitez une autre adresse.':
         'This email address already has a DAG account. Invite another address.',
     'Cet accès est déjà activé.': 'This access is already active.',
+
+    // Recruitment subscription
+    'Abonnement recrutement': 'Recruitment subscription',
+    'Mon abonnement': 'My subscription',
+    'Publier des offres': 'Publish offers',
+    'Accédez à vos pages recrutement : offres d’emploi et candidats formés par DAG.':
+        'Access your recruitment pages: job offers and candidates trained by DAG.',
+    'Accès recrutement actif jusqu’au': 'Recruitment access active until',
+    'Vous pouvez renouveler dès maintenant : la nouvelle période s’ajoute à la fin de celle en cours, sans perdre aucun jour.':
+        'You can renew right now: the new period is added at the end of the current one, without losing a single day.',
+    'Gérer mes offres →': 'Manage my offers →',
+    'Vos pages recrutement sont fermées': 'Your recruitment pages are closed',
+    'Choisissez une durée ci-dessous et réglez-la en ligne : l’accès s’ouvre dès le paiement confirmé.':
+        'Choose a duration below and pay it online: access opens as soon as the payment is confirmed.',
+    'à régler': 'to pay',
+    'Le plus avantageux': 'Best value',
+    'sans engagement': 'no commitment',
+    'Publiez vos offres de stage et d’emploi':
+        'Publish your internship and job offers',
+    'Recevez les candidats formés par DAG':
+        'Receive the candidates trained by DAG',
+    'Suivez chaque candidature jusqu’au placement':
+        'Follow every application through to placement',
+    'Formule choisie': 'Plan chosen',
+    'Historique de l’accès recrutement': 'Recruitment access history',
+    Période: 'Period',
+    'Offert par DAG': 'Offered by DAG',
+    '1 mois': '1 month',
+    '1 an': '1 year',
 };

@@ -13,7 +13,7 @@ type Client = {
     ville: string | null;
     telephone: string | null;
     statut: string;
-    statutPartenaire: 'EN_ATTENTE' | 'ACTIF' | 'INACTIF' | null;
+    finAccesRecrutement: string | null;
     demandesCount: number;
     inscritLe: string | null;
 };
@@ -35,12 +35,26 @@ type Props = {
     actions: {
         supprimer: boolean;
         supprimerApprenant: boolean;
-        nommerPartenaire: boolean;
+        offrirAcces: boolean;
     };
 };
 
+const DUREES_OFFERTES = [
+    { mois: 1, libelle: '1 mois' },
+    { mois: 3, libelle: '3 mois' },
+    { mois: 6, libelle: '6 mois' },
+    { mois: 12, libelle: '1 an' },
+];
+
+function dateCourte(iso: string): string {
+    return new Date(iso).toLocaleDateString('fr-FR');
+}
+
 export default function AdminClients({ clients, apprenants, actions }: Props) {
     const [onglet, setOnglet] = useState<'clients' | 'apprenants'>('clients');
+    const [offreClientId, setOffreClientId] = useState<string | null>(null);
+    const [offreMois, setOffreMois] = useState(1);
+    const [offreEnCours, setOffreEnCours] = useState(false);
 
     const supprimerApprenant = (apprenant: ApprenantCompte) => {
         if (
@@ -55,18 +69,16 @@ export default function AdminClients({ clients, apprenants, actions }: Props) {
         });
     };
 
-    const nommerPartenaire = (client: Client) => {
-        if (
-            !confirm(
-                `Faire de « ${client.nom} » un partenaire recrutement ? Son espace pourra publier des offres d'emploi, vérifiées par DAG avant leur mise en ligne, et recevoir les candidats que DAG lui transmet. Le client en sera informé.`,
-            )
-        ) {
-            return;
-        }
+    const offrirAcces = (client: Client) => {
         router.post(
-            clientsAdmin.partenaire(client.id).url,
-            {},
-            { preserveScroll: true },
+            clientsAdmin.accesRecrutement(client.id).url,
+            { mois: offreMois },
+            {
+                preserveScroll: true,
+                onStart: () => setOffreEnCours(true),
+                onFinish: () => setOffreEnCours(false),
+                onSuccess: () => setOffreClientId(null),
+            },
         );
     };
 
@@ -263,22 +275,15 @@ export default function AdminClients({ clients, apprenants, actions }: Props) {
                                         </td>
                                         <td className="muted">
                                             {client.typeLabel}
-                                            {client.statutPartenaire ===
-                                                'ACTIF' && (
+                                            {client.finAccesRecrutement && (
                                                 <span
                                                     className="chip chip-green"
                                                     style={{ marginLeft: 6 }}
                                                 >
-                                                    Partenaire
-                                                </span>
-                                            )}
-                                            {client.statutPartenaire ===
-                                                'INACTIF' && (
-                                                <span
-                                                    className="chip chip-gray"
-                                                    style={{ marginLeft: 6 }}
-                                                >
-                                                    Partenaire désactivé
+                                                    Recrutement jusqu’au{' '}
+                                                    {dateCourte(
+                                                        client.finAccesRecrutement,
+                                                    )}
                                                 </span>
                                             )}
                                         </td>
@@ -305,27 +310,104 @@ export default function AdminClients({ clients, apprenants, actions }: Props) {
                                                 whiteSpace: 'nowrap',
                                             }}
                                         >
-                                            {actions.nommerPartenaire &&
+                                            {actions.offrirAcces &&
                                                 (client.type === 'ENTREPRISE' ||
                                                     client.type ===
                                                         'ORGANISATION') &&
-                                                client.statutPartenaire !==
-                                                    'ACTIF' && (
+                                                (offreClientId === client.id ? (
+                                                    <span
+                                                        style={{
+                                                            display:
+                                                                'inline-flex',
+                                                            alignItems:
+                                                                'center',
+                                                            gap: 8,
+                                                            marginRight: 14,
+                                                        }}
+                                                    >
+                                                        <select
+                                                            aria-label="Durée offerte"
+                                                            value={offreMois}
+                                                            onChange={(
+                                                                event,
+                                                            ) =>
+                                                                setOffreMois(
+                                                                    Number(
+                                                                        event
+                                                                            .target
+                                                                            .value,
+                                                                    ),
+                                                                )
+                                                            }
+                                                            style={{
+                                                                width: 'auto',
+                                                                padding:
+                                                                    '5px 8px',
+                                                            }}
+                                                        >
+                                                            {DUREES_OFFERTES.map(
+                                                                (duree) => (
+                                                                    <option
+                                                                        key={
+                                                                            duree.mois
+                                                                        }
+                                                                        value={
+                                                                            duree.mois
+                                                                        }
+                                                                    >
+                                                                        {
+                                                                            duree.libelle
+                                                                        }
+                                                                    </option>
+                                                                ),
+                                                            )}
+                                                        </select>
+                                                        <button
+                                                            type="button"
+                                                            className="link-action"
+                                                            disabled={
+                                                                offreEnCours
+                                                            }
+                                                            onClick={() =>
+                                                                offrirAcces(
+                                                                    client,
+                                                                )
+                                                            }
+                                                        >
+                                                            Offrir
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            className="link-action"
+                                                            style={{
+                                                                color: 'var(--dag-text-muted)',
+                                                            }}
+                                                            onClick={() =>
+                                                                setOffreClientId(
+                                                                    null,
+                                                                )
+                                                            }
+                                                        >
+                                                            Annuler
+                                                        </button>
+                                                    </span>
+                                                ) : (
                                                     <button
                                                         type="button"
-                                                        onClick={() =>
-                                                            nommerPartenaire(
-                                                                client,
-                                                            )
-                                                        }
+                                                        onClick={() => {
+                                                            setOffreMois(1);
+                                                            setOffreClientId(
+                                                                client.id,
+                                                            );
+                                                        }}
                                                         className="link-action"
                                                         style={{
                                                             marginRight: 14,
                                                         }}
                                                     >
-                                                        Faire partenaire
+                                                        Offrir un accès
                                                     </button>
-                                                )}
+                                                ))}
                                             {actions.supprimer && (
                                                 <button
                                                     type="button"

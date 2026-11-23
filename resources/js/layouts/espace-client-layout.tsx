@@ -1,5 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
+    BadgeCheck,
     Briefcase,
     FileSignature,
     FileText,
@@ -30,6 +31,7 @@ import candidatures from '@/routes/espace-client/candidatures';
 import collaborateurs from '@/routes/espace-client/collaborateurs';
 import demandes from '@/routes/espace-client/demandes';
 import offres from '@/routes/espace-client/offres';
+import recrutement from '@/routes/espace-client/recrutement';
 
 type NavItem = {
     label: string;
@@ -102,6 +104,11 @@ function navEntreprise(
                     icon: Users,
                     href: candidatures.index(),
                 },
+                {
+                    label: 'Mon abonnement',
+                    icon: BadgeCheck,
+                    href: recrutement.abonnement(),
+                },
             ],
         });
     }
@@ -131,6 +138,19 @@ function navEntreprise(
             },
         ],
     });
+
+    if (!estPartenaireValide) {
+        groups.push({
+            label: 'Recrutement',
+            items: [
+                {
+                    label: 'Publier des offres',
+                    icon: BadgeCheck,
+                    href: recrutement.abonnement(),
+                },
+            ],
+        });
+    }
 
     groups.push({
         label: 'Compte & facturation',

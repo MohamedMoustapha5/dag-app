@@ -5813,6 +5813,93 @@
     }
 }
 
+/* ── Abonnement recrutement (espace entreprise) ─────────────────────── */
+.dag .abonnement-etat {
+    border-left: 4px solid var(--dag-border);
+}
+.dag .abonnement-etat.actif {
+    border-left-color: var(--dag-green);
+    background: #f3fbf6;
+}
+.dag .abonnement-etat-titre {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+    font-weight: 700;
+    color: var(--dag-navy);
+}
+.dag .abonnement-etat.actif .abonnement-etat-titre svg {
+    color: var(--dag-green);
+}
+.dag .abonnement-forfaits {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+.dag .abonnement-forfait {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 24px 22px;
+}
+.dag .abonnement-forfait.meilleur {
+    border: 2px solid var(--dag-blue);
+    box-shadow: 0 16px 34px -22px rgba(1, 102, 254, 0.6);
+}
+.dag .abonnement-forfait-badge {
+    position: absolute;
+    top: -12px;
+    left: 22px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--dag-blue);
+    color: #fff;
+    font-size: 11.5px;
+    font-weight: 700;
+}
+.dag .abonnement-forfait-duree {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--dag-text-muted);
+}
+.dag .abonnement-forfait-prix {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--dag-navy);
+}
+.dag .abonnement-forfait-avantages {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 8px;
+    margin: 14px 0 18px;
+    padding: 0;
+    list-style: none;
+    font-size: 13px;
+}
+.dag .abonnement-forfait-avantages li {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+.dag .abonnement-forfait-avantages svg {
+    flex: none;
+    margin-top: 2px;
+    color: var(--dag-green);
+}
+@media (max-width: 860px) {
+    .dag .abonnement-forfaits {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* ── Devis d'un particulier : refus ─────────────────────────────────── */
 .dag .btn-refus {
     color: var(--dag-red);

@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'reference', 'type', 'client_id', 'entreprise_id', 'apprenant_id', 'demande_id',
-    'abonnement_id', 'inscription_id', 'contrat_id', 'montant', 'montant_paye',
+    'abonnement_id', 'inscription_id', 'contrat_id', 'acces_recrutement_id', 'montant', 'montant_paye',
     'echeance', 'statut', 'moyen_paiement',
 ])]
 class Facture extends Model
@@ -146,6 +146,16 @@ class Facture extends Model
             return 'Formation — '.$this->inscription->formation->nom;
         }
 
+        if ($this->acces_recrutement_id !== null) {
+            return 'Abonnement recrutement — '.$this->accesRecrutement->libelle;
+        }
+
         return $this->reference;
+    }
+
+    /** @return BelongsTo<AccesRecrutement, $this> */
+    public function accesRecrutement(): BelongsTo
+    {
+        return $this->belongsTo(AccesRecrutement::class, 'acces_recrutement_id');
     }
 }

@@ -466,8 +466,21 @@ export const adminEn: Record<string, string> = {
     Retenue: 'Selected',
     Reçue: 'Received',
 
-    // Making an Entreprise client a recruitment partner
-    'Faire partenaire': 'Make partner',
-    Partenaire: 'Partner',
-    'Partenaire désactivé': 'Partner deactivated',
+    // Recruitment access offered by DAG, recruitment subscriptions
+    'Offrir un accès': 'Offer access',
+    Offrir: 'Offer',
+    'Durée offerte': 'Offered duration',
+    'Abonnements recrutement': 'Recruitment subscriptions',
+    'Les entreprises et organisations accèdent à leurs pages recrutement avec un abonnement payé en ligne.':
+        'Companies and organisations access their recruitment pages with a subscription paid online.',
+    'Forfaits proposés': 'Plans offered',
+    'Un nouveau prix s’applique aux abonnements choisis ensuite ; une facture déjà émise garde son montant.':
+        'A new price applies to subscriptions chosen afterwards; an invoice already issued keeps its amount.',
+    'Lecture seule : votre rôle ne permet pas de modifier les forfaits.':
+        'Read only: your role does not allow editing the plans.',
+    Forfait: 'Plan',
+    Libellé: 'Label',
+    'Prix (FCFA)': 'Price (FCFA)',
+    Offert: 'Offered',
+    État: 'Status',
 };

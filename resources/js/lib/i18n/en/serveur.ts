@@ -92,4 +92,15 @@ export const serveurEn: Record<string, string> = {
     "L'équipe DAG a validé votre entreprise comme partenaire recrutement. Vous pouvez maintenant publier vos offres d'emploi et recevoir les candidats que DAG vous transmet.":
         'The DAG team validated your company as a recruitment partner. You can now publish your job offers and receive the candidates DAG sends you.',
     'Publier une offre': 'Publish an offer',
+
+    // Recruitment subscription
+    'Votre accès recrutement est actif': 'Your recruitment access is active',
+    'Chaque offre est vérifiée par DAG avant sa mise en ligne.':
+        'Every offer is checked by DAG before it goes online.',
+    'Les pages recrutement s’ouvrent avec un abonnement : choisissez la durée qui vous convient.':
+        'The recruitment pages open with a subscription: choose the duration that suits you.',
+    'Un paiement de votre abonnement est déjà en cours : finalisez-le depuis la facture.':
+        'A payment of your subscription is already in progress: complete it from the invoice.',
+    'L’abonnement recrutement est réservé aux entreprises et organisations.':
+        'The recruitment subscription is reserved to companies and organisations.',
 };

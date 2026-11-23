@@ -17,6 +17,7 @@ use App\Http\Controllers\Espaces\AdminGrilleTarifaireController;
 use App\Http\Controllers\Espaces\AdminInscriptionController;
 use App\Http\Controllers\Espaces\AdminMotDePasseController;
 use App\Http\Controllers\Espaces\AdminPresenceController;
+use App\Http\Controllers\Espaces\AdminRecrutementController;
 use App\Http\Controllers\Espaces\AdminSeanceController;
 use App\Http\Controllers\Espaces\AdminServiceController;
 use App\Http\Controllers\Espaces\AdminStatistiqueController;
@@ -41,6 +42,7 @@ use App\Http\Controllers\Espaces\ClientOffreController;
 use App\Http\Controllers\Espaces\ClientPaiementController;
 use App\Http\Controllers\Espaces\ClientParametreController;
 use App\Http\Controllers\Espaces\ClientRechercheController;
+use App\Http\Controllers\Espaces\ClientRecrutementController;
 use App\Http\Controllers\Espaces\ClientServiceController;
 use App\Http\Controllers\Espaces\NotificationCentreController;
 use App\Http\Controllers\Espaces\PaiementEnLigneController;
@@ -109,6 +111,9 @@ Route::middleware(['auth', 'auth.session', 'verified', EnsureUserType::class.':C
         Route::get('support/{ticket}', [SupportController::class, 'show'])->name('espace-client.support.show');
         Route::post('support/{ticket}/messages', [SupportController::class, 'repondre'])->middleware('throttle:20,1')->name('espace-client.support.repondre');
         Route::patch('support/{ticket}/cloture', [SupportController::class, 'clore'])->name('espace-client.support.clore');
+
+        Route::get('recrutement/abonnement', [ClientRecrutementController::class, 'abonnement'])->name('espace-client.recrutement.abonnement');
+        Route::post('recrutement/abonnement', [ClientRecrutementController::class, 'souscrire'])->middleware('throttle:10,1')->name('espace-client.recrutement.souscrire');
 
         Route::middleware(EnsurePartenaireValide::class)->group(function () {
             Route::get('offres', [ClientOffreController::class, 'index'])->name('espace-client.offres.index');
@@ -186,6 +191,8 @@ Route::middleware(['auth:admin', 'auth.session', EnsureMembreActif::class])
         Route::patch('entreprises/{entreprisePartenaire}', [AdminEntrepriseController::class, 'updateEntreprise'])->name('espace-admin.entreprises.update');
         Route::patch('offres/{offreEmploi}', [AdminEntrepriseController::class, 'updateOffre'])->name('espace-admin.offres.update');
         Route::post('offres/{offreEmploi}/candidatures', [AdminEntrepriseController::class, 'postuler'])->name('espace-admin.offres.postuler');
+        Route::get('recrutement', [AdminRecrutementController::class, 'index'])->name('espace-admin.recrutement.index');
+        Route::patch('recrutement/forfaits/{forfait}', [AdminRecrutementController::class, 'updateForfait'])->name('espace-admin.recrutement.forfaits.update');
         Route::get('demandes', [AdminDemandeController::class, 'index'])->name('espace-admin.demandes.index');
         Route::get('demandes/{demande}', [AdminDemandeController::class, 'show'])->name('espace-admin.demandes.show');
         Route::patch('demandes/{demande}', [AdminDemandeController::class, 'update'])->name('espace-admin.demandes.update');
@@ -193,7 +200,7 @@ Route::middleware(['auth:admin', 'auth.session', EnsureMembreActif::class])
         Route::get('demandes/{demande}/proforma', [AdminDemandeController::class, 'proforma'])->name('espace-admin.demandes.proforma');
         Route::get('clients', [AdminClientController::class, 'index'])->name('espace-admin.clients.index');
         Route::delete('clients/{client}', [AdminClientController::class, 'destroy'])->name('espace-admin.clients.destroy');
-        Route::post('clients/{client}/partenaire', [AdminClientController::class, 'nommerPartenaire'])->name('espace-admin.clients.partenaire');
+        Route::post('clients/{client}/acces-recrutement', [AdminClientController::class, 'offrirAccesRecrutement'])->name('espace-admin.clients.acces-recrutement');
         Route::get('formations', [AdminFormationController::class, 'index'])->name('espace-admin.formations.index');
         Route::post('sessions', [AdminFormationController::class, 'storeRapide'])->name('espace-admin.sessions.store-rapide');
         Route::get('formations/{formation}', [AdminFormationController::class, 'show'])->name('espace-admin.formations.show');

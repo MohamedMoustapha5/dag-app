@@ -76,6 +76,33 @@ export const motifs: [RegExp, Remplacement][] = [
     [/^· limite (.+)$/, (m) => `· deadline ${m[1]}`],
     [/^le (\d{1,2}[/ ].+)$/, (m) => `on ${m[1]}`],
     [/^Payer (.+) FCFA$/, (m) => `Pay ${m[1]} FCFA`],
+
+    // Recruitment subscription
+    [/^Choisir (.+)$/, (m, t) => `Choose ${t(m[1])}`],
+    [/^Renouveler (.+)$/, (m, t) => `Renew ${t(m[1])}`],
+    [/^soit (.+) par mois$/, (m) => `i.e. ${m[1]} per month`],
+    [/^Recrutement jusqu’au (.+)$/, (m) => `Recruitment until ${m[1]}`],
+    [/^Accès recrutement \((\d+)\)$/, (m) => `Recruitment access (${m[1]})`],
+    [/^Offert par (.+)$/, (m) => `Offered by ${m[1]}`],
+    [
+        /^Accès recrutement offert à (.+) jusqu’au (.+)\.$/,
+        (m) => `Recruitment access offered to ${m[1]} until ${m[2]}.`,
+    ],
+    [/^Forfait « (.+) » enregistré\.$/, (m) => `Plan “${m[1]}” saved.`],
+    [
+        /^L'équipe DAG vous offre (.+) d'accès recrutement, jusqu'au (.+) : publiez vos offres d'emploi et suivez vos candidats\.$/,
+        (m, t) =>
+            `The DAG team offers you ${t(m[1])} of recruitment access, until ${m[2]}: publish your job offers and follow your candidates.`,
+    ],
+    [
+        /^Merci, votre abonnement recrutement \((.+)\) est actif jusqu'au (.+) : publiez vos offres d'emploi et suivez vos candidats\.$/,
+        (m, t) =>
+            `Thank you, your recruitment subscription (${t(m[1])}) is active until ${m[2]}: publish your job offers and follow your candidates.`,
+    ],
+    [
+        /^Abonnement recrutement — (.+)$/,
+        (m, t) => `Recruitment subscription — ${t(m[1])}`,
+    ],
     [/^Numéro (.+)$/, (m) => `Number ${m[1]}`],
     [/^(\d+) séances?$/, (m) => `${m[1]} ${pluriel(m[1], 'sitting')}`],
     [/^(\d+) événements?$/, (m) => `${m[1]} ${pluriel(m[1], 'event')}`],

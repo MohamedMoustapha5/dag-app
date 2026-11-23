@@ -101,6 +101,7 @@ class FacturePdf
         return match (true) {
             $facture->inscription_id !== null => 'Inscription à une session de formation',
             $facture->abonnement_id !== null => 'Abonnement',
+            $facture->acces_recrutement_id !== null => 'Accès aux pages recrutement (offres et candidatures)',
             $facture->demande_id !== null && $facture->demande->formule_id !== null => 'Souscription à une formule',
             default => 'Prestation de service',
         };

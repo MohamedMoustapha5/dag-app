@@ -9,11 +9,12 @@ use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\Apprenant;
 use App\Models\Client;
-use App\Notifications\PartenariatValideNotification;
-use App\Support\Notifications\Notifier;
+use App\Support\Recrutement\AbonnementRecrutement;
 use App\Support\SuppressionCompte;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -27,7 +28,10 @@ class AdminClientController extends Controller
         abort_unless($membre->peut(Donnee::DemandesClients, Action::Voir), 403);
 
         $clients = Client::query()
-            ->with(['user', 'entreprisePartenaire'])
+            ->with('user')
+            ->withMax(['accesRecrutement as fin_acces_recrutement' => fn ($query) => $query
+                ->where('statut', 'ACTIF')
+                ->whereDate('fin', '>=', now()->toDateString())], 'fin')
             ->withCount('demandes')
             ->orderByDesc('created_at')
             ->get();
@@ -63,50 +67,40 @@ class AdminClientController extends Controller
                 'ville' => $client->ville,
                 'telephone' => $client->telephone,
                 'statut' => $client->statut,
-                'statutPartenaire' => $client->entreprisePartenaire?->statut,
+                'finAccesRecrutement' => $client->fin_acces_recrutement
+                    ? Carbon::parse($client->fin_acces_recrutement)->toDateString()
+                    : null,
                 'demandesCount' => $client->demandes_count,
                 'inscritLe' => $client->created_at?->format('d/m/Y'),
             ]),
             'actions' => [
                 'supprimer' => $membre->peut(Donnee::DemandesClients, Action::Supprimer),
                 'supprimerApprenant' => $membre->peut(Donnee::DossiersApprenants, Action::Supprimer),
-                'nommerPartenaire' => $membre->peut(Donnee::EntreprisesOffres, Action::Valider),
+                'offrirAcces' => $membre->peut(Donnee::EntreprisesOffres, Action::Valider),
             ],
         ]);
     }
 
     /**
-     * Makes an Entreprise client an official recruitment partner without a
-     * request on its part: its partner record is created from the account
-     * (or an existing one reactivated) and its espace unlocks job offers and
-     * candidates at once.
+     * DAG offers an entreprise or an organisation a period of recruitment
+     * access, without payment (a partner, a trial). It follows any period
+     * already secured, like a renewal.
      */
-    public function nommerPartenaire(Request $request, Client $client): RedirectResponse
+    public function offrirAccesRecrutement(Request $request, Client $client, AbonnementRecrutement $abonnements): RedirectResponse
     {
         $membre = $this->membre($request);
         abort_unless($membre->peut(Donnee::EntreprisesOffres, Action::Valider), 403);
-        abort_unless($client->estStructure(), 422, 'Seul un compte entreprise ou organisation peut devenir partenaire recrutement.');
+        abort_unless($client->estStructure(), 422, 'Seul un compte entreprise ou organisation peut accéder au recrutement.');
 
-        if ($client->estPartenaireValide()) {
-            return back();
-        }
+        $data = $request->validate([
+            'mois' => ['required', 'integer', Rule::in([1, 3, 6, 12])],
+        ]);
 
-        $partenaire = $client->entreprisePartenaire()->firstOrNew();
-        $partenaire->fill($partenaire->exists ? ['statut' => 'ACTIF'] : [
-            'nom' => $client->nom,
-            'secteur' => $client->secteur_activite,
-            'email' => $client->user->email,
-            'telephone' => $client->telephone,
-            'statut' => 'ACTIF',
-        ])->save();
-
-        ActivityLog::record($membre, 'a validé le partenaire', $partenaire, "{$partenaire->nom}, depuis son compte client.");
-
-        Notifier::envoyer($client->user, new PartenariatValideNotification);
+        $acces = $abonnements->offrir($client, (int) $data['mois'], $membre);
 
         Inertia::flash('toast', [
             'type' => 'success',
-            'message' => "{$client->nom} est maintenant un partenaire validé : ses offres et candidatures sont ouvertes.",
+            'message' => "Accès recrutement offert à {$client->nom} jusqu’au {$acces->fin->format('d/m/Y')}.",
         ]);
 
         return back();

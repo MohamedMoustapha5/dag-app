@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Carbon;
 
 #[Fillable(['user_id', 'type', 'nom', 'secteur_activite', 'ville', 'telephone', 'statut'])]
 class Client extends Model
@@ -46,12 +47,37 @@ class Client extends Model
     }
 
     /**
-     * Whether DAG has validated this client as an official recruitment
-     * partner — only then does its espace unlock offres/candidatures.
+     * Whether the recruitment pages (offres, candidatures) are open to this
+     * client: an entreprise or an organisation with a recruitment
+     * subscription in progress, paid or offered by DAG, whose partner record
+     * DAG has not suspended. The name stays from the time DAG validated
+     * partners by hand.
      */
     public function estPartenaireValide(): bool
     {
-        return $this->entreprisePartenaire !== null && $this->entreprisePartenaire->statut === 'ACTIF';
+        return $this->estStructure()
+            && $this->entreprisePartenaire?->statut === 'ACTIF'
+            && $this->accesRecrutement()->enCours()->exists();
+    }
+
+    /**
+     * The last day of recruitment access already secured (current period
+     * and any period paid in advance), or null without access.
+     */
+    public function finAccesRecrutement(): ?Carbon
+    {
+        $fin = $this->accesRecrutement()
+            ->where('statut', 'ACTIF')
+            ->whereDate('fin', '>=', now()->toDateString())
+            ->max('fin');
+
+        return $fin !== null ? Carbon::parse($fin) : null;
+    }
+
+    /** @return HasMany<AccesRecrutement, $this> */
+    public function accesRecrutement(): HasMany
+    {
+        return $this->hasMany(AccesRecrutement::class);
     }
 
     /**

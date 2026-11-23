@@ -13,16 +13,16 @@ use App\Notifications\AlerteEquipeNotification;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 
-test('an entreprise client without a validated partner link cannot reach the recruitment routes', function () {
+test('an entreprise client with a partner link but no subscription is sent to the subscription page', function () {
     $client = Client::factory()->create(['type' => 'ENTREPRISE']);
+    EntreprisePartenaire::factory()->create(['client_id' => $client->id, 'statut' => 'ACTIF']);
 
-    $this->actingAs($client->user)->get(route('espace-client.offres.index'))->assertForbidden();
-    $this->actingAs($client->user)->get(route('espace-client.candidatures.index'))->assertForbidden();
+    $this->actingAs($client->user)->get(route('espace-client.offres.create'))
+        ->assertRedirect(route('espace-client.recrutement.abonnement'));
 });
 
-test('an entreprise client with an inactive partner link cannot reach the recruitment routes', function () {
-    $client = Client::factory()->create(['type' => 'ENTREPRISE']);
-    EntreprisePartenaire::factory()->create(['client_id' => $client->id, 'statut' => 'EN_ATTENTE']);
+test('a particulier client has no recruitment pages at all', function () {
+    $client = Client::factory()->create(['type' => 'PARTICULIER']);
 
     $this->actingAs($client->user)->get(route('espace-client.offres.index'))->assertForbidden();
 });

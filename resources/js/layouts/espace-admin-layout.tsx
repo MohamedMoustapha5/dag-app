@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
     Award,
+    BadgeCheck,
     Briefcase,
     BookOpen,
     BarChart3,
@@ -38,6 +39,7 @@ import equipeAdmin from '@/routes/espace-admin/equipe';
 import facturesAdmin from '@/routes/espace-admin/factures';
 import formationsAdmin from '@/routes/espace-admin/formations';
 import grilleTarifaireAdmin from '@/routes/espace-admin/grille-tarifaire';
+import recrutementAdmin from '@/routes/espace-admin/recrutement';
 import servicesAdmin from '@/routes/espace-admin/services';
 import supportAdmin from '@/routes/espace-admin/support';
 
@@ -138,6 +140,12 @@ const NAV_GROUPS: NavGroup[] = [
                 label: 'Entreprises & offres',
                 icon: Briefcase,
                 href: entreprisesAdmin.index(),
+                visibleIf: 'ENTREPRISES_OFFRES',
+            },
+            {
+                label: 'Abonnements recrutement',
+                icon: BadgeCheck,
+                href: recrutementAdmin.index(),
                 visibleIf: 'ENTREPRISES_OFFRES',
             },
         ],

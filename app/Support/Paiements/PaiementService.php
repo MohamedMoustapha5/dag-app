@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Notifications\InscriptionDecisionNotification;
 use App\Notifications\PaiementConfirmeNotification;
 use App\Support\Notifications\Notifier;
+use App\Support\Recrutement\AbonnementRecrutement;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Throwable;
@@ -468,6 +469,11 @@ class PaiementService
             'statut' => $soldee ? 'PAYEE' : 'PARTIELLEMENT_PAYEE',
             'moyen_paiement' => $moyen,
         ]);
+
+        // A recruitment subscription opens its period once fully paid.
+        if ($soldee && $facture->acces_recrutement_id !== null) {
+            app(AbonnementRecrutement::class)->activer($facture->accesRecrutement);
+        }
 
         // The fee is only billed once DAG validated the dossier
         // (AdminInscriptionController::valider): paying it confirms the seat.
