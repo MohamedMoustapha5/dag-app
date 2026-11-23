@@ -304,8 +304,8 @@ export const espacesEn: Record<string, string> = {
     'Voir les candidatures': 'View applications',
     'Répartition des candidatures': 'Applications breakdown',
     'Envoyer une offre à DAG': 'Send an offer to DAG',
-    'Votre offre est transmise à notre équipe, qui la publie après validation et vous propose des profils correspondants.':
-        'Your offer is passed to our team, who publish it after validation and suggest matching profiles.',
+    'Votre offre est transmise à notre équipe, qui vous propose des profils correspondants.':
+        'Your offer is passed to our team, who suggest matching profiles.',
     'Titre du poste': 'Job title',
     'Ex. Community Manager junior — Stage 3 mois':
         'E.g. Junior Community Manager — 3-month internship',

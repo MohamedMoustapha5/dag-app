@@ -378,13 +378,29 @@ export default function EspaceClientLayout({ children }: PropsWithChildren) {
                             <div className="espace-user">
                                 <span className="espace-avatar">
                                     {initiales}
+                                    {client.estPartenaireOfficiel && (
+                                        <span
+                                            className="espace-avatar-sceau"
+                                            role="img"
+                                            aria-label="Partenaire officiel"
+                                            title="Partenaire officiel de Digital Agency Group"
+                                        >
+                                            <BadgeCheck
+                                                size={11}
+                                                strokeWidth={2.6}
+                                                aria-hidden="true"
+                                            />
+                                        </span>
+                                    )}
                                 </span>
-                                <div>
+                                <div className="espace-user-texte">
                                     <p className="espace-user-name">
                                         {client.nom}
                                     </p>
                                     <p className="espace-user-type">
-                                        {client.typeLabel}
+                                        <span className="espace-user-type-libelle">
+                                            {client.typeLabel}
+                                        </span>
                                         {client.estPartenaireOfficiel && (
                                             <span
                                                 className="espace-badge-partenaire"

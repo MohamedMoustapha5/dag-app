@@ -52,9 +52,9 @@ test('a validated entreprise partner can send an offre to DAG and see it listed'
     $offre = OffreEmploi::where('entreprise_id', $client->entreprisePartenaire->id)->first();
 
     expect($offre)->not->toBeNull();
-    // L'offre est envoyée à DAG pour validation — seul un membre de
-    // l'équipe DAG peut la faire passer à PUBLIEE.
-    expect($offre->statut)->toBe('BROUILLON');
+    // Seul DAG fait postuler ses profils : l'offre est ouverte aux
+    // candidatures dès son envoi, sans étape de publication.
+    expect($offre->statut)->toBe('PUBLIEE');
 
     $this->actingAs($client->user)->get(route('espace-client.offres.index'))
         ->assertOk()
@@ -285,4 +285,23 @@ test('no team alert for a candidature DAG did not deposit, nor when the decision
 
     expect($sansDag->fresh()->statut)->toBe('RETENUE');
     Notification::assertNothingSent();
+});
+
+test('a new offre is open at once: DAG applies to it without publishing it first', function () {
+    $client = clientPartenaireValide();
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+
+    $this->actingAs($client->user)->post(route('espace-client.offres.store'), [
+        'titre' => 'Développeur web junior',
+        'description' => 'Intégration et maintenance de sites.',
+        'type_contrat' => 'CDD',
+    ]);
+
+    $offre = OffreEmploi::where('titre', 'Développeur web junior')->sole();
+
+    $this->actingAs($promotrice, 'admin')
+        ->get(route('espace-admin.entreprises.index'))
+        ->assertInertia(fn ($page) => $page
+            ->where('offres.0.id', $offre->id)
+            ->where('offres.0.postulable', true));
 });

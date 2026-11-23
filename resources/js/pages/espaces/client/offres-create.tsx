@@ -34,8 +34,8 @@ export default function OffresCreate() {
                 className="muted"
                 style={{ fontSize: 13.5, marginBottom: 24, maxWidth: 640 }}
             >
-                Votre offre est transmise à notre équipe, qui la publie après
-                validation et vous propose des profils correspondants.
+                Votre offre est transmise à notre équipe, qui vous propose des
+                profils correspondants.
             </p>
 
             <div className="card" style={{ padding: 32, maxWidth: 640 }}>

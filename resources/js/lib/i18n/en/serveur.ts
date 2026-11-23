@@ -95,8 +95,8 @@ export const serveurEn: Record<string, string> = {
 
     // Recruitment subscription
     'Votre accès recrutement est actif': 'Your recruitment access is active',
-    'Chaque offre est vérifiée par DAG avant sa mise en ligne.':
-        'Every offer is checked by DAG before it goes online.',
+    'Pour chaque offre, DAG vous propose les profils qui y correspondent.':
+        'For each offer, DAG suggests the profiles that match it.',
     'Les pages recrutement s’ouvrent avec un abonnement : choisissez la durée qui vous convient.':
         'The recruitment pages open with a subscription: choose the duration that suits you.',
     'Un paiement de votre abonnement est déjà en cours : finalisez-le depuis la facture.':

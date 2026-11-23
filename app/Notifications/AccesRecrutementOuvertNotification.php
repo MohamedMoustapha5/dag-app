@@ -37,7 +37,7 @@ class AccesRecrutementOuvertNotification extends NotificationDag
 
     protected function lignes(): array
     {
-        return ['Chaque offre est vérifiée par DAG avant sa mise en ligne.'];
+        return ['Pour chaque offre, DAG vous propose les profils qui y correspondent.'];
     }
 
     public function url(object $notifiable): ?string

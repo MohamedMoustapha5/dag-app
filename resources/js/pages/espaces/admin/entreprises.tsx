@@ -385,25 +385,6 @@ export default function AdminEntreprises({
                                                     Prolonger
                                                 </button>
                                             )}
-                                            {offre.statut === 'BROUILLON' &&
-                                                peutValider && (
-                                                    <button
-                                                        type="button"
-                                                        className="btn-primary"
-                                                        style={{
-                                                            padding: '6px 14px',
-                                                            fontSize: 12.5,
-                                                        }}
-                                                        onClick={() =>
-                                                            changerStatutOffre(
-                                                                offre.id,
-                                                                'PUBLIEE',
-                                                            )
-                                                        }
-                                                    >
-                                                        Publier
-                                                    </button>
-                                                )}
                                             {offre.statut === 'PUBLIEE' &&
                                                 peutModifier && (
                                                     <button
