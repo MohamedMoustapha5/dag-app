@@ -568,6 +568,7 @@ export const adminEn: Record<string, string> = {
 
     // Partner logos of the public site
     'Logos partenaires': 'Partner logos',
+    'Logos partenaires (site public)': 'Partner logos (public site)',
     'Les logos affichés sur le site public : bande défilante de l’accueil et page « À propos ».':
         'The logos shown on the public site: the scrolling band of the home page and the “About” page.',
     'Aperçu sur le site': 'Preview on the site',

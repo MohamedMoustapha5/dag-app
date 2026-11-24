@@ -6,6 +6,7 @@ use App\Enums\MembreEquipeRole;
 use App\Enums\NiveauDroit;
 use App\Models\DroitRole;
 use App\Models\MembreEquipe;
+use App\Models\Partenariat;
 use App\Support\DroitsMatrix;
 
 test('the promotrice has total access to every data domain', function () {
@@ -83,4 +84,46 @@ test('setting a level back to its default removes the override and the directric
     expect(DroitRole::count())->toBe(0);
     expect(fn () => DroitsMatrix::definir(MembreEquipeRole::Promotrice, Donnee::Catalogue, NiveauDroit::Aucun))
         ->toThrow(InvalidArgumentException::class);
+});
+
+test('the partnerships, partner logos and recruitment subscriptions start with the level of the entreprises line', function (MembreEquipeRole $role) {
+    $niveauEntreprises = DroitsMatrix::defaut($role, Donnee::EntreprisesOffres);
+
+    foreach ([Donnee::Partenariats, Donnee::LogosPartenaires, Donnee::AbonnementsRecrutement] as $donnee) {
+        expect(DroitsMatrix::defaut($role, $donnee))->toBe($niveauEntreprises);
+    }
+})->with(MembreEquipeRole::cases());
+
+test('each of these pages follows its own rights line', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $marketing = MembreEquipe::factory()->create(['role' => MembreEquipeRole::CommunicationMarketing]);
+    $partenariat = Partenariat::factory()->create();
+
+    // Marketing manages the logos but may not handle partnerships until given the right.
+    $this->actingAs($marketing, 'admin')
+        ->post(route('espace-admin.partenariats.accepter', $partenariat), ['duree_mois' => 12])
+        ->assertForbidden();
+
+    $this->actingAs($promotrice, 'admin')->put(route('espace-admin.equipe.droits.update'), [
+        'role' => 'COMMUNICATION_MARKETING',
+        'donnee' => 'PARTENARIATS',
+        'niveau' => 'TOTAL',
+    ])->assertRedirect();
+    $this->actingAs($promotrice, 'admin')->put(route('espace-admin.equipe.droits.update'), [
+        'role' => 'COMMUNICATION_MARKETING',
+        'donnee' => 'LOGOS_PARTENAIRES',
+        'niveau' => 'AUCUN',
+    ])->assertRedirect();
+
+    $marketing = $marketing->fresh();
+    $this->actingAs($marketing, 'admin')
+        ->post(route('espace-admin.partenariats.accepter', $partenariat), ['duree_mois' => 12])
+        ->assertRedirect();
+    $this->actingAs($marketing, 'admin')
+        ->get(route('espace-admin.logos-partenaires.index'))
+        ->assertForbidden();
+    $this->actingAs($marketing, 'admin')
+        ->get(route('espace-admin.recrutement.index'))
+        ->assertOk();
+    expect($marketing->peut(Donnee::EntreprisesOffres, Action::Valider))->toBeFalse();
 });

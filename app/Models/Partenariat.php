@@ -48,7 +48,7 @@ class Partenariat extends Model
     ];
 
     /** Durations DAG can grant, in months. */
-    public const DUREES = [self::DUREE_INDETERMINEE, 6, 12, 24];
+    public const DUREES = [self::DUREE_INDETERMINEE, 6, 12, 24, 36, 48, 60, 72, 84, 96, 108, 120];
 
     /** An open-ended partnership, tacitly renewed: it has no end date. */
     public const DUREE_INDETERMINEE = 0;

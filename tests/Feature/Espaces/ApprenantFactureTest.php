@@ -69,6 +69,8 @@ test('an apprenant can download the pdf of their own paid facture only', functio
         ->assertNotFound();
 });
 
-test('the admin has no pdf download for factures', function () {
-    expect(Route::has('espace-admin.factures.pdf'))->toBeFalse();
+test('the admin downloads the pdf of a facture, the apprenant only its paid ones', function () {
+    // The team gets every facture (see Admin/FactureTest); the apprenant keeps
+    // the rule above: a facture not paid yet is not downloadable from its space.
+    expect(Route::has('espace-admin.factures.pdf'))->toBeTrue();
 });

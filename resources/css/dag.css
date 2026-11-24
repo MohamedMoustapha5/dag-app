@@ -7055,3 +7055,9 @@
         justify-content: center;
     }
 }
+.dag .lien-pdf {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-right: 14px;
+}

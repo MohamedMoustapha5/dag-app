@@ -26,7 +26,7 @@ class AdminRecrutementController extends Controller
     public function index(Request $request): Response
     {
         $membre = $this->membre($request);
-        abort_unless($membre->peut(Donnee::EntreprisesOffres, Action::Voir), 403);
+        abort_unless($membre->peut(Donnee::AbonnementsRecrutement, Action::Voir), 403);
 
         $aujourdhui = now()->startOfDay();
 
@@ -64,7 +64,7 @@ class AdminRecrutementController extends Controller
                     default => 'EN_COURS',
                 },
             ]),
-            'peutModifier' => $membre->peut(Donnee::EntreprisesOffres, Action::Valider),
+            'peutModifier' => $membre->peut(Donnee::AbonnementsRecrutement, Action::Valider),
         ]);
     }
 
@@ -75,7 +75,7 @@ class AdminRecrutementController extends Controller
     public function updateForfait(Request $request, ForfaitRecrutement $forfait): RedirectResponse
     {
         $membre = $this->membre($request);
-        abort_unless($membre->peut(Donnee::EntreprisesOffres, Action::Valider), 403);
+        abort_unless($membre->peut(Donnee::AbonnementsRecrutement, Action::Valider), 403);
 
         $data = $request->validate([
             'libelle' => ['required', 'string', 'max:60'],

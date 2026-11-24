@@ -45,7 +45,7 @@
         .totaux tr.total td { background: #0b1a33; border-color: #0b1a33; color: #ffffff; font-size: 13px; font-weight: bold; padding: 11px 12px; }
         .totaux tr.total td.chiffre { color: #faa608; font-size: 15px; }
 
-        .note { margin-top: 30px; background: #eef1f8; border-left: 4px solid #faa608; padding: 13px 20px; }
+        .note { margin-top: 18px; background: #eef1f8; border-left: 4px solid #faa608; padding: 13px 20px; }
         .note-titre { font-size: 12.5px; font-weight: bold; }
         .note-texte { font-size: 11px; color: #3d4a63; margin-top: 3px; }
 
@@ -55,7 +55,7 @@
         .a-valider { margin-top: 18px; border: 1.5px dashed #b07a00; border-radius: 9px; padding: 12px 18px; }
         .a-valider-titre { font-size: 12.5px; font-weight: bold; color: #b07a00; }
 
-        .signature { width: 200px; margin: 26px 0 0 auto; text-align: center; }
+        .signature { width: 200px; margin: 12px 0 0 auto; text-align: center; }
         .signature-trait { border-top: 1px solid #c7cedb; padding-top: 4px; font-size: 10px; color: #5b6478; }
         .signature-nom { margin-top: 3px; font-size: 10.5px; font-weight: bold; letter-spacing: 0.3px; color: #071f41; }
         .signature-qualite { font-size: 9.5px; color: #5b6478; }
@@ -195,9 +195,9 @@
 
     @if($cachet || $signature)
         <div class="signature">
-            <div style="height: 76px;">
+            <div style="height: 62px;">
                 @if($cachet)
-                    <img src="{{ $cachet }}" alt="" style="height: 72px;">
+                    <img src="{{ $cachet }}" alt="" style="height: 60px;">
                 @endif
                 @if($signature)
                     <img src="{{ $signature }}" alt="" style="height: 48px;">

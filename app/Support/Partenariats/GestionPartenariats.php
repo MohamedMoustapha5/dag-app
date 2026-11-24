@@ -43,7 +43,7 @@ class GestionPartenariats
         ActivityLog::record(null, 'demande de partenariat reçue', $partenariat, "{$client->nom} : {$partenariat->reference}.");
 
         Notifier::alerterEquipe(
-            Donnee::EntreprisesOffres,
+            Donnee::Partenariats,
             Action::Valider,
             'partenariat.demande',
             "Demande de partenariat — {$client->nom}",

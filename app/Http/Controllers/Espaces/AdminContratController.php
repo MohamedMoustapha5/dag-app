@@ -92,7 +92,7 @@ class AdminContratController extends Controller
                     ->values(),
                 'durees' => Partenariat::DUREES,
                 'peutFacturer' => $membre->peut(Donnee::FacturesPaiements, Action::Creer),
-                'peutPartenariat' => $membre->peut(Donnee::EntreprisesOffres, Action::Valider),
+                'peutPartenariat' => $membre->peut(Donnee::Partenariats, Action::Valider),
             ] : null,
         ]);
     }
@@ -299,7 +299,7 @@ class AdminContratController extends Controller
         ])['type'];
 
         if ($type === 'CONTRAT_PARTENAIRE') {
-            abort_unless($membre->peut(Donnee::EntreprisesOffres, Action::Valider), 403, 'Proposer un partenariat demande le droit de validation sur les entreprises.');
+            abort_unless($membre->peut(Donnee::Partenariats, Action::Valider), 403, 'Proposer un partenariat demande le droit de validation sur les partenariats.');
 
             $data = $request->validate([
                 'client_id' => ['required', 'uuid', Rule::exists('clients', 'id')],

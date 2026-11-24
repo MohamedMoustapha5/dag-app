@@ -120,7 +120,7 @@ class AbonnementRecrutement
 
         if ($acces->origine === 'PAIEMENT') {
             Notifier::alerterEquipe(
-                Donnee::EntreprisesOffres,
+                Donnee::AbonnementsRecrutement,
                 Action::Voir,
                 'recrutement.abonnement',
                 "Abonnement recrutement — {$client->nom}",

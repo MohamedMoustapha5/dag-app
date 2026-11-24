@@ -42,6 +42,23 @@ class FacturePdf
         );
     }
 
+    /**
+     * For the DAG team, whatever the status: a paid facture is the archived
+     * receipt the client gets; an unpaid one is a facture « à régler »,
+     * generated on the spot and never archived (its amounts still change).
+     */
+    public static function telechargerPourEquipe(Facture $facture): Response
+    {
+        if ($facture->statut === 'PAYEE') {
+            return self::telecharger($facture);
+        }
+
+        return response(self::generer($facture), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => "attachment; filename=\"facture-{$facture->reference}.pdf\"",
+        ]);
+    }
+
     public static function generer(Facture $facture): string
     {
         return Pdf::loadView('pdf.facture', self::donnees($facture))->setPaper('a4')->output();
@@ -61,8 +78,15 @@ class FacturePdf
             ->sortByDesc('date_paiement')
             ->first();
 
+        $montant = (float) $facture->montant;
+        $paye = (float) $facture->montant_paye;
+
         return [
             'facture' => $facture,
+            'acquittee' => $facture->statut === 'PAYEE',
+            'dejaRegle' => $paye,
+            'resteAPayer' => max(0, $montant - $paye),
+            'dateEmission' => $facture->created_at?->copy()->timezone('Africa/Douala')->locale('fr')->translatedFormat('j F Y') ?? '—',
             'objet' => $facture->libelleObjet(),
             'nature' => self::nature($facture),
             'destinataire' => self::destinataire($facture),

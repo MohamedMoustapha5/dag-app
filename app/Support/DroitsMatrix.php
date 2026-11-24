@@ -33,6 +33,9 @@ class DroitsMatrix
             Donnee::ContratsClauses->value => NiveauDroit::Total,
             Donnee::DossiersApprenants->value => NiveauDroit::Total,
             Donnee::EntreprisesOffres->value => NiveauDroit::Total,
+            Donnee::Partenariats->value => NiveauDroit::Total,
+            Donnee::LogosPartenaires->value => NiveauDroit::Total,
+            Donnee::AbonnementsRecrutement->value => NiveauDroit::Total,
             Donnee::Statistiques->value => NiveauDroit::Total,
         ],
         MembreEquipeRole::Juriste->value => [
@@ -45,6 +48,9 @@ class DroitsMatrix
             Donnee::ContratsClauses->value => NiveauDroit::Total,
             Donnee::DossiersApprenants->value => NiveauDroit::Lecture,
             Donnee::EntreprisesOffres->value => NiveauDroit::Lecture,
+            Donnee::Partenariats->value => NiveauDroit::Lecture,
+            Donnee::LogosPartenaires->value => NiveauDroit::Lecture,
+            Donnee::AbonnementsRecrutement->value => NiveauDroit::Lecture,
             Donnee::Statistiques->value => NiveauDroit::Lecture,
         ],
         MembreEquipeRole::CommunicationMarketing->value => [
@@ -57,6 +63,9 @@ class DroitsMatrix
             Donnee::ContratsClauses->value => NiveauDroit::Lecture,
             Donnee::DossiersApprenants->value => NiveauDroit::Gestion,
             Donnee::EntreprisesOffres->value => NiveauDroit::Gestion,
+            Donnee::Partenariats->value => NiveauDroit::Gestion,
+            Donnee::LogosPartenaires->value => NiveauDroit::Gestion,
+            Donnee::AbonnementsRecrutement->value => NiveauDroit::Gestion,
             Donnee::Statistiques->value => NiveauDroit::Lecture,
         ],
         MembreEquipeRole::ControleGestion->value => [
@@ -69,6 +78,9 @@ class DroitsMatrix
             Donnee::ContratsClauses->value => NiveauDroit::Lecture,
             Donnee::DossiersApprenants->value => NiveauDroit::Aucun,
             Donnee::EntreprisesOffres->value => NiveauDroit::Aucun,
+            Donnee::Partenariats->value => NiveauDroit::Aucun,
+            Donnee::LogosPartenaires->value => NiveauDroit::Aucun,
+            Donnee::AbonnementsRecrutement->value => NiveauDroit::Aucun,
             Donnee::Statistiques->value => NiveauDroit::Total,
         ],
         MembreEquipeRole::CreationContenu->value => [
@@ -81,6 +93,9 @@ class DroitsMatrix
             Donnee::ContratsClauses->value => NiveauDroit::Aucun,
             Donnee::DossiersApprenants->value => NiveauDroit::Aucun,
             Donnee::EntreprisesOffres->value => NiveauDroit::Aucun,
+            Donnee::Partenariats->value => NiveauDroit::Aucun,
+            Donnee::LogosPartenaires->value => NiveauDroit::Aucun,
+            Donnee::AbonnementsRecrutement->value => NiveauDroit::Aucun,
             Donnee::Statistiques->value => NiveauDroit::Aucun,
         ],
         MembreEquipeRole::Developpeur->value => [
@@ -93,6 +108,9 @@ class DroitsMatrix
             Donnee::ContratsClauses->value => NiveauDroit::Lecture,
             Donnee::DossiersApprenants->value => NiveauDroit::Lecture,
             Donnee::EntreprisesOffres->value => NiveauDroit::Lecture,
+            Donnee::Partenariats->value => NiveauDroit::Lecture,
+            Donnee::LogosPartenaires->value => NiveauDroit::Lecture,
+            Donnee::AbonnementsRecrutement->value => NiveauDroit::Lecture,
             Donnee::Statistiques->value => NiveauDroit::Lecture,
         ],
     ];

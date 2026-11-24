@@ -1,4 +1,5 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
+import { Download } from 'lucide-react';
 import GenererContratButton from '@/components/espaces/generer-contrat-button';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
 import facturesAdmin from '@/routes/espace-admin/factures';
@@ -42,6 +43,7 @@ type Props = {
     peutModifier: boolean;
     peutValider: boolean;
     peutGenererContrat: boolean;
+    peutTelecharger: boolean;
 };
 
 export default function AdminFactureShow({
@@ -51,6 +53,7 @@ export default function AdminFactureShow({
     peutModifier,
     peutValider,
     peutGenererContrat,
+    peutTelecharger,
 }: Props) {
     const trancher = (id: string, statut: 'CONFIRME' | 'ECHEC') => {
         router.patch(
@@ -108,7 +111,30 @@ export default function AdminFactureShow({
                         {facture.reference} · {facture.client}
                     </span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 12,
+                        flexWrap: 'wrap',
+                    }}
+                >
+                    {peutTelecharger && (
+                        <a
+                            href={facturesAdmin.pdf(facture.id).url}
+                            className="btn-outline"
+                            style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: 7,
+                            }}
+                        >
+                            <Download size={15} aria-hidden="true" />
+                            {facture.statut === 'PAYEE'
+                                ? 'Télécharger la facture'
+                                : 'Télécharger la facture à régler'}
+                        </a>
+                    )}
                     {facture.statut === 'PAYEE' &&
                         facture.demandeId &&
                         peutGenererContrat &&

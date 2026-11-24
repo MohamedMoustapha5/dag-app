@@ -471,3 +471,27 @@ test('an open-ended partnership is tacitly renewed and has no end date', functio
             ->where('partenariat.fin', null)
             ->where('peutDemander', false));
 });
+
+test('a partnership can last up to ten years, not longer', function () {
+    Storage::fake('local');
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $client = Client::factory()->entreprise()->create();
+    $partenariat = Partenariat::factory()->create(['client_id' => $client->id]);
+
+    $this->actingAs($promotrice, 'admin')
+        ->post(route('espace-admin.partenariats.accepter', $partenariat), ['duree_mois' => 132])
+        ->assertSessionHasErrors('duree_mois');
+
+    $this->actingAs($promotrice, 'admin')
+        ->post(route('espace-admin.partenariats.accepter', $partenariat), ['duree_mois' => 120])
+        ->assertSessionHasNoErrors();
+
+    $contrat = $partenariat->fresh()->contrat;
+    expect($contrat->contenu)->toContain('conclu pour une durée de 10 ans');
+
+    signerContratPartenariat($client, $contrat);
+    $this->actingAs($promotrice, 'admin')->patch(route('espace-admin.contrats.update', $contrat), ['statut' => 'ACTIF']);
+
+    expect($partenariat->fresh()->fin->toDateString())
+        ->toBe(today()->addMonthsNoOverflow(120)->subDay()->toDateString());
+});

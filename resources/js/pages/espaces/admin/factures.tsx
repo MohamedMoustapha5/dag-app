@@ -1,4 +1,5 @@
 import { Head, Link, useForm } from '@inertiajs/react';
+import { Download } from 'lucide-react';
 import { useState } from 'react';
 import GenererContratButton from '@/components/espaces/generer-contrat-button';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
@@ -28,6 +29,7 @@ type Props = {
     demandesAFacturer: DemandeAFacturer[];
     peutCreer: boolean;
     peutGenererContrat: boolean;
+    peutTelecharger: boolean;
 };
 
 export default function AdminFactures({
@@ -35,6 +37,7 @@ export default function AdminFactures({
     demandesAFacturer,
     peutCreer,
     peutGenererContrat,
+    peutTelecharger,
 }: Props) {
     const [demandeId, setDemandeId] = useState(demandesAFacturer[0]?.id ?? '');
     const demandeSelectionnee = demandesAFacturer.find(
@@ -216,7 +219,34 @@ export default function AdminFactures({
                                                     facture.statut}
                                             </span>
                                         </td>
-                                        <td style={{ textAlign: 'right' }}>
+                                        <td
+                                            style={{
+                                                textAlign: 'right',
+                                                whiteSpace: 'nowrap',
+                                            }}
+                                        >
+                                            {peutTelecharger && (
+                                                <a
+                                                    href={
+                                                        facturesAdmin.pdf(
+                                                            facture.id,
+                                                        ).url
+                                                    }
+                                                    className="link-action lien-pdf"
+                                                    title={
+                                                        facture.statut ===
+                                                        'PAYEE'
+                                                            ? 'Télécharger la facture acquittée'
+                                                            : 'Télécharger la facture à régler'
+                                                    }
+                                                >
+                                                    <Download
+                                                        size={14}
+                                                        aria-hidden="true"
+                                                    />
+                                                    PDF
+                                                </a>
+                                            )}
                                             {facture.statut === 'PAYEE' &&
                                                 facture.demandeId &&
                                                 (facture.aContrat ? (

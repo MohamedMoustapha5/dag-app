@@ -1,9 +1,11 @@
 <?php
 
 use App\Models\Client;
+use App\Models\Demande;
 use App\Models\Facture;
 use App\Models\Paiement;
 use App\Support\FacturePdf;
+use App\Support\ProformaPdf;
 
 function factureRendue(Facture $facture): string
 {
@@ -40,10 +42,23 @@ test('the facture shows the client, the readable payment method, the payment ref
         ->toContain('contact@agencydag.com');
 });
 
-test('RCCM, NIU and the VAT mention appear only once they are configured', function () {
+test('the facture carries the NIU of DAG by default', function () {
     $facture = Facture::factory()->payee()->create();
 
-    expect(factureRendue($facture))->not->toContain('RCCM :')->not->toContain('NIU :');
+    expect(factureRendue($facture))->toContain('NIU : P010618877302Q');
+});
+
+test('the proforma carries the NIU of DAG by default', function () {
+    $demande = Demande::factory()->create(['montant_negocie' => 60000]);
+
+    expect(view('pdf.proforma', ProformaPdf::donnees($demande))->render())
+        ->toContain('NIU : P010618877302Q');
+});
+
+test('RCCM and the VAT mention appear only once they are configured, the NIU can be changed', function () {
+    $facture = Facture::factory()->payee()->create();
+
+    expect(factureRendue($facture))->not->toContain('RCCM :');
 
     config([
         'entreprise.rccm' => 'CM-DLA-2026-B-00001',

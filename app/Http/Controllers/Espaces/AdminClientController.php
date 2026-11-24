@@ -78,7 +78,7 @@ class AdminClientController extends Controller
             'actions' => [
                 'supprimer' => $membre->peut(Donnee::DemandesClients, Action::Supprimer),
                 'supprimerApprenant' => $membre->peut(Donnee::DossiersApprenants, Action::Supprimer),
-                'offrirAcces' => $membre->peut(Donnee::EntreprisesOffres, Action::Valider),
+                'offrirAcces' => $membre->peut(Donnee::AbonnementsRecrutement, Action::Valider),
             ],
         ]);
     }
@@ -91,7 +91,7 @@ class AdminClientController extends Controller
     public function offrirAccesRecrutement(Request $request, Client $client, AbonnementRecrutement $abonnements): RedirectResponse
     {
         $membre = $this->membre($request);
-        abort_unless($membre->peut(Donnee::EntreprisesOffres, Action::Valider), 403);
+        abort_unless($membre->peut(Donnee::AbonnementsRecrutement, Action::Valider), 403);
         abort_unless($client->estStructure(), 422, 'Seul un compte entreprise ou organisation peut accéder au recrutement.');
 
         $data = $request->validate([

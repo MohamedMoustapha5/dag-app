@@ -239,6 +239,7 @@ Route::middleware(['auth:admin', 'auth.session', EnsureMembreActif::class])
         Route::get('factures', [AdminFactureController::class, 'index'])->name('espace-admin.factures.index');
         Route::post('factures', [AdminFactureController::class, 'store'])->name('espace-admin.factures.store');
         Route::get('factures/{facture}', [AdminFactureController::class, 'show'])->name('espace-admin.factures.show');
+        Route::get('factures/{facture}/pdf', [AdminFactureController::class, 'pdf'])->name('espace-admin.factures.pdf');
         Route::post('factures/{facture}/paiements', [AdminFactureController::class, 'storePaiement'])->name('espace-admin.factures.paiements.store');
         Route::patch('paiements/{paiement}', [AdminFactureController::class, 'updatePaiement'])->name('espace-admin.paiements.update');
         Route::get('contrats', [AdminContratController::class, 'index'])->name('espace-admin.contrats.index');

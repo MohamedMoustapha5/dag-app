@@ -17,7 +17,7 @@ test('the index page exposes the access matrix, confirming the juriste role gran
         ->has('matriceRoles', 6)
         ->where('matriceRoles.1.role', 'JURISTE')
         ->where('matriceRoles.1.droits.CONTRATS_CLAUSES', 'TOTAL')
-        ->has('domaines', 10));
+        ->has('domaines', count(Donnee::cases())));
 });
 
 test('a promotrice can create a new membre equipe account', function () {

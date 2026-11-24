@@ -28,7 +28,7 @@ class AdminLogoPartenaireController extends Controller
     public function index(Request $request): Response
     {
         $membre = $this->membre($request);
-        abort_unless($membre->peut(Donnee::EntreprisesOffres, Action::Voir), 403);
+        abort_unless($membre->peut(Donnee::LogosPartenaires, Action::Voir), 403);
 
         return Inertia::render('espaces/admin/logos-partenaires', [
             ...$this->adminEspaceProps($membre),
@@ -41,9 +41,9 @@ class AdminLogoPartenaireController extends Controller
                 'visible' => $logo->visible,
             ]),
             'actions' => [
-                'creer' => $membre->peut(Donnee::EntreprisesOffres, Action::Creer),
-                'modifier' => $membre->peut(Donnee::EntreprisesOffres, Action::Modifier),
-                'supprimer' => $membre->peut(Donnee::EntreprisesOffres, Action::Supprimer),
+                'creer' => $membre->peut(Donnee::LogosPartenaires, Action::Creer),
+                'modifier' => $membre->peut(Donnee::LogosPartenaires, Action::Modifier),
+                'supprimer' => $membre->peut(Donnee::LogosPartenaires, Action::Supprimer),
             ],
         ]);
     }
@@ -51,7 +51,7 @@ class AdminLogoPartenaireController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $membre = $this->membre($request);
-        abort_unless($membre->peut(Donnee::EntreprisesOffres, Action::Creer), 403);
+        abort_unless($membre->peut(Donnee::LogosPartenaires, Action::Creer), 403);
 
         $data = $request->validate([
             ...$this->regles(),
@@ -80,7 +80,7 @@ class AdminLogoPartenaireController extends Controller
     public function update(Request $request, LogoPartenaire $logoPartenaire): RedirectResponse
     {
         $membre = $this->membre($request);
-        abort_unless($membre->peut(Donnee::EntreprisesOffres, Action::Modifier), 403);
+        abort_unless($membre->peut(Donnee::LogosPartenaires, Action::Modifier), 403);
 
         $data = $request->validate([
             ...$this->regles(),
@@ -110,7 +110,7 @@ class AdminLogoPartenaireController extends Controller
     public function basculer(Request $request, LogoPartenaire $logoPartenaire): RedirectResponse
     {
         $membre = $this->membre($request);
-        abort_unless($membre->peut(Donnee::EntreprisesOffres, Action::Modifier), 403);
+        abort_unless($membre->peut(Donnee::LogosPartenaires, Action::Modifier), 403);
 
         $logoPartenaire->update(['visible' => ! $logoPartenaire->visible]);
 
@@ -127,7 +127,7 @@ class AdminLogoPartenaireController extends Controller
     public function deplacer(Request $request, LogoPartenaire $logoPartenaire): RedirectResponse
     {
         $membre = $this->membre($request);
-        abort_unless($membre->peut(Donnee::EntreprisesOffres, Action::Modifier), 403);
+        abort_unless($membre->peut(Donnee::LogosPartenaires, Action::Modifier), 403);
 
         $data = $request->validate([
             'direction' => ['required', Rule::in(['avant', 'apres'])],
@@ -159,7 +159,7 @@ class AdminLogoPartenaireController extends Controller
     public function destroy(Request $request, LogoPartenaire $logoPartenaire): RedirectResponse
     {
         $membre = $this->membre($request);
-        abort_unless($membre->peut(Donnee::EntreprisesOffres, Action::Supprimer), 403);
+        abort_unless($membre->peut(Donnee::LogosPartenaires, Action::Supprimer), 403);
 
         $logoPartenaire->delete();
         $logoPartenaire->supprimerFichier();

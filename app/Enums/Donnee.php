@@ -17,6 +17,9 @@ enum Donnee: string
     case ContratsClauses = 'CONTRATS_CLAUSES';
     case DossiersApprenants = 'DOSSIERS_APPRENANTS';
     case EntreprisesOffres = 'ENTREPRISES_OFFRES';
+    case Partenariats = 'PARTENARIATS';
+    case LogosPartenaires = 'LOGOS_PARTENAIRES';
+    case AbonnementsRecrutement = 'ABONNEMENTS_RECRUTEMENT';
     case Statistiques = 'STATISTIQUES';
 
     public function label(): string
@@ -31,6 +34,9 @@ enum Donnee: string
             self::ContratsClauses => 'Contrats & clauses',
             self::DossiersApprenants => 'Dossiers apprenants',
             self::EntreprisesOffres => 'Entreprises partenaires & offres',
+            self::Partenariats => 'Partenariats',
+            self::LogosPartenaires => 'Logos partenaires (site public)',
+            self::AbonnementsRecrutement => 'Abonnements recrutement',
             self::Statistiques => 'Statistiques',
         };
     }

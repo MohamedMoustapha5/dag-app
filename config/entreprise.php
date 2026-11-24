@@ -5,9 +5,9 @@
 | DAG's identity on its documents
 |--------------------------------------------------------------------------
 |
-| Shown on the factures (issuer block and legal footer). RCCM, NIU and the
-| VAT mention only appear once they are filled in, so a document never
-| carries an invented registration number.
+| Shown on the factures and proformas (issuer block and legal footer). The
+| NIU is DAG's own; RCCM and the VAT mention only appear once they are
+| filled in, so a document never carries an invented registration number.
 |
 */
 
@@ -34,7 +34,9 @@ return [
 
     'rccm' => env('DAG_RCCM'),
 
-    'niu' => env('DAG_NIU'),
+    // Numéro d'identifiant unique of DAG, also cited in its contracts; a
+    // DAG_NIU left empty in the .env keeps it.
+    'niu' => env('DAG_NIU') ?: 'P010618877302Q',
 
     // e.g. "Prix nets, sans TVA : DAG n'est pas assujettie à la TVA."
     'mention_tva' => env('DAG_MENTION_TVA'),

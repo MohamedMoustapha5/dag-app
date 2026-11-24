@@ -28,7 +28,7 @@ class AdminPartenariatController extends Controller
     public function index(Request $request): Response
     {
         $membre = $this->membre($request);
-        abort_unless($membre->peut(Donnee::EntreprisesOffres, Action::Voir), 403);
+        abort_unless($membre->peut(Donnee::Partenariats, Action::Voir), 403);
 
         $partenariats = Partenariat::query()
             ->with(['client.user', 'contrat', 'traitePar'])
@@ -36,7 +36,7 @@ class AdminPartenariatController extends Controller
             ->latest()
             ->get();
 
-        $peutGerer = $membre->peut(Donnee::EntreprisesOffres, Action::Valider);
+        $peutGerer = $membre->peut(Donnee::Partenariats, Action::Valider);
 
         return Inertia::render('espaces/admin/partenariats', [
             ...$this->adminEspaceProps($membre),
@@ -79,7 +79,7 @@ class AdminPartenariatController extends Controller
     public function accepter(Request $request, Partenariat $partenariat, GestionPartenariats $partenariats): RedirectResponse
     {
         $membre = $this->membre($request);
-        abort_unless($membre->peut(Donnee::EntreprisesOffres, Action::Valider), 403);
+        abort_unless($membre->peut(Donnee::Partenariats, Action::Valider), 403);
 
         $data = $request->validate([
             'duree_mois' => ['required', 'integer', Rule::in(Partenariat::DUREES)],
@@ -98,7 +98,7 @@ class AdminPartenariatController extends Controller
     public function refuser(Request $request, Partenariat $partenariat, GestionPartenariats $partenariats): RedirectResponse
     {
         $membre = $this->membre($request);
-        abort_unless($membre->peut(Donnee::EntreprisesOffres, Action::Valider), 403);
+        abort_unless($membre->peut(Donnee::Partenariats, Action::Valider), 403);
 
         $data = $request->validate([
             'motif' => ['required', 'string', 'min:10', 'max:1000'],
@@ -117,7 +117,7 @@ class AdminPartenariatController extends Controller
     public function proposer(Request $request, GestionPartenariats $partenariats): RedirectResponse
     {
         $membre = $this->membre($request);
-        abort_unless($membre->peut(Donnee::EntreprisesOffres, Action::Valider), 403);
+        abort_unless($membre->peut(Donnee::Partenariats, Action::Valider), 403);
 
         $data = $request->validate([
             'client_id' => ['required', 'uuid', Rule::exists('clients', 'id')],

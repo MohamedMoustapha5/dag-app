@@ -10,9 +10,11 @@ use App\Models\ActivityLog;
 use App\Models\Demande;
 use App\Models\Facture;
 use App\Models\Paiement;
+use App\Support\FacturePdf;
 use App\Support\Paiements\PaiementService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -41,6 +43,7 @@ class AdminFactureController extends Controller
             ...$this->adminEspaceProps($membre),
             'peutCreer' => $membre->peut(Donnee::FacturesPaiements, Action::Creer),
             'peutGenererContrat' => $membre->peut(Donnee::ContratsClauses, Action::Creer),
+            'peutTelecharger' => $membre->peut(Donnee::FacturesPaiements, Action::Telecharger),
             'factures' => $factures->map(fn (Facture $facture) => [
                 'id' => $facture->id,
                 'reference' => $facture->reference,
@@ -92,6 +95,17 @@ class AdminFactureController extends Controller
         return to_route('espace-admin.factures.show', $facture);
     }
 
+    /**
+     * The PDF of a facture: the receipt once paid, a facture « à régler » before.
+     */
+    public function pdf(Request $request, Facture $facture): HttpResponse
+    {
+        $membre = $this->membre($request);
+        abort_unless($membre->peut(Donnee::FacturesPaiements, Action::Telecharger), 403);
+
+        return FacturePdf::telechargerPourEquipe($facture);
+    }
+
     public function show(Request $request, Facture $facture): Response
     {
         $membre = $this->membre($request);
@@ -105,6 +119,7 @@ class AdminFactureController extends Controller
             'peutModifier' => $membre->peut(Donnee::FacturesPaiements, Action::Modifier),
             'peutValider' => $membre->peut(Donnee::FacturesPaiements, Action::Valider),
             'peutGenererContrat' => $membre->peut(Donnee::ContratsClauses, Action::Creer),
+            'peutTelecharger' => $membre->peut(Donnee::FacturesPaiements, Action::Telecharger),
             'facture' => [
                 'id' => $facture->id,
                 'reference' => $facture->reference,
