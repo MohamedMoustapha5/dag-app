@@ -48,7 +48,10 @@ class Partenariat extends Model
     ];
 
     /** Durations DAG can grant, in months. */
-    public const DUREES = [6, 12, 24];
+    public const DUREES = [self::DUREE_INDETERMINEE, 6, 12, 24];
+
+    /** An open-ended partnership, tacitly renewed: it has no end date. */
+    public const DUREE_INDETERMINEE = 0;
 
     public static function referencePrefix(): string
     {
@@ -93,7 +96,9 @@ class Partenariat extends Model
     #[Scope]
     protected function enVigueur(Builder $query): Builder
     {
-        return $query->where('statut', 'ACTIF')->whereDate('fin', '>=', now()->toDateString());
+        return $query->where('statut', 'ACTIF')->where(fn (Builder $periode) => $periode
+            ->whereNull('fin')
+            ->orWhereDate('fin', '>=', now()->toDateString()));
     }
 
     /**
@@ -108,12 +113,19 @@ class Partenariat extends Model
     {
         return $query->where(fn (Builder $ouvert) => $ouvert
             ->whereIn('statut', ['EN_ETUDE', 'CONTRAT'])
-            ->orWhere(fn (Builder $actif) => $actif->where('statut', 'ACTIF')->whereDate('fin', '>=', now()->toDateString())));
+            ->orWhere(fn (Builder $actif) => $actif->where('statut', 'ACTIF')->where(fn (Builder $periode) => $periode
+                ->whereNull('fin')
+                ->orWhereDate('fin', '>=', now()->toDateString()))));
     }
 
     public function estEnVigueur(): bool
     {
-        return $this->statut === 'ACTIF' && $this->fin !== null && $this->fin->gte(today());
+        return $this->statut === 'ACTIF' && ($this->fin === null || $this->fin->gte(today()));
+    }
+
+    public function estDureeIndeterminee(): bool
+    {
+        return $this->duree_mois === self::DUREE_INDETERMINEE;
     }
 
     /**
@@ -152,8 +164,29 @@ class Partenariat extends Model
     {
         return match (true) {
             $this->duree_mois === null => '—',
+            $this->estDureeIndeterminee() => 'durée indéterminée',
             $this->duree_mois % 12 === 0 => ($this->duree_mois / 12).' an'.($this->duree_mois > 12 ? 's' : ''),
             default => "{$this->duree_mois} mois",
+        };
+    }
+
+    /**
+     * « pour une durée de 2 ans », « pour une durée indéterminée ».
+     */
+    public function pourUneDuree(): string
+    {
+        return $this->estDureeIndeterminee() ? 'pour une durée indéterminée' : "pour une durée de {$this->libelleDuree()}";
+    }
+
+    /**
+     * The duration as shown in the espaces: « Durée : 2 ans », « Durée indéterminée ».
+     */
+    public function dureeAffichee(): ?string
+    {
+        return match (true) {
+            $this->duree_mois === null => null,
+            $this->estDureeIndeterminee() => 'Durée indéterminée',
+            default => "Durée : {$this->libelleDuree()}",
         };
     }
 }

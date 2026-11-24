@@ -64,6 +64,10 @@ const FILTRES: { cle: Filtre; label: string; etapes: string[] | null }[] = [
 ];
 
 function libelleDuree(mois: number): string {
+    if (mois === 0) {
+        return 'Durée indéterminée';
+    }
+
     return mois % 12 === 0
         ? `${mois / 12} an${mois > 12 ? 's' : ''}`
         : `${mois} mois`;
@@ -206,7 +210,7 @@ function CartePartenariat({
     libelleDomaine: (code: string) => string;
 }) {
     const [refusOuvert, setRefusOuvert] = useState(false);
-    const acceptation = useForm({ duree_mois: durees.includes(12) ? 12 : durees[0] });
+    const acceptation = useForm({ duree_mois: durees[0] });
     const refus = useForm({ motif: '' });
     const [validation, setValidation] = useState(false);
     const etape = ETAPE[partenariat.etape] ?? {
@@ -232,7 +236,7 @@ function CartePartenariat({
         if (
             partenariat.contrat === null ||
             !confirm(
-                `Valider le contrat signé de « ${partenariat.clientNom} » ? La structure devient Partenaire officiel de Digital Agency Group pour ${partenariat.duree ?? 'la durée prévue'}.`,
+                `Valider le contrat signé de « ${partenariat.clientNom} » ? La structure devient Partenaire officiel de Digital Agency Group${partenariat.duree ? ` (${partenariat.duree})` : ''}.`,
             )
         ) {
             return;
@@ -308,14 +312,13 @@ function CartePartenariat({
                 </blockquote>
             )}
 
-            {partenariat.etape === 'ACTIF' &&
-                partenariat.debut &&
-                partenariat.fin && (
-                    <p className="partenariat-periode">
-                        Partenaire officiel du {dateCourte(partenariat.debut)}{' '}
-                        au {dateCourte(partenariat.fin)}
-                    </p>
-                )}
+            {partenariat.etape === 'ACTIF' && partenariat.debut && (
+                <p className="partenariat-periode">
+                    {partenariat.fin
+                        ? `Partenaire officiel du ${dateCourte(partenariat.debut)} au ${dateCourte(partenariat.fin)}`
+                        : `Partenaire officiel depuis le ${dateCourte(partenariat.debut)} · durée indéterminée`}
+                </p>
+            )}
 
             <SuiviProcedure
                 parcours={partenariat.parcours}
@@ -459,7 +462,7 @@ function FormulaireProposition({
         message: string;
     }>({
         client_id: '',
-        duree_mois: durees.includes(12) ? 12 : durees[0],
+        duree_mois: durees[0],
         domaines: [],
         message: '',
     });

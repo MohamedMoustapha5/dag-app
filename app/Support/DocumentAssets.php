@@ -25,6 +25,40 @@ class DocumentAssets
     }
 
     /**
+     * The company stamp faded into the white of the page, printed large
+     * behind the text of every page of a contract as its watermark. It is
+     * opaque (white around the stamp), so dompdf draws it instantly; being
+     * behind the text, the white never hides anything.
+     */
+    public static function filigrane(int $intensite = 13): ?string
+    {
+        static $cache = [];
+
+        if (array_key_exists($intensite, $cache)) {
+            return $cache[$intensite];
+        }
+
+        $chemin = resource_path('brand/cachet-dag.png');
+        $opaque = is_file($chemin) ? self::aplatirSurBlanc((string) file_get_contents($chemin)) : null;
+        $cachet = $opaque !== null ? @imagecreatefromstring($opaque) : false;
+
+        if ($cachet === false) {
+            return $cache[$intensite] = null;
+        }
+
+        $largeur = imagesx($cachet);
+        $hauteur = imagesy($cachet);
+        $pale = imagecreatetruecolor($largeur, $hauteur);
+        imagefill($pale, 0, 0, (int) imagecolorallocate($pale, 255, 255, 255));
+        imagecopymerge($pale, $cachet, 0, 0, 0, 0, $largeur, $hauteur, $intensite);
+
+        ob_start();
+        imagepng($pale, null, 6);
+
+        return $cache[$intensite] = 'data:image/png;base64,'.base64_encode((string) ob_get_clean());
+    }
+
+    /**
      * Data URI of an image for a PDF; a PNG is flattened on white first.
      */
     public static function dataUri(string $contenu, string $mime): string

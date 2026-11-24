@@ -2,6 +2,9 @@ import { Head, Link, router, useForm } from '@inertiajs/react';
 import { ArrowDown, ArrowUp, Eye, Plus, Search, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import DocumentContrat from '@/components/espaces/document-contrat';
+import GenererContrat, {
+    type DonneesGeneration,
+} from '@/components/espaces/generer-contrat';
 import { apercuContrat } from '@/lib/contrat-texte';
 import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
 import clausesAdmin from '@/routes/espace-admin/clauses';
@@ -46,6 +49,7 @@ type Props = {
     clauses: ClauseItem[];
     contrats: Contrat[];
     demandesAContractualiser: DemandeAContractualiser[];
+    generation: DonneesGeneration | null;
     peutCreer: boolean;
     peutModifier: boolean;
     peutSupprimer: boolean;
@@ -87,6 +91,7 @@ export default function AdminContrats({
     clauses,
     contrats,
     demandesAContractualiser,
+    generation,
     peutCreer,
     peutModifier,
     peutSupprimer,
@@ -134,16 +139,6 @@ export default function AdminContrats({
             ? contrats.length
             : contrats.filter((contrat) => statuts.includes(contrat.statut))
                   .length;
-
-    const contratForm = useForm({
-        demande_id: demandesAContractualiser[0]?.id ?? '',
-        modele_contrat_id: '',
-    });
-
-    const submitContrat = (event: React.FormEvent) => {
-        event.preventDefault();
-        contratForm.post(contratsAdmin.store().url);
-    };
 
     const changerStatutModele = (modele: Modele, statut: string) => {
         router.patch(
@@ -296,139 +291,34 @@ export default function AdminContrats({
                                 />
                             </label>
                             {peutCreer &&
-                                demandesAContractualiser.length > 0 && (
-                                    <button
-                                        type="button"
-                                        className="btn-outline"
-                                        onClick={() =>
-                                            setGenerationOuverte(
-                                                !generationOuverte,
-                                            )
-                                        }
-                                    >
-                                        <Plus
-                                            size={15}
-                                            style={{ marginRight: 6 }}
-                                        />
-                                        Générer un contrat
-                                    </button>
-                                )}
+                                generation !== null &&
+                                (generation.peutFacturer ||
+                                    generation.peutPartenariat ||
+                                    demandesAContractualiser.length > 0) && (
+                                <button
+                                    type="button"
+                                    className="btn-primary"
+                                    onClick={() =>
+                                        setGenerationOuverte(!generationOuverte)
+                                    }
+                                >
+                                    <Plus
+                                        size={15}
+                                        style={{ marginRight: 6 }}
+                                    />
+                                    Générer un contrat
+                                </button>
+                            )}
                         </div>
                     </div>
 
-                    {generationOuverte && (
-                        <form
-                            onSubmit={submitContrat}
-                            className="card"
-                            style={{
-                                padding: 24,
-                                marginBottom: 20,
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: 14,
-                            }}
-                        >
-                            <div>
-                                <p style={{ fontSize: 14.5, fontWeight: 700 }}>
-                                    Générer un contrat pour une demande
-                                </p>
-                                <p
-                                    className="muted"
-                                    style={{ fontSize: 12.5, marginTop: 4 }}
-                                >
-                                    Normalement, le contrat part automatiquement
-                                    avec le devis. Utilisez ce formulaire pour
-                                    une demande qui n'en a pas encore.
-                                </p>
-                            </div>
-                            <div
-                                style={{
-                                    display: 'grid',
-                                    gridTemplateColumns:
-                                        'repeat(auto-fit, minmax(220px, 1fr))',
-                                    gap: 14,
-                                }}
-                            >
-                                <div>
-                                    <label htmlFor="demande_id">Demande</label>
-                                    <select
-                                        id="demande_id"
-                                        value={contratForm.data.demande_id}
-                                        onChange={(event) =>
-                                            contratForm.setData(
-                                                'demande_id',
-                                                event.target.value,
-                                            )
-                                        }
-                                    >
-                                        {demandesAContractualiser.map(
-                                            (demande) => (
-                                                <option
-                                                    key={demande.id}
-                                                    value={demande.id}
-                                                >
-                                                    {demande.reference} —{' '}
-                                                    {demande.objet}
-                                                </option>
-                                            ),
-                                        )}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label htmlFor="modele_contrat_id">
-                                        Modèle
-                                    </label>
-                                    <select
-                                        id="modele_contrat_id"
-                                        value={
-                                            contratForm.data.modele_contrat_id
-                                        }
-                                        onChange={(event) =>
-                                            contratForm.setData(
-                                                'modele_contrat_id',
-                                                event.target.value,
-                                            )
-                                        }
-                                    >
-                                        <option value="">
-                                            Modèle par défaut
-                                        </option>
-                                        {modeles
-                                            .filter(
-                                                (modele) =>
-                                                    modele.statut === 'ACTIF' &&
-                                                    [
-                                                        'PRESTATION_SERVICE',
-                                                        'ABONNEMENT',
-                                                    ].includes(modele.type),
-                                            )
-                                            .map((modele) => (
-                                                <option
-                                                    key={modele.id}
-                                                    value={modele.id}
-                                                >
-                                                    {modele.nom}
-                                                </option>
-                                            ))}
-                                    </select>
-                                    <Erreur
-                                        message={
-                                            contratForm.errors.modele_contrat_id
-                                        }
-                                    />
-                                </div>
-                            </div>
-                            <button
-                                type="submit"
-                                disabled={contratForm.processing}
-                                className="btn-primary"
-                                style={{ alignSelf: 'flex-start' }}
-                            >
-                                {contratForm.processing
-                                    ? 'Création…'
-                                    : 'Générer le contrat'}
-                            </button>
-                        </form>
+                    {generationOuverte && generation !== null && (
+                        <GenererContrat
+                            generation={generation}
+                            modeles={modeles}
+                            demandes={demandesAContractualiser}
+                            onFermer={() => setGenerationOuverte(false)}
+                        />
                     )}
 
                     <div className="card" style={{ padding: 24 }}>
@@ -604,9 +494,12 @@ export default function AdminContrats({
                                 flex: '1 1 320px',
                             }}
                         >
-                            Ces articles sont ajoutés, dans cet ordre et
-                            numérotés automatiquement, à chaque nouveau contrat.
-                            Les contrats déjà rédigés gardent leur texte.
+                            Ces articles composent le contrat de prestation de
+                            service : ils sont ajoutés, dans cet ordre et
+                            numérotés automatiquement, à chaque nouveau contrat
+                            de prestation. Les modèles qui ont leurs propres
+                            articles (abonnement, partenariat) ne les reprennent
+                            pas. Les contrats déjà rédigés gardent leur texte.
                         </p>
                         <div style={{ display: 'flex', gap: 10 }}>
                             <button

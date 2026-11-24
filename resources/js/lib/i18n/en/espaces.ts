@@ -605,4 +605,15 @@ export const espacesEn: Record<string, string> = {
         'Thank you for signing. The DAG team validates the contract, then your organisation becomes an Official partner of Digital Agency Group.',
     "Le contrat de partenariat n'a pas été signé : le partenariat est annulé.":
         'The partnership contract was not signed: the partnership is cancelled.',
+
+    // Signing a partnership contract
+    'Votre structure': 'Your organisation',
+    'Ces informations complètent l’identification de votre structure (« Partenaire 2 ») en tête du contrat signé. Le représentant est la personne qui signe ci-dessous.':
+        'This information completes the identification of your organisation (“Partner 2”) at the top of the signed contract. The representative is the person who signs below.',
+    'Forme juridique': 'Legal form',
+    'NIU (numéro d’identifiant unique)': 'NIU (unique identification number)',
+    'Qualité du représentant': 'Title of the representative',
+    'Nom complet du représentant signataire':
+        'Full name of the signing representative',
+    'Durée indéterminée': 'Open-ended',
 };

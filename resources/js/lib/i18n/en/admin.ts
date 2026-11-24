@@ -531,6 +531,41 @@ export const adminEn: Record<string, string> = {
     'La structure a signé. Validez le contrat pour en faire un Partenaire officiel de DAG.':
         'The organisation has signed. Validate the contract to make it an Official partner of DAG.',
 
+    // Generating a contract from the contracts page
+    'Générer un contrat': 'Generate a contract',
+    'Choisissez le type de contrat et l’entreprise : le contrat est rédigé à partir du modèle actif.':
+        'Choose the contract type and the company: the contract is drafted from the active template.',
+    'Une prestation convenue avec l’entreprise : elle signe, vous validez, elle paie en ligne.':
+        'A service agreed with the company: it signs, you validate, it pays online.',
+    'Une formule pour une période : même parcours, signature puis paiement.':
+        'A plan for a period: same path, signature then payment.',
+    'Le contrat-cadre du juriste : une fois validé, l’entreprise devient Partenaire officiel.':
+        'The lawyer’s framework contract: once validated, the company becomes an Official partner.',
+    'Pour une demande existante': 'For an existing request',
+    'Une demande d’un client qui n’a pas encore son contrat.':
+        'A client request that does not have its contract yet.',
+    Partenariat: 'Partnership',
+    'Choisir une entreprise…': 'Choose a company…',
+    'Objet de la prestation': 'Subject of the service',
+    'Ex. Réalisation de 120 badges': 'E.g. Making 120 badges',
+    'Choisir une formule…': 'Choose a plan…',
+    'Montant pour la période (FCFA)': 'Amount for the period (FCFA)',
+    'Montant convenu (FCFA)': 'Agreed amount (FCFA)',
+    'Ce qui est convenu': 'What was agreed',
+    'Détail de la prestation : quantités, livrables, délais particuliers… Ce texte figure dans le contrat.':
+        'Details of the service: quantities, deliverables, specific deadlines… This text appears in the contract.',
+    Modèle: 'Template',
+    'Modèle par défaut': 'Default template',
+    'La facture du montant est émise avec le contrat : l’entreprise la règle en ligne une fois le contrat signé et validé par vous. Elle retrouve tout dans « Mes demandes ».':
+        'The invoice for the amount is issued with the contract: the company pays it online once the contract is signed and validated by you. It finds everything under “My requests”.',
+    'Message à l’entreprise (facultatif)': 'Message to the company (optional)',
+    'Générer et relire': 'Generate and review',
+    'Générer et envoyer': 'Generate and send',
+    'Envoyer ce contrat à l’entreprise pour signature ? Elle est prévenue tout de suite et le retrouve dans son espace.':
+        'Send this contract to the company for signature? It is notified right away and finds it in its space.',
+    'Ces articles composent le contrat de prestation de service : ils sont ajoutés, dans cet ordre et numérotés automatiquement, à chaque nouveau contrat de prestation. Les modèles qui ont leurs propres articles (abonnement, partenariat) ne les reprennent pas. Les contrats déjà rédigés gardent leur texte.':
+        'These articles make up the service contract: they are added, in this order and numbered automatically, to every new service contract. Templates with their own articles (subscription, partnership) do not use them. Contracts already drafted keep their text.',
+
     // Partner logos of the public site
     'Logos partenaires': 'Partner logos',
     'Les logos affichés sur le site public : bande défilante de l’accueil et page « À propos ».':

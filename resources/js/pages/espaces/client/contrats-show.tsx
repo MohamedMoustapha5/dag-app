@@ -30,12 +30,38 @@ type Props = {
         villeResidence: string | null;
         quartierPrestation: string | null;
     };
+    societe: {
+        exigee: boolean;
+        formeJuridique: string | null;
+        niu: string | null;
+        qualite: string | null;
+    };
     rectification: {
         restantes: number;
         max: number;
         peutDemander: boolean;
     };
 };
+
+const FORMES_JURIDIQUES = [
+    'Société à Responsabilité Limitée (SARL)',
+    'Société à Responsabilité Limitée Unipersonnelle (SARLU)',
+    'Société Anonyme (SA)',
+    'Société par Actions Simplifiée (SAS)',
+    'Société en Nom Collectif (SNC)',
+    'Établissement (Ets)',
+    'Groupement d’Intérêt Économique (GIE)',
+    'Association',
+    'Société coopérative',
+];
+
+const QUALITES = [
+    'Gérant(e)',
+    'Directeur(trice) général(e)',
+    'Président(e)',
+    'Entrepreneur(e)',
+    'Fondateur(trice)',
+];
 
 type ChampIdentite =
     | 'telephone'
@@ -85,6 +111,7 @@ const CHAMPS_IDENTITE: {
 export default function ContratsShow({
     contrat,
     identite,
+    societe,
     rectification,
 }: Props) {
     const form = useForm<
@@ -92,11 +119,17 @@ export default function ContratsShow({
             signature: File | null;
             nom: string;
             accepte: boolean;
+            forme_juridique: string;
+            niu: string;
+            qualite: string;
         } & Record<ChampIdentite, string>
     >({
         signature: null,
-        nom: contrat.nomSuggere,
+        nom: societe.exigee ? '' : contrat.nomSuggere,
         accepte: false,
+        forme_juridique: societe.formeJuridique ?? '',
+        niu: societe.niu ?? '',
+        qualite: societe.qualite ?? '',
         telephone: identite.telephone ?? '',
         cni_numero: identite.cniNumero ?? '',
         cni_lieu_delivrance: identite.cniLieuDelivrance ?? '',
@@ -340,6 +373,128 @@ export default function ContratsShow({
                         </fieldset>
                     )}
 
+                    {societe.exigee && (
+                        <fieldset
+                            style={{
+                                border: 'none',
+                                margin: 0,
+                                padding: 0,
+                            }}
+                        >
+                            <legend
+                                style={{
+                                    fontSize: 14,
+                                    fontWeight: 700,
+                                    marginBottom: 4,
+                                }}
+                            >
+                                Votre structure
+                            </legend>
+                            <p
+                                className="muted"
+                                style={{ fontSize: 12.5, marginBottom: 12 }}
+                            >
+                                Ces informations complètent l’identification
+                                de votre structure (« Partenaire 2 ») en tête
+                                du contrat signé. Le représentant est la
+                                personne qui signe ci-dessous.
+                            </p>
+                            <div
+                                style={{
+                                    display: 'grid',
+                                    gridTemplateColumns:
+                                        'repeat(auto-fit, minmax(220px, 1fr))',
+                                    gap: 14,
+                                }}
+                            >
+                                <div>
+                                    <label htmlFor="societe-forme">
+                                        Forme juridique
+                                    </label>
+                                    <input
+                                        id="societe-forme"
+                                        list="formes-juridiques"
+                                        placeholder="Ex. Société à Responsabilité Limitée (SARL)"
+                                        value={form.data.forme_juridique}
+                                        onChange={(event) =>
+                                            form.setData(
+                                                'forme_juridique',
+                                                event.target.value,
+                                            )
+                                        }
+                                        required
+                                    />
+                                    <datalist id="formes-juridiques">
+                                        {FORMES_JURIDIQUES.map((forme) => (
+                                            <option key={forme} value={forme} />
+                                        ))}
+                                    </datalist>
+                                    {form.errors.forme_juridique && (
+                                        <p className="erreur-champ">
+                                            {form.errors.forme_juridique}
+                                        </p>
+                                    )}
+                                </div>
+                                <div>
+                                    <label htmlFor="societe-niu">
+                                        NIU (numéro d’identifiant unique)
+                                    </label>
+                                    <input
+                                        id="societe-niu"
+                                        placeholder="Ex. P010618877302Q"
+                                        autoComplete="off"
+                                        value={form.data.niu}
+                                        onChange={(event) =>
+                                            form.setData(
+                                                'niu',
+                                                event.target.value
+                                                    .replace(/\s+/g, '')
+                                                    .toUpperCase(),
+                                            )
+                                        }
+                                        required
+                                    />
+                                    {form.errors.niu && (
+                                        <p className="erreur-champ">
+                                            {form.errors.niu}
+                                        </p>
+                                    )}
+                                </div>
+                                <div>
+                                    <label htmlFor="societe-qualite">
+                                        Qualité du représentant
+                                    </label>
+                                    <input
+                                        id="societe-qualite"
+                                        list="qualites-representant"
+                                        placeholder="Ex. Gérant(e)"
+                                        value={form.data.qualite}
+                                        onChange={(event) =>
+                                            form.setData(
+                                                'qualite',
+                                                event.target.value,
+                                            )
+                                        }
+                                        required
+                                    />
+                                    <datalist id="qualites-representant">
+                                        {QUALITES.map((qualite) => (
+                                            <option
+                                                key={qualite}
+                                                value={qualite}
+                                            />
+                                        ))}
+                                    </datalist>
+                                    {form.errors.qualite && (
+                                        <p className="erreur-champ">
+                                            {form.errors.qualite}
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+                        </fieldset>
+                    )}
+
                     <div>
                         <label htmlFor="signature">Votre signature</label>
                         <label
@@ -404,10 +559,17 @@ export default function ContratsShow({
 
                     <div>
                         <label htmlFor="nom-signataire">
-                            Nom complet du signataire
+                            {societe.exigee
+                                ? 'Nom complet du représentant signataire'
+                                : 'Nom complet du signataire'}
                         </label>
                         <input
                             id="nom-signataire"
+                            placeholder={
+                                societe.exigee
+                                    ? 'Ex. NGOU NDTOUNJEMI Yasser'
+                                    : undefined
+                            }
                             value={form.data.nom}
                             onChange={(event) =>
                                 form.setData('nom', event.target.value)

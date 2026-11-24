@@ -90,6 +90,12 @@ export function apercuContrat(
     modeleContenu: string,
     clauses: { titre: string; contenu: string }[],
 ): string {
+    // A modèle written with its own articles (subscription, partnership) is
+    // complete: the clause library is not added to it.
+    if (decouperContrat(modeleContenu).articles.length > 0) {
+        return remplacerVariables(modeleContenu);
+    }
+
     return assemblerContrat({
         preambule: remplacerVariables(modeleContenu),
         articles: clauses.map((clause) => ({

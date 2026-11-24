@@ -82,7 +82,7 @@ class ClientPartenariatController extends Controller
             'parcours' => ParcoursPartenariat::pour($partenariat, vueClient: true),
             'domaines' => $partenariat->domaines,
             'message' => $partenariat->message,
-            'duree' => $partenariat->duree_mois !== null ? $partenariat->libelleDuree() : null,
+            'duree' => $partenariat->dureeAffichee(),
             'debut' => $partenariat->debut?->toDateString(),
             'fin' => $partenariat->fin?->toDateString(),
             'motifRefus' => $partenariat->motif_refus,

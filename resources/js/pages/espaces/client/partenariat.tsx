@@ -131,7 +131,7 @@ export default function PartenariatPage({
                                 {partenariat.creeLe &&
                                     ` · ${dateLongue(partenariat.creeLe)}`}
                                 {partenariat.duree &&
-                                    ` · durée ${partenariat.duree}`}
+                                    ` · ${partenariat.duree}`}
                             </p>
                         </div>
                         <span className="chip chip-blue">
@@ -266,11 +266,12 @@ function PartenaireOfficiel({
                 <p className="partenariat-officiel-titre">
                     Digital Agency Group
                 </p>
-                {partenariat.debut && partenariat.fin && (
+                {partenariat.debut && (
                     <p className="partenariat-officiel-periode">
                         <CalendarRange size={15} aria-hidden="true" />
-                        Du {dateLongue(partenariat.debut)} au{' '}
-                        {dateLongue(partenariat.fin)}
+                        {partenariat.fin
+                            ? `Du ${dateLongue(partenariat.debut)} au ${dateLongue(partenariat.fin)}`
+                            : `Depuis le ${dateLongue(partenariat.debut)} · durée indéterminée`}
                     </p>
                 )}
                 {partenariat.domaines.length > 0 && (

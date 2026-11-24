@@ -57,6 +57,8 @@
 
         .signature { width: 200px; margin: 26px 0 0 auto; text-align: center; }
         .signature-trait { border-top: 1px solid #c7cedb; padding-top: 4px; font-size: 10px; color: #5b6478; }
+        .signature-nom { margin-top: 3px; font-size: 10.5px; font-weight: bold; letter-spacing: 0.3px; color: #071f41; }
+        .signature-qualite { font-size: 9.5px; color: #5b6478; }
 
         .pied { position: absolute; left: 62px; right: 62px; bottom: 34px; border-top: 1px solid #d9dee8; padding-top: 10px; text-align: center; font-size: 9.5px; color: #5b6478; line-height: 1.6; }
     </style>
@@ -202,6 +204,8 @@
                 @endif
             </div>
             <div class="signature-trait">Pour {{ $emetteur['nom'] }}</div>
+            <div class="signature-nom">{{ $emetteur['representant']['nom'] }}</div>
+            <div class="signature-qualite">{{ $emetteur['representant']['qualite'] }}</div>
         </div>
     @endif
 </div>

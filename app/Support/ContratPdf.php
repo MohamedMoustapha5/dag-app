@@ -60,6 +60,7 @@ class ContratPdf
             'signatureClient' => self::signatureClient($contrat),
             'signatureDirectrice' => DocumentAssets::signatureDirectrice(),
             'cachet' => DocumentAssets::cachet(),
+            'filigrane' => DocumentAssets::filigrane(),
         ])->setPaper('a4');
 
         $pdf->render();

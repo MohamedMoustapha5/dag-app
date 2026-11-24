@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property-read bool|null $contrat_exists Present when loaded with withExists('contrat').
  */
 #[Fillable([
-    'reference', 'client_id', 'entreprise_id', 'service_id', 'formule_id', 'description',
+    'reference', 'client_id', 'entreprise_id', 'service_id', 'formule_id', 'objet', 'description',
     'montant_negocie', 'message_devis', 'devis_valide_le', 'devis_refuse_le', 'motif_refus_devis', 'statut', 'est_partenaire_nova_tech', 'avancement_partenaire', 'derniere_relance_at',
 ])]
 class Demande extends Model
@@ -251,7 +251,7 @@ class Demande extends Model
             return $this->formule->nom;
         }
 
-        return 'Demande';
+        return $this->objet ?? 'Demande';
     }
 
     /**

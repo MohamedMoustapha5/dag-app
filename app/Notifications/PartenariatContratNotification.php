@@ -34,11 +34,11 @@ class PartenariatContratNotification extends NotificationDag
 
     public function message(): string
     {
-        $duree = $this->partenariat->libelleDuree();
+        $duree = $this->partenariat->pourUneDuree();
 
         return $this->partenariat->origine === 'PROPOSITION'
-            ? "L'équipe DAG souhaite faire de votre structure un partenaire officiel, pour une durée de {$duree}. Le contrat de partenariat vous attend dans votre espace : lisez-le et signez-le pour l'accepter."
-            : "L'équipe DAG a accepté votre demande de partenariat, pour une durée de {$duree}. Le contrat de partenariat vous attend dans votre espace : lisez-le et signez-le.";
+            ? "L'équipe DAG souhaite faire de votre structure un partenaire officiel, {$duree}. Le contrat de partenariat vous attend dans votre espace : lisez-le et signez-le pour l'accepter."
+            : "L'équipe DAG a accepté votre demande de partenariat, {$duree}. Le contrat de partenariat vous attend dans votre espace : lisez-le et signez-le.";
     }
 
     protected function lignes(): array

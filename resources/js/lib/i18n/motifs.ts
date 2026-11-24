@@ -106,6 +106,27 @@ export const motifs: [RegExp, Remplacement][] = [
 
     // Partnerships
     [/^Contrat de partenariat — (.+)$/, (m) => `Partnership contract — ${m[1]}`],
+    [/^Durée : (.+)$/, (m, t) => `Duration: ${t(m[1])}`],
+    [
+        /^Partenaire officiel depuis le (.+) · durée indéterminée$/,
+        (m) => `Official partner since ${m[1]} · open-ended`,
+    ],
+    [/^Depuis le (.+) · durée indéterminée$/, (m) => `Since ${m[1]} · open-ended`],
+    [
+        /^L'équipe DAG souhaite faire de votre structure un partenaire officiel, pour une durée (.+)\. Le contrat de partenariat vous attend dans votre espace : lisez-le et signez-le pour l'accepter\.$/,
+        (m) =>
+            `The DAG team would like your organisation to become an official partner, ${m[1] === 'indéterminée' ? 'open-ended' : `for ${m[1].replace(/^de /, '').replace(' ans', ' years').replace(' an', ' year').replace(' mois', ' months')}`}. The partnership contract is waiting in your space: read it and sign it to accept.`,
+    ],
+    [
+        /^L'équipe DAG a accepté votre demande de partenariat, pour une durée (.+)\. Le contrat de partenariat vous attend dans votre espace : lisez-le et signez-le\.$/,
+        (m) =>
+            `The DAG team accepted your partnership request, ${m[1] === 'indéterminée' ? 'open-ended' : `for ${m[1].replace(/^de /, '').replace(' ans', ' years').replace(' an', ' year').replace(' mois', ' months')}`}. The partnership contract is waiting in your space: read it and sign it.`,
+    ],
+    [
+        /^L'équipe DAG a validé votre contrat de partenariat : votre structure est Partenaire officiel de Digital Agency Group (jusqu'au (.+)|pour une durée indéterminée)\. Bienvenue parmi nos partenaires !$/,
+        (m) =>
+            `The DAG team validated your partnership contract: your organisation is an Official partner of Digital Agency Group ${m[2] ? `until ${m[2]}` : 'with no end date'}. Welcome among our partners!`,
+    ],
     [/^Contrat (DAG-CTR-.+)$/, (m) => `Contract ${m[1]}`],
     [/^traité par (.+)$/, (m) => `handled by ${m[1]}`],
     [
@@ -141,6 +162,21 @@ export const motifs: [RegExp, Remplacement][] = [
         (m) => `Your request was not accepted. Reason: ${m[1]}`,
     ],
     [/^Demande refusée\. Motif : (.+)$/, (m) => `Request refused. Reason: ${m[1]}`],
+
+    // Generating a contract
+    [
+        /^Contrat (DAG-CTR-\S+) envoyé à (.+) pour signature\.$/,
+        (m) => `Contract ${m[1]} sent to ${m[2]} for signature.`,
+    ],
+    [
+        /^Contrat (DAG-CTR-\S+) généré : relisez-le, puis envoyez-le à (.+)\.$/,
+        (m) => `Contract ${m[1]} generated: review it, then send it to ${m[2]}.`,
+    ],
+    [
+        /^Contrat de partenariat (DAG-CTR-\S+) envoyé à (.+) pour signature\.$/,
+        (m) => `Partnership contract ${m[1]} sent to ${m[2]} for signature.`,
+    ],
+    [/^Prestation — (.+)$/, (m) => `Service — ${m[1]}`],
 
     // Partner logos
     [

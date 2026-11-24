@@ -140,7 +140,9 @@ class GestionPartenariats
             $partenariat->update([
                 'statut' => 'ACTIF',
                 'debut' => today()->toDateString(),
-                'fin' => today()->addMonthsNoOverflow($partenariat->duree_mois ?? 12)->subDay()->toDateString(),
+                'fin' => $partenariat->estDureeIndeterminee()
+                    ? null
+                    : today()->addMonthsNoOverflow($partenariat->duree_mois ?? 12)->subDay()->toDateString(),
             ]);
 
             Notifier::envoyer($partenariat->client->user, new PartenariatValideNotification($partenariat));

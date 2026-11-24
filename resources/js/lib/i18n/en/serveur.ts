@@ -144,6 +144,31 @@ export const serveurEn: Record<string, string> = {
     'Cette demande de partenariat a déjà été traitée.':
         'This partnership request has already been handled.',
 
+    'Indiquez la forme juridique de votre structure.':
+        'Give the legal form of your organisation.',
+    'Indiquez le NIU (numéro d’identifiant unique) de votre structure.':
+        'Give the NIU (unique identification number) of your organisation.',
+    'Le NIU ne contient que des lettres et des chiffres, sans espace.':
+        'The NIU only contains letters and digits, without spaces.',
+    'Indiquez votre qualité dans la structure.':
+        'Give your title in the organisation.',
+
+    // Generating a contract
+    'Choisissez l’entreprise à qui envoyer le contrat.':
+        'Choose the company to send the contract to.',
+    'Indiquez l’objet de la prestation.': 'Give the subject of the service.',
+    'Choisissez la formule de l’abonnement.':
+        'Choose the plan of the subscription.',
+    'Décrivez ce qui est convenu avec le client : ce texte figure dans le contrat.':
+        'Describe what was agreed with the client: this text appears in the contract.',
+    'Décrivez ce qui est convenu en une phrase au moins.':
+        'Describe what was agreed in at least one sentence.',
+    'Indiquez le montant convenu.': 'Give the agreed amount.',
+    'Ce modèle est prévu pour un autre type de contrat.':
+        'This template is meant for another type of contract.',
+    'Un contrat se génère pour une entreprise ou une organisation.':
+        'A contract is generated for a company or an organisation.',
+
     // Partner logos
     'Indiquez le nom du partenaire.': 'Give the partner’s name.',
     'Importez le logo du partenaire.': 'Upload the partner’s logo.',

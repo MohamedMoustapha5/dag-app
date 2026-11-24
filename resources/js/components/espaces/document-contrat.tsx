@@ -67,6 +67,23 @@ function Paragraphes({ texte }: { texte: string }) {
         }
 
         viderPuces();
+
+        // The lawyer's legal basis of an article, shown as a note under it.
+        const baseLegale = bloc.match(/^(Base légale\s*[–-][^:]*:)\s*([\s\S]*)$/);
+
+        if (baseLegale) {
+            rendu.push(
+                <p
+                    key={`p-${rendu.length}`}
+                    className="document-contrat-base-legale"
+                >
+                    <strong>{baseLegale[1]}</strong> {baseLegale[2]}
+                </p>,
+            );
+
+            continue;
+        }
+
         rendu.push(<p key={`p-${rendu.length}`}>{bloc}</p>);
     }
 

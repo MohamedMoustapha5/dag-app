@@ -115,6 +115,12 @@ class ContratRedaction
 
         $texte = strtr($modele->contenu ?? '', $valeurs);
 
+        // A modèle written with its own articles (the subscription contract)
+        // is complete; the clause library completes the others.
+        if (self::aSesArticles($texte)) {
+            return trim($texte);
+        }
+
         $articles = Clause::query()
             ->orderBy('ordre')
             ->get()
@@ -123,6 +129,23 @@ class ContratRedaction
             ->implode("\n\n");
 
         return trim($texte."\n\n".$articles);
+    }
+
+    /**
+     * Whether a text holds numbered articles ("1. Titre" on its own line),
+     * the layout ContratPdf::sections() recognises.
+     */
+    public static function aSesArticles(string $texte): bool
+    {
+        foreach (preg_split('/\R/', $texte) ?: [] as $ligne) {
+            $ligne = trim($ligne);
+
+            if (mb_strlen($ligne) <= 90 && preg_match('/^\d+[.)]\s+\S/', $ligne) === 1) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -143,8 +166,16 @@ class ContratRedaction
             '{{entreprise}}' => 'Nom de la structure partenaire (contrat de partenariat)',
             '{{secteur}}' => 'Secteur d’activité du partenaire (contrat de partenariat)',
             '{{ville}}' => 'Ville du partenaire (contrat de partenariat)',
+            '{{siege}}' => 'Siège du partenaire, ex. « à Dschang (Cameroun) » (contrat de partenariat)',
+            '{{villes}}' => 'Villes du siège opérationnel, ex. « Douala, Yaoundé et Dschang » (contrat de partenariat)',
+            '{{tribunaux}}' => 'Tribunaux compétents, ex. « Douala ou de Dschang » (contrat de partenariat)',
             '{{domaines}}' => 'Domaines de collaboration (contrat de partenariat)',
             '{{duree}}' => 'Durée du partenariat (contrat de partenariat)',
+            '{{clause_duree}}' => 'Article sur la durée, indéterminée ou fixée par DAG (contrat de partenariat)',
+            '{{forme_juridique}}' => 'Forme juridique, donnée par le partenaire à la signature (contrat de partenariat)',
+            '{{niu}}' => 'NIU, donné par le partenaire à la signature (contrat de partenariat)',
+            '{{representant}}' => 'Nom du représentant signataire, donné à la signature (contrat de partenariat)',
+            '{{qualite}}' => 'Qualité du représentant, donnée à la signature (contrat de partenariat)',
         ];
     }
 }

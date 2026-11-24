@@ -52,7 +52,7 @@ class AdminPartenariatController extends Controller
                 'clientSecteur' => $partenariat->client->secteur_activite,
                 'domaines' => $partenariat->domaines,
                 'message' => $partenariat->message,
-                'duree' => $partenariat->duree_mois !== null ? $partenariat->libelleDuree() : null,
+                'duree' => $partenariat->dureeAffichee(),
                 'debut' => $partenariat->debut?->toDateString(),
                 'fin' => $partenariat->fin?->toDateString(),
                 'motifRefus' => $partenariat->motif_refus,

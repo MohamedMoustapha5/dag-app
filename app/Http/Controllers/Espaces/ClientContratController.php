@@ -11,6 +11,7 @@ use App\Models\Contrat;
 use App\Notifications\ContratSigneNotification;
 use App\Support\ContratPdf;
 use App\Support\Notifications\Notifier;
+use App\Support\Partenariats\ContratPartenariat;
 use App\Support\Partenariats\GestionPartenariats;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -61,6 +62,12 @@ class ClientContratController extends Controller
                 'villeResidence' => $contrat->ville_residence ?? $client->ville,
                 'quartierPrestation' => $contrat->quartier_prestation,
             ],
+            'societe' => [
+                'exigee' => ContratPartenariat::exigeInformations($contrat),
+                'formeJuridique' => $contrat->forme_juridique,
+                'niu' => $contrat->niu,
+                'qualite' => $contrat->qualite_signataire,
+            ],
             'rectification' => [
                 'restantes' => $contrat->rectificationsRestantes(),
                 'max' => Contrat::RECTIFICATIONS_MAX,
@@ -93,8 +100,10 @@ class ClientContratController extends Controller
 
         abort_unless($contrat->statut === 'ENVOYE', 409, "Ce contrat n'est pas ouvert à la signature.");
 
-        // A service contract identifies the client as the DAG contract requires.
+        // A service contract identifies the client as the DAG contract requires;
+        // a partnership contract names the partner company and its representative.
         $identite = $contrat->exigeIdentite() ? 'required' : 'nullable';
+        $societe = ContratPartenariat::exigeInformations($contrat) ? 'required' : 'nullable';
 
         $data = $request->validate([
             'signature' => ['required', 'image', 'mimes:png,jpg,jpeg', 'max:4096'],
@@ -106,7 +115,14 @@ class ClientContratController extends Controller
             'cni_date_delivrance' => [$identite, 'date', 'before_or_equal:today'],
             'ville_residence' => [$identite, 'string', 'max:120'],
             'quartier_prestation' => [$identite, 'string', 'max:120'],
+            'forme_juridique' => [$societe, 'string', 'max:120'],
+            'niu' => [$societe, 'string', 'max:30', 'regex:/^[A-Za-z0-9]{6,30}$/'],
+            'qualite' => [$societe, 'string', 'max:120'],
         ], [
+            'forme_juridique.required' => 'Indiquez la forme juridique de votre structure.',
+            'niu.required' => 'Indiquez le NIU (numéro d’identifiant unique) de votre structure.',
+            'niu.regex' => 'Le NIU ne contient que des lettres et des chiffres, sans espace.',
+            'qualite.required' => 'Indiquez votre qualité dans la structure.',
             'signature.required' => 'Importez une image de votre signature.',
             'signature.image' => 'La signature doit être une image (PNG ou JPG).',
             'accepte.accepted' => 'Vous devez accepter les termes du contrat pour le signer.',
@@ -138,6 +154,18 @@ class ClientContratController extends Controller
             'cni_date_delivrance' => $data['cni_date_delivrance'] ?? null,
             'ville_residence' => $data['ville_residence'] ?? null,
             'quartier_prestation' => $data['quartier_prestation'] ?? null,
+            ...($societe === 'required' ? [
+                'forme_juridique' => $data['forme_juridique'],
+                'niu' => mb_strtoupper($data['niu']),
+                'qualite_signataire' => $data['qualite'],
+                // The signed text names the partner as it identified itself.
+                'contenu' => ContratPartenariat::completer((string) $contrat->contenu, [
+                    'forme_juridique' => $data['forme_juridique'],
+                    'niu' => mb_strtoupper($data['niu']),
+                    'representant' => $data['nom'],
+                    'qualite' => $data['qualite'],
+                ]),
+            ] : []),
         ]);
 
         if ($signe === 0) {

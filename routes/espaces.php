@@ -243,6 +243,7 @@ Route::middleware(['auth:admin', 'auth.session', EnsureMembreActif::class])
         Route::patch('paiements/{paiement}', [AdminFactureController::class, 'updatePaiement'])->name('espace-admin.paiements.update');
         Route::get('contrats', [AdminContratController::class, 'index'])->name('espace-admin.contrats.index');
         Route::post('contrats', [AdminContratController::class, 'store'])->name('espace-admin.contrats.store');
+        Route::post('contrats/generer', [AdminContratController::class, 'generer'])->name('espace-admin.contrats.generer');
         Route::get('contrats/{contrat}', [AdminContratController::class, 'show'])->name('espace-admin.contrats.show');
         Route::get('contrats/{contrat}/pdf', [AdminContratController::class, 'pdf'])->name('espace-admin.contrats.pdf');
         Route::patch('contrats/{contrat}', [AdminContratController::class, 'update'])->name('espace-admin.contrats.update');

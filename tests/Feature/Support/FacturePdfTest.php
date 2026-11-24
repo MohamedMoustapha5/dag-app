@@ -56,3 +56,12 @@ test('RCCM, NIU and the VAT mention appear only once they are configured', funct
         ->toContain('NIU : M012345678901A')
         ->toContain('Prix nets, sans TVA.');
 });
+
+test('the stamp of the facture carries the name and title of the CEO', function () {
+    $facture = Facture::factory()->create(['client_id' => Client::factory()->create()->id]);
+
+    expect(factureRendue($facture))
+        ->toContain('Pour Digital Agency Group')
+        ->toContain('NGOU MANDOU AFSA')
+        ->toContain('CEO');
+});

@@ -25,6 +25,13 @@ return [
 
     'site' => 'agencydag.com',
 
+    // Who signs and stamps DAG's documents (contracts, factures, proformas,
+    // attestations): printed under the stamp.
+    'representant' => [
+        'nom' => 'NGOU MANDOU AFSA',
+        'qualite' => 'CEO',
+    ],
+
     'rccm' => env('DAG_RCCM'),
 
     'niu' => env('DAG_NIU'),

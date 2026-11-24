@@ -8,15 +8,19 @@ use App\Enums\Donnee;
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\Clause;
+use App\Models\Client;
 use App\Models\Contrat;
 use App\Models\Demande;
+use App\Models\Formule;
 use App\Models\MembreEquipe;
 use App\Models\ModeleContrat;
+use App\Models\Partenariat;
 use App\Notifications\ContratASignerNotification;
 use App\Notifications\ContratValideNotification;
 use App\Support\ContratPdf;
 use App\Support\ContratRedaction;
 use App\Support\Notifications\Notifier;
+use App\Support\Paiements\PaiementService;
 use App\Support\Partenariats\GestionPartenariats;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -72,6 +76,24 @@ class AdminContratController extends Controller
                 'reference' => $demande->reference,
                 'objet' => $demande->libelleObjet(),
             ]),
+            'generation' => $membre->peut(Donnee::ContratsClauses, Action::Creer) ? [
+                'structures' => Client::query()
+                    ->whereIn('type', ['ENTREPRISE', 'ORGANISATION'])
+                    ->orderBy('nom')
+                    ->get()
+                    ->map(fn (Client $client) => [
+                        'id' => $client->id,
+                        'nom' => $client->nom,
+                        'typeLabel' => $client->typeLabel(),
+                    ]),
+                'formules' => Formule::query()->orderBy('nom')->get(['id', 'nom']),
+                'domaines' => collect(Partenariat::DOMAINES)
+                    ->map(fn (string $libelle, string $code) => ['code' => $code, 'libelle' => $libelle])
+                    ->values(),
+                'durees' => Partenariat::DUREES,
+                'peutFacturer' => $membre->peut(Donnee::FacturesPaiements, Action::Creer),
+                'peutPartenariat' => $membre->peut(Donnee::EntreprisesOffres, Action::Valider),
+            ] : null,
         ]);
     }
 
@@ -250,6 +272,112 @@ class AdminContratController extends Controller
         ActivityLog::record($this->membre($request), 'a généré le contrat', $contrat, "{$contrat->reference} pour la demande {$demande->reference}.");
 
         Inertia::flash('toast', ['type' => 'success', 'message' => "Contrat {$contrat->reference} créé."]);
+
+        return to_route('espace-admin.contrats.show', $contrat);
+    }
+
+    /**
+     * Generates a contract for an entreprise or an organisation directly,
+     * for a deal agreed with DAG outside of a request.
+     *
+     * A prestation or a subscription follows the usual path of an order: a
+     * request is recorded as agreed, with its facture, and the contract is
+     * drafted from the active modèle; once signed and validated by DAG, the
+     * client pays online. A partnership follows the partnership path, so
+     * that its validation makes the structure an official partner.
+     *
+     * « Générer et envoyer » sends the contract for signature at once;
+     * otherwise it stays a draft the team reviews before sending it.
+     */
+    public function generer(Request $request, PaiementService $paiements, GestionPartenariats $partenariats): RedirectResponse
+    {
+        $membre = $this->membre($request);
+        abort_unless($membre->peut(Donnee::ContratsClauses, Action::Creer), 403);
+
+        $type = $request->validate([
+            'type' => ['required', Rule::in(['PRESTATION_SERVICE', 'ABONNEMENT', 'CONTRAT_PARTENAIRE'])],
+        ])['type'];
+
+        if ($type === 'CONTRAT_PARTENAIRE') {
+            abort_unless($membre->peut(Donnee::EntreprisesOffres, Action::Valider), 403, 'Proposer un partenariat demande le droit de validation sur les entreprises.');
+
+            $data = $request->validate([
+                'client_id' => ['required', 'uuid', Rule::exists('clients', 'id')],
+                'duree_mois' => ['required', 'integer', Rule::in(Partenariat::DUREES)],
+                'domaines' => ['required', 'array', 'min:1'],
+                'domaines.*' => ['string', 'distinct', Rule::in(array_keys(Partenariat::DOMAINES))],
+                'message' => ['nullable', 'string', 'max:2000'],
+            ], [
+                'client_id.required' => 'Choisissez l’entreprise à qui envoyer le contrat.',
+                'domaines.required' => 'Choisissez au moins un domaine de collaboration.',
+                'domaines.min' => 'Choisissez au moins un domaine de collaboration.',
+            ]);
+
+            $partenariat = $partenariats->proposer(Client::findOrFail($data['client_id']), (int) $data['duree_mois'], $data['domaines'], $data['message'] ?? null, $membre);
+
+            Inertia::flash('toast', ['type' => 'success', 'message' => "Contrat de partenariat {$partenariat->contrat->reference} envoyé à {$partenariat->client->nom} pour signature."]);
+
+            return to_route('espace-admin.contrats.show', $partenariat->contrat);
+        }
+
+        // The contract comes with the facture the client pays once it is validated.
+        abort_unless($membre->peut(Donnee::FacturesPaiements, Action::Creer), 403, 'Générer ce contrat émet sa facture : cela demande le droit de créer des factures.');
+
+        $abonnement = $type === 'ABONNEMENT';
+
+        $data = $request->validate([
+            'client_id' => ['required', 'uuid', Rule::exists('clients', 'id')],
+            'objet' => [$abonnement ? 'nullable' : 'required', 'string', 'max:191'],
+            'formule_id' => [$abonnement ? 'required' : 'nullable', 'uuid', Rule::exists('formules', 'id')],
+            'description' => ['required', 'string', 'min:10', 'max:3000'],
+            'montant' => ['required', 'numeric', 'min:1', 'max:1000000000'],
+            'modele_contrat_id' => ['nullable', 'uuid', Rule::exists('modeles_contrat', 'id')->where('type', $type)],
+            'envoyer' => ['sometimes', 'boolean'],
+        ], [
+            'client_id.required' => 'Choisissez l’entreprise à qui envoyer le contrat.',
+            'objet.required' => 'Indiquez l’objet de la prestation.',
+            'formule_id.required' => 'Choisissez la formule de l’abonnement.',
+            'description.required' => 'Décrivez ce qui est convenu avec le client : ce texte figure dans le contrat.',
+            'description.min' => 'Décrivez ce qui est convenu en une phrase au moins.',
+            'montant.required' => 'Indiquez le montant convenu.',
+            'modele_contrat_id.exists' => 'Ce modèle est prévu pour un autre type de contrat.',
+        ]);
+
+        $client = Client::findOrFail($data['client_id']);
+
+        // A particulier validates a devis online: the contract path is the entreprises'.
+        if (! $client->estStructure()) {
+            throw ValidationException::withMessages(['client_id' => 'Un contrat se génère pour une entreprise ou une organisation.']);
+        }
+
+        $modele = isset($data['modele_contrat_id']) ? ModeleContrat::find($data['modele_contrat_id']) : null;
+        $envoyer = $request->boolean('envoyer');
+
+        $contrat = DB::transaction(function () use ($client, $data, $abonnement, $modele, $paiements): Contrat {
+            $demande = $client->demandes()->create([
+                'formule_id' => $abonnement ? $data['formule_id'] : null,
+                'objet' => $abonnement ? null : $data['objet'],
+                'description' => $data['description'],
+                'montant_negocie' => $data['montant'],
+                'statut' => 'DEVIS_ENVOYE',
+                // Agreed with DAG beforehand: signing the contract is the client's acceptance.
+                'devis_valide_le' => now(),
+            ]);
+
+            $paiements->emettreFacturePourDevis($demande, (float) $data['montant']);
+
+            return ContratRedaction::brouillonPour($demande, $modele);
+        });
+
+        ActivityLog::record($membre, 'a généré le contrat', $contrat, "{$contrat->reference} pour {$client->nom} : {$contrat->libelleObjet()}.");
+
+        if ($envoyer) {
+            $this->changerStatut($contrat, 'ENVOYE', $membre);
+        }
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => $envoyer
+            ? "Contrat {$contrat->reference} envoyé à {$client->nom} pour signature."
+            : "Contrat {$contrat->reference} généré : relisez-le, puis envoyez-le à {$client->nom}."]);
 
         return to_route('espace-admin.contrats.show', $contrat);
     }

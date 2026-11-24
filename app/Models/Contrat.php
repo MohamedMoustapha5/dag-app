@@ -26,7 +26,7 @@ use Illuminate\Support\Str;
     'signature_contestee', 'signature_invalidee_at', 'derniere_relance_at',
     'telephone_cocontractant', 'cni_numero', 'cni_lieu_delivrance', 'cni_date_delivrance',
     'ville_residence', 'quartier_prestation', 'nombre_rectifications', 'motif_rectification',
-    'rectification_demandee_at',
+    'rectification_demandee_at', 'forme_juridique', 'niu', 'qualite_signataire',
 ])]
 class Contrat extends Model
 {

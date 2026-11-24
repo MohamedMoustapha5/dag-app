@@ -5,10 +5,12 @@ use App\Models\Clause;
 use App\Models\Client;
 use App\Models\Contrat;
 use App\Models\Demande;
+use App\Models\Formule;
 use App\Models\MembreEquipe;
 use App\Models\ModeleContrat;
 use App\Notifications\AlerteEquipeNotification;
 use App\Support\ContratPdf;
+use App\Support\ContratRedaction;
 use Database\Seeders\ContratDagSeeder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Notification;
@@ -67,8 +69,8 @@ test('the DAG contract seeder installs the juriste articles and active modeles, 
     $this->seed(ContratDagSeeder::class);
 
     expect(Clause::orderBy('ordre')->pluck('titre')->all())->toBe([
-        'Objet de la demande', 'Coût du service', 'Délai de prestation', 'Rectification du contrat',
-        'Annulation', 'Confidentialité', 'Réservation',
+        'Objet de la demande', "Identification de l'intéressé", 'Coût du service', 'Délai de prestation',
+        'Rectification du contrat', 'Annulation', 'Confidentialité', 'Réservation', 'Signature et preuve',
     ]);
     expect($ancien->fresh()->statut)->toBe('BROUILLON');
     expect(ModeleContrat::where('statut', 'ACTIF')->pluck('type')->sort()->values()->all())->toBe(['ABONNEMENT', 'PRESTATION_SERVICE']);
@@ -84,13 +86,70 @@ test('the contract sent with the devis follows the DAG contract, filled with the
         ->toContain("1. Objet de la demande\nLe présent contrat porte sur : {$demande->libelleObjet()}.")
         ->toContain('Réalisation de 120 badges pour la société Kiro.')
         ->toContain('Le coût du service est fixé à 60 000 FCFA')
-        ->toContain('3. Délai de prestation')
+        ->toContain('4. Délai de prestation')
         ->toContain('remboursé des trois quarts (3/4)')
-        ->toContain('7. Réservation')
+        ->toContain('8. Réservation')
+        ->toContain("Base légale – Objet / nature du contrat : contrat de louage d'ouvrage")
+        ->toContain('représentée par NGOU MANDOU AFSA, CEO')
         ->not->toContain('{{');
 
     $titres = collect(ContratPdf::sections($contrat->contenu))->pluck('titre')->filter()->values()->all();
-    expect($titres)->toHaveCount(7);
+    expect($titres)->toHaveCount(9);
+});
+
+test('every article of the DAG contracts carries the legal basis given by the juriste, except the subscription period', function () {
+    foreach (ContratDagSeeder::articles() as $article) {
+        expect($article['contenu'])->toContain('Base légale –');
+    }
+
+    $abonnement = collect(ContratPdf::sections(ContratDagSeeder::modeleAbonnement()))->filter(fn ($section) => $section['titre'] !== null);
+    expect($abonnement)->toHaveCount(10);
+    $abonnement
+        ->reject(fn ($section) => $section['titre'] === '4. Durée et renouvellement')
+        ->each(fn ($section) => expect(implode("\n", $section['paragraphes']))->toContain('Base légale –'));
+});
+
+test('a subscription gets the subscription contract, without the articles of a one-off prestation', function () {
+    $this->seed(ContratDagSeeder::class);
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $client = Client::factory()->entreprise()->create(['nom' => 'Aïcha Ngono']);
+    $demande = Demande::factory()->create([
+        'client_id' => $client->id,
+        'formule_id' => Formule::factory()->create(['nom' => 'Croissance'])->id,
+        'statut' => 'EN_ETUDE',
+        'description' => 'Gestion mensuelle de nos réseaux sociaux.',
+    ]);
+
+    $this->actingAs($promotrice, 'admin')
+        ->post(route('espace-admin.demandes.devis', $demande), ['montant' => 150000])
+        ->assertRedirect();
+    $this->actingAs($client->user, 'web')
+        ->post(route('espace-client.demandes.devis.valider', $demande))
+        ->assertRedirect();
+
+    $contrat = Contrat::where('demande_id', $demande->id)->sole();
+    expect($contrat->type)->toBe('ABONNEMENT')
+        ->and($contrat->contenu)
+        ->toContain("Le présent contrat d'abonnement à la formule Croissance")
+        ->toContain("3. Prix de l'abonnement\nLe prix de l'abonnement est fixé à 150 000 FCFA pour la période d'abonnement")
+        ->toContain('4. Durée et renouvellement')
+        ->toContain('Gestion mensuelle de nos réseaux sociaux.')
+        ->toContain('une fois les prestations de la période démarrées, la période en cours reste due')
+        ->toContain("5. Démarrage et exécution des prestations\n")
+        ->not->toContain(". Délai de prestation\n")
+        ->not->toContain('le jour de la livraison')
+        ->not->toContain('{{');
+    expect(collect(ContratPdf::sections($contrat->contenu))->pluck('titre')->filter())->toHaveCount(10);
+});
+
+test('a modele without its own articles still gets the clause library', function () {
+    ModeleContrat::create(['nom' => 'Court', 'type' => 'PRESTATION_SERVICE', 'statut' => 'ACTIF', 'contenu' => 'Contrat entre DAG et {{client}}.']);
+    Clause::create(['titre' => 'Objet', 'contenu' => 'Le contrat porte sur {{service}}.', 'ordre' => 0]);
+    $demande = Demande::factory()->create(['statut' => 'EN_ETUDE']);
+
+    $contenu = ContratRedaction::pour($demande, ModeleContrat::where('nom', 'Court')->sole());
+
+    expect($contenu)->toContain("1. Objet\nLe contrat porte sur {$demande->libelleObjet()}.");
 });
 
 test('signing a service contract requires the identity the DAG contract asks for, and keeps it', function () {

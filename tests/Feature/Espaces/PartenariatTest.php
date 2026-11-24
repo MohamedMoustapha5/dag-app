@@ -24,6 +24,9 @@ function signerContratPartenariat(Client $client, Contrat $contrat): TestRespons
             'signature' => UploadedFile::fake()->image('signature.png', 300, 120),
             'nom' => 'Awa Ndiaye',
             'accepte' => '1',
+            'forme_juridique' => 'Société à Responsabilité Limitée (SARL)',
+            'niu' => 'p120018531521s',
+            'qualite' => 'Gérante',
         ]);
 }
 
@@ -121,9 +124,13 @@ test('accepting a request drafts the partnership contract and sends it to the st
         ->and($contrat->statut)->toBe('ENVOYE')
         ->and($contrat->client_id)->toBe($client->id)
         ->and($contrat->montant)->toBeNull()
-        ->and($contrat->contenu)->toContain('Batiplus SARL (secteur : BTP ; ville : Douala)')
-        ->and($contrat->contenu)->toContain('une durée de 2 ans')
+        ->and($contrat->contenu)->toContain('Batiplus SARL (ci-après « Partenaire 2 »), [forme juridique, à compléter à la signature]')
+        ->and($contrat->contenu)->toContain('immatriculée sous le numéro du code NIU [NIU, à compléter à la signature], dont le siège social est établi à Douala (Cameroun)')
+        ->and($contrat->contenu)->toContain('dans les villes de Douala et Yaoundé,')
+        ->and($contrat->contenu)->toContain('soumis aux juridictions compétentes de Douala,')
+        ->and($contrat->contenu)->toContain('conclu pour une durée de 2 ans')
         ->and($contrat->contenu)->toContain('recrutement et stages des talents formés par DAG')
+        ->and($contrat->contenu)->toContain('NIU P010618877302Q')
         ->and($contrat->contenu)->toContain($partenariat->reference)
         ->and($contrat->contenu)->not->toContain('{{');
     Notification::assertSentTo($client->user, PartenariatContratNotification::class);
@@ -257,7 +264,15 @@ test('the structure signs, DAG validates, and the structure becomes an official 
 
     signerContratPartenariat($client, $contrat)->assertRedirect(route('espace-client.partenariat'));
 
-    expect($contrat->fresh()->statut)->toBe('SIGNE')
+    $signe = $contrat->fresh();
+    expect($signe->statut)->toBe('SIGNE')
+        ->and($signe->forme_juridique)->toBe('Société à Responsabilité Limitée (SARL)')
+        ->and($signe->niu)->toBe('P120018531521S')
+        ->and($signe->qualite_signataire)->toBe('Gérante')
+        ->and($signe->contenu)->toContain('(ci-après « Partenaire 2 »), Société à Responsabilité Limitée (SARL) constituée')
+        ->and($signe->contenu)->toContain('code NIU P120018531521S')
+        ->and($signe->contenu)->toContain('Représentée aux fins des présentes par Awa Ndiaye, Gérante,')
+        ->and($signe->contenu)->not->toContain('à compléter à la signature')
         ->and($partenariat->fresh()->etape())->toBe('A_VALIDER')
         ->and($client->estPartenaireOfficiel())->toBeFalse();
     Notification::assertSentTo($promotrice, AlerteEquipeNotification::class, fn ($notification) => $notification->evenement() === 'partenariat.signe');
@@ -365,4 +380,94 @@ test('the comptes page marks the official partners', function () {
         ->assertInertia(fn ($page) => $page
             ->where('clients.0.id', $client->id)
             ->where('clients.0.partenaireOfficiel', true));
+});
+
+test('a partnership contract asks the partner for its legal form, NIU and title when signing', function (string $champ) {
+    Storage::fake('local');
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $partenariat = Partenariat::factory()->create();
+    $this->actingAs($promotrice, 'admin')->post(route('espace-admin.partenariats.accepter', $partenariat), ['duree_mois' => 12]);
+    $contrat = $partenariat->fresh()->contrat;
+
+    $this->actingAs($partenariat->client->user, 'web')
+        ->get(route('espace-client.contrats.show', $contrat))
+        ->assertInertia(fn ($page) => $page->where('societe.exigee', true));
+
+    $this->actingAs($partenariat->client->user, 'web')
+        ->post(route('espace-client.contrats.signer', $contrat), [
+            'signature' => UploadedFile::fake()->image('signature.png', 300, 120),
+            'nom' => 'Awa Ndiaye',
+            'accepte' => '1',
+            'forme_juridique' => 'SARL',
+            'niu' => 'P120018531521S',
+            'qualite' => 'Gérante',
+            $champ => '',
+        ])
+        ->assertSessionHasErrors($champ);
+
+    expect($contrat->fresh()->statut)->toBe('ENVOYE');
+})->with(['forme_juridique', 'niu', 'qualite']);
+
+test('a NIU with spaces or symbols is refused', function () {
+    Storage::fake('local');
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $partenariat = Partenariat::factory()->create();
+    $this->actingAs($promotrice, 'admin')->post(route('espace-admin.partenariats.accepter', $partenariat), ['duree_mois' => 12]);
+
+    $this->actingAs($partenariat->client->user, 'web')
+        ->post(route('espace-client.contrats.signer', $partenariat->fresh()->contrat), [
+            'signature' => UploadedFile::fake()->image('signature.png', 300, 120),
+            'nom' => 'Awa Ndiaye',
+            'accepte' => '1',
+            'forme_juridique' => 'SARL',
+            'niu' => 'P12 <script>',
+            'qualite' => 'Gérante',
+        ])
+        ->assertSessionHasErrors('niu');
+});
+
+test('a partner outside Douala adds its city to the operational seat and the competent courts', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $client = Client::factory()->entreprise()->create(['nom' => 'Novatech', 'ville' => 'Dschang']);
+    $partenariat = Partenariat::factory()->create(['client_id' => $client->id]);
+
+    $this->actingAs($promotrice, 'admin')->post(route('espace-admin.partenariats.accepter', $partenariat), ['duree_mois' => 12]);
+
+    expect($partenariat->fresh()->contrat->contenu)
+        ->toContain('dont le siège social est établi à Dschang (Cameroun)')
+        ->toContain('dans les villes de Douala, Yaoundé et Dschang,')
+        ->toContain('soumis aux juridictions compétentes de Douala ou de Dschang,');
+});
+
+test('an open-ended partnership is tacitly renewed and has no end date', function () {
+    Storage::fake('local');
+    Notification::fake();
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $client = Client::factory()->entreprise()->create();
+    $partenariat = Partenariat::factory()->create(['client_id' => $client->id]);
+
+    $this->actingAs($promotrice, 'admin')
+        ->post(route('espace-admin.partenariats.accepter', $partenariat), ['duree_mois' => 0])
+        ->assertSessionHasNoErrors();
+
+    $contrat = $partenariat->fresh()->contrat;
+    expect($contrat->contenu)
+        ->toContain('conclu pour une durée indéterminée')
+        ->toContain('tacite reconduction');
+
+    signerContratPartenariat($client, $contrat);
+    $this->actingAs($promotrice, 'admin')->patch(route('espace-admin.contrats.update', $contrat), ['statut' => 'ACTIF']);
+
+    $partenariat->refresh();
+    expect($partenariat->statut)->toBe('ACTIF')
+        ->and($partenariat->fin)->toBeNull()
+        ->and($partenariat->etape())->toBe('ACTIF')
+        ->and($client->estPartenaireOfficiel())->toBeTrue();
+
+    $this->actingAs($client->user->fresh(), 'web')
+        ->get(route('espace-client.partenariat'))
+        ->assertInertia(fn ($page) => $page
+            ->where('partenariat.duree', 'Durée indéterminée')
+            ->where('partenariat.fin', null)
+            ->where('peutDemander', false));
 });
