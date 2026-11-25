@@ -38,11 +38,11 @@ class CatalogueSeeder extends Seeder
         ];
 
         foreach ($servicesDag as $service) {
-            Service::create($service + ['fournisseur' => 'DAG', 'statut' => 'PUBLIE']);
+            Service::create($service + ['fournisseur' => 'DAG', 'contrat_requis' => true, 'statut' => 'PUBLIE']);
         }
 
         foreach ($servicesNovaTech as $service) {
-            Service::create($service + ['fournisseur' => 'Nova-Tech', 'statut' => 'PUBLIE']);
+            Service::create($service + ['fournisseur' => 'Nova-Tech', 'contrat_requis' => true, 'statut' => 'PUBLIE']);
         }
 
         Formule::create([

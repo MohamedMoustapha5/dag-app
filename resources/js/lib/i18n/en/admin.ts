@@ -155,7 +155,8 @@ export const adminEn: Record<string, string> = {
     'Convention de stage': 'Internship agreement',
     'Contrat partenaire': 'Partner contract',
     'Supprimer cette clause ?': 'Delete this clause?',
-    'Contrats & clauses — Administration': 'Contracts & clauses — Administration',
+    'Contrats & clauses — Administration':
+        'Contracts & clauses — Administration',
     'Modèles de contrat, bibliothèque de clauses et suivi des contrats générés.':
         'Contract templates, clause library and follow-up of generated contracts.',
     'Contrats (': 'Contracts (',
@@ -232,12 +233,12 @@ export const adminEn: Record<string, string> = {
     'Envoyer le devis': 'Send quote',
 
     // Companies and offers
-    'Entreprises & offres — Administration': 'Companies & offers — Administration',
+    'Entreprises & offres — Administration':
+        'Companies & offers — Administration',
     "Validez les entreprises partenaires et publiez leurs offres d'emploi — rien n'est jamais mis en ligne automatiquement.":
         'Validate partner companies and publish their job offers — nothing is ever published automatically.',
     'Entreprises partenaires (': 'Partner companies (',
-    'Aucune entreprise partenaire pour le moment.':
-        'No partner company yet.',
+    'Aucune entreprise partenaire pour le moment.': 'No partner company yet.',
     Entreprise: 'Company',
     Offres: 'Offers',
     '· compte client lié': '· linked client account',
@@ -264,7 +265,7 @@ export const adminEn: Record<string, string> = {
     'A déjà postulé': 'Already applied',
     'Partage du dossier non autorisé': 'File sharing not authorised',
     'Postuler pour un apprenant': 'Apply for a learner',
-    ". Choisissez un dossier parmi tous les candidats : apprenants DAG, anciens apprenants et dossiers reçus de candidats externes.":
+    '. Choisissez un dossier parmi tous les candidats : apprenants DAG, anciens apprenants et dossiers reçus de candidats externes.':
         '. Choose a file among all candidates: DAG learners, former learners and files received from external candidates.',
     'Rechercher un nom ou une ville': 'Search a name or city',
     'Filtrer les apprenants': 'Filter learners',
@@ -277,6 +278,7 @@ export const adminEn: Record<string, string> = {
         'Only the Promoter can create an account or change a member’s role. Deactivating an account removes access immediately.',
     "Créer un compte membre de l'équipe": 'Create a team member account',
     Rôle: 'Role',
+    Civilité: 'Title',
     'Créer le compte': 'Create account',
     "Membres de l'équipe (": 'Team members (',
     Membre: 'Member',
@@ -284,8 +286,8 @@ export const adminEn: Record<string, string> = {
     'Vous ne pouvez pas modifier votre propre rôle':
         'You cannot change your own role',
     'Droits par rôle': 'Rights by role',
-    "Le rôle d'un membre détermine ce qu'il peut voir et gérer : changer son rôle change ses droits immédiatement. Ajustez ici ce que chaque rôle autorise, domaine par domaine ; les cellules orange s'écartent des valeurs par défaut du cahier des charges. Les droits de la Directrice sont fixes.":
-        'A member’s role determines what they can see and manage: changing their role changes their rights immediately. Adjust here what each role allows, domain by domain; orange cells differ from the default values of the specification. The Director’s rights are fixed.',
+    "Le rôle d'un membre détermine ce qu'il peut voir et gérer : changer son rôle change ses droits immédiatement. Ajustez ici ce que chaque rôle autorise, domaine par domaine ; les cellules orange s'écartent des valeurs par défaut du cahier des charges. Les droits de la CEO sont fixes.":
+        'A member’s role determines what they can see and manage: changing their role changes their rights immediately. Adjust here what each role allows, domain by domain; orange cells differ from the default values of the specification. The CEO’s rights are fixed.',
     Domaine: 'Domain',
     'Accès accordés par ce rôle :': 'Access granted by this role:',
     Espèces: 'Cash',
@@ -303,7 +305,8 @@ export const adminEn: Record<string, string> = {
     'Moyen de paiement': 'Payment method',
     'Référence (optionnel)': 'Reference (optional)',
     'Enregistrer le paiement': 'Record payment',
-    'Factures & paiements — Administration': 'Invoices & payments — Administration',
+    'Factures & paiements — Administration':
+        'Invoices & payments — Administration',
     'Générez une facture pour une demande acceptée et suivez les paiements reçus.':
         'Generate an invoice for an accepted request and follow the payments received.',
     'Générer une facture pour une demande': 'Generate an invoice for a request',
@@ -334,7 +337,8 @@ export const adminEn: Record<string, string> = {
     'Image (optionnel)': 'Image (optional)',
     'JPG, PNG ou WebP — 5 Mo maximum.': 'JPG, PNG or WebP — 5 MB maximum.',
     'Créer la session': 'Create session',
-    'Formations & sessions — Administration': 'Training & sessions — Administration',
+    'Formations & sessions — Administration':
+        'Training & sessions — Administration',
     'Gestion des sessions, validation des inscriptions.':
         'Session management, validation of enrolments.',
     '+ Nouvelle session': '+ New session',
@@ -374,7 +378,7 @@ export const adminEn: Record<string, string> = {
     'Formateur / Formatrice': 'Trainer',
     'Ex. S. Mballa': 'E.g. S. Mballa',
     'Image de la formation': 'Training image',
-    "Laissez vide pour conserver l’image actuelle.":
+    'Laissez vide pour conserver l’image actuelle.':
         'Leave empty to keep the current image.',
     "L'image sélectionnée est affichée en aperçu.":
         'The selected image is shown as a preview.',
@@ -396,7 +400,8 @@ export const adminEn: Record<string, string> = {
     'Ajouter la ligne': 'Add line',
     Tarif: 'Price',
     'DAG (interne)': 'DAG (internal)',
-    'Catalogue de services — Administration': 'Service catalogue — Administration',
+    'Catalogue de services — Administration':
+        'Service catalogue — Administration',
     'Catalogue de services': 'Service catalogue',
     '+ Ajouter un service': '+ Add a service',
     'Aucun service dans le catalogue pour le moment.':
@@ -409,7 +414,7 @@ export const adminEn: Record<string, string> = {
     'Nom du service': 'Service name',
     'Ex. Montage vidéo': 'E.g. Video editing',
     'Ex. Création & communication…': 'E.g. Creation & communication…',
-    "Détermine la section où le service apparaît dans le catalogue public. Tapez une nouvelle catégorie pour en créer une.":
+    'Détermine la section où le service apparaît dans le catalogue public. Tapez une nouvelle catégorie pour en créer une.':
         'Determines the section where the service appears in the public catalogue. Type a new category to create one.',
     'Ex. DAG (interne), Nova-Tech…': 'E.g. DAG (internal), Nova-Tech…',
     'Visible sur la fiche du catalogue': 'Visible on the catalogue entry',
@@ -460,4 +465,131 @@ export const adminEn: Record<string, string> = {
     Pourvue: 'Filled',
     Retenue: 'Selected',
     Reçue: 'Received',
+
+    // Recruitment access offered by DAG, recruitment subscriptions
+    'Offrir un accès': 'Offer access',
+    Offrir: 'Offer',
+    'Durée offerte': 'Offered duration',
+    'Abonnements recrutement': 'Recruitment subscriptions',
+    'Les entreprises et organisations accèdent à leurs pages recrutement avec un abonnement payé en ligne.':
+        'Companies and organisations access their recruitment pages with a subscription paid online.',
+    'Forfaits proposés': 'Plans offered',
+    'Un nouveau prix s’applique aux abonnements choisis ensuite ; une facture déjà émise garde son montant.':
+        'A new price applies to subscriptions chosen afterwards; an invoice already issued keeps its amount.',
+    'Lecture seule : votre rôle ne permet pas de modifier les forfaits.':
+        'Read only: your role does not allow editing the plans.',
+    Forfait: 'Plan',
+    Libellé: 'Label',
+    'Prix (FCFA)': 'Price (FCFA)',
+    Offert: 'Offered',
+    État: 'Status',
+
+    // Partnerships
+    Partenariats: 'Partnerships',
+    'Contrat de partenariat': 'Partnership contract',
+    'Étudiez les demandes des entreprises, proposez un partenariat et validez les contrats signés.':
+        'Review requests from companies, propose a partnership and validate signed contracts.',
+    'Proposer un partenariat': 'Propose a partnership',
+    'En signature': 'Out for signature',
+    'Partenaires actifs': 'Active partners',
+    Clos: 'Closed',
+    Tous: 'All',
+    'À étudier': 'To review',
+    'Signé, à valider': 'Signed, to validate',
+    'Partenaire actif': 'Active partner',
+    'Aucun partenariat pour le moment. Les demandes des entreprises arrivent ici ; vous pouvez aussi proposer un partenariat.':
+        'No partnership yet. Requests from companies arrive here; you can also propose a partnership.',
+    'Aucun partenariat dans cette catégorie.':
+        'No partnership in this category.',
+    'Proposé par DAG': 'Proposed by DAG',
+    'Demande de la structure': 'Request from the organisation',
+    'Message envoyé à la structure': 'Message sent to the organisation',
+    'Présentation de la structure': 'Presentation of the organisation',
+    'Partenariat en vigueur.': 'Partnership in force.',
+    'Partenariat terminé.': 'Partnership ended.',
+    'Durée du partenariat': 'Partnership duration',
+    'Accepter et envoyer le contrat': 'Accept and send the contract',
+    'Motif du refus (transmis à la structure)':
+        'Reason for refusal (sent to the organisation)',
+    'Confirmer le refus': 'Confirm refusal',
+    'Le contrat de partenariat est rédigé à partir du modèle actif et envoyé tout de suite à la structure, qui le signe depuis son espace. Vous le validez ensuite.':
+        'The partnership contract is drafted from the active template and sent right away to the organisation, which signs it from its space. You then validate it.',
+    'Toutes les entreprises et organisations ont déjà un partenariat en cours.':
+        'Every company and organisation already has a partnership under way.',
+    'Choisir une structure…': 'Choose an organisation…',
+    'Message à la structure (facultatif)':
+        'Message to the organisation (optional)',
+    'Quelques mots pour présenter la proposition de DAG.':
+        'A few words to present DAG’s proposal.',
+    'Envoyer le contrat à signer': 'Send the contract for signature',
+    'Acceptez la demande en choisissant la durée du partenariat : le contrat est rédigé et envoyé à la structure. Sinon, refusez-la avec un motif.':
+        'Accept the request by choosing the partnership duration: the contract is drafted and sent to the organisation. Otherwise, refuse it with a reason.',
+    'Le contrat attend la signature de la structure. Elle est prévenue et le retrouve dans son espace.':
+        'The contract is waiting for the organisation’s signature. It has been notified and finds it in its space.',
+    'Le contrat est repassé en brouillon : corrigez-le puis renvoyez-le à la structure depuis la page du contrat.':
+        'The contract is back to draft: correct it, then send it back to the organisation from the contract page.',
+    'La structure a signé. Validez le contrat pour en faire un Partenaire officiel de DAG.':
+        'The organisation has signed. Validate the contract to make it an Official partner of DAG.',
+
+    // Generating a contract from the contracts page
+    'Générer un contrat': 'Generate a contract',
+    'Choisissez le type de contrat et l’entreprise : le contrat est rédigé à partir du modèle actif.':
+        'Choose the contract type and the company: the contract is drafted from the active template.',
+    'Une prestation convenue avec l’entreprise : elle signe, vous validez, elle paie en ligne.':
+        'A service agreed with the company: it signs, you validate, it pays online.',
+    'Une formule pour une période : même parcours, signature puis paiement.':
+        'A plan for a period: same path, signature then payment.',
+    'Le contrat-cadre du juriste : une fois validé, l’entreprise devient Partenaire officiel.':
+        'The lawyer’s framework contract: once validated, the company becomes an Official partner.',
+    'Pour une demande existante': 'For an existing request',
+    'Une demande d’un client qui n’a pas encore son contrat.':
+        'A client request that does not have its contract yet.',
+    Partenariat: 'Partnership',
+    'Choisir une entreprise…': 'Choose a company…',
+    'Objet de la prestation': 'Subject of the service',
+    'Ex. Réalisation de 120 badges': 'E.g. Making 120 badges',
+    'Choisir une formule…': 'Choose a plan…',
+    'Montant pour la période (FCFA)': 'Amount for the period (FCFA)',
+    'Montant convenu (FCFA)': 'Agreed amount (FCFA)',
+    'Ce qui est convenu': 'What was agreed',
+    'Détail de la prestation : quantités, livrables, délais particuliers… Ce texte figure dans le contrat.':
+        'Details of the service: quantities, deliverables, specific deadlines… This text appears in the contract.',
+    Modèle: 'Template',
+    'Modèle par défaut': 'Default template',
+    'La facture du montant est émise avec le contrat : l’entreprise la règle en ligne une fois le contrat signé et validé par vous. Elle retrouve tout dans « Mes demandes ».':
+        'The invoice for the amount is issued with the contract: the company pays it online once the contract is signed and validated by you. It finds everything under “My requests”.',
+    'Message à l’entreprise (facultatif)': 'Message to the company (optional)',
+    'Générer et relire': 'Generate and review',
+    'Générer et envoyer': 'Generate and send',
+    'Envoyer ce contrat à l’entreprise pour signature ? Elle est prévenue tout de suite et le retrouve dans son espace.':
+        'Send this contract to the company for signature? It is notified right away and finds it in its space.',
+    'Ces articles composent le contrat de prestation de service : ils sont ajoutés, dans cet ordre et numérotés automatiquement, à chaque nouveau contrat de prestation. Les modèles qui ont leurs propres articles (abonnement, partenariat) ne les reprennent pas. Les contrats déjà rédigés gardent leur texte.':
+        'These articles make up the service contract: they are added, in this order and numbered automatically, to every new service contract. Templates with their own articles (subscription, partnership) do not use them. Contracts already drafted keep their text.',
+
+    // Partner logos of the public site
+    'Logos partenaires': 'Partner logos',
+    'Logos partenaires (site public)': 'Partner logos (public site)',
+    'Les logos affichés sur le site public : bande défilante de l’accueil et page « À propos ».':
+        'The logos shown on the public site: the scrolling band of the home page and the “About” page.',
+    'Aperçu sur le site': 'Preview on the site',
+    'Aucun logo affiché : la rubrique « Nos partenaires » est masquée sur le site.':
+        'No logo shown: the “Our partners” section is hidden on the site.',
+    'Ajouter un logo': 'Add a logo',
+    'Choisir le logo': 'Choose the logo',
+    'PNG, JPG ou WebP · 2 Mo max': 'PNG, JPG or WebP · 2 MB max',
+    'Nom du partenaire': 'Partner name',
+    'Ex. Nordex Consulting Group': 'E.g. Nordex Consulting Group',
+    'Site web (facultatif)': 'Website (optional)',
+    'https:// (facultatif)': 'https:// (optional)',
+    'Logo sur fond foncé (il remplit sa tuile)':
+        'Logo on a dark background (it fills its tile)',
+    'Ajouter au site': 'Add to the site',
+    'Ajout…': 'Adding…',
+    Masqué: 'Hidden',
+    'Fond foncé': 'Dark background',
+    'Remplacer l’image': 'Replace the image',
+    'Plus tôt dans la bande': 'Earlier in the band',
+    'Plus tard dans la bande': 'Later in the band',
+    'Masquer du site': 'Hide from the site',
+    'Afficher sur le site': 'Show on the site',
 };

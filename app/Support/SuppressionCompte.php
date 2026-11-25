@@ -34,6 +34,22 @@ class SuppressionCompte
         // Support threads are personal exchanges, not legal records.
         TicketSupport::where('user_id', $user->id)->delete();
 
+        // A collaborator only had access to someone else's client: closing
+        // their account ends that access and never touches the client.
+        if ($user->estCollaborateur()) {
+            $user->delete();
+
+            return false;
+        }
+
+        // Closing a client also ends every access it gave to colleagues.
+        $client = $user->getRelationValue('client');
+
+        if ($client !== null) {
+            $client->collaborateurs()->with('user')->get()
+                ->each(fn ($collaborateur) => self::fermer($collaborateur->user));
+        }
+
         if (! self::aDesPiecesAConserver($user)) {
             self::supprimerFichiers($user);
             $user->delete();

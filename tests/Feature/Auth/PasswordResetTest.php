@@ -96,3 +96,24 @@ test('password cannot be reset with invalid token', function () {
 
     $response->assertSessionHasErrors('email');
 });
+
+test('the forgotten password page answers the same whether the address has an account or not', function () {
+    Notification::fake();
+    $user = User::factory()->create();
+
+    $existant = $this->from(route('password.request'))
+        ->post(route('password.email'), ['email' => $user->email]);
+    $inconnu = $this->from(route('password.request'))
+        ->post(route('password.email'), ['email' => 'personne-'.Str::random(8).'@example.com']);
+    // Asked again within the minute: only possible for an existing account.
+    $renvoye = $this->from(route('password.request'))
+        ->post(route('password.email'), ['email' => $user->email]);
+
+    foreach ([$existant, $inconnu, $renvoye] as $reponse) {
+        $reponse->assertRedirect(route('password.request'))
+            ->assertSessionHasNoErrors()
+            ->assertSessionHas('status', trans('passwords.sent'));
+    }
+
+    Notification::assertSentToTimes($user, ResetPassword::class, 1);
+});

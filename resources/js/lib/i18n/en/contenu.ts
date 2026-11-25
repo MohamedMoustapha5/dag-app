@@ -15,7 +15,8 @@ export const contenuEn: Record<string, string> = {
         'Project management & digital strategy',
     'Planification, conseil, accompagnement.': 'Planning, advice, support.',
     'Campagnes publicitaires': 'Advertising campaigns',
-    'Meta Ads, TikTok Ads, ciblage précis.': 'Meta Ads, TikTok Ads, precise targeting.',
+    'Meta Ads, TikTok Ads, ciblage précis.':
+        'Meta Ads, TikTok Ads, precise targeting.',
     'Boost de comptes et de pages': 'Account and page boosting',
     'Facebook, Instagram, TikTok.': 'Facebook, Instagram, TikTok.',
     'Monétisation TikTok & Facebook': 'TikTok & Facebook monetisation',
@@ -30,12 +31,14 @@ export const contenuEn: Record<string, string> = {
     'Vente en ligne, paiement sécurisé, gestion de boutique.':
         'Online selling, secure payment, shop management.',
     'Hébergement web': 'Web hosting',
-    'Sites, applications, bases de données.': 'Websites, applications, databases.',
+    'Sites, applications, bases de données.':
+        'Websites, applications, databases.',
     'Digitalisation des processus': 'Process digitalisation',
     "Adaptation des processus à l'ère du numérique.":
         'Adapting processes to the digital era.',
     'Sécurité informatique & cybersécurité': 'IT security & cybersecurity',
-    'Protection, prévention, surveillance.': 'Protection, prevention, monitoring.',
+    'Protection, prévention, surveillance.':
+        'Protection, prevention, monitoring.',
     Numérisation: 'Digitisation',
     'Documents, archives, fichiers.': 'Documents, archives, files.',
     'Secrétariat bureautique': 'Office secretarial services',
@@ -78,7 +81,8 @@ export const contenuEn: Record<string, string> = {
     'Audit et objectifs de campagne': 'Audit and campaign objectives',
     'Ciblage, budget et formats publicitaires':
         'Targeting, budget and ad formats',
-    'Suivi de performance et optimisation': 'Performance tracking and optimisation',
+    'Suivi de performance et optimisation':
+        'Performance tracking and optimisation',
     'Initiation aux réseaux sociaux': 'Introduction to social media',
     'Prise en main des principaux réseaux sociaux pour une activité professionnelle.':
         'Getting started with the main social networks for a professional activity.',
@@ -139,9 +143,9 @@ export const contenuEn: Record<string, string> = {
     'Application web sur mesure': 'Custom web application',
     'Maintenance de site web': 'Website maintenance',
     'Numérisation de documents simples': 'Simple document digitisation',
-    'Numérisation & gestion documentaire':
-        'Digitisation & document management',
-    "Organisation et indexation d'archives": 'Archive organisation and indexing',
+    'Numérisation & gestion documentaire': 'Digitisation & document management',
+    "Organisation et indexation d'archives":
+        'Archive organisation and indexing',
     "Mise en place d'un système documentaire": 'Setting up a document system',
     'Archivage et assistance récurrente': 'Archiving and recurring support',
     'Sur devis': 'On quote',
@@ -177,7 +181,9 @@ export const contenuEn: Record<string, string> = {
     "Mise à disposition ou coordination d'un profil":
         'Provision or coordination of a profile',
     'Déploiement et configuration': 'Deployment and configuration',
-    'Solution de gestion médicale VitalLink': 'VitalLink medical management solution',
+    'Solution de gestion médicale VitalLink':
+        'VitalLink medical management solution',
     'Formation des utilisateurs': 'User training',
-    'Maintenance, hébergement et assistance': 'Maintenance, hosting and assistance',
+    'Maintenance, hébergement et assistance':
+        'Maintenance, hosting and assistance',
 };

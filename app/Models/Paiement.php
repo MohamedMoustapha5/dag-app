@@ -11,7 +11,7 @@ use Illuminate\Support\Carbon;
 /**
  * @property Carbon|null $date_paiement
  */
-#[Fillable(['facture_id', 'montant', 'reference_transaction', 'moyen', 'statut', 'justificatif_path', 'valide_par_id', 'date_paiement'])]
+#[Fillable(['facture_id', 'montant', 'reference_transaction', 'lien_paiement', 'moyen', 'statut', 'justificatif_path', 'valide_par_id', 'date_paiement'])]
 class Paiement extends Model
 {
     use HasUuids;

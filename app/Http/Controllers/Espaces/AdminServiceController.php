@@ -10,7 +10,6 @@ use App\Models\Service;
 use App\Support\DroitsMatrix;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -28,7 +27,7 @@ class AdminServiceController extends Controller
             ->orderBy('nom')
             ->get();
 
-        return Inertia::render('espaces/admin-services', [
+        return Inertia::render('espaces/admin/services', [
             ...$this->adminEspaceProps($membre),
             'droitsResume' => DroitsMatrix::resume(Donnee::Catalogue),
             'services' => $services->map(fn (Service $service) => [
@@ -39,6 +38,7 @@ class AdminServiceController extends Controller
                 'fournisseur' => $service->fournisseur,
                 'image' => $service->image,
                 'prix' => $service->prix,
+                'contratRequis' => $service->contrat_requis,
                 'statut' => $service->statut,
             ]),
             'categoriesExistantes' => $services
@@ -102,7 +102,7 @@ class AdminServiceController extends Controller
     }
 
     /**
-     * @return array{nom?: string, description?: string, categorie?: string, fournisseur?: string, image?: mixed, prix?: ?float, statut?: string}
+     * @return array{nom?: string, description?: string, categorie?: string, fournisseur?: string, image?: mixed, prix?: ?float, contrat_requis?: bool, statut?: string}
      */
     private function validated(Request $request, bool $sometimes = false): array
     {
@@ -115,6 +115,8 @@ class AdminServiceController extends Controller
             'fournisseur' => [$required, 'string', 'max:191'],
             'image' => ['nullable', 'image', 'max:5120'],
             'prix' => ['nullable', 'numeric', 'min:0'],
+            // Whether an entreprise or an organisation signs a contract for it.
+            'contrat_requis' => ['sometimes', 'boolean'],
             'statut' => [$required, 'string', 'in:BROUILLON,PUBLIE'],
         ]);
     }
@@ -129,6 +131,8 @@ class AdminServiceController extends Controller
 
         abort_if($path === false, 500, "Échec de l'enregistrement de l'image.");
 
-        return Storage::disk('public')->url($path);
+        // Relative to the site root, so the address survives a change of
+        // domain (localhost, then agencydag.com); needs `php artisan storage:link`.
+        return '/storage/'.$path;
     }
 }

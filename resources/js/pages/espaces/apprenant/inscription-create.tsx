@@ -11,6 +11,7 @@ import {
     Users,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import PiecesDossier from '@/components/espaces/pieces-dossier';
 import { libelleFraisInscription } from '@/lib/frais-inscription';
 import espaceApprenant from '@/routes/espace-apprenant';
 import inscriptions from '@/routes/espace-apprenant/inscriptions';
@@ -28,6 +29,7 @@ type Session = {
     placesRestantes: number;
     prix: string | null;
     ouverte: boolean;
+    piecesRequises: string[];
 };
 
 type Props = {
@@ -42,16 +44,16 @@ const MODE_LABEL: Record<string, string> = {
 
 const ETAPES = [
     {
-        titre: 'Je confirme mon inscription',
-        texte: 'Ma place est réservée dans la session.',
+        titre: "J'envoie mon dossier",
+        texte: 'Les pièces demandées : ma place est réservée pendant l’examen.',
+    },
+    {
+        titre: 'DAG valide mon dossier',
+        texte: "L'équipe vérifie mes pièces et me prévient.",
     },
     {
         titre: "Je règle les frais d'inscription",
-        texte: 'En ligne depuis mes factures, en quelques instants.',
-    },
-    {
-        titre: 'DAG valide mon inscription',
-        texte: "L'équipe confirme le paiement et me prévient.",
+        texte: 'En ligne depuis mes factures : ma place est confirmée.',
     },
 ];
 
@@ -84,9 +86,30 @@ function dureeEnJours(debut: string | null, fin: string | null): number | null {
 }
 
 export default function InscriptionCreate({ session }: Props) {
-    const { post, processing } = useForm({});
+    const form = useForm<{ pieces: (File | null)[] }>({
+        pieces: session.piecesRequises.map(() => null),
+    });
     const disponible =
         session.ouverte && session.placesRestantes > 0 && session.prix !== null;
+    const piecesPretes = form.data.pieces.filter(Boolean).length;
+    const dossierComplet = piecesPretes === session.piecesRequises.length;
+
+    const choisirPiece = (index: number, fichier: File | null) => {
+        form.setData(
+            'pieces',
+            form.data.pieces.map((actuel, position) =>
+                position === index ? fichier : actuel,
+            ),
+        );
+        form.clearErrors(`pieces.${index}` as 'pieces');
+    };
+
+    const envoyer = () => {
+        form.post(inscriptions.store(session.id).url, {
+            forceFormData: true,
+            preserveScroll: true,
+        });
+    };
 
     const debut = formaterDate(session.dateDebut);
     const fin = formaterDate(session.dateFin);
@@ -147,7 +170,7 @@ export default function InscriptionCreate({ session }: Props) {
 
     return (
         <>
-            <Head title="Confirmer mon inscription" />
+            <Head title="Mon inscription" />
 
             <Link
                 href={espaceApprenant.formations()}
@@ -171,35 +194,52 @@ export default function InscriptionCreate({ session }: Props) {
                     </span>
                     <h1>{session.formation}</h1>
                     <p>
-                        Vérifiez les informations de la session puis confirmez
-                        votre inscription.
+                        Vérifiez les informations de la session, joignez votre
+                        dossier puis envoyez votre inscription.
                     </p>
                 </div>
             </div>
 
             <div className="inscription-layout">
-                <section className="card inscription-details">
-                    <h2>Détails de la session</h2>
-                    <ul>
-                        {details
-                            .filter((detail) => detail.valeur)
-                            .map((detail) => (
-                                <li key={detail.libelle}>
-                                    <span className="inscription-detail-icone">
-                                        <detail.icone size={18} />
-                                    </span>
-                                    <span>
-                                        <span className="inscription-detail-libelle">
-                                            {detail.libelle}
+                <div>
+                    <section className="card inscription-details">
+                        <h2>Détails de la session</h2>
+                        <ul>
+                            {details
+                                .filter((detail) => detail.valeur)
+                                .map((detail) => (
+                                    <li key={detail.libelle}>
+                                        <span className="inscription-detail-icone">
+                                            <detail.icone size={18} />
                                         </span>
-                                        <span className="inscription-detail-valeur">
-                                            {detail.valeur}
+                                        <span>
+                                            <span className="inscription-detail-libelle">
+                                                {detail.libelle}
+                                            </span>
+                                            <span className="inscription-detail-valeur">
+                                                {detail.valeur}
+                                            </span>
                                         </span>
-                                    </span>
-                                </li>
-                            ))}
-                    </ul>
-                </section>
+                                    </li>
+                                ))}
+                        </ul>
+                    </section>
+
+                    <section className="card inscription-dossier">
+                        <h2>Mon dossier d'inscription</h2>
+                        <p>
+                            Joignez une copie lisible de chaque pièce (scan ou
+                            photo). L'équipe DAG vérifie votre dossier avant de
+                            vous ouvrir le paiement des frais d'inscription.
+                        </p>
+                        <PiecesDossier
+                            pieces={session.piecesRequises}
+                            fichiers={form.data.pieces}
+                            onChange={choisirPiece}
+                            erreurs={form.errors as Record<string, string>}
+                        />
+                    </section>
+                </div>
 
                 <aside className="card inscription-recap">
                     <p className="inscription-recap-libelle">
@@ -221,25 +261,36 @@ export default function InscriptionCreate({ session }: Props) {
                         </p>
                     )}
 
+                    {disponible && !dossierComplet && (
+                        <p className="muted" style={{ fontSize: 12.5 }}>
+                            Pièces jointes : {piecesPretes}/
+                            {session.piecesRequises.length}. Joignez toutes les
+                            pièces pour envoyer votre dossier.
+                        </p>
+                    )}
+
                     <button
                         type="button"
                         className="btn-primary btn-block"
-                        disabled={!disponible || processing}
-                        onClick={() => post(inscriptions.store(session.id).url)}
+                        disabled={
+                            !disponible || !dossierComplet || form.processing
+                        }
+                        onClick={envoyer}
                     >
-                        {processing ? (
+                        {form.processing ? (
                             <>
                                 <Loader2 size={16} className="animate-spin" />
-                                Enregistrement…
+                                Envoi du dossier…
                             </>
                         ) : (
-                            'Confirmer mon inscription'
+                            'Envoyer mon dossier'
                         )}
                     </button>
                     <p className="inscription-securite">
                         <ShieldCheck size={14} />
-                        Aucun paiement maintenant : vous réglez ensuite depuis
-                        vos factures.
+                        Aucun paiement maintenant : vous réglez les frais une
+                        fois votre dossier validé par DAG. Vos documents restent
+                        confidentiels.
                     </p>
 
                     <ol className="inscription-etapes">

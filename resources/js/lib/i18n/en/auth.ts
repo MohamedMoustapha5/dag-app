@@ -34,7 +34,8 @@ export const authEn: Record<string, string> = {
     Particulier: 'Individual',
     Entreprise: 'Company',
     Organisation: 'Organisation',
-    'Apprenant — je cherche une formation': 'Learner — I am looking for a training',
+    'Apprenant — je cherche une formation':
+        'Learner — I am looking for a training',
     'Votre nom': 'Your name',
     "J'accepte les": 'I accept the',
     "conditions générales d'utilisation": 'terms of use',
@@ -72,4 +73,35 @@ export const authEn: Record<string, string> = {
     'Vérifiez votre adresse e-mail': 'Verify your email address',
     'Merci de confirmer votre e-mail en cliquant sur le lien que nous venons de vous envoyer.':
         'Please confirm your email by clicking the link we just sent you.',
+
+    // Invitation of a collaborator
+    'Activer votre accès': 'Activate your access',
+    'Accès déjà activé': 'Access already active',
+    'Choisissez un mot de passe': 'Choose a password',
+    'Activation…': 'Activating…',
+    'Activer mon accès': 'Activate my access',
+    'Choisissez votre mot de passe pour gérer l’espace de votre structure.':
+        'Choose your password to manage your organisation’s area.',
+
+    // Error pages
+    'Accès refusé': 'Access denied',
+    "Vous n'avez pas l'autorisation d'ouvrir cette page.":
+        'You are not allowed to open this page.',
+    'Page introuvable': 'Page not found',
+    "La page demandée n'existe pas ou a été déplacée.":
+        'The page you requested does not exist or has been moved.',
+    'Session expirée': 'Session expired',
+    'Cette page est restée ouverte trop longtemps. Rechargez-la puis recommencez.':
+        'This page stayed open too long. Reload it and try again.',
+    'Trop de tentatives': 'Too many attempts',
+    'Vous avez fait trop de demandes en peu de temps. Patientez une minute puis réessayez.':
+        'You made too many requests in a short time. Wait a minute and try again.',
+    'Erreur du serveur': 'Server error',
+    'Un problème est survenu de notre côté. Réessayez dans quelques instants.':
+        'Something went wrong on our side. Try again in a few moments.',
+    'Service indisponible': 'Service unavailable',
+    'Le site est en maintenance. Revenez dans quelques minutes.':
+        'The site is under maintenance. Come back in a few minutes.',
+    'Recharger la page': 'Reload the page',
+    'Page précédente': 'Previous page',
 };

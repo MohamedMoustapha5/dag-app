@@ -14,7 +14,7 @@ export default function AuthSimpleLayout({
                     <Link href={home()} className="auth-logo">
                         <img
                             src="/images/brand/dag-logo-pdf.png"
-                            alt="DAG — Digital Agency Group"
+                            alt="Digital Agency Group"
                         />
                     </Link>
 

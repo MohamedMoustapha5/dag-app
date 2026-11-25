@@ -18,6 +18,8 @@
         </include>
     </source>
     <php>
+        <!-- The suite renders many PDFs (dompdf) in one process. -->
+        <ini name="memory_limit" value="1G"/>
         <env name="APP_ENV" value="testing"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
@@ -26,7 +28,16 @@
         <env name="DB_CONNECTION" value="sqlite"/>
         <env name="DB_DATABASE" value=":memory:"/>
         <env name="DB_URL" value=""/>
+        <env name="INERTIA_SSR_ENABLED" value="false"/>
         <env name="MAIL_MAILER" value="array"/>
+        <env name="BREVO_API_KEY" value=""/>
+        <env name="PAIEMENT_PASSERELLE" value="simulation"/>
+        <env name="FAPSHI_API_USER" value=""/>
+        <env name="FAPSHI_API_KEY" value=""/>
+        <env name="FAPSHI_WEBHOOK_SECRET" value=""/>
+        <env name="MONEROO_SECRET_KEY" value=""/>
+        <env name="RECAPTCHA_SITE_KEY" value=""/>
+        <env name="RECAPTCHA_SECRET_KEY" value=""/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="PULSE_ENABLED" value="false"/>

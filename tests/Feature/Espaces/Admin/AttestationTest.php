@@ -27,7 +27,7 @@ test('a promotrice sees formations awaiting attestation validation', function ()
 
     $response->assertOk();
     $response->assertInertia(fn ($page) => $page
-        ->component('espaces/admin-attestations')
+        ->component('espaces/admin/attestations')
         ->has('enAttente', 1)
         ->where('enAttente.0.inscriptionId', $inscription->id)
         ->has('validees', 0));

@@ -19,6 +19,7 @@
         .date-bloc { left: 210px; top: 640px; width: 220px; font-size: 12px; }
         .signature-bloc { left: 500px; top: 540px; width: 250px; font-size: 12px; text-align: center; }
         .ligne { border-top: 1px solid #071f41; padding-top: 5px; letter-spacing: 2px; font-size: 10px; color: #5b6b82; }
+        .signataire { margin-bottom: 5px; font-size: 12.5px; font-weight: bold; letter-spacing: 0.6px; color: #071f41; }
         .sceau-1 { left: 855px; top: 214px; width: 100px; text-align: center; font-size: 10px; font-weight: bold; letter-spacing: 2px; color: #0166fe; }
         .sceau-2 { left: 855px; top: 232px; width: 100px; text-align: center; font-size: 28px; font-weight: bold; color: #071f41; }
         .sceau-3 { left: 855px; top: 266px; width: 100px; text-align: center; font-size: 9px; letter-spacing: 2px; color: #faa608; font-weight: bold; }
@@ -27,7 +28,7 @@
 </head>
 <body>
     <img class="abs fond" src="{{ public_path('images/brand/pdf/attestation-fond.svg') }}" alt="">
-    <img class="abs logo" src="{{ public_path('images/brand/pdf/dag-logo-fond-attestation.png') }}" alt="DAG — Digital Agency Group">
+    <img class="abs logo" src="{{ public_path('images/brand/pdf/dag-logo-fond-attestation.png') }}" alt="Digital Agency Group">
 
     <div class="abs titre">Attestation</div>
     <div class="abs sous-titre">DE FORMATION</div>
@@ -37,7 +38,7 @@
 
     <div class="abs formation">{{ $formation }}</div>
     <div class="abs texte">
-        DAG — Digital Agency Group atteste que la personne ci-dessus a suivi avec assiduité
+        Digital Agency Group atteste que la personne ci-dessus a suivi avec assiduité
         et mené à son terme cette formation @if($duree)(durée : {{ $duree }})@endif.
         Cette attestation a été vérifiée et validée par l'équipe DAG avant sa délivrance.
     </div>
@@ -56,13 +57,14 @@
                 <img src="{{ $signature }}" alt="" style="height: 62px;">
             @endif
         </div>
-        <div class="ligne">LA DIRECTION &mdash; SIGNATURE</div>
+        <div class="signataire">{{ config('entreprise.representant.nom') }}</div>
+        <div class="ligne">{{ mb_strtoupper(config('entreprise.representant.qualite')) }} &mdash; DIGITAL AGENCY GROUP</div>
     </div>
 
     <div class="abs sceau-1">CERTIFIÉ</div>
     <div class="abs sceau-2">DAG</div>
     <div class="abs sceau-3">FORMATION</div>
 
-    <div class="abs ref">Réf. {{ $attestation->reference }} &nbsp;·&nbsp; Délivrée par DAG — Digital Agency Group, Douala, Cameroun</div>
+    <div class="abs ref">Réf. {{ $attestation->reference }} &nbsp;·&nbsp; Délivrée par Digital Agency Group, Douala, Cameroun</div>
 </body>
 </html>

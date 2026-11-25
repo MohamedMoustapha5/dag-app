@@ -30,7 +30,11 @@ class ContratASignerNotification extends NotificationDag
 
     public function message(): string
     {
-        return "Le contrat « {$this->contrat->libelleObjet()} » est disponible dans votre espace. Sa signature est nécessaire pour que la prestation démarre.";
+        return match (true) {
+            $this->contrat->demande_id !== null => "Le contrat « {$this->contrat->libelleObjet()} » est disponible dans votre espace. Signez-le pour régler votre facture et lancer la prestation.",
+            $this->contrat->type === 'CONTRAT_PARTENAIRE' => 'Votre contrat de partenariat avec Digital Agency Group est disponible dans votre espace. Sa signature est nécessaire pour que le partenariat prenne effet.',
+            default => "Le contrat « {$this->contrat->libelleObjet()} » est disponible dans votre espace. Sa signature est nécessaire pour que la prestation démarre.",
+        };
     }
 
     protected function lignes(): array

@@ -235,16 +235,16 @@ compte. Les boutons du catalogue (« Demander ce service »), de la fiche format
 pages protégées de l'espace client ou apprenant.
 
 - [x] Visiteur non connecté : redirection automatique vers la page de connexion, l'adresse
-  voulue est mémorisée et le visiteur y revient aussitôt connecté (connexion, inscription ou
-  vérification de l'e-mail)
+      voulue est mémorisée et le visiteur y revient aussitôt connecté (connexion, inscription ou
+      vérification de l'e-mail)
 - [x] Bandeau d'explication sur les pages de connexion et d'inscription (« Connectez-vous pour
-  demander le service X », « ... choisir la formule X », « ... vous inscrire à la formation X »)
+      demander le service X », « ... choisir la formule X », « ... vous inscrire à la formation X »)
 - [x] Type de compte proposé par défaut à l'inscription selon l'intention (apprenant pour une
-  formation, particulier sinon)
+      formation, particulier sinon)
 - [x] Formule choisie sur la page abonnement présélectionnée dans le formulaire de demande
 - [x] Inscription à une session par un apprenant : page de confirmation, inscription créée
-  « en attente de paiement », refus si la session est fermée ou complète, aucun doublon,
-  alerte à l'équipe
+      « en attente de paiement », refus si la session est fermée ou complète, aucun doublon,
+      alerte à l'équipe
 - [x] Un compte du mauvais type (client sur une inscription de formation) reçoit un refus 403
 - [ ] Candidature à une offre depuis l'espace public (reste dans l'espace entreprises)
 
@@ -256,18 +256,18 @@ Le sélecteur FR / EN fonctionne sur le site public, la connexion, les espaces c
 apprenant et administrateur.
 
 - [x] Choix mémorisé dans un cookie (`dag_lang`, un an) : il survit au rechargement et à la
-  navigation, et l'attribut `lang` de la page suit la langue
+      navigation, et l'attribut `lang` de la page suit la langue
 - [x] Traduction de tout le texte de l'interface, des champs (indications, infobulles), du
-  titre de l'onglet et des boîtes de confirmation, y compris ce que React affiche après coup
-  (navigation, fenêtres, données actualisées, notifications de la cloche, messages de
-  confirmation du serveur)
+      titre de l'onglet et des boîtes de confirmation, y compris ce que React affiche après coup
+      (navigation, fenêtres, données actualisées, notifications de la cloche, messages de
+      confirmation du serveur)
 - [x] Retour au français instantané, sans recharger
 - [x] Textes variables couverts par des motifs (« Il y a 5 min », « Paiement reçu — FAC-1 »,
-  « 50 000 / mois », « Novembre 2026 », dates avec mois en toutes lettres)
+      « 50 000 / mois », « Novembre 2026 », dates avec mois en toutes lettres)
 - [x] Contenu du catalogue fourni avec l'application (services, formations, formules, offres,
-  grille tarifaire) traduit
+      grille tarifaire) traduit
 - [ ] Contenu saisi ensuite par l'équipe (nouveau service, nouvelle formation) : reste dans la
-  langue de saisie tant qu'on n'ajoute pas sa traduction
+      langue de saisie tant qu'on n'ajoute pas sa traduction
 - [ ] E-mails et PDF (contrats, factures, attestations) : restent en français
 
 Fonctionnement : `resources/js/lib/i18n/`. Les textes restent écrits en français dans les

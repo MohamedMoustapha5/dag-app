@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Espaces;
 
 use App\Concerns\PasswordValidationRules;
 use App\Concerns\SharesAdminEspaceProps;
+use App\Enums\Civilite;
 use App\Enums\Donnee;
 use App\Enums\MembreEquipeRole;
 use App\Enums\NiveauDroit;
@@ -29,17 +30,22 @@ class AdminEquipeController extends Controller
             ->orderBy('name')
             ->get();
 
-        return Inertia::render('espaces/admin-equipe', [
+        return Inertia::render('espaces/admin/equipe', [
             ...$this->adminEspaceProps($this->membre($request)),
             'membres' => $membres->map(fn (MembreEquipe $membre) => [
                 'id' => $membre->id,
                 'nom' => $membre->name,
+                'civilite' => $membre->civilite?->value,
                 'email' => $membre->email,
                 'role' => $membre->role->value,
                 'roleLabel' => $membre->role->label(),
                 'statut' => $membre->statut,
                 'soiMeme' => $membre->id === $this->membre($request)->id,
             ])->values(),
+            'civilites' => collect(Civilite::cases())->map(fn (Civilite $civilite) => [
+                'value' => $civilite->value,
+                'label' => $civilite->label(),
+            ]),
             'roles' => collect(MembreEquipeRole::cases())->map(fn (MembreEquipeRole $role) => [
                 'value' => $role->value,
                 'label' => $role->label(),
@@ -70,6 +76,7 @@ class AdminEquipeController extends Controller
         $this->authorizePromotrice($request);
 
         $data = $request->validate([
+            'civilite' => ['nullable', Rule::enum(Civilite::class)],
             'name' => ['required', 'string', 'max:191'],
             'email' => ['required', 'string', 'email', 'max:191', 'unique:membres_equipe,email'],
             'password' => $this->passwordRules(),
@@ -78,6 +85,7 @@ class AdminEquipeController extends Controller
 
         MembreEquipe::create([
             'name' => $data['name'],
+            'civilite' => $data['civilite'] ?? null,
             'email' => $data['email'],
             'password' => $data['password'],
             'role' => $data['role'],
@@ -96,6 +104,7 @@ class AdminEquipeController extends Controller
         $this->authorizePromotrice($request);
 
         $data = $request->validate([
+            'civilite' => ['sometimes', 'nullable', Rule::enum(Civilite::class)],
             'role' => ['sometimes', Rule::enum(MembreEquipeRole::class)],
             'statut' => ['sometimes', Rule::in(['ACTIF', 'INACTIF'])],
         ]);
@@ -166,7 +175,7 @@ class AdminEquipeController extends Controller
         abort_unless(
             $this->membre($request)->role === MembreEquipeRole::Promotrice,
             403,
-            "Seule la Directrice peut gérer l'équipe et les droits."
+            "Seule la CEO peut gérer l'équipe et les droits."
         );
     }
 }

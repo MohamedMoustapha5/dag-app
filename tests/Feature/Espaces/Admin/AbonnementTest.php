@@ -15,7 +15,7 @@ test('a controle de gestion can create an abonnement and then activate it', func
         ->get(route('espace-admin.abonnements.index'))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->component('espaces/admin-abonnements')
+            ->component('espaces/admin/abonnements')
             ->has('clients', 1)
             ->has('formules', 1)
             ->has('servicesDisponibles'));

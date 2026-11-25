@@ -4,14 +4,17 @@ namespace App\Support\Paiements;
 
 use App\Enums\Action;
 use App\Enums\Donnee;
+use App\Enums\IssueTransaction;
 use App\Models\ActivityLog;
 use App\Models\Demande;
 use App\Models\Facture;
 use App\Models\MembreEquipe;
 use App\Models\Paiement;
+use App\Models\User;
+use App\Notifications\InscriptionDecisionNotification;
 use App\Notifications\PaiementConfirmeNotification;
-use App\Support\ContratRedaction;
 use App\Support\Notifications\Notifier;
+use App\Support\Recrutement\AbonnementRecrutement;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Throwable;
@@ -60,6 +63,70 @@ class PaiementService
         return $facture;
     }
 
+    /**
+     * Whether the facture still waits for the client to sign the contract of
+     * its demande, sent once the devis is validated (entreprises and
+     * organisations only: a particulier has no contract).
+     */
+    public function attendSignatureContrat(Facture $facture): bool
+    {
+        return $facture->demande_id !== null
+            && $facture->demande->exigeContrat()
+            && $facture->demande->devisAccepte()
+            && ! $facture->demande->contratEstSigne();
+    }
+
+    /**
+     * Whether the client signed the contract of the facture's demande but DAG
+     * has not validated it yet.
+     */
+    public function attendValidationContrat(Facture $facture): bool
+    {
+        return $facture->demande_id !== null
+            && $facture->demande->contratEstSigne()
+            && ! $facture->demande->contratEstValide()
+            && ! $facture->demande->paiementEstOuvert();
+    }
+
+    /**
+     * Whether the facture of a demande still waits for the client to
+     * validate the devis (proforma), the first step for every client.
+     */
+    public function attendValidationDevis(Facture $facture): bool
+    {
+        return $facture->demande_id !== null
+            && ! $facture->demande->devisAccepte()
+            && ! $facture->demande->paiementEstOuvert();
+    }
+
+    /**
+     * A service or a formule is only paid once its devis is validated by a
+     * particulier, or its contract signed by the client then validated by
+     * DAG for an entreprise or an organisation.
+     *
+     * @throws ValidationException
+     */
+    private function exigerContratValide(Facture $facture, string $champ): void
+    {
+        if ($this->attendValidationDevis($facture)) {
+            throw ValidationException::withMessages([
+                $champ => 'Validez d\'abord le devis depuis votre demande : le paiement s\'ouvre aussitôt.',
+            ]);
+        }
+
+        if ($this->attendSignatureContrat($facture)) {
+            throw ValidationException::withMessages([
+                $champ => 'Le contrat doit être signé puis validé par DAG avant le paiement : signez-le depuis votre espace.',
+            ]);
+        }
+
+        if ($this->attendValidationContrat($facture)) {
+            throw ValidationException::withMessages([
+                $champ => 'Le contrat est signé et en cours de validation par DAG : le paiement s\'ouvre dès sa validation.',
+            ]);
+        }
+    }
+
     public function soldeRestant(Facture $facture): float
     {
         return max(0.0, (float) $facture->montant - (float) $facture->montant_paye);
@@ -80,14 +147,27 @@ class PaiementService
     /**
      * The payment methods offered to payers, in display order.
      *
-     * @return list<array{value: string, label: string, mobile: bool}>
+     * @return list<array{value: string, label: string, mobile: bool, telephone: bool}>
      */
     public function moyens(): array
     {
         $moyens = [];
+        $acceptes = config('paiements.moyens_acceptes.'.config('paiements.passerelle'));
+        $demandeTelephone = $this->passerelle()->demandeTelephone();
 
         foreach (config('paiements.moyens') as $valeur => $moyen) {
-            $moyens[] = ['value' => $valeur, 'label' => $moyen['label'], 'mobile' => $moyen['mobile']];
+            // The active provider may not take every method (Fapshi: no card).
+            if (is_array($acceptes) && ! in_array($valeur, $acceptes, true)) {
+                continue;
+            }
+
+            $moyens[] = [
+                'value' => $valeur,
+                'label' => $moyen['label'],
+                'mobile' => $moyen['mobile'],
+                // Whether DAG asks the number, or the provider's page does.
+                'telephone' => $moyen['mobile'] && $demandeTelephone,
+            ];
         }
 
         return $moyens;
@@ -101,8 +181,9 @@ class PaiementService
      * and credited on top of the new one.
      *
      * @throws ValidationException
+     * @throws PasserelleIndisponible
      */
-    public function initier(Facture $facture, string $moyen, ?string $telephone): Paiement
+    public function initier(Facture $facture, string $moyen, ?string $telephone, User $payeur): PaiementInitie
     {
         $paiement = DB::transaction(function () use ($facture, $moyen): Paiement {
             $verrouillee = Facture::where('id', $facture->id)->lockForUpdate()->firstOrFail();
@@ -110,6 +191,8 @@ class PaiementService
             if (! in_array($verrouillee->statut, ['EN_ATTENTE', 'PARTIELLEMENT_PAYEE'], true) || $this->soldeRestant($verrouillee) <= 0) {
                 throw ValidationException::withMessages(['moyen' => 'Cette facture est déjà réglée.']);
             }
+
+            $this->exigerContratValide($verrouillee, 'moyen');
 
             if ($this->paiementEnAttente($verrouillee)) {
                 throw ValidationException::withMessages([
@@ -130,16 +213,115 @@ class PaiementService
         // A provider that refuses the payment must not leave it pending, or it
         // would block any new attempt until the waiting delay runs out.
         try {
-            $reference = $this->passerelle()->initier($paiement, $telephone);
+            $initiation = $this->passerelle()->initier($paiement, $payeur, $telephone);
         } catch (Throwable $erreur) {
             $paiement->update(['statut' => 'ECHEC']);
 
             throw $erreur;
         }
 
-        $paiement->update(['reference_transaction' => $reference]);
+        $paiement->update([
+            'reference_transaction' => $initiation->reference,
+            'lien_paiement' => $initiation->urlPaiement,
+        ]);
 
-        return $paiement;
+        return new PaiementInitie($paiement, $initiation->urlPaiement);
+    }
+
+    /**
+     * The online attempt still waiting on the facture, if any.
+     */
+    public function tentativeEnAttente(Facture $facture): ?Paiement
+    {
+        return $facture->paiements()
+            ->where('statut', 'EN_ATTENTE')
+            ->where('created_at', '>', now()->subMinutes((int) config('paiements.delai_attente_minutes')))
+            ->latest()
+            ->first();
+    }
+
+    /**
+     * A payer comes back to an attempt they left unfinished (closed the
+     * provider's page, came back too early). The provider is asked where it
+     * stands first, so nothing is paid twice:
+     * - paid: it is credited ('confirme');
+     * - failed or expired: it is closed and a new payment can start ('cloture');
+     * - still open: the payer goes back to the same payment page ('page'),
+     *   or validates the request already sent to their phone ('telephone').
+     *
+     * @return array{etat: 'aucune'|'confirme'|'cloture'|'page'|'telephone', paiement: Paiement|null, url: string|null}
+     */
+    public function reprendre(Facture $facture): array
+    {
+        $paiement = $this->tentativeEnAttente($facture);
+
+        if ($paiement === null) {
+            return ['etat' => 'aucune', 'paiement' => null, 'url' => null];
+        }
+
+        if ($paiement->reference_transaction !== null && ! $this->passerelle()->ecranLocal()) {
+            try {
+                $resultat = $this->passerelle()->verifier($paiement->reference_transaction);
+
+                if ($resultat->issue === IssueTransaction::Reussi) {
+                    $this->appliquerResultat($paiement, $resultat);
+
+                    return ['etat' => 'confirme', 'paiement' => $paiement, 'url' => null];
+                }
+
+                if ($resultat->issue === IssueTransaction::Echoue) {
+                    $this->echouer($paiement);
+
+                    return ['etat' => 'cloture', 'paiement' => $paiement, 'url' => null];
+                }
+            } catch (PasserelleIndisponible) {
+                // Provider unreachable: the payer can still go back to the page.
+            }
+        }
+
+        $url = $this->passerelle()->ecranLocal()
+            ? route('paiements.simulation', $paiement)
+            : $paiement->lien_paiement;
+
+        return $url !== null
+            ? ['etat' => 'page', 'paiement' => $paiement, 'url' => $url]
+            : ['etat' => 'telephone', 'paiement' => $paiement, 'url' => null];
+    }
+
+    /**
+     * Applies what the provider says about a payment (webhook, or payer
+     * back from the provider's page). A success for another amount or
+     * currency than the one requested is never credited, since the
+     * provider-side figures are the money actually paid: false is returned
+     * and the discrepancy is logged for the team.
+     */
+    public function appliquerResultat(Paiement $paiement, ResultatTransaction $resultat): bool
+    {
+        if ($resultat->issue === IssueTransaction::Echoue) {
+            $this->echouer($paiement);
+
+            return true;
+        }
+
+        if ($resultat->issue === IssueTransaction::EnAttente) {
+            return true;
+        }
+
+        $montantConforme = $resultat->montant !== null && round($resultat->montant, 2) === round((float) $paiement->montant, 2);
+        $deviseConforme = $resultat->devise === null || strtoupper($resultat->devise) === strtoupper((string) config('paiements.devise'));
+
+        if (! $montantConforme || ! $deviseConforme) {
+            $facture = $paiement->facture;
+            $attendu = number_format((float) $paiement->montant, 0, ',', ' ');
+
+            ActivityLog::record(null, 'paiement en ligne non conforme', $facture, "{$facture->reference} : {$resultat->montant} {$resultat->devise} annoncés pour {$attendu} FCFA attendus ({$resultat->reference}), non crédité.");
+
+            return false;
+        }
+
+        $this->confirmer($paiement);
+
+        return true;
     }
 
     /**
@@ -231,6 +413,8 @@ class PaiementService
                 throw ValidationException::withMessages(['montant' => 'Cette facture est déjà réglée.']);
             }
 
+            $this->exigerContratValide($facture, 'montant');
+
             if ($montant > $solde) {
                 throw ValidationException::withMessages([
                     'montant' => 'Le montant dépasse le solde restant ('.number_format($solde, 0, ',', ' ').' FCFA).',
@@ -286,36 +470,36 @@ class PaiementService
             'moyen_paiement' => $moyen,
         ]);
 
-        // A settled registration fee is the first step only: the team still
-        // validates the seat (AdminInscriptionController::valider).
+        // A recruitment subscription opens its period once fully paid.
+        if ($soldee && $facture->acces_recrutement_id !== null) {
+            app(AbonnementRecrutement::class)->activer($facture->accesRecrutement);
+        }
+
+        // The fee is only billed once DAG validated the dossier
+        // (AdminInscriptionController::valider): paying it confirms the seat.
         if ($soldee && $facture->inscription_id !== null && $facture->inscription?->statut === 'EN_ATTENTE_PAIEMENT') {
             $inscription = $facture->inscription;
+            $inscription->update(['statut' => 'VALIDEE']);
+
+            Notifier::envoyer($inscription->apprenant->user, new InscriptionDecisionNotification($inscription, true));
 
             Notifier::alerterEquipe(
                 Donnee::Formations,
-                Action::Valider,
+                Action::Voir,
                 'inscription.payee',
-                "Inscription à valider — {$inscription->formation->nom}",
-                "{$inscription->apprenant->user->name} a réglé ses frais d'inscription ({$facture->reference}). Validez sa place.",
+                "Inscription confirmée — {$inscription->formation->nom}",
+                "{$inscription->apprenant->user->name} a réglé ses frais d'inscription ({$facture->reference}) : sa place est confirmée.",
                 $inscription->formation_session_id !== null ? route('espace-admin.sessions.show', $inscription->formation_session_id) : null,
             );
         }
 
+        // The contract was signed and validated before this payment (exigerContratValide), so
+        // the prestation can start as soon as the facture is settled.
         if ($soldee && $facture->demande_id !== null) {
             $demande = $facture->demande;
-            $etapeActuelle = array_search($demande->statut, Demande::SUIVI_STEPS, true);
-            $etapePayee = array_search('PAYEE', Demande::SUIVI_STEPS, true);
 
-            if ($etapeActuelle !== false && $etapeActuelle < $etapePayee) {
+            if (! $demande->aAtteint('PAYEE') && $demande->statut !== 'REFUSEE') {
                 $demande->update(['statut' => 'PAYEE']);
-            }
-
-            // Every paid service needs a contract: draft it right away so none is
-            // forgotten. DAG reviews it, then sends it to the client for signature.
-            if (! $demande->contrat()->exists()) {
-                $contrat = ContratRedaction::brouillonPour($demande);
-
-                ActivityLog::record(null, 'contrat généré automatiquement', $contrat, "{$contrat->reference} pour la demande {$demande->reference}.");
             }
         }
     }

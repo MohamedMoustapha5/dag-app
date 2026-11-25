@@ -143,10 +143,9 @@ export default function Formations({ sessions, stats }: FormationsProps) {
                         <span className="badge">Module formation</span>
                         <h1>Formations & placement en entreprise</h1>
                         <p>
-                            Formez-vous en community management et création de
-                            contenu, puis candidatez aux offres de nos
-                            entreprises partenaires. Prix non affiché
-                            publiquement — négocié une fois connecté.
+                            Des parcours concrets, conçus pour vous rendre
+                            rapidement opérationnel et vous accompagner
+                            jusqu’à l’emploi.
                         </p>
                         <div className="training-hero-details">
                             <div className="training-hero-message">

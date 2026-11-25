@@ -15,7 +15,11 @@ use App\Http\Controllers\Espaces\AdminFactureController;
 use App\Http\Controllers\Espaces\AdminFormationController;
 use App\Http\Controllers\Espaces\AdminGrilleTarifaireController;
 use App\Http\Controllers\Espaces\AdminInscriptionController;
+use App\Http\Controllers\Espaces\AdminLogoPartenaireController;
 use App\Http\Controllers\Espaces\AdminMotDePasseController;
+use App\Http\Controllers\Espaces\AdminPartenariatController;
+use App\Http\Controllers\Espaces\AdminPresenceController;
+use App\Http\Controllers\Espaces\AdminRecrutementController;
 use App\Http\Controllers\Espaces\AdminSeanceController;
 use App\Http\Controllers\Espaces\AdminServiceController;
 use App\Http\Controllers\Espaces\AdminStatistiqueController;
@@ -29,6 +33,7 @@ use App\Http\Controllers\Espaces\ApprenantProfilController;
 use App\Http\Controllers\Espaces\ApprenantProgressionController;
 use App\Http\Controllers\Espaces\ClientAbonnementController;
 use App\Http\Controllers\Espaces\ClientCandidatureController;
+use App\Http\Controllers\Espaces\ClientCollaborateurController;
 use App\Http\Controllers\Espaces\ClientContratController;
 use App\Http\Controllers\Espaces\ClientDashboardController;
 use App\Http\Controllers\Espaces\ClientDemandeController;
@@ -38,15 +43,19 @@ use App\Http\Controllers\Espaces\ClientFormuleController;
 use App\Http\Controllers\Espaces\ClientOffreController;
 use App\Http\Controllers\Espaces\ClientPaiementController;
 use App\Http\Controllers\Espaces\ClientParametreController;
+use App\Http\Controllers\Espaces\ClientPartenariatController;
 use App\Http\Controllers\Espaces\ClientRechercheController;
+use App\Http\Controllers\Espaces\ClientRecrutementController;
 use App\Http\Controllers\Espaces\ClientServiceController;
 use App\Http\Controllers\Espaces\NotificationCentreController;
 use App\Http\Controllers\Espaces\PaiementEnLigneController;
 use App\Http\Controllers\Espaces\SupportController;
+use App\Http\Controllers\InvitationCollaborateurController;
 use App\Http\Controllers\PaiementWebhookController;
 use App\Http\Middleware\EnsureMembreActif;
 use App\Http\Middleware\EnsurePartenaireValide;
 use App\Http\Middleware\EnsureUserType;
+use App\Http\Middleware\VerifierRecaptcha;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -78,6 +87,9 @@ Route::middleware(['auth', 'auth.session', 'verified', EnsureUserType::class.':C
         Route::get('demandes/creer', [ClientDemandeController::class, 'create'])->name('espace-client.demandes.create');
         Route::post('demandes', [ClientDemandeController::class, 'store'])->name('espace-client.demandes.store');
         Route::get('demandes/{demande}', [ClientDemandeController::class, 'show'])->name('espace-client.demandes.show');
+        Route::post('demandes/{demande}/devis/valider', [ClientDemandeController::class, 'validerDevis'])->middleware('throttle:10,1')->name('espace-client.demandes.devis.valider');
+        Route::post('demandes/{demande}/devis/refuser', [ClientDemandeController::class, 'refuserDevis'])->middleware('throttle:10,1')->name('espace-client.demandes.devis.refuser');
+        Route::get('demandes/{demande}/proforma', [ClientDemandeController::class, 'proforma'])->name('espace-client.demandes.proforma');
         Route::get('abonnements', ClientAbonnementController::class)->name('espace-client.abonnements');
         Route::get('formules', ClientFormuleController::class)->name('espace-client.formules');
         Route::post('abonnements/{abonnement}/renouvellement', [ClientAbonnementController::class, 'renouveler'])->name('espace-client.abonnements.renouveler');
@@ -86,17 +98,28 @@ Route::middleware(['auth', 'auth.session', 'verified', EnsureUserType::class.':C
         Route::get('contrats', ClientContratController::class)->name('espace-client.contrats');
         Route::get('contrats/{contrat}', [ClientContratController::class, 'show'])->name('espace-client.contrats.show');
         Route::post('contrats/{contrat}/signature', [ClientContratController::class, 'signer'])->name('espace-client.contrats.signer');
+        Route::post('contrats/{contrat}/rectification', [ClientContratController::class, 'demanderRectification'])->middleware('throttle:6,1')->name('espace-client.contrats.rectification');
         Route::get('contrats/{contrat}/pdf', [ClientContratController::class, 'pdf'])->name('espace-client.contrats.pdf');
         Route::get('documents', ClientDocumentController::class)->name('espace-client.documents');
         Route::get('parametres', [ClientParametreController::class, 'edit'])->name('espace-client.parametres');
         Route::patch('parametres', [ClientParametreController::class, 'update'])->name('espace-client.parametres.update');
         Route::patch('parametres/notifications', [ClientParametreController::class, 'updateNotifications'])->name('espace-client.parametres.notifications');
+        Route::get('acces', [ClientCollaborateurController::class, 'index'])->name('espace-client.collaborateurs.index');
+        Route::post('acces', [ClientCollaborateurController::class, 'store'])->middleware('throttle:10,1')->name('espace-client.collaborateurs.store');
+        Route::post('acces/{collaborateur}/renvoyer', [ClientCollaborateurController::class, 'renvoyer'])->middleware('throttle:6,1')->name('espace-client.collaborateurs.renvoyer');
+        Route::delete('acces/{collaborateur}', [ClientCollaborateurController::class, 'destroy'])->name('espace-client.collaborateurs.destroy');
         Route::get('paiements', ClientPaiementController::class)->name('espace-client.paiements');
         Route::get('support', [SupportController::class, 'index'])->name('espace-client.support.index');
         Route::post('support', [SupportController::class, 'store'])->middleware('throttle:10,1')->name('espace-client.support.store');
         Route::get('support/{ticket}', [SupportController::class, 'show'])->name('espace-client.support.show');
         Route::post('support/{ticket}/messages', [SupportController::class, 'repondre'])->middleware('throttle:20,1')->name('espace-client.support.repondre');
         Route::patch('support/{ticket}/cloture', [SupportController::class, 'clore'])->name('espace-client.support.clore');
+
+        Route::get('partenariat', [ClientPartenariatController::class, 'index'])->name('espace-client.partenariat');
+        Route::post('partenariat', [ClientPartenariatController::class, 'store'])->middleware('throttle:10,1')->name('espace-client.partenariat.demander');
+
+        Route::get('recrutement/abonnement', [ClientRecrutementController::class, 'abonnement'])->name('espace-client.recrutement.abonnement');
+        Route::post('recrutement/abonnement', [ClientRecrutementController::class, 'souscrire'])->middleware('throttle:10,1')->name('espace-client.recrutement.souscrire');
 
         Route::middleware(EnsurePartenaireValide::class)->group(function () {
             Route::get('offres', [ClientOffreController::class, 'index'])->name('espace-client.offres.index');
@@ -117,7 +140,8 @@ Route::middleware(['auth', 'auth.session', 'verified', EnsureUserType::class.':A
         Route::get('formations', ApprenantFormationController::class)->name('espace-apprenant.formations');
         Route::get('inscriptions', ApprenantInscriptionController::class)->name('espace-apprenant.inscriptions');
         Route::get('formations/{formationSession}/inscription', [ApprenantInscriptionController::class, 'create'])->name('espace-apprenant.inscriptions.create');
-        Route::post('formations/{formationSession}/inscription', [ApprenantInscriptionController::class, 'store'])->name('espace-apprenant.inscriptions.store');
+        Route::post('formations/{formationSession}/inscription', [ApprenantInscriptionController::class, 'store'])->middleware('throttle:10,1')->name('espace-apprenant.inscriptions.store');
+        Route::post('inscriptions/{inscription}/pieces', [ApprenantInscriptionController::class, 'completer'])->middleware('throttle:10,1')->name('espace-apprenant.inscriptions.completer');
         Route::get('factures', ApprenantFactureController::class)->name('espace-apprenant.factures');
         Route::get('factures/{facture}/pdf', [ApprenantFactureController::class, 'pdf'])->name('espace-apprenant.factures.pdf');
         Route::get('dossier', [ApprenantDossierController::class, 'edit'])->name('espace-apprenant.dossier');
@@ -141,7 +165,7 @@ Route::middleware(['auth', 'auth.session', 'verified', EnsureUserType::class.':A
 */
 Route::prefix('espace-admin')->group(function () {
     Route::get('connexion', [AdminAuthController::class, 'create'])->name('admin.connexion');
-    Route::post('connexion', [AdminAuthController::class, 'store'])->name('admin.connexion.store');
+    Route::post('connexion', [AdminAuthController::class, 'store'])->middleware(VerifierRecaptcha::class)->name('admin.connexion.store');
     Route::post('deconnexion', [AdminAuthController::class, 'destroy'])->middleware('auth:admin')->name('admin.deconnexion');
 });
 
@@ -173,12 +197,26 @@ Route::middleware(['auth:admin', 'auth.session', EnsureMembreActif::class])
         Route::patch('entreprises/{entreprisePartenaire}', [AdminEntrepriseController::class, 'updateEntreprise'])->name('espace-admin.entreprises.update');
         Route::patch('offres/{offreEmploi}', [AdminEntrepriseController::class, 'updateOffre'])->name('espace-admin.offres.update');
         Route::post('offres/{offreEmploi}/candidatures', [AdminEntrepriseController::class, 'postuler'])->name('espace-admin.offres.postuler');
+        Route::get('logos-partenaires', [AdminLogoPartenaireController::class, 'index'])->name('espace-admin.logos-partenaires.index');
+        Route::post('logos-partenaires', [AdminLogoPartenaireController::class, 'store'])->name('espace-admin.logos-partenaires.store');
+        Route::patch('logos-partenaires/{logoPartenaire}', [AdminLogoPartenaireController::class, 'update'])->name('espace-admin.logos-partenaires.update');
+        Route::patch('logos-partenaires/{logoPartenaire}/visibilite', [AdminLogoPartenaireController::class, 'basculer'])->name('espace-admin.logos-partenaires.visibilite');
+        Route::patch('logos-partenaires/{logoPartenaire}/ordre', [AdminLogoPartenaireController::class, 'deplacer'])->name('espace-admin.logos-partenaires.ordre');
+        Route::delete('logos-partenaires/{logoPartenaire}', [AdminLogoPartenaireController::class, 'destroy'])->name('espace-admin.logos-partenaires.destroy');
+        Route::get('partenariats', [AdminPartenariatController::class, 'index'])->name('espace-admin.partenariats.index');
+        Route::post('partenariats', [AdminPartenariatController::class, 'proposer'])->name('espace-admin.partenariats.proposer');
+        Route::post('partenariats/{partenariat}/accepter', [AdminPartenariatController::class, 'accepter'])->name('espace-admin.partenariats.accepter');
+        Route::post('partenariats/{partenariat}/refuser', [AdminPartenariatController::class, 'refuser'])->name('espace-admin.partenariats.refuser');
+        Route::get('recrutement', [AdminRecrutementController::class, 'index'])->name('espace-admin.recrutement.index');
+        Route::patch('recrutement/forfaits/{forfait}', [AdminRecrutementController::class, 'updateForfait'])->name('espace-admin.recrutement.forfaits.update');
         Route::get('demandes', [AdminDemandeController::class, 'index'])->name('espace-admin.demandes.index');
         Route::get('demandes/{demande}', [AdminDemandeController::class, 'show'])->name('espace-admin.demandes.show');
         Route::patch('demandes/{demande}', [AdminDemandeController::class, 'update'])->name('espace-admin.demandes.update');
         Route::post('demandes/{demande}/devis', [AdminDemandeController::class, 'envoyerDevis'])->name('espace-admin.demandes.devis');
+        Route::get('demandes/{demande}/proforma', [AdminDemandeController::class, 'proforma'])->name('espace-admin.demandes.proforma');
         Route::get('clients', [AdminClientController::class, 'index'])->name('espace-admin.clients.index');
         Route::delete('clients/{client}', [AdminClientController::class, 'destroy'])->name('espace-admin.clients.destroy');
+        Route::post('clients/{client}/acces-recrutement', [AdminClientController::class, 'offrirAccesRecrutement'])->name('espace-admin.clients.acces-recrutement');
         Route::get('formations', [AdminFormationController::class, 'index'])->name('espace-admin.formations.index');
         Route::post('sessions', [AdminFormationController::class, 'storeRapide'])->name('espace-admin.sessions.store-rapide');
         Route::get('formations/{formation}', [AdminFormationController::class, 'show'])->name('espace-admin.formations.show');
@@ -191,22 +229,31 @@ Route::middleware(['auth:admin', 'auth.session', EnsureMembreActif::class])
         Route::get('sessions/{formationSession}/export', [AdminInscriptionController::class, 'export'])->name('espace-admin.sessions.export');
         Route::post('sessions/{formationSession}/seances', [AdminSeanceController::class, 'store'])->name('espace-admin.sessions.seances.store');
         Route::delete('seances/{seance}', [AdminSeanceController::class, 'destroy'])->name('espace-admin.seances.destroy');
+        Route::get('seances/{seance}/presences', [AdminPresenceController::class, 'show'])->name('espace-admin.seances.presences.show');
+        Route::put('seances/{seance}/presences', [AdminPresenceController::class, 'update'])->name('espace-admin.seances.presences.update');
+        Route::get('sessions/{formationSession}/presences', [AdminPresenceController::class, 'export'])->name('espace-admin.sessions.presences.export');
         Route::patch('inscriptions/{inscription}/valider', [AdminInscriptionController::class, 'valider'])->name('espace-admin.inscriptions.valider');
         Route::patch('inscriptions/{inscription}/refuser', [AdminInscriptionController::class, 'refuser'])->name('espace-admin.inscriptions.refuser');
+        Route::patch('inscriptions/{inscription}/completer', [AdminInscriptionController::class, 'demanderComplement'])->name('espace-admin.inscriptions.completer');
+        Route::get('pieces-inscription/{pieceInscription}', [AdminInscriptionController::class, 'piece'])->name('espace-admin.pieces-inscription.show');
         Route::get('factures', [AdminFactureController::class, 'index'])->name('espace-admin.factures.index');
         Route::post('factures', [AdminFactureController::class, 'store'])->name('espace-admin.factures.store');
         Route::get('factures/{facture}', [AdminFactureController::class, 'show'])->name('espace-admin.factures.show');
+        Route::get('factures/{facture}/pdf', [AdminFactureController::class, 'pdf'])->name('espace-admin.factures.pdf');
         Route::post('factures/{facture}/paiements', [AdminFactureController::class, 'storePaiement'])->name('espace-admin.factures.paiements.store');
         Route::patch('paiements/{paiement}', [AdminFactureController::class, 'updatePaiement'])->name('espace-admin.paiements.update');
         Route::get('contrats', [AdminContratController::class, 'index'])->name('espace-admin.contrats.index');
         Route::post('contrats', [AdminContratController::class, 'store'])->name('espace-admin.contrats.store');
+        Route::post('contrats/generer', [AdminContratController::class, 'generer'])->name('espace-admin.contrats.generer');
         Route::get('contrats/{contrat}', [AdminContratController::class, 'show'])->name('espace-admin.contrats.show');
         Route::get('contrats/{contrat}/pdf', [AdminContratController::class, 'pdf'])->name('espace-admin.contrats.pdf');
         Route::patch('contrats/{contrat}', [AdminContratController::class, 'update'])->name('espace-admin.contrats.update');
+        Route::patch('contrats/{contrat}/contenu', [AdminContratController::class, 'updateContenu'])->name('espace-admin.contrats.contenu');
         Route::post('modeles-contrat', [AdminContratController::class, 'storeModele'])->name('espace-admin.modeles-contrat.store');
         Route::patch('modeles-contrat/{modeleContrat}', [AdminContratController::class, 'updateModele'])->name('espace-admin.modeles-contrat.update');
         Route::post('clauses', [AdminContratController::class, 'storeClause'])->name('espace-admin.clauses.store');
         Route::patch('clauses/{clause}', [AdminContratController::class, 'updateClause'])->name('espace-admin.clauses.update');
+        Route::patch('clauses/{clause}/deplacer', [AdminContratController::class, 'deplacerClause'])->name('espace-admin.clauses.deplacer');
         Route::delete('clauses/{clause}', [AdminContratController::class, 'destroyClause'])->name('espace-admin.clauses.destroy');
         Route::get('abonnements', [AdminAbonnementController::class, 'index'])->name('espace-admin.abonnements.index');
         Route::post('abonnements', [AdminAbonnementController::class, 'store'])->name('espace-admin.abonnements.store');
@@ -239,8 +286,20 @@ Route::middleware(['auth', 'verified'])->prefix('notifications')->group(function
 
 Route::middleware(['auth', 'verified'])->prefix('paiements')->group(function () {
     Route::post('factures/{facture}', [PaiementEnLigneController::class, 'initier'])->name('paiements.initier');
+    Route::post('factures/{facture}/reprendre', [PaiementEnLigneController::class, 'reprendre'])->middleware('throttle:20,1')->name('paiements.reprendre');
+    Route::get('retour/{paiement}', [PaiementEnLigneController::class, 'retourPrestataire'])->name('paiements.retour');
     Route::get('simulation/{paiement}', [PaiementEnLigneController::class, 'simulation'])->name('paiements.simulation');
     Route::post('simulation/{paiement}', [PaiementEnLigneController::class, 'decision'])->name('paiements.simulation.decision');
 });
 
 Route::post('webhooks/paiements', PaiementWebhookController::class)->name('paiements.webhook');
+
+/*
+| A colleague invited into the espace of an Entreprise or Organisation
+| chooses their password here. The link is signed (relative, so it works on
+| any address of the platform), valid 7 days and used once.
+*/
+Route::middleware('signed:relative')->group(function () {
+    Route::get('invitation-entreprise/{collaborateur}', [InvitationCollaborateurController::class, 'show'])->name('collaborateurs.invitation');
+    Route::post('invitation-entreprise/{collaborateur}', [InvitationCollaborateurController::class, 'store'])->middleware('throttle:6,1')->name('collaborateurs.invitation.accepter');
+});

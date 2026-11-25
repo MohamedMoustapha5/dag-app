@@ -17,8 +17,18 @@ class ServiceFactory extends Factory
             'description' => fake()->sentence(),
             'categorie' => 'Création & communication',
             'fournisseur' => 'DAG',
+            'contrat_requis' => true,
             'statut' => 'PUBLIE',
         ];
+    }
+
+    /**
+     * A service an entreprise buys on the validated devis alone, without
+     * signing a contract.
+     */
+    public function sansContrat(): static
+    {
+        return $this->state(['contrat_requis' => false]);
     }
 
     public function brouillon(): static

@@ -1,12 +1,15 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
     Award,
+    BadgeCheck,
     Briefcase,
     BookOpen,
     BarChart3,
     FileText,
     FileSignature,
+    Handshake,
     Headphones,
+    Images,
     KeyRound,
     LayoutDashboard,
     LayoutGrid,
@@ -38,6 +41,9 @@ import equipeAdmin from '@/routes/espace-admin/equipe';
 import facturesAdmin from '@/routes/espace-admin/factures';
 import formationsAdmin from '@/routes/espace-admin/formations';
 import grilleTarifaireAdmin from '@/routes/espace-admin/grille-tarifaire';
+import logosAdmin from '@/routes/espace-admin/logos-partenaires';
+import partenariatsAdmin from '@/routes/espace-admin/partenariats';
+import recrutementAdmin from '@/routes/espace-admin/recrutement';
 import servicesAdmin from '@/routes/espace-admin/services';
 import supportAdmin from '@/routes/espace-admin/support';
 
@@ -109,7 +115,7 @@ const NAV_GROUPS: NavGroup[] = [
                 label: 'Support',
                 icon: Headphones,
                 href: supportAdmin.index(),
-                visibleIf: 'DEMANDES_CLIENTS',
+                visibleIf: 'SUPPORT',
             },
             {
                 label: 'Factures & paiements',
@@ -139,6 +145,24 @@ const NAV_GROUPS: NavGroup[] = [
                 icon: Briefcase,
                 href: entreprisesAdmin.index(),
                 visibleIf: 'ENTREPRISES_OFFRES',
+            },
+            {
+                label: 'Partenariats',
+                icon: Handshake,
+                href: partenariatsAdmin.index(),
+                visibleIf: 'PARTENARIATS',
+            },
+            {
+                label: 'Logos partenaires',
+                icon: Images,
+                href: logosAdmin.index(),
+                visibleIf: 'LOGOS_PARTENAIRES',
+            },
+            {
+                label: 'Abonnements recrutement',
+                icon: BadgeCheck,
+                href: recrutementAdmin.index(),
+                visibleIf: 'ABONNEMENTS_RECRUTEMENT',
             },
         ],
     },
@@ -275,7 +299,7 @@ export default function EspaceAdminLayout({ children }: PropsWithChildren) {
                         >
                             <img
                                 src="/images/brand/dag-logo.jpg"
-                                alt="DAG — Digital Agency Group"
+                                alt="Digital Agency Group"
                             />
                             <span className="espace-sidebar-badge-admin">
                                 Admin
@@ -336,7 +360,7 @@ export default function EspaceAdminLayout({ children }: PropsWithChildren) {
 
                         <img
                             src="/images/brand/dag-logo.jpg"
-                            alt="DAG — Digital Agency Group"
+                            alt="Digital Agency Group"
                             className="espace-topbar-logo"
                         />
 

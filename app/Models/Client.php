@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Carbon;
 
 #[Fillable(['user_id', 'type', 'nom', 'secteur_activite', 'ville', 'telephone', 'statut'])]
 class Client extends Model
@@ -42,22 +43,88 @@ class Client extends Model
             'typeLabel' => $this->typeLabel(),
             'type' => $this->type,
             'estPartenaireValide' => $this->estPartenaireValide(),
+            'estPartenaireOfficiel' => $this->estPartenaireOfficiel(),
         ];
     }
 
     /**
-     * Whether DAG has validated this client as an official recruitment
-     * partner — only then does its espace unlock offres/candidatures.
+     * Whether the recruitment pages (offres, candidatures) are open to this
+     * client: an entreprise or an organisation with a recruitment
+     * subscription in progress, paid or offered by DAG, whose partner record
+     * DAG has not suspended. The name stays from the time DAG validated
+     * partners by hand.
      */
     public function estPartenaireValide(): bool
     {
-        return $this->entreprisePartenaire !== null && $this->entreprisePartenaire->statut === 'ACTIF';
+        return $this->estStructure()
+            && $this->entreprisePartenaire?->statut === 'ACTIF'
+            && $this->accesRecrutement()->enCours()->exists();
     }
 
-    /** @return BelongsTo<User, $this> */
+    /**
+     * The last day of recruitment access already secured (current period
+     * and any period paid in advance), or null without access.
+     */
+    public function finAccesRecrutement(): ?Carbon
+    {
+        $fin = $this->accesRecrutement()
+            ->where('statut', 'ACTIF')
+            ->whereDate('fin', '>=', now()->toDateString())
+            ->max('fin');
+
+        return $fin !== null ? Carbon::parse($fin) : null;
+    }
+
+    /** @return HasMany<AccesRecrutement, $this> */
+    public function accesRecrutement(): HasMany
+    {
+        return $this->hasMany(AccesRecrutement::class);
+    }
+
+    /**
+     * The account holder: the person who registered the client. Only they
+     * decide who else may enter the espace.
+     *
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /** @return HasMany<ClientCollaborateur, $this> */
+    public function collaborateurs(): HasMany
+    {
+        return $this->hasMany(ClientCollaborateur::class);
+    }
+
+    /**
+     * Entreprises and Organisations share the same espace: colleagues let in
+     * (collaborateurs) and, once DAG validates them, recruitment.
+     */
+    public function estStructure(): bool
+    {
+        return in_array($this->type, ['ENTREPRISE', 'ORGANISATION'], true);
+    }
+
+    public function estTitulaire(User $user): bool
+    {
+        return $this->user_id === $user->id;
+    }
+
+    /**
+     * Whether the client is an official partner of DAG today: a partnership
+     * contract signed and validated, still in force.
+     */
+    public function estPartenaireOfficiel(): bool
+    {
+        return $this->estStructure() && $this->partenariats()->enVigueur()->exists();
+    }
+
+    /** @return HasMany<Partenariat, $this> */
+    public function partenariats(): HasMany
+    {
+        return $this->hasMany(Partenariat::class);
     }
 
     /** @return HasOne<EntreprisePartenaire, $this> */

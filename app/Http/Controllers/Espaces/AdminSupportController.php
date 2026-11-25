@@ -30,7 +30,7 @@ class AdminSupportController extends Controller
     public function index(Request $request): Response
     {
         $membre = $this->membre($request);
-        abort_unless($membre->peut(Donnee::DemandesClients, Action::Voir), 403);
+        abort_unless($membre->peut(Donnee::Support, Action::Voir), 403);
 
         $tickets = TicketSupport::query()
             ->with('user')
@@ -38,7 +38,7 @@ class AdminSupportController extends Controller
             ->latest('dernier_message_at')
             ->get();
 
-        return Inertia::render('espaces/admin-support', [
+        return Inertia::render('espaces/admin/support', [
             ...$this->adminEspaceProps($membre),
             'tickets' => $tickets->map(fn (TicketSupport $ticket) => [
                 'id' => $ticket->id,
@@ -56,13 +56,13 @@ class AdminSupportController extends Controller
     public function show(Request $request, TicketSupport $ticket): Response
     {
         $membre = $this->membre($request);
-        abort_unless($membre->peut(Donnee::DemandesClients, Action::Voir), 403);
+        abort_unless($membre->peut(Donnee::Support, Action::Voir), 403);
 
         $ticket->load(['messages.membre', 'user']);
 
-        return Inertia::render('espaces/admin-support-show', [
+        return Inertia::render('espaces/admin/support-show', [
             ...$this->adminEspaceProps($membre),
-            'peutRepondre' => $membre->peut(Donnee::DemandesClients, Action::Modifier),
+            'peutRepondre' => $membre->peut(Donnee::Support, Action::Modifier),
             'ticket' => [
                 'id' => $ticket->id,
                 'reference' => $ticket->reference,
@@ -90,7 +90,7 @@ class AdminSupportController extends Controller
     public function repondre(Request $request, TicketSupport $ticket): RedirectResponse
     {
         $membre = $this->membre($request);
-        abort_unless($membre->peut(Donnee::DemandesClients, Action::Modifier), 403);
+        abort_unless($membre->peut(Donnee::Support, Action::Modifier), 403);
 
         $data = $request->validate(['message' => ['required', 'string', 'max:5000']]);
 
@@ -114,7 +114,7 @@ class AdminSupportController extends Controller
     public function update(Request $request, TicketSupport $ticket): RedirectResponse
     {
         $membre = $this->membre($request);
-        abort_unless($membre->peut(Donnee::DemandesClients, Action::Modifier), 403);
+        abort_unless($membre->peut(Donnee::Support, Action::Modifier), 403);
 
         $data = $request->validate(['statut' => ['required', Rule::in(['OUVERT', 'CLOS'])]]);
 

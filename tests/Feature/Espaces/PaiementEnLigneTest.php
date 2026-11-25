@@ -7,12 +7,16 @@ use App\Models\Client;
 use App\Models\Contrat;
 use App\Models\Demande;
 use App\Models\Facture;
+use App\Models\Formule;
 use App\Models\MembreEquipe;
 use App\Models\Paiement;
 use App\Models\Service;
 use App\Notifications\AlerteEquipeNotification;
+use App\Notifications\ContratASignerNotification;
 use App\Support\Paiements\PaiementService;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Testing\TestResponse;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
@@ -35,7 +39,8 @@ test('a client starts an Orange Money payment and is sent to the simulation scre
 
 test('confirming the payment settles the facture and moves the demande to paid', function () {
     $client = Client::factory()->create();
-    $demande = Demande::factory()->create(['client_id' => $client->id, 'statut' => 'DEVIS_ENVOYE']);
+    $demande = Demande::factory()->create(['client_id' => $client->id, 'statut' => 'CONTRAT_SIGNE']);
+    Contrat::factory()->valide()->create(['client_id' => $client->id, 'demande_id' => $demande->id]);
     $facture = Facture::factory()->create(['client_id' => $client->id, 'demande_id' => $demande->id, 'montant' => 80000]);
 
     $this->actingAs($client->user)
@@ -224,8 +229,9 @@ test('a lecture-only admin role cannot settle a pending payment', function () {
         ->assertForbidden();
 });
 
-test('the full journey: request a service, receive the devis, pay it and download the facture', function () {
-    $client = Client::factory()->create();
+test('the full journey: request a service, receive the devis and contract, sign, pay and download the facture', function () {
+    Storage::fake('local');
+    $client = Client::factory()->entreprise()->create();
     $promotrice = MembreEquipe::factory()->promotrice()->create();
     $service = Service::factory()->create();
 
@@ -249,22 +255,75 @@ test('the full journey: request a service, receive the devis, pay it and downloa
     expect((float) $facture->montant)->toBe(150000.0);
     expect($facture->statut)->toBe('EN_ATTENTE');
 
+    // The devis (proforma) comes alone: the contract follows its validation.
+    expect(Contrat::count())->toBe(0);
+    $this->actingAs($client->user, 'web')
+        ->get(route('espace-client.demandes.show', $demande))
+        ->assertInertia(fn ($page) => $page
+            ->where('demande.facture.attendValidationDevis', true)
+            ->where('parcours.prochaine.action', 'valider_devis'));
+    $this->actingAs($client->user, 'web')
+        ->post(route('espace-client.demandes.devis.valider', $demande))
+        ->assertRedirect();
+
+    $contrat = Contrat::where('demande_id', $demande->id)->firstOrFail();
+    expect($contrat->statut)->toBe('ENVOYE');
+    expect((float) $contrat->montant)->toBe(150000.0);
+
     $this->actingAs($client->user)
         ->get(route('espace-client.demandes.show', $demande))
         ->assertInertia(fn ($page) => $page
             ->where('demande.facture.solde', '150000')
+            ->where('demande.facture.attendSignatureContrat', true)
+            ->where('demande.contrat.envoye', true)
             ->has('moyensPaiement', 3));
 
     $this->actingAs($client->user)
-        ->post(route('paiements.initier', $facture), ['moyen' => 'OM', 'telephone' => '690000000']);
+        ->post(route('paiements.initier', $facture), ['moyen' => 'OM', 'telephone' => '690000000'])
+        ->assertSessionHasErrors('moyen');
+    expect(Paiement::count())->toBe(0);
 
     $this->actingAs($client->user)
+        ->post(route('espace-client.contrats.signer', $contrat), [
+            'signature' => UploadedFile::fake()->image('signature.png', 300, 120),
+            'nom' => 'Aïcha N.',
+            'accepte' => true,
+            'telephone' => '690000000',
+            'cni_numero' => '112233445',
+            'cni_lieu_delivrance' => 'Douala',
+            'cni_date_delivrance' => '2022-03-15',
+            'ville_residence' => 'Douala',
+            'quartier_prestation' => 'Akwa',
+        ])
+        ->assertRedirect(route('espace-client.demandes.show', $demande));
+
+    expect($demande->fresh()->statut)->toBe('CONTRAT_SIGNE');
+
+    // Signed but not yet validated by DAG: still no payment.
+    $this->actingAs($client->user)
+        ->get(route('espace-client.demandes.show', $demande))
+        ->assertInertia(fn ($page) => $page
+            ->where('demande.facture.attendSignatureContrat', false)
+            ->where('demande.facture.attendValidationContrat', true));
+    $this->actingAs($client->user)
+        ->post(route('paiements.initier', $facture), ['moyen' => 'OM', 'telephone' => '690000000'])
+        ->assertSessionHasErrors('moyen');
+    expect(Paiement::count())->toBe(0);
+
+    $this->actingAs($promotrice, 'admin')
+        ->patch(route('espace-admin.contrats.update', $contrat), ['statut' => 'ACTIF'])
+        ->assertSessionHasNoErrors();
+
+    $this->actingAs($client->user, 'web')
+        ->post(route('paiements.initier', $facture), ['moyen' => 'OM', 'telephone' => '690000000']);
+
+    $this->actingAs($client->user, 'web')
         ->post(route('paiements.simulation.decision', Paiement::firstOrFail()), ['resultat' => 'succes']);
 
     expect($facture->fresh()->statut)->toBe('PAYEE');
     expect($demande->fresh()->statut)->toBe('PAYEE');
 
-    $this->actingAs($client->user)
+    $this->actingAs($client->user, 'web')
         ->get(route('espace-client.factures.pdf', $facture))
         ->assertOk();
 });
@@ -304,53 +363,115 @@ test('moving a demande to devis envoyé from the status form also issues the fac
     expect($facture->statut)->toBe('EN_ATTENTE');
 });
 
-test('a settled payment drafts the mandatory contract of the demande, once', function () {
-    $client = Client::factory()->create();
-    $demande = Demande::factory()->create(['client_id' => $client->id, 'statut' => 'DEVIS_ENVOYE', 'montant_negocie' => 90000]);
+test('a demande facture cannot be paid online until its contract is signed and validated', function (?string $statutContrat) {
+    $client = Client::factory()->entreprise()->create();
+    $demande = Demande::factory()->create(['client_id' => $client->id, 'statut' => 'DEVIS_ENVOYE']);
+    if ($statutContrat !== null) {
+        Contrat::factory()->create(['client_id' => $client->id, 'demande_id' => $demande->id, 'statut' => $statutContrat]);
+    }
     $facture = Facture::factory()->create(['client_id' => $client->id, 'demande_id' => $demande->id, 'montant' => 90000]);
 
-    expect($demande->contrat)->toBeNull();
+    $this->actingAs($client->user)
+        ->post(route('paiements.initier', $facture), ['moyen' => 'CARTE'])
+        ->assertSessionHasErrors('moyen');
 
-    $this->actingAs($client->user)->post(route('paiements.initier', $facture), ['moyen' => 'CARTE']);
-    $paiement = Paiement::firstOrFail();
-    $this->actingAs($client->user)->post(route('paiements.simulation.decision', $paiement), ['resultat' => 'succes']);
+    expect(Paiement::count())->toBe(0);
+    expect($facture->fresh()->statut)->toBe('EN_ATTENTE');
+})->with([
+    'no contract' => [null],
+    'contract in draft' => ['BROUILLON'],
+    'contract sent, not signed' => ['ENVOYE'],
+    'contract signed, not yet validated by DAG' => ['SIGNE'],
+    'contract refused' => ['REFUSE'],
+]);
 
-    $contrat = Contrat::where('demande_id', $demande->id)->firstOrFail();
-    expect($contrat->statut)->toBe('BROUILLON');
-    expect((float) $contrat->montant)->toBe(90000.0);
-    expect(ActivityLog::where('action', 'contrat généré automatiquement')->count())->toBe(1);
-
-    // A second confirmation (replayed webhook) does not create another one.
-    app(PaiementService::class)->confirmer($paiement);
-    expect(Contrat::where('demande_id', $demande->id)->count())->toBe(1);
-});
-
-test('a manual payment settling the facture also drafts the contract', function () {
+test('staff cannot record a payment on a demande facture whose contract is not signed', function () {
     $promotrice = MembreEquipe::factory()->promotrice()->create();
-    $demande = Demande::factory()->create(['statut' => 'DEVIS_ENVOYE']);
+    $demande = Demande::factory()->entreprise()->create(['statut' => 'DEVIS_ENVOYE']);
+    Contrat::factory()->create(['demande_id' => $demande->id, 'statut' => 'ENVOYE']);
     $facture = Facture::factory()->create(['demande_id' => $demande->id, 'montant' => 50000]);
 
     $this->actingAs($promotrice, 'admin')
         ->post(route('espace-admin.factures.paiements.store', $facture), ['montant' => 50000, 'moyen' => 'ESPECES'])
-        ->assertRedirect();
+        ->assertSessionHasErrors('montant');
 
-    expect(Contrat::where('demande_id', $demande->id)->count())->toBe(1);
+    expect($facture->fresh()->statut)->toBe('EN_ATTENTE');
+    expect($demande->fresh()->statut)->toBe('DEVIS_ENVOYE');
 });
 
-test('a partial payment does not draft the contract yet', function () {
+test('an entreprise devis comes alone; validating it sends the contract, and a new devis puts the unsigned contract back to draft', function () {
+    Notification::fake();
     $promotrice = MembreEquipe::factory()->promotrice()->create();
-    $demande = Demande::factory()->create(['statut' => 'DEVIS_ENVOYE']);
-    $facture = Facture::factory()->create(['demande_id' => $demande->id, 'montant' => 50000]);
+    $demande = Demande::factory()->entreprise()->create(['statut' => 'EN_ETUDE']);
+    $client = $demande->client;
+
+    $this->actingAs($promotrice, 'admin')->post(route('espace-admin.demandes.devis', $demande), ['montant' => 100000]);
+    expect(Contrat::count())->toBe(0);
+
+    $this->actingAs($client->user, 'web')->post(route('espace-client.demandes.devis.valider', $demande))->assertRedirect();
+    $contrat = Contrat::where('demande_id', $demande->id)->sole();
+    expect($contrat->statut)->toBe('ENVOYE');
+    expect($contrat->type)->toBe('PRESTATION_SERVICE');
+    Notification::assertSentTo($client->user, ContratASignerNotification::class);
+
+    $this->actingAs($promotrice, 'admin')->post(route('espace-admin.demandes.devis', $demande), ['montant' => 120000]);
+    expect($contrat->fresh()->statut)->toBe('BROUILLON');
+    expect($demande->fresh()->devisEstValide())->toBeFalse();
+
+    $this->actingAs($client->user, 'web')->post(route('espace-client.demandes.devis.valider', $demande))->assertRedirect();
+    expect($contrat->fresh()->statut)->toBe('ENVOYE');
+    expect((float) $contrat->fresh()->montant)->toBe(120000.0);
+});
+
+test('a formule devis leads to a subscription contract once validated', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $demande = Demande::factory()->entreprise()->create(['statut' => 'EN_ETUDE', 'service_id' => null, 'formule_id' => Formule::factory()]);
 
     $this->actingAs($promotrice, 'admin')
-        ->post(route('espace-admin.factures.paiements.store', $facture), ['montant' => 20000, 'moyen' => 'ESPECES']);
+        ->post(route('espace-admin.demandes.devis', $demande), ['montant' => 45000])
+        ->assertRedirect();
+    $this->actingAs($demande->client->user, 'web')
+        ->post(route('espace-client.demandes.devis.valider', $demande))
+        ->assertRedirect();
 
-    expect(Contrat::count())->toBe(0);
+    $contrat = Contrat::where('demande_id', $demande->id)->sole();
+    expect($contrat->type)->toBe('ABONNEMENT');
+    expect($contrat->statut)->toBe('ENVOYE');
+    expect($contrat->libelleObjet())->toBe('Abonnement — '.$demande->formule->nom);
+});
+
+test('the devis can no longer be changed once the client signed the contract', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $demande = Demande::factory()->entreprise()->create(['statut' => 'CONTRAT_SIGNE', 'montant_negocie' => 100000]);
+    Contrat::factory()->signe()->create(['demande_id' => $demande->id, 'montant' => 100000]);
+    Facture::factory()->create(['demande_id' => $demande->id, 'montant' => 100000]);
+
+    $this->actingAs($promotrice, 'admin')
+        ->post(route('espace-admin.demandes.devis', $demande), ['montant' => 80000])
+        ->assertStatus(409);
+
+    $this->actingAs($promotrice, 'admin')
+        ->patch(route('espace-admin.demandes.update', $demande), ['statut' => 'DEVIS_ENVOYE', 'montant_negocie' => 80000])
+        ->assertSessionHasErrors('statut');
+
+    expect((float) Facture::firstOrFail()->montant)->toBe(100000.0);
+});
+
+test('only the client signature moves a demande to contrat signé', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $demande = Demande::factory()->entreprise()->create(['statut' => 'DEVIS_ENVOYE']);
+    Contrat::factory()->create(['demande_id' => $demande->id, 'statut' => 'ENVOYE']);
+
+    $this->actingAs($promotrice, 'admin')
+        ->patch(route('espace-admin.demandes.update', $demande), ['statut' => 'CONTRAT_SIGNE'])
+        ->assertSessionHasErrors('statut');
+
+    expect($demande->fresh()->statut)->toBe('DEVIS_ENVOYE');
 });
 
 test('the prestation cannot start, be delivered or closed without a signed contract', function () {
     $promotrice = MembreEquipe::factory()->promotrice()->create();
-    $demande = Demande::factory()->create(['statut' => 'PAYEE']);
+    $demande = Demande::factory()->entreprise()->create(['statut' => 'PAYEE']);
 
     foreach (['EN_COURS', 'LIVREE', 'TERMINEE'] as $statut) {
         $this->actingAs($promotrice, 'admin')
@@ -373,9 +494,9 @@ test('the prestation cannot start, be delivered or closed without a signed contr
 
 test('the demandes list tells where the contract of each paid demande stands', function () {
     $promotrice = MembreEquipe::factory()->promotrice()->create();
-    $sansContrat = Demande::factory()->create(['statut' => 'PAYEE']);
+    $sansContrat = Demande::factory()->entreprise()->create(['statut' => 'PAYEE']);
     Facture::factory()->payee()->create(['demande_id' => $sansContrat->id]);
-    $aSigner = Demande::factory()->create(['statut' => 'PAYEE']);
+    $aSigner = Demande::factory()->entreprise()->create(['statut' => 'PAYEE']);
     Facture::factory()->payee()->create(['demande_id' => $aSigner->id]);
     Contrat::factory()->create(['demande_id' => $aSigner->id, 'statut' => 'ENVOYE']);
 
@@ -451,7 +572,7 @@ test('the simulation provider is refused outside the local and testing environme
     // re-enable CSRF checks, which the test runner otherwise skips.
     app()->detectEnvironment(fn () => 'staging');
 
-    expect(fn () => app(PaiementService::class)->initier($facture, 'CARTE', null))
+    expect(fn () => app(PaiementService::class)->initier($facture, 'CARTE', null, $facture->client->user))
         ->toThrow(HttpException::class, 'La passerelle de simulation est désactivée dans cet environnement.');
 
     expect(Paiement::where('statut', 'EN_ATTENTE')->exists())->toBeFalse();

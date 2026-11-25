@@ -7,14 +7,14 @@ attend l'ouverture d'un compte chez lui (voir `docs/12-services-externes-a-branc
 
 ## 1. Parcours de bout en bout
 
-| Étape | Acteur | Résultat |
-| ----- | ------ | -------- |
-| 1. Demande d'un service | Client | Une demande est créée au statut « À l'étude ». |
-| 2. Envoi du devis | Administrateur | Le montant et un message optionnel sont enregistrés, la demande passe à « Devis envoyé » et la facture correspondante est émise au statut « En attente ». |
-| 3. Paiement | Client | Choix du moyen de paiement, saisie du numéro mobile, confirmation. |
-| 4. Confirmation | Prestataire (ou administrateur) | Le paiement passe à « Confirmé », la facture à « Payé », la demande à « Payé ». |
-| 5. Facture | Client | Téléchargement du PDF de la facture acquittée. |
-| 6. Contrat | Système, puis administrateur et client | Le brouillon du contrat est généré automatiquement dès la facture soldée ; l'administration l'envoie, le client le signe, et la prestation peut alors démarrer (voir `docs/07-phase-6-contrats.md`). |
+| Étape                   | Acteur                                 | Résultat                                                                                                                                                                                             |
+| ----------------------- | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Demande d'un service | Client                                 | Une demande est créée au statut « À l'étude ».                                                                                                                                                       |
+| 2. Envoi du devis       | Administrateur                         | Le montant et un message optionnel sont enregistrés, la demande passe à « Devis envoyé » et la facture correspondante est émise au statut « En attente ».                                            |
+| 3. Paiement             | Client                                 | Choix du moyen de paiement, saisie du numéro mobile, confirmation.                                                                                                                                   |
+| 4. Confirmation         | Prestataire (ou administrateur)        | Le paiement passe à « Confirmé », la facture à « Payé », la demande à « Payé ».                                                                                                                      |
+| 5. Facture              | Client                                 | Téléchargement du PDF de la facture acquittée.                                                                                                                                                       |
+| 6. Contrat              | Système, puis administrateur et client | Le brouillon du contrat est généré automatiquement dès la facture soldée ; l'administration l'envoie, le client le signe, et la prestation peut alors démarrer (voir `docs/07-phase-6-contrats.md`). |
 
 Le même parcours de paiement existe pour l'apprenant sur ses factures de formation.
 Le PDF de la facture n'est proposé qu'aux espaces client et apprenant, jamais à
@@ -38,14 +38,14 @@ l'administration.
 
 Tout le code se trouve dans `app/Support/Paiements/`.
 
-| Élément | Rôle |
-| ------- | ---- |
-| `PaiementService` | Unique point d'application de l'argent sur une facture : initiation, confirmation, échec, paiement manuel. La confirmation est idempotente. |
-| `PasserellePaiement` | Interface d'un prestataire : `initier()` démarre le paiement et renvoie la référence de transaction. |
-| `SimulationPasserelle` | Prestataire fictif pour le développement et la recette. Refusé en production. |
-| `PaiementEnLigneController` | Initiation du paiement et écran de simulation. |
-| `PaiementWebhookController` | Réception des notifications signées du prestataire. |
-| `config/paiements.php` | Passerelle active, moyens proposés, secret du webhook, délai d'attente. |
+| Élément                     | Rôle                                                                                                                                        |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PaiementService`           | Unique point d'application de l'argent sur une facture : initiation, confirmation, échec, paiement manuel. La confirmation est idempotente. |
+| `PasserellePaiement`        | Interface d'un prestataire : `initier()` démarre le paiement et renvoie la référence de transaction.                                        |
+| `SimulationPasserelle`      | Prestataire fictif pour le développement et la recette. Refusé en production.                                                               |
+| `PaiementEnLigneController` | Initiation du paiement et écran de simulation.                                                                                              |
+| `PaiementWebhookController` | Réception des notifications signées du prestataire.                                                                                         |
+| `config/paiements.php`      | Passerelle active, moyens proposés, secret du webhook, délai d'attente.                                                                     |
 
 ### Statuts
 

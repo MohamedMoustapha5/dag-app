@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Support\EspaceRedirect;
 use App\Support\Notifications\Cloche;
+use App\Support\Recaptcha;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -47,9 +48,17 @@ class HandleInertiaRequests extends Middleware
             ],
             'cloche' => fn () => Cloche::pour($request->is('espace-admin*') ? $request->user('admin') : $user),
             'espaceUrl' => fn () => $this->espaceUrl($request),
+            // The holder of an Entreprise or Organisation account sees the
+            // "Accès & collaborateurs" page in its espace menu.
+            'gestionAcces' => fn () => $user !== null
+                && ($client = $user->client) !== null
+                && $client->estStructure()
+                && $client->estTitulaire($user),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'currentTeam' => fn () => $user?->currentTeam ? $user->toUserTeam($user->currentTeam) : null,
             'teams' => fn () => $user?->toUserTeams(includeCurrent: true) ?? [],
+            // Public key of the "Je ne suis pas un robot" widget, null while reCAPTCHA is off.
+            'recaptchaSiteKey' => Recaptcha::cleDuSite(),
         ];
     }
 

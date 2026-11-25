@@ -1,5 +1,6 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import CoordonneesDag from '@/components/coordonnees-dag';
+import Recaptcha from '@/components/recaptcha';
 import PublicLayout from '@/layouts/public-layout';
 import { politiqueConfidentialite } from '@/routes';
 import contactRoutes from '@/routes/contact';
@@ -19,6 +20,7 @@ export default function Contact() {
             email: '',
             sujet: SUJETS[0],
             message: '',
+            recaptcha: '',
         });
 
     const submit = (event: React.FormEvent) => {
@@ -158,6 +160,10 @@ export default function Contact() {
                                     </p>
                                 )}
                             </div>
+                            <Recaptcha
+                                onChange={(jeton) => setData('recaptcha', jeton)}
+                                error={errors.recaptcha}
+                            />
                             <button
                                 type="submit"
                                 className="btn-primary btn-block"

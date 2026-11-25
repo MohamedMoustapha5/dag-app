@@ -25,7 +25,7 @@ test('a controle de gestion can see the statistiques dashboard', function () {
 
     $response->assertOk();
     $response->assertInertia(fn ($page) => $page
-        ->component('espaces/admin-statistiques')
+        ->component('espaces/admin/statistiques')
         ->where('activite.apprenants', null)
         ->where('demandesParStatut.EN_ETUDE', 2)
         ->where('finances.factureEncaissee', 100000)

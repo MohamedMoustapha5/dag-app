@@ -3,6 +3,9 @@ import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { initializeTheme } from '@/hooks/use-appearance';
 import { installerTraducteur } from '@/lib/i18n/traducteur';
+import { enregistrerServiceWorker } from '@/lib/pwa';
+import { installerTableauxMobiles } from '@/lib/tableaux-mobiles';
+import InstallerApplication from '@/components/installer-application';
 import AppLayout from '@/layouts/app-layout';
 import AuthLayout from '@/layouts/auth-layout';
 import EspaceAdminLayout from '@/layouts/espace-admin-layout';
@@ -10,16 +13,29 @@ import EspaceApprenantLayout from '@/layouts/espace-apprenant-layout';
 import EspaceClientLayout from '@/layouts/espace-client-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const appName = import.meta.env.VITE_APP_NAME || 'Digital Agency Group';
+
+/**
+ * Browser tab title: the page title followed by the agency name, except
+ * when the title already names it (home page).
+ */
+function titreOnglet(title: string): string {
+    if (!title) {
+        return appName;
+    }
+
+    return title.includes(appName) ? title : `${title} - ${appName}`;
+}
 
 void createInertiaApp({
-    title: (title) => (title ? `${title} - ${appName}` : appName),
+    title: titreOnglet,
     layout: (name) => {
         switch (true) {
             case name === 'welcome':
+            case name === 'erreur':
             case name.startsWith('public/'):
                 return null;
-            case name.startsWith('espaces/admin-'):
+            case name.startsWith('espaces/admin/'):
                 // Kept mounted across navigations within the espace (no
                 // remount, no sidebar scroll reset) — see EspaceClientLayout.
                 return EspaceAdminLayout;
@@ -46,6 +62,7 @@ void createInertiaApp({
             <TooltipProvider delayDuration={0}>
                 {app}
                 <Toaster />
+                <InstallerApplication />
             </TooltipProvider>
         );
     },
@@ -59,3 +76,9 @@ initializeTheme();
 
 // English interface when the visitor chose it with the language switcher.
 installerTraducteur();
+
+// Data tables shown as cards on phones, each cell labelled with its column.
+installerTableauxMobiles();
+
+// Installable application: home-screen icon, offline page.
+enregistrerServiceWorker();

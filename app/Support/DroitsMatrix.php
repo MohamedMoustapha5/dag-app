@@ -27,66 +27,90 @@ class DroitsMatrix
             Donnee::Catalogue->value => NiveauDroit::Total,
             Donnee::Formations->value => NiveauDroit::Total,
             Donnee::DemandesClients->value => NiveauDroit::Total,
+            Donnee::Support->value => NiveauDroit::Total,
             Donnee::Abonnements->value => NiveauDroit::Total,
             Donnee::FacturesPaiements->value => NiveauDroit::Total,
             Donnee::ContratsClauses->value => NiveauDroit::Total,
             Donnee::DossiersApprenants->value => NiveauDroit::Total,
             Donnee::EntreprisesOffres->value => NiveauDroit::Total,
+            Donnee::Partenariats->value => NiveauDroit::Total,
+            Donnee::LogosPartenaires->value => NiveauDroit::Total,
+            Donnee::AbonnementsRecrutement->value => NiveauDroit::Total,
             Donnee::Statistiques->value => NiveauDroit::Total,
         ],
         MembreEquipeRole::Juriste->value => [
             Donnee::Catalogue->value => NiveauDroit::Lecture,
             Donnee::Formations->value => NiveauDroit::Lecture,
             Donnee::DemandesClients->value => NiveauDroit::Lecture,
+            Donnee::Support->value => NiveauDroit::Lecture,
             Donnee::Abonnements->value => NiveauDroit::Lecture,
             Donnee::FacturesPaiements->value => NiveauDroit::Aucun,
             Donnee::ContratsClauses->value => NiveauDroit::Total,
             Donnee::DossiersApprenants->value => NiveauDroit::Lecture,
             Donnee::EntreprisesOffres->value => NiveauDroit::Lecture,
+            Donnee::Partenariats->value => NiveauDroit::Lecture,
+            Donnee::LogosPartenaires->value => NiveauDroit::Lecture,
+            Donnee::AbonnementsRecrutement->value => NiveauDroit::Lecture,
             Donnee::Statistiques->value => NiveauDroit::Lecture,
         ],
         MembreEquipeRole::CommunicationMarketing->value => [
             Donnee::Catalogue->value => NiveauDroit::Gestion,
             Donnee::Formations->value => NiveauDroit::Gestion,
             Donnee::DemandesClients->value => NiveauDroit::Gestion,
+            Donnee::Support->value => NiveauDroit::Gestion,
             Donnee::Abonnements->value => NiveauDroit::Gestion,
             Donnee::FacturesPaiements->value => NiveauDroit::Aucun,
             Donnee::ContratsClauses->value => NiveauDroit::Lecture,
             Donnee::DossiersApprenants->value => NiveauDroit::Gestion,
             Donnee::EntreprisesOffres->value => NiveauDroit::Gestion,
+            Donnee::Partenariats->value => NiveauDroit::Gestion,
+            Donnee::LogosPartenaires->value => NiveauDroit::Gestion,
+            Donnee::AbonnementsRecrutement->value => NiveauDroit::Gestion,
             Donnee::Statistiques->value => NiveauDroit::Lecture,
         ],
         MembreEquipeRole::ControleGestion->value => [
             Donnee::Catalogue->value => NiveauDroit::Lecture,
             Donnee::Formations->value => NiveauDroit::Lecture,
             Donnee::DemandesClients->value => NiveauDroit::Lecture,
+            Donnee::Support->value => NiveauDroit::Lecture,
             Donnee::Abonnements->value => NiveauDroit::Gestion,
             Donnee::FacturesPaiements->value => NiveauDroit::Total,
             Donnee::ContratsClauses->value => NiveauDroit::Lecture,
             Donnee::DossiersApprenants->value => NiveauDroit::Aucun,
             Donnee::EntreprisesOffres->value => NiveauDroit::Aucun,
+            Donnee::Partenariats->value => NiveauDroit::Aucun,
+            Donnee::LogosPartenaires->value => NiveauDroit::Aucun,
+            Donnee::AbonnementsRecrutement->value => NiveauDroit::Aucun,
             Donnee::Statistiques->value => NiveauDroit::Total,
         ],
         MembreEquipeRole::CreationContenu->value => [
             Donnee::Catalogue->value => NiveauDroit::Gestion,
             Donnee::Formations->value => NiveauDroit::Gestion,
             Donnee::DemandesClients->value => NiveauDroit::Aucun,
+            Donnee::Support->value => NiveauDroit::Aucun,
             Donnee::Abonnements->value => NiveauDroit::Aucun,
             Donnee::FacturesPaiements->value => NiveauDroit::Aucun,
             Donnee::ContratsClauses->value => NiveauDroit::Aucun,
             Donnee::DossiersApprenants->value => NiveauDroit::Aucun,
             Donnee::EntreprisesOffres->value => NiveauDroit::Aucun,
+            Donnee::Partenariats->value => NiveauDroit::Aucun,
+            Donnee::LogosPartenaires->value => NiveauDroit::Aucun,
+            Donnee::AbonnementsRecrutement->value => NiveauDroit::Aucun,
             Donnee::Statistiques->value => NiveauDroit::Aucun,
         ],
         MembreEquipeRole::Developpeur->value => [
             Donnee::Catalogue->value => NiveauDroit::Lecture,
             Donnee::Formations->value => NiveauDroit::Lecture,
             Donnee::DemandesClients->value => NiveauDroit::Lecture,
+            Donnee::Support->value => NiveauDroit::Lecture,
             Donnee::Abonnements->value => NiveauDroit::Lecture,
             Donnee::FacturesPaiements->value => NiveauDroit::Lecture,
             Donnee::ContratsClauses->value => NiveauDroit::Lecture,
             Donnee::DossiersApprenants->value => NiveauDroit::Lecture,
             Donnee::EntreprisesOffres->value => NiveauDroit::Lecture,
+            Donnee::Partenariats->value => NiveauDroit::Lecture,
+            Donnee::LogosPartenaires->value => NiveauDroit::Lecture,
+            Donnee::AbonnementsRecrutement->value => NiveauDroit::Lecture,
             Donnee::Statistiques->value => NiveauDroit::Lecture,
         ],
     ];
@@ -129,7 +153,7 @@ class DroitsMatrix
     public static function definir(MembreEquipeRole $role, Donnee $donnee, NiveauDroit $niveau): void
     {
         if ($role === MembreEquipeRole::Promotrice) {
-            throw new InvalidArgumentException('Les droits de la Directrice ne sont pas modifiables.');
+            throw new InvalidArgumentException('Les droits de la CEO ne sont pas modifiables.');
         }
 
         if ($niveau === self::defaut($role, $donnee)) {
@@ -141,22 +165,25 @@ class DroitsMatrix
             );
         }
 
-        Cache::forget(self::CACHE_KEY);
+        Cache::memo()->forget(self::CACHE_KEY);
     }
 
     public static function reinitialiser(MembreEquipeRole $role): void
     {
         DroitRole::where('role', $role->value)->delete();
 
-        Cache::forget(self::CACHE_KEY);
+        Cache::memo()->forget(self::CACHE_KEY);
     }
 
     /**
+     * Memoized for the request: a page checks many rights, and with the
+     * database cache store each plain cache read is an SQL query.
+     *
      * @return array<string, array<string, string>>
      */
     private static function surcharges(): array
     {
-        return Cache::remember(self::CACHE_KEY, 3600, function (): array {
+        return Cache::memo()->remember(self::CACHE_KEY, 3600, function (): array {
             $surcharges = [];
 
             foreach (DroitRole::all() as $droit) {
@@ -169,7 +196,7 @@ class DroitsMatrix
 
     /**
      * A one-line French summary of who can see/manage this domain and at
-     * what level, e.g. "Visible par : Directrice (total), Responsable
+     * what level, e.g. "Visible par : CEO (total), Responsable
      * Marketing & Création de contenu (gestion), Juriste & Secrétaire
      * (lecture)." — used as a transparent droits reminder on the admin
      * pages gated by that domain, grouping roles by access level in

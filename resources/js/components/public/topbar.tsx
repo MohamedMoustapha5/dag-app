@@ -43,7 +43,7 @@ export default function TopBar() {
                 <Link href={home()} className="topbar-logo">
                     <img
                         src="/images/brand/dag-logo-pdf.png"
-                        alt="DAG — Digital Agency Group"
+                        alt="Digital Agency Group"
                     />
                 </Link>
 

@@ -17,6 +17,8 @@ declare module '@inertiajs/core' {
             teams: Team[];
             /** The signed-in account's own espace ("Mon espace"), null for a guest. */
             espaceUrl: string | null;
+            /** Public key of the reCAPTCHA v2 widget, null while reCAPTCHA is off. */
+            recaptchaSiteKey: string | null;
             [key: string]: unknown;
         };
     }

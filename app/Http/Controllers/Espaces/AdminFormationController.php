@@ -8,10 +8,10 @@ use App\Enums\Donnee;
 use App\Http\Controllers\Controller;
 use App\Models\Formation;
 use App\Models\FormationSession;
+use App\Support\Presences\FeuillePresence;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -26,11 +26,11 @@ class AdminFormationController extends Controller
         abort_unless($membre->peut(Donnee::Formations, Action::Voir), 403);
 
         $sessions = FormationSession::query()
-            ->with('formation')
+            ->with(['formation', 'inscriptions', 'seances.presences'])
             ->orderByDesc('date_debut')
             ->get();
 
-        return Inertia::render('espaces/admin-formations', [
+        return Inertia::render('espaces/admin/formations', [
             ...$this->adminEspaceProps($membre),
             'peutCreer' => $membre->peut(Donnee::Formations, Action::Creer),
             'peutModifier' => $membre->peut(Donnee::Formations, Action::Modifier),
@@ -53,8 +53,12 @@ class AdminFormationController extends Controller
                 'places' => $session->places,
                 'prix' => $session->prix,
                 'inscritsCount' => $session->places - $session->placesRestantes(),
+                'seancesAPointer' => FeuillePresence::seancesAPointer($session),
                 'statut' => $session->statut,
                 'image' => $session->image,
+                // Thumbnail of the list: the session's own image, else the
+                // training's (null: the page shows the default photo).
+                'vignette' => $session->image ?? $session->formation->image,
             ]),
         ]);
     }
@@ -138,7 +142,7 @@ class AdminFormationController extends Controller
 
         $formation->load(['sessions' => fn ($query) => $query->withCount('seances')->orderByDesc('date_debut')]);
 
-        return Inertia::render('espaces/admin-formation-show', [
+        return Inertia::render('espaces/admin/formation-show', [
             ...$this->adminEspaceProps($membre),
             'peutModifier' => $membre->peut(Donnee::Formations, Action::Modifier),
             'peutCreer' => $membre->peut(Donnee::Formations, Action::Creer),
@@ -150,6 +154,7 @@ class AdminFormationController extends Controller
                 'programme' => $formation->programme,
                 'duree' => $formation->duree,
                 'prerequis' => $formation->prerequis,
+                'piecesRequises' => $formation->piecesRequises(),
                 'statut' => $formation->statut,
             ],
             'sessions' => $formation->sessions->map(fn (FormationSession $session) => [
@@ -180,8 +185,15 @@ class AdminFormationController extends Controller
             'duree' => ['nullable', 'string', 'max:191'],
             'programme' => ['nullable', 'string'],
             'prerequis' => ['nullable', 'string', 'max:500'],
+            'pieces_requises' => ['nullable', 'array', 'max:15'],
+            'pieces_requises.*' => ['nullable', 'string', 'max:191'],
             'statut' => ['required', Rule::in(['BROUILLON', 'PUBLIEE', 'EN_COURS', 'TERMINEE'])],
         ]);
+
+        if (array_key_exists('pieces_requises', $data)) {
+            $pieces = array_values(array_unique(array_filter(array_map('trim', $data['pieces_requises'] ?? []))));
+            $data['pieces_requises'] = $pieces === [] ? null : $pieces;
+        }
 
         $formation->update($data);
 
@@ -314,6 +326,8 @@ class AdminFormationController extends Controller
 
         abort_if($path === false, 500, "Échec de l'enregistrement de l'image.");
 
-        return Storage::disk('public')->url($path);
+        // Relative to the site root, so the address survives a change of
+        // domain (localhost, then agencydag.com); needs `php artisan storage:link`.
+        return '/storage/'.$path;
     }
 }

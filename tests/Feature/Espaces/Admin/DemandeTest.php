@@ -16,7 +16,7 @@ test('a promotrice can list and view demandes from clients and entreprises', fun
         ->get(route('espace-admin.demandes.index'))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->component('espaces/admin-demandes')
+            ->component('espaces/admin/demandes')
             ->has('demandes', 1)
             ->where('demandes.0.client', 'Aïcha N.'));
 
@@ -24,7 +24,7 @@ test('a promotrice can list and view demandes from clients and entreprises', fun
         ->get(route('espace-admin.demandes.show', $demande))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->component('espaces/admin-demande-show')
+            ->component('espaces/admin/demande-show')
             ->where('demande.client', 'Aïcha N.')
             ->where('suivi.etapeActuelle', 1));
 });
@@ -130,7 +130,7 @@ test('a role with only lecture cannot send a devis', function () {
 
 test('a demande is flagged as paid from its facture, whatever its progress status', function () {
     $promotrice = MembreEquipe::factory()->promotrice()->create();
-    $payeeEnCours = Demande::factory()->create(['statut' => 'EN_COURS']);
+    $payeeEnCours = Demande::factory()->entreprise()->create(['statut' => 'EN_COURS']);
     Facture::factory()->payee()->create(['demande_id' => $payeeEnCours->id]);
     $terminee = Demande::factory()->create(['statut' => 'TERMINEE']);
     $impayee = Demande::factory()->create(['statut' => 'DEVIS_ENVOYE']);

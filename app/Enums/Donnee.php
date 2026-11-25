@@ -11,11 +11,15 @@ enum Donnee: string
     case Catalogue = 'CATALOGUE';
     case Formations = 'FORMATIONS';
     case DemandesClients = 'DEMANDES_CLIENTS';
+    case Support = 'SUPPORT';
     case Abonnements = 'ABONNEMENTS';
     case FacturesPaiements = 'FACTURES_PAIEMENTS';
     case ContratsClauses = 'CONTRATS_CLAUSES';
     case DossiersApprenants = 'DOSSIERS_APPRENANTS';
     case EntreprisesOffres = 'ENTREPRISES_OFFRES';
+    case Partenariats = 'PARTENARIATS';
+    case LogosPartenaires = 'LOGOS_PARTENAIRES';
+    case AbonnementsRecrutement = 'ABONNEMENTS_RECRUTEMENT';
     case Statistiques = 'STATISTIQUES';
 
     public function label(): string
@@ -24,11 +28,15 @@ enum Donnee: string
             self::Catalogue => 'Catalogue de services',
             self::Formations => 'Formations & sessions',
             self::DemandesClients => 'Demandes clients',
+            self::Support => 'Support',
             self::Abonnements => 'Abonnements',
             self::FacturesPaiements => 'Factures & paiements',
             self::ContratsClauses => 'Contrats & clauses',
             self::DossiersApprenants => 'Dossiers apprenants',
             self::EntreprisesOffres => 'Entreprises partenaires & offres',
+            self::Partenariats => 'Partenariats',
+            self::LogosPartenaires => 'Logos partenaires (site public)',
+            self::AbonnementsRecrutement => 'Abonnements recrutement',
             self::Statistiques => 'Statistiques',
         };
     }

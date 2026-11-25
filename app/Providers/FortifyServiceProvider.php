@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
+use App\Http\Middleware\VerifierRecaptcha;
+use App\Http\Responses\FailedPasswordResetLinkRequestResponse;
 use App\Http\Responses\LoginResponse;
 use App\Http\Responses\PasskeyLoginResponse;
 use App\Http\Responses\RegisterResponse;
@@ -21,6 +23,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
+use Laravel\Fortify\Contracts\FailedPasswordResetLinkRequestResponse as FailedPasswordResetLinkRequestResponseContract;
 use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
 use Laravel\Fortify\Contracts\RegisterResponse as RegisterResponseContract;
 use Laravel\Fortify\Contracts\TwoFactorLoginResponse as TwoFactorLoginResponseContract;
@@ -41,6 +44,8 @@ class FortifyServiceProvider extends ServiceProvider
         $this->app->singleton(RegisterResponseContract::class, RegisterResponse::class);
         $this->app->singleton(TwoFactorLoginResponseContract::class, TwoFactorLoginResponse::class);
         $this->app->singleton(VerifyEmailResponseContract::class, VerifyEmailResponse::class);
+        // Not a singleton: Fortify builds it with the status of each request.
+        $this->app->bind(FailedPasswordResetLinkRequestResponseContract::class, FailedPasswordResetLinkRequestResponse::class);
     }
 
     /**
@@ -170,14 +175,17 @@ class FortifyServiceProvider extends ServiceProvider
      * in config/fortify.php, unlike login/two-factor/passkeys. Web routes
      * load lazily (after every provider's boot() has already run), so attach
      * the limiter when the route is matched instead, which is guaranteed to
-     * run before its middleware pipeline is built.
+     * run before its middleware pipeline is built. The three public forms
+     * (sign-in, registration, password reset) get the reCAPTCHA check the
+     * same way.
      */
     private function configureUnthrottledFortifyRoutes(): void
     {
         Route::matched(function (RouteMatched $event): void {
             match ($event->route->getName()) {
-                'password.email' => $event->route->middleware('throttle:password-reset'),
-                'register.store' => $event->route->middleware('throttle:register'),
+                'password.email' => $event->route->middleware(['throttle:password-reset', VerifierRecaptcha::class]),
+                'register.store' => $event->route->middleware(['throttle:register', VerifierRecaptcha::class]),
+                'login.store' => $event->route->middleware(VerifierRecaptcha::class),
                 default => null,
             };
         });

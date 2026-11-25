@@ -123,7 +123,7 @@ et [`12-services-externes-a-brancher.md`](12-services-externes-a-brancher.md) (c
 - [x] Paiement manuel et confirmation par l'administration
 - [x] PDF de la facture payée (espaces client et apprenant)
 - [ ] Prestataire de paiement réel : compte marchand, clés API et adaptateur (le parcours
-  complet fonctionne en attendant avec la passerelle de simulation)
+      complet fonctionne en attendant avec la passerelle de simulation)
 
 ### Phase 6 — Contrats et signature — partielle
 
@@ -137,7 +137,7 @@ Documentation : [`07-phase-6-contrats.md`](07-phase-6-contrats.md)
 - [x] Relance automatique des contrats non signés (voir la phase 10)
 - [ ] Contestation de signature
 
-### Phase 7 — Module Formation — partielle
+### Phase 7 — Module Formation — terminée
 
 Documentation : [`08-phase-7-formation.md`](08-phase-7-formation.md)
 
@@ -145,7 +145,7 @@ Documentation : [`08-phase-7-formation.md`](08-phase-7-formation.md)
 - [x] Inscriptions, validation et export
 - [x] Attestations validées par DAG, avec PDF
 - [x] Espace apprenant : progression, dossier, CV
-- [ ] Pointage de la présence par l'équipe
+- [x] Pointage de la présence par l'équipe (Présent, En retard, Absent, Excusé), assiduité et export
 
 ### Phase 8 — Entreprises partenaires et placement — terminée
 
@@ -186,6 +186,9 @@ et [`12-services-externes-a-brancher.md`](12-services-externes-a-brancher.md) (c
 
 ### Phase 11 — Déploiement et recette finale — à venir
 
+- [x] Logs de production sans données sensibles : masquage des mots de passe, jetons,
+      n° CNI, e-mails, téléphones et cartes sur tous les canaux, traces sans arguments,
+      erreurs SQL sans valeurs, rotation quotidienne sur 14 jours (voir `.env.example`)
 - [ ] Configuration de production
 - [ ] Recette finale
 

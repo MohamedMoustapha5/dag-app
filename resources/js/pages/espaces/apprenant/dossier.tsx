@@ -417,7 +417,8 @@ export default function ApprenantDossier({
                                                     <span className="chip chip-green">
                                                         Validée
                                                     </span>
-                                                    {formation.attestation.id && (
+                                                    {formation.attestation
+                                                        .id && (
                                                         <a
                                                             href={
                                                                 attestationsRoutes.pdf(

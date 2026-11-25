@@ -6,143 +6,217 @@
     <style>
         @page { margin: 0; }
         * { box-sizing: border-box; }
-        body { margin: 0; font-family: sans-serif; color: #071f41; font-size: 11.5px; line-height: 1.5; }
-        .page { padding: 46px 52px 0 52px; }
-        .bleu { color: #0166fe; }
-        .muted { color: #5b6b82; }
-        table { border-collapse: collapse; }
-        .entete td { vertical-align: top; }
-        .titre { font-size: 44px; font-weight: bold; color: #0166fe; letter-spacing: 1px; text-align: right; line-height: 1; }
-        .meta { text-align: right; font-size: 11px; margin-top: 8px; }
-        .meta span { color: #5b6b82; }
-        .client-nom { font-size: 19px; font-weight: bold; color: #0166fe; margin: 2px 0 4px; }
-        .lignes { width: 100%; margin-top: 30px; }
-        .lignes th { background: #0166fe; color: #fff; padding: 9px 10px; font-size: 11px; letter-spacing: 0.5px; text-align: left; border: 1px solid #0166fe; }
-        .lignes td { padding: 11px 10px; border: 1px solid #c9d3e3; font-size: 12px; }
-        .c { text-align: center; }
+        body { margin: 0; font-family: Helvetica, sans-serif; color: #0b1a33; font-size: 12px; line-height: 1.45; }
+        table { border-collapse: collapse; width: 100%; }
+        td { vertical-align: top; padding: 0; }
+        .page { padding: 52px 62px 0 62px; }
+        .muted { color: #5b6478; }
         .r { text-align: right; }
-        .totaux { width: 260px; margin-top: 14px; float: right; }
-        .totaux td { padding: 3px 0; font-size: 12px; }
-        .grand td { padding-top: 6px; }
-        .grand .etiquette { background: #071f41; color: #fff; padding: 6px 10px; font-weight: bold; }
-        .grand .montant { background: #0166fe; color: #fff; padding: 6px 10px; font-weight: bold; text-align: right; }
-        .section-titre { font-size: 14px; font-weight: bold; color: #0166fe; margin: 0 0 6px; }
-        .bas { clear: both; padding-top: 26px; }
-        .tag { display: inline-block; border: 2px solid #1e9e6b; color: #1e9e6b; font-weight: bold; letter-spacing: 2px; padding: 2px 12px; font-size: 11px; }
-        .pied { position: absolute; left: 52px; right: 52px; bottom: 40px; background: #0166fe; color: #fff; border-radius: 10px; padding: 11px 18px; font-size: 10.5px; }
-        .pied td { color: #fff; }
-        .signature { width: 210px; float: right; text-align: center; margin-top: 4px; }
-        .signature .ligne { border-top: 1px solid #071f41; padding-top: 4px; font-size: 11px; }
+        .c { text-align: center; }
+
+        .sous-logo { font-size: 11px; color: #5b6478; margin-top: 6px; }
+        .titre { font-size: 40px; font-weight: bold; letter-spacing: 3px; color: #0b1a33; text-align: right; line-height: 1; }
+        .numero { font-size: 15px; font-weight: bold; text-align: right; margin-top: 14px; }
+        .date { font-size: 12px; color: #5b6478; text-align: right; margin-top: 5px; }
+        .nature-doc { font-size: 11px; font-weight: bold; letter-spacing: 1.5px; color: #b07a00; text-align: right; margin-top: 6px; }
+        .filet { height: 3px; background: #faa608; margin: 20px 0 32px; }
+
+        .etiquette { font-size: 10.5px; font-weight: bold; letter-spacing: 1.5px; color: #b07a00; margin-bottom: 7px; }
+        .partie-nom { font-size: 15px; font-weight: bold; margin-bottom: 3px; }
+        .partie { font-size: 12.5px; line-height: 1.6; }
+        .partie-petit { font-size: 10.5px; color: #5b6478; margin-top: 3px; }
+
+        .entete-lignes { margin-top: 36px; background: #0b1a33; border-radius: 9px; }
+        .entete-lignes td { color: #ffffff; font-size: 10.5px; font-weight: bold; letter-spacing: 1.5px; padding: 11px 18px; }
+        .ligne td { padding: 14px 18px 13px; border-bottom: 1px solid #e3e7ef; }
+        .objet { font-size: 13.5px; font-weight: bold; }
+        .objet-detail { font-size: 10.5px; color: #5b6478; margin-top: 3px; }
+        .montant-ligne { font-size: 13.5px; font-weight: bold; }
+
+        .resume { margin-top: 18px; }
+        .ref { font-size: 13px; font-weight: bold; margin-bottom: 14px; }
+        .facture-ligne td { padding: 6px 20px; font-size: 12.5px; }
+        .total { margin-top: 8px; background: #0b1a33; border-radius: 9px; }
+        .total td { padding: 14px 20px; color: #ffffff; vertical-align: middle; }
+        .total-libelle { font-size: 14px; font-weight: bold; }
+        .total td.total-montant { font-size: 20px; font-weight: bold; color: #faa608; text-align: right; }
+
+        .note { margin-top: 30px; background: #eef1f8; border-left: 4px solid #faa608; padding: 13px 20px; }
+        .note-titre { font-size: 12.5px; font-weight: bold; }
+        .note-texte { font-size: 11px; color: #3d4a63; margin-top: 3px; }
+
+        .signature { width: 200px; margin: 26px 0 0 auto; text-align: center; }
+        .signature-trait { border-top: 1px solid #c7cedb; padding-top: 4px; font-size: 10px; color: #5b6478; }
+        .signature-nom { margin-top: 3px; font-size: 10.5px; font-weight: bold; letter-spacing: 0.3px; color: #071f41; }
+        .signature-qualite { font-size: 9.5px; color: #5b6478; }
+
+        .pied { position: absolute; left: 62px; right: 62px; bottom: 34px; border-top: 1px solid #d9dee8; padding-top: 10px; text-align: center; font-size: 9.5px; color: #5b6478; line-height: 1.6; }
     </style>
 </head>
 <body>
 <div class="page">
-    <table class="entete" width="100%">
+    <table>
         <tr>
-            <td width="50%"><img src="{{ public_path('images/brand/pdf/dag-logo-fond-blanc.png') }}" style="width: 190px;" alt="DAG — Digital Agency Group"></td>
-            <td width="50%">
-                <div class="titre">FACTURE</div>
-                <div class="meta">
-                    <span>N°</span> <strong>{{ $facture->reference }}</strong><br>
-                    <span>Date de règlement :</span> {{ $datePaiement }}<br>
-                    <span>Statut :</span> <strong style="color:#1e9e6b">Acquittée</strong>
-                </div>
+            <td width="52%">
+                <img src="{{ public_path('images/brand/pdf/dag-logo-fond-blanc.png') }}" style="width: 180px;" alt="{{ $emetteur['nom'] }}">
+                <div class="sous-logo">{{ $emetteur['activite'] }} · {{ $emetteur['siege'] }}</div>
             </td>
-        </tr>
-    </table>
-
-    <table width="100%" style="margin-top: 30px;">
-        <tr>
-            <td>
-                <div style="font-size: 14px; font-weight: bold;">Facturé à :</div>
-                <div class="client-nom">{{ $destinataire }}</div>
-                @if($contact)
-                    <div style="font-size: 11px;">{{ $contact }}</div>
+            <td width="48%">
+                <div class="titre">FACTURE</div>
+                <div class="numero">N° {{ $facture->reference }}</div>
+                @if($acquittee)
+                    <div class="date">Date : {{ $datePaiement }}</div>
+                    <div class="nature-doc">FACTURE ACQUITTÉE</div>
+                @else
+                    <div class="date">Émise le {{ $dateEmission }}</div>
+                    <div class="nature-doc">EN ATTENTE DE PAIEMENT</div>
                 @endif
             </td>
-            <td class="r" style="vertical-align: bottom;">
-                <span class="tag">PAYÉE</span>
+        </tr>
+    </table>
+
+    <div class="filet"></div>
+
+    <table>
+        <tr>
+            <td width="52%" style="padding-right: 20px;">
+                <div class="etiquette">ÉMIS PAR</div>
+                <div class="partie-nom">{{ $emetteur['nom'] }}</div>
+                <div class="partie">
+                    {{ $emetteur['activite'] }}<br>
+                    {{ $emetteur['siege'] }}<br>
+                    @if($emetteur['niu'])
+                        NIU : {{ $emetteur['niu'] }}<br>
+                    @endif
+                    {{ $emetteur['email'] }}<br>
+                    {{ $emetteur['telephone'] }}
+                </div>
+            </td>
+            <td width="48%">
+                <div class="etiquette">CLIENT</div>
+                <div class="partie-nom">{{ $destinataire['nom'] }}</div>
+                <div class="partie">
+                    @if($destinataire['type'])
+                        {{ $destinataire['type'] }}<br>
+                    @endif
+                </div>
+                @if($destinataire['email'])
+                    <div class="partie-petit">{{ $destinataire['email'] }}</div>
+                @endif
             </td>
         </tr>
     </table>
 
-    <table class="lignes">
-        <thead>
-            <tr>
-                <th style="width: 7%;">N°</th>
-                <th>DÉSIGNATION</th>
-                <th class="c" style="width: 17%;">PRIX</th>
-                <th class="c" style="width: 8%;">QTÉ</th>
-                <th class="c" style="width: 17%;">TOTAL</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td class="c">1</td>
-                <td>{{ $objet }}</td>
-                <td class="c">{{ number_format((float) $facture->montant, 0, ',', ' ') }} FCFA</td>
-                <td class="c">1</td>
-                <td class="c">{{ number_format((float) $facture->montant, 0, ',', ' ') }} FCFA</td>
-            </tr>
-            <tr><td>&nbsp;</td><td></td><td></td><td></td><td></td></tr>
-            <tr><td>&nbsp;</td><td></td><td></td><td></td><td></td></tr>
-        </tbody>
+    <table class="entete-lignes">
+        <tr>
+            <td width="58%">DESCRIPTION</td>
+            <td width="14%" class="c">QTÉ</td>
+            <td width="28%" class="r">MONTANT</td>
+        </tr>
     </table>
-
-    <table class="totaux">
-        <tr><td>Sous-total</td><td class="r">{{ number_format((float) $facture->montant, 0, ',', ' ') }} FCFA</td></tr>
-        <tr><td>Déjà réglé</td><td class="r">{{ number_format((float) $facture->montant_paye, 0, ',', ' ') }} FCFA</td></tr>
-        <tr><td>Reste dû</td><td class="r">{{ number_format(max(0, (float) $facture->montant - (float) $facture->montant_paye), 0, ',', ' ') }} FCFA</td></tr>
-        <tr class="grand">
-            <td class="etiquette">Total réglé</td>
-            <td class="montant">{{ number_format((float) $facture->montant_paye, 0, ',', ' ') }} FCFA</td>
+    <table>
+        <tr class="ligne">
+            <td width="58%">
+                <div class="objet">{{ $objet }}</div>
+                <div class="objet-detail">{{ $nature }}</div>
+            </td>
+            <td width="14%" class="c" style="font-size: 13px;">1</td>
+            <td width="28%" class="r montant-ligne">{{ number_format((float) $facture->montant, 0, ',', ' ') }} FCFA</td>
         </tr>
     </table>
 
-    <div class="bas">
-        <table width="55%" style="float:left;">
-            <tr><td>
-                <div class="section-titre">Informations de paiement</div>
-                <table style="font-size: 11px;">
-                    <tr><td class="muted" style="padding-right: 14px;">Moyen de paiement</td><td>{{ $moyen }}</td></tr>
-                    <tr><td class="muted">Date de règlement</td><td>{{ $datePaiement }}</td></tr>
-                    <tr><td class="muted">Référence</td><td>{{ $facture->reference }}</td></tr>
+    <table class="resume">
+        <tr>
+            <td width="50%" style="padding: 4px 18px 0;">
+                @if($acquittee)
+                    <div class="etiquette" style="color: #5b6478;">RÉFÉRENCE DU PAIEMENT</div>
+                    <div class="ref">{{ $referencePaiement }}</div>
+                    <div class="etiquette" style="color: #5b6478;">MOYEN DE PAIEMENT</div>
+                    <div class="ref" style="margin-bottom: 0;">{{ $moyen }}</div>
+                @else
+                    <div class="etiquette" style="color: #5b6478;">RÈGLEMENT</div>
+                    <div class="ref">En ligne depuis l’espace client DAG</div>
+                    <div class="etiquette" style="color: #5b6478;">MOYENS ACCEPTÉS</div>
+                    <div class="ref" style="margin-bottom: 0;">Orange Money, MTN Mobile Money</div>
+                @endif
+            </td>
+            <td width="50%">
+                <table>
+                    <tr class="facture-ligne">
+                        <td>Montant facturé</td>
+                        <td class="r"><strong>{{ number_format((float) $facture->montant, 0, ',', ' ') }} FCFA</strong></td>
+                    </tr>
+                    @if(! $acquittee && $dejaRegle > 0)
+                        <tr class="facture-ligne">
+                            <td>Déjà réglé</td>
+                            <td class="r"><strong>{{ number_format($dejaRegle, 0, ',', ' ') }} FCFA</strong></td>
+                        </tr>
+                    @endif
                 </table>
-            </td></tr>
-            <tr><td style="padding-top: 22px;">
-                <div class="section-titre">Conditions</div>
-                <div style="font-size: 10.5px; color: #3d4f6b;">
-                    Cette facture est acquittée : aucun solde n'est dû. Elle fait foi du paiement
-                    des prestations désignées ci-dessus, effectuées par DAG — Digital Agency Group.
-                </div>
-            </td></tr>
-            <tr><td style="padding-top: 22px;">
-                <div style="font-size: 15px; font-weight: bold; color: #0166fe;">Merci pour votre confiance.</div>
-            </td></tr>
-        </table>
+                <table class="total">
+                    <tr>
+                        @if($acquittee)
+                            <td class="total-libelle">Total payé</td>
+                            <td class="total-montant">{{ number_format((float) $facture->montant_paye, 0, ',', ' ') }} FCFA</td>
+                        @else
+                            <td class="total-libelle">Reste à payer</td>
+                            <td class="total-montant">{{ number_format($resteAPayer, 0, ',', ' ') }} FCFA</td>
+                        @endif
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
 
+    @if($acquittee)
+        <div class="note">
+            <div class="note-titre">{{ $emetteur['mention_tva'] ?: 'Facture acquittée : aucun solde n’est dû.' }}</div>
+            <div class="note-texte">
+                @if($emetteur['mention_tva'])
+                    Facture acquittée : aucun solde n’est dû.
+                @endif
+                Elle fait foi du paiement de la prestation désignée ci-dessus. Merci pour votre confiance.
+            </div>
+        </div>
+    @else
+        <div class="note">
+            <div class="note-titre">{{ $emetteur['mention_tva'] ?: 'Facture en attente de paiement.' }}</div>
+            <div class="note-texte">
+                @if($emetteur['mention_tva'])
+                    Facture en attente de paiement.
+                @endif
+                Le solde de {{ number_format($resteAPayer, 0, ',', ' ') }} FCFA se règle en ligne depuis l’espace client DAG. Une facture acquittée est délivrée dès réception du paiement.
+            </div>
+        </div>
+    @endif
+
+    @if($cachet || $signature)
         <div class="signature">
-            <div style="height: 84px;">
+            <div style="height: 62px;">
                 @if($cachet)
-                    <img src="{{ $cachet }}" alt="" style="height: 80px;">
+                    <img src="{{ $cachet }}" alt="" style="height: 60px;">
                 @endif
                 @if($signature)
-                    <img src="{{ $signature }}" alt="" style="height: 54px;">
+                    <img src="{{ $signature }}" alt="" style="height: 48px;">
                 @endif
             </div>
-            <div class="ligne">Signature autorisée</div>
+            <div class="signature-trait">Pour {{ $emetteur['nom'] }}</div>
+            <div class="signature-nom">{{ $emetteur['representant']['nom'] }}</div>
+            <div class="signature-qualite">{{ $emetteur['representant']['qualite'] }}</div>
         </div>
-    </div>
+    @endif
 </div>
 
 <div class="pied">
-    <table width="100%">
-        <tr>
-            <td>contact@agencydag.com</td>
-            <td class="c">DAG — Digital Agency Group</td>
-            <td class="r">Douala, Cameroun</td>
-        </tr>
-    </table>
+    {{ $emetteur['nom'] }} · Siège : {{ $emetteur['siege'] }}
+    @if($emetteur['rccm'])
+        · RCCM : {{ $emetteur['rccm'] }}
+    @endif
+    @if($emetteur['niu'])
+        · NIU : {{ $emetteur['niu'] }}
+    @endif
+    <br>
+    {{ $emetteur['site'] }} · {{ $emetteur['email'] }} · {{ $emetteur['telephone'] }}
 </div>
 </body>
 </html>

@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Storage;
 
 test('generating a contrat drafts it from the active modele and the clauses', function () {
     $promotrice = MembreEquipe::factory()->promotrice()->create();
-    $client = Client::factory()->create(['nom' => 'Aïcha N.']);
+    $client = Client::factory()->entreprise()->create(['nom' => 'Aïcha N.']);
     $demande = Demande::factory()->create(['client_id' => $client->id, 'statut' => 'PAYEE', 'montant_negocie' => 700000]);
     ModeleContrat::create([
         'nom' => 'Prestation', 'type' => 'PRESTATION_SERVICE', 'statut' => 'ACTIF',
@@ -82,14 +82,14 @@ test('signing requires an image, the accepted terms and a contrat open to signat
 
     $this->actingAs($client->user)
         ->post(route('espace-client.contrats.signer', $contrat), ['nom' => 'Aïcha', 'accepte' => true])
-        ->assertSessionHasErrors('signature');
+        ->assertSessionHasErrors(['signature' => 'Importez une image de votre signature.']);
 
     $this->actingAs($client->user)
         ->post(route('espace-client.contrats.signer', $contrat), [
             'signature' => UploadedFile::fake()->image('s.png'),
             'nom' => 'Aïcha',
         ])
-        ->assertSessionHasErrors('accepte');
+        ->assertSessionHasErrors(['accepte' => 'Vous devez accepter les termes du contrat pour le signer.']);
 
     expect($contrat->fresh()->statut)->toBe('ENVOYE');
 

@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\Facture;
+use App\Models\Paiement;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Response;
 
@@ -14,6 +15,20 @@ use Illuminate\Http\Response;
 class FacturePdf
 {
     public const DOSSIER = 'factures';
+
+    /**
+     * Readable name of each payment method stored on factures and paiements.
+     *
+     * @var array<string, string>
+     */
+    private const MOYENS = [
+        'OM' => 'Orange Money',
+        'MTN_MOMO' => 'MTN Mobile Money',
+        'CARTE' => 'Carte bancaire',
+        'ESPECES' => 'Espèces',
+        'VIREMENT' => 'Virement bancaire',
+        'MANUEL' => 'Règlement enregistré par DAG',
+    ];
 
     public static function telecharger(Facture $facture): Response
     {
@@ -27,55 +42,107 @@ class FacturePdf
         );
     }
 
+    /**
+     * For the DAG team, whatever the status: a paid facture is the archived
+     * receipt the client gets; an unpaid one is a facture « à régler »,
+     * generated on the spot and never archived (its amounts still change).
+     */
+    public static function telechargerPourEquipe(Facture $facture): Response
+    {
+        if ($facture->statut === 'PAYEE') {
+            return self::telecharger($facture);
+        }
+
+        return response(self::generer($facture), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => "attachment; filename=\"facture-{$facture->reference}.pdf\"",
+        ]);
+    }
+
     public static function generer(Facture $facture): string
     {
-        $facture->load(['client.user', 'entreprise', 'apprenant.user', 'demande.service', 'demande.formule', 'abonnement.formule', 'inscription.formation', 'paiements']);
-
-        [$destinataire, $contact] = self::destinataire($facture);
-
-        return Pdf::loadView('pdf.facture', [
-            'facture' => $facture,
-            'objet' => $facture->libelleObjet(),
-            'destinataire' => $destinataire,
-            'contact' => $contact,
-            'moyen' => $facture->moyen_paiement ?? '—',
-            'datePaiement' => self::datePaiement($facture),
-            'signature' => DocumentAssets::signatureDirectrice(),
-            'cachet' => DocumentAssets::cachet(),
-        ])->setPaper('a4')->output();
+        return Pdf::loadView('pdf.facture', self::donnees($facture))->setPaper('a4')->output();
     }
 
     /**
-     * @return array{0: string, 1: string|null}
+     * Everything the facture template shows.
+     *
+     * @return array<string, mixed>
      */
-    private static function destinataire(Facture $facture): array
+    public static function donnees(Facture $facture): array
     {
-        if ($facture->client_id !== null) {
-            return [$facture->client->nom, $facture->client->user->email];
-        }
+        $facture->load(['client.user', 'entreprise', 'apprenant.user', 'demande.service', 'demande.formule', 'abonnement.formule', 'inscription.formation', 'paiements']);
 
-        if ($facture->entreprise_id !== null) {
-            return [$facture->entreprise->nom, $facture->entreprise->email];
-        }
-
-        if ($facture->apprenant_id !== null) {
-            return [$facture->apprenant->user->name, $facture->apprenant->user->email];
-        }
-
-        return ['—', null];
-    }
-
-    private static function datePaiement(Facture $facture): string
-    {
-        $dernier = $facture->paiements
+        $dernierPaiement = $facture->paiements
             ->whereNotNull('date_paiement')
             ->sortByDesc('date_paiement')
             ->first();
 
-        $date = $dernier !== null && $dernier->date_paiement !== null
-            ? $dernier->date_paiement
-            : $facture->updated_at;
+        $montant = (float) $facture->montant;
+        $paye = (float) $facture->montant_paye;
 
-        return $date?->format('d/m/Y') ?? '—';
+        return [
+            'facture' => $facture,
+            'acquittee' => $facture->statut === 'PAYEE',
+            'dejaRegle' => $paye,
+            'resteAPayer' => max(0, $montant - $paye),
+            'dateEmission' => $facture->created_at?->copy()->timezone('Africa/Douala')->locale('fr')->translatedFormat('j F Y') ?? '—',
+            'objet' => $facture->libelleObjet(),
+            'nature' => self::nature($facture),
+            'destinataire' => self::destinataire($facture),
+            'moyen' => self::moyen($facture->moyen_paiement ?? $dernierPaiement?->moyen),
+            'datePaiement' => self::datePaiement($facture, $dernierPaiement),
+            'referencePaiement' => $dernierPaiement?->reference_transaction ?? $facture->reference,
+            'emetteur' => config('entreprise'),
+            'signature' => DocumentAssets::signatureDirectrice(),
+            'cachet' => DocumentAssets::cachet(),
+        ];
+    }
+
+    /**
+     * @return array{nom: string, type: string, email: string|null}
+     */
+    private static function destinataire(Facture $facture): array
+    {
+        if ($facture->client_id !== null) {
+            return ['nom' => $facture->client->nom, 'type' => $facture->client->typeLabel(), 'email' => $facture->client->user->email];
+        }
+
+        if ($facture->entreprise_id !== null) {
+            return ['nom' => $facture->entreprise->nom, 'type' => 'Entreprise partenaire', 'email' => $facture->entreprise->email];
+        }
+
+        if ($facture->apprenant_id !== null) {
+            return ['nom' => $facture->apprenant->user->name, 'type' => 'Apprenant', 'email' => $facture->apprenant->user->email];
+        }
+
+        return ['nom' => '—', 'type' => '', 'email' => null];
+    }
+
+    /** Second line of the description: what kind of purchase it was. */
+    private static function nature(Facture $facture): string
+    {
+        return match (true) {
+            $facture->inscription_id !== null => 'Inscription à une session de formation',
+            $facture->abonnement_id !== null => 'Abonnement',
+            $facture->acces_recrutement_id !== null => 'Accès aux pages recrutement (offres et candidatures)',
+            $facture->demande_id !== null && $facture->demande->formule_id !== null => 'Souscription à une formule',
+            default => 'Prestation de service',
+        };
+    }
+
+    private static function moyen(?string $code): string
+    {
+        return $code !== null ? (self::MOYENS[$code] ?? $code) : '—';
+    }
+
+    /** "12 novembre 2026 à 00:39 (UTC+1)", Douala time. */
+    private static function datePaiement(Facture $facture, ?Paiement $dernierPaiement): string
+    {
+        $date = $dernierPaiement?->date_paiement ?? $facture->updated_at;
+
+        return $date !== null
+            ? $date->copy()->timezone('Africa/Douala')->locale('fr')->translatedFormat('j F Y \à H:i').' (UTC+1)'
+            : '—';
     }
 }

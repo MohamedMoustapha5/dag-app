@@ -17,3 +17,8 @@ Schedule::command('notifications:rappels-seances')
 Schedule::command('notifications:relancer-contrats')
     ->dailyAt('09:00')
     ->description('Remind clients whose sent contract is still unsigned');
+
+Schedule::command('paiements:verifier-en-attente')
+    ->everyTenMinutes()
+    ->withoutOverlapping()
+    ->description('Ask the payment provider about online payments still pending');

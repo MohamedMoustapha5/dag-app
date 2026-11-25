@@ -3,6 +3,8 @@
 use App\Enums\MembreEquipeRole;
 use App\Models\MembreEquipe;
 use App\Models\Service;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 test('the index page exposes the actions allowed for the current role', function () {
     $juriste = MembreEquipe::factory()->juriste()->create();
@@ -11,12 +13,57 @@ test('the index page exposes the actions allowed for the current role', function
 
     $response->assertOk();
     $response->assertInertia(fn ($page) => $page
-        ->component('espaces/admin-services')
+        ->component('espaces/admin/services')
         ->where('actions.creer', false)
         ->where('actions.modifier', false)
         ->where('actions.supprimer', false)
         ->where('droits.CATALOGUE', 'LECTURE')
-        ->where('droitsResume', 'Visible par : Directrice (total), Responsable Marketing & Création de contenu (gestion), Juriste, Secrétaire & Développeur (lecture).'));
+        ->where('droitsResume', 'Visible par : CEO (total), Responsable Marketing & Création de contenu (gestion), Juriste, Secrétaire & Développeur (lecture).'));
+});
+
+test('an uploaded service image is saved with an address relative to the site, whatever its domain', function () {
+    Storage::fake('public');
+    config(['app.url' => 'http://localhost:8000']);
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+
+    $this->actingAs($promotrice, 'admin')->post(route('espace-admin.services.store'), [
+        'nom' => 'Gestion des hôpitaux',
+        'description' => 'Logiciel de gestion hospitalière.',
+        'categorie' => 'Développement web',
+        'fournisseur' => 'DAG',
+        'statut' => 'PUBLIE',
+        'image' => UploadedFile::fake()->image('hopital.jpg'),
+    ])->assertSessionHasNoErrors();
+
+    $image = Service::where('nom', 'Gestion des hôpitaux')->sole()->image;
+
+    expect($image)->toStartWith('/storage/services/');
+    Storage::disk('public')->assertExists(substr($image, strlen('/storage/')));
+});
+
+test('DAG chooses per service whether entreprises must sign a contract, unticked by default', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $champs = ['description' => 'Description.', 'categorie' => 'Conseil', 'fournisseur' => 'DAG', 'statut' => 'PUBLIE'];
+
+    $this->actingAs($promotrice, 'admin')
+        ->post(route('espace-admin.services.store'), ['nom' => 'Audit sans contrat'] + $champs)
+        ->assertSessionHasNoErrors();
+    $this->actingAs($promotrice, 'admin')
+        ->post(route('espace-admin.services.store'), ['nom' => 'Projet sous contrat', 'contrat_requis' => true] + $champs)
+        ->assertSessionHasNoErrors();
+
+    $sansContrat = Service::where('nom', 'Audit sans contrat')->sole();
+    expect($sansContrat->contrat_requis)->toBeFalse();
+    expect(Service::where('nom', 'Projet sous contrat')->sole()->contrat_requis)->toBeTrue();
+
+    $this->actingAs($promotrice, 'admin')
+        ->patch(route('espace-admin.services.update', $sansContrat), ['contrat_requis' => true])
+        ->assertSessionHasNoErrors();
+    expect($sansContrat->fresh()->contrat_requis)->toBeTrue();
+
+    $this->actingAs($promotrice, 'admin')
+        ->get(route('espace-admin.services.index'))
+        ->assertInertia(fn ($page) => $page->where('services', fn ($services) => collect($services)->every(fn ($service) => $service['contratRequis'] === true)));
 });
 
 test('a service can use any fournisseur name, not just DAG or Nova-Tech', function () {

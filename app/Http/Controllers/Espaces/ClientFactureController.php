@@ -18,7 +18,7 @@ class ClientFactureController extends Controller
         $client = $request->user('web')->client;
 
         $factures = $client->enregistrementsClientOuEntreprise(Facture::class)
-            ->with(['demande.service', 'demande.formule', 'abonnement.formule'])
+            ->with(['demande.service', 'demande.formule', 'demande.contrat', 'abonnement.formule'])
             ->latest()
             ->get();
 
@@ -49,6 +49,10 @@ class ClientFactureController extends Controller
                 'statut' => $facture->statut,
                 'solde' => (string) $paiements->soldeRestant($facture),
                 'paiementEnAttente' => $paiements->paiementEnAttente($facture),
+                'attendSignatureContrat' => $paiements->attendSignatureContrat($facture),
+                'attendValidationContrat' => $paiements->attendValidationContrat($facture),
+                'attendValidationDevis' => $paiements->attendValidationDevis($facture),
+                'demandeId' => $facture->demande_id,
             ]),
             'moyensPaiement' => $paiements->moyens(),
         ]);

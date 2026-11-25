@@ -13,6 +13,10 @@ import {
 import { useEffect, useState } from 'react';
 import AuditRequestModal from '@/components/public/audit-request-modal';
 import Compteur from '@/components/public/compteur';
+import {
+    BandeLogosPartenaires,
+    type PartenairePublic,
+} from '@/components/public/logos-partenaires';
 import PublicLayout from '@/layouts/public-layout';
 import { abonnement, catalogue, contact, formations } from '@/routes';
 
@@ -21,6 +25,7 @@ type HomeProps = {
         services: number;
     };
     equipe: Array<{ nom: string; role: string }>;
+    partenaires: PartenairePublic[];
 };
 
 const PROCESS_STEPS = [
@@ -118,7 +123,7 @@ const TEAM_PHOTOS = [
 ];
 
 const TEAM_TAGLINES: Record<string, string> = {
-    Directrice: 'Pilote chaque dossier du premier message à la livraison.',
+    CEO: 'Pilote chaque dossier du premier message à la livraison.',
     Juriste: 'Sécurise chaque contrat, à la lettre.',
     'Responsable Marketing': 'Fait rayonner vos marques sur les réseaux.',
     Secrétaire: 'Veille sur chaque facture et chaque paiement.',
@@ -171,7 +176,7 @@ const TESTIMONIALS = [
     },
 ];
 
-export default function Home({ stats, equipe }: HomeProps) {
+export default function Home({ stats, equipe, partenaires }: HomeProps) {
     const [teamIndex, setTeamIndex] = useState(0);
     const [testimonialIndex, setTestimonialIndex] = useState(0);
     const [auditModalOpen, setAuditModalOpen] = useState(false);
@@ -202,7 +207,7 @@ export default function Home({ stats, equipe }: HomeProps) {
 
     return (
         <PublicLayout>
-            <Head title="DAG — Digital Agency Group" />
+            <Head title="Digital Agency Group" />
 
             <section
                 className="hero-full home-hero"
@@ -214,13 +219,15 @@ export default function Home({ stats, equipe }: HomeProps) {
                 <div className="hero-full-content home-hero-content anim-entree container">
                     <span className="badge">Bienvenue chez DAG</span>
                     <h1>
-                        L'accélérateur digital de <span>votre activité</span>.
+                        Plus de clients. Plus de ventes.
+                        <br />
+                        <span>Passez au digital</span>.
                     </h1>
                     <p>
-                        DAG est une agence digitale qui accompagne les
-                        particuliers, les entreprises et les apprenants dans
-                        leur transformation numérique à travers des services,
-                        des formations et du placement.
+                        Du marketing digital au site web, de la formation à
+                        l’emploi, DAG fait grandir votre activité et votre
+                        carrière. Un projet en tête ? Soumettez-le à DAG : nous
+                        trouvons comment le propulser.
                     </p>
                     <div className="home-hero-actions">
                         <Link
@@ -286,6 +293,22 @@ export default function Home({ stats, equipe }: HomeProps) {
                     ))}
                 </div>
             </section>
+
+            {partenaires.length > 0 && (
+            <section
+                className="home-partenaires reveal"
+                aria-labelledby="home-partenaires-titre"
+            >
+                <div className="container home-partenaires-entete">
+                    <span className="badge badge-partner">Nos partenaires</span>
+                    <h2 id="home-partenaires-titre">
+                        Ils avancent avec nous
+                    </h2>
+                </div>
+
+                <BandeLogosPartenaires partenaires={partenaires} />
+            </section>
+            )}
 
             <section className="section-gap reveal container">
                 <span className="badge">Nos services</span>

@@ -11,8 +11,11 @@ use App\Models\Demande;
 use App\Notifications\DevisRecuNotification;
 use App\Support\Notifications\Notifier;
 use App\Support\Paiements\PaiementService;
+use App\Support\Parcours\ParcoursDemande;
+use App\Support\ProformaPdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -34,7 +37,7 @@ class AdminDemandeController extends Controller
             ->latest('updated_at')
             ->get();
 
-        return Inertia::render('espaces/admin-demandes', [
+        return Inertia::render('espaces/admin/demandes', [
             ...$this->adminEspaceProps($membre),
             'peutModifier' => $membre->peut(Donnee::DemandesClients, Action::Modifier),
             'peutEnvoyerDevis' => $membre->peut(Donnee::DemandesClients, Action::Modifier)
@@ -45,16 +48,40 @@ class AdminDemandeController extends Controller
                 'id' => $demande->id,
                 'reference' => $demande->reference,
                 'client' => $this->nomClient($demande),
+                'typeClient' => $demande->estParticulier() ? 'particulier' : 'entreprise',
                 'objet' => $demande->libelleObjet(),
                 'statut' => $demande->statut,
                 'montantNegocie' => $demande->montant_negocie,
+                'exigeContrat' => $demande->exigeContrat(),
+                'devisValide' => $demande->devisEstValide(),
+                'devisRefuse' => $demande->devisEstRefuse(),
+                'motifRefusDevis' => $demande->motif_refus_devis,
                 'aContrat' => $demande->contrat_exists,
                 'contratStatut' => $demande->contrat !== null ? $demande->contrat->statut : null,
                 'contratId' => $demande->contrat !== null ? $demande->contrat->id : null,
                 'payee' => $demande->facture !== null && $demande->facture->statut === 'PAYEE',
+                'createdAt' => $demande->created_at?->toDateString(),
                 'updatedAt' => $demande->updated_at?->toDateString(),
+                'prochaineEtape' => self::prochaineEtape($demande),
             ]),
         ]);
+    }
+
+    /**
+     * The next step of a demande in short, for the list: what to do, and
+     * whether it is up to DAG or to the client.
+     *
+     * @return array{titre: string, aVous: bool, libelleActeur: string}|null
+     */
+    private static function prochaineEtape(Demande $demande): ?array
+    {
+        $prochaine = ParcoursDemande::pour($demande, 'admin')['prochaine'];
+
+        return $prochaine === null ? null : [
+            'titre' => $prochaine['titre'],
+            'aVous' => $prochaine['aVous'],
+            'libelleActeur' => $prochaine['libelleActeur'],
+        ];
     }
 
     public function show(Request $request, Demande $demande): Response
@@ -64,16 +91,28 @@ class AdminDemandeController extends Controller
 
         $demande->load(['client', 'entreprise', 'service', 'formule', 'contrat', 'facture']);
 
-        $etapeActuelle = array_search($demande->statut, Demande::SUIVI_STEPS, true);
+        $etapes = $demande->etapesSuivi();
+        $etapeActuelle = array_search($demande->statut, $etapes, true);
 
-        return Inertia::render('espaces/admin-demande-show', [
+        return Inertia::render('espaces/admin/demande-show', [
             ...$this->adminEspaceProps($membre),
             'peutModifier' => $membre->peut(Donnee::DemandesClients, Action::Modifier),
-            'peutGenererContrat' => $membre->peut(Donnee::ContratsClauses, Action::Creer),
+            'peutGenererContrat' => $membre->peut(Donnee::ContratsClauses, Action::Creer) && $demande->exigeContrat(),
             'demande' => [
                 'id' => $demande->id,
                 'reference' => $demande->reference,
                 'client' => $this->nomClient($demande),
+                'estParticulier' => $demande->estParticulier(),
+                'exigeContrat' => $demande->exigeContrat(),
+                'devis' => ProformaPdf::disponible($demande) ? [
+                    'numero' => ProformaPdf::numero($demande),
+                    'valideLe' => $demande->devis_valide_le?->toIso8601String(),
+                ] : null,
+                'refusDevis' => $demande->devisEstRefuse() ? [
+                    'le' => $demande->devis_refuse_le->toIso8601String(),
+                    'motif' => $demande->motif_refus_devis,
+                    'abandon' => $demande->statut === 'REFUSEE',
+                ] : null,
                 'clientTelephone' => $demande->client_id !== null ? $demande->client->telephone : null,
                 'objet' => $demande->libelleObjet(),
                 'description' => $demande->description,
@@ -82,6 +121,7 @@ class AdminDemandeController extends Controller
                 'payee' => $demande->facture !== null && $demande->facture->statut === 'PAYEE',
                 'createdAt' => $demande->created_at?->toDateString(),
                 'contrat' => $demande->contrat !== null ? [
+                    'id' => $demande->contrat->id,
                     'reference' => $demande->contrat->reference,
                     'statut' => $demande->contrat->statut,
                 ] : null,
@@ -90,8 +130,9 @@ class AdminDemandeController extends Controller
                     'statut' => $demande->facture->statut,
                 ] : null,
             ],
+            'parcours' => ParcoursDemande::pour($demande, 'admin'),
             'suivi' => [
-                'etapes' => Demande::SUIVI_STEPS,
+                'etapes' => $etapes,
                 'etapeActuelle' => $etapeActuelle === false ? null : $etapeActuelle,
                 'refusee' => $demande->statut === 'REFUSEE',
             ],
@@ -125,22 +166,27 @@ class AdminDemandeController extends Controller
             ]);
         }
 
-        // The contract is mandatory: no prestation starts, is delivered or closed
-        // until the client has signed it.
-        if (in_array($data['statut'], ['EN_COURS', 'LIVREE', 'TERMINEE'], true)
-            && ($demande->contrat === null || ! $demande->contrat->estSigne())) {
-            throw ValidationException::withMessages([
-                'statut' => 'Le contrat doit être signé par le client avant de démarrer la prestation.',
-            ]);
+        if (! $demande->exigeContrat()) {
+            $this->verifierEtapeSansContrat($demande, $data['statut']);
+        } else {
+            $this->verifierEtapeAvecContrat($demande, $data['statut']);
         }
 
         DB::transaction(function () use ($demande, $data, $paiements): void {
+            $montantAvant = (float) $demande->montant_negocie;
+
             $demande->update($data);
 
             // Moving a demande to "Devis envoyé" with an amount issues the
-            // facture the client pays, whichever screen the change comes from.
+            // facture, whichever screen the change comes from. A new amount,
+            // or a proposal after a refusal, is a new devis the client
+            // validates again; an entreprise's contract waits for it.
             if ($demande->statut === 'DEVIS_ENVOYE' && (float) $demande->montant_negocie > 0) {
                 $paiements->emettreFacturePourDevis($demande, (float) $demande->montant_negocie);
+
+                if ((float) $demande->montant_negocie !== $montantAvant || $demande->devisEstRefuse()) {
+                    $this->nouveauDevis($demande);
+                }
             }
         });
 
@@ -149,6 +195,86 @@ class AdminDemandeController extends Controller
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Demande mise à jour.']);
 
         return back();
+    }
+
+    /**
+     * A devis just sent waits for the client's answer: any earlier
+     * validation or refusal is cleared, and an entreprise's contract not
+     * signed yet goes back to draft (out of the client's sight) until the
+     * new devis is validated, which redrafts and sends it.
+     */
+    private function nouveauDevis(Demande $demande): void
+    {
+        $demande->update(['devis_valide_le' => null, 'devis_refuse_le' => null, 'motif_refus_devis' => null]);
+
+        $contrat = $demande->contrat()->first();
+
+        if ($contrat !== null && ! $contrat->estSigne()) {
+            $contrat->update(['statut' => 'BROUILLON', 'motif_rectification' => null, 'rectification_demandee_at' => null]);
+        }
+    }
+
+    /**
+     * Entreprise or organisation: the contract is mandatory and signed before
+     * payment. Only the client's signature moves a demande to « Contrat
+     * signé », no prestation starts, is delivered or closed without it, and
+     * the signed contract fixes the amount.
+     *
+     * @throws ValidationException
+     */
+    private function verifierEtapeAvecContrat(Demande $demande, string $statut): void
+    {
+        if (in_array($statut, ['CONTRAT_SIGNE', 'EN_COURS', 'LIVREE', 'TERMINEE'], true) && ! $demande->contratEstSigne()) {
+            throw ValidationException::withMessages([
+                'statut' => $statut === 'CONTRAT_SIGNE'
+                    ? 'Une demande passe à « Contrat signé » quand le client signe son contrat, pas à la main.'
+                    : 'Le contrat doit être signé par le client avant de démarrer la prestation.',
+            ]);
+        }
+
+        if ($statut === 'DEVIS_ENVOYE' && $demande->contratEstSigne()) {
+            throw ValidationException::withMessages([
+                'statut' => 'Le client a déjà signé le contrat : le devis ne peut plus être modifié.',
+            ]);
+        }
+    }
+
+    /**
+     * No contract to sign (a particulier, or a service that needs none):
+     * the prestation only starts once the client validated the devis, and
+     * the devis can no longer change once paid.
+     *
+     * @throws ValidationException
+     */
+    private function verifierEtapeSansContrat(Demande $demande, string $statut): void
+    {
+        if ($statut === 'CONTRAT_SIGNE') {
+            throw ValidationException::withMessages([
+                'statut' => 'Cette demande ne passe pas par un contrat : le client valide son devis en ligne.',
+            ]);
+        }
+
+        if (in_array($statut, ['EN_COURS', 'LIVREE', 'TERMINEE'], true) && ! $demande->paiementEstOuvert()) {
+            throw ValidationException::withMessages([
+                'statut' => 'Le client doit d’abord valider son devis avant le démarrage de la prestation.',
+            ]);
+        }
+
+        if ($statut === 'DEVIS_ENVOYE' && (float) $demande->facture?->montant_paye > 0) {
+            throw ValidationException::withMessages([
+                'statut' => 'Un paiement a déjà été enregistré : le devis ne peut plus être modifié.',
+            ]);
+        }
+    }
+
+    /**
+     * The devis of a particulier's demande, as a proforma PDF.
+     */
+    public function proforma(Request $request, Demande $demande): HttpResponse
+    {
+        abort_unless($this->membre($request)->peut(Donnee::DemandesClients, Action::Voir), 403);
+
+        return ProformaPdf::telecharger($demande);
     }
 
     public function envoyerDevis(Request $request, Demande $demande, PaiementService $paiements): RedirectResponse
@@ -176,6 +302,15 @@ class AdminDemandeController extends Controller
             'Un paiement a déjà été enregistré : le devis ne peut plus être modifié.'
         );
 
+        abort_if(
+            $demande->contratEstSigne(),
+            409,
+            'Le client a déjà signé le contrat : le devis ne peut plus être modifié.'
+        );
+
+        // An entreprise receives the devis with its contract, signs it, then
+        // pays. A particulier receives the devis alone (a proforma), validates
+        // it online, then pays: every devis sent is validated anew.
         DB::transaction(function () use ($demande, $data, $paiements): void {
             $demande->update([
                 'montant_negocie' => $data['montant'],
@@ -184,6 +319,7 @@ class AdminDemandeController extends Controller
             ]);
 
             $paiements->emettreFacturePourDevis($demande, (float) $data['montant']);
+            $this->nouveauDevis($demande);
         });
 
         Notifier::envoyer(Notifier::utilisateurDe($demande), new DevisRecuNotification($demande));

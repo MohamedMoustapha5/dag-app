@@ -46,7 +46,7 @@ test('a promotrice can add and delete a clause', function () {
 
 test('a promotrice can generate a contrat for a demande and move it through signature', function () {
     $promotrice = MembreEquipe::factory()->promotrice()->create();
-    $demande = Demande::factory()->create(['statut' => 'DEVIS_ENVOYE', 'montant_negocie' => 85000]);
+    $demande = Demande::factory()->entreprise()->create(['statut' => 'DEVIS_ENVOYE', 'montant_negocie' => 85000]);
     $modele = ModeleContrat::create([
         'nom' => 'Prestation standard',
         'type' => 'PRESTATION_SERVICE',
@@ -58,7 +58,7 @@ test('a promotrice can generate a contrat for a demande and move it through sign
         ->get(route('espace-admin.contrats.index'))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->component('espaces/admin-contrats')
+            ->component('espaces/admin/contrats')
             ->has('demandesAContractualiser', 1)
             ->has('modeles', 1));
 
@@ -75,7 +75,7 @@ test('a promotrice can generate a contrat for a demande and move it through sign
         ->get(route('espace-admin.contrats.show', $contrat))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->component('espaces/admin-contrat-show')
+            ->component('espaces/admin/contrat-show')
             ->where('contrat.reference', $contrat->reference));
 
     $this->actingAs($promotrice, 'admin')

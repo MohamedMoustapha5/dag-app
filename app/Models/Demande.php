@@ -15,8 +15,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property-read bool|null $contrat_exists Present when loaded with withExists('contrat').
  */
 #[Fillable([
-    'reference', 'client_id', 'entreprise_id', 'service_id', 'formule_id', 'description',
-    'montant_negocie', 'message_devis', 'statut', 'est_partenaire_nova_tech', 'avancement_partenaire', 'derniere_relance_at',
+    'reference', 'client_id', 'entreprise_id', 'service_id', 'formule_id', 'objet', 'description',
+    'montant_negocie', 'message_devis', 'devis_valide_le', 'devis_refuse_le', 'motif_refus_devis', 'statut', 'est_partenaire_nova_tech', 'avancement_partenaire', 'derniere_relance_at',
 ])]
 class Demande extends Model
 {
@@ -26,19 +26,158 @@ class Demande extends Model
     /**
      * Linear progression of a demande, excluding REFUSEE which is a
      * terminal state reachable from any step rather than a step itself.
+     * The client signs the contract sent with the devis before paying.
      *
      * @var list<string>
      */
     public const SUIVI_STEPS = [
-        'BROUILLON', 'EN_ETUDE', 'DEVIS_ENVOYE', 'PAYEE', 'EN_COURS', 'LIVREE', 'TERMINEE',
+        'BROUILLON', 'EN_ETUDE', 'DEVIS_ENVOYE', 'CONTRAT_SIGNE', 'PAYEE', 'EN_COURS', 'LIVREE', 'TERMINEE',
     ];
 
     /** @var array<string, string> */
     public const STATUT_LABELS = [
         'BROUILLON' => 'Brouillon', 'EN_ETUDE' => "À l'étude", 'DEVIS_ENVOYE' => 'Devis envoyé',
-        'PAYEE' => 'Payé', 'EN_COURS' => 'En cours', 'LIVREE' => 'Livrée', 'TERMINEE' => 'Terminée',
-        'REFUSEE' => 'Refusée',
+        'CONTRAT_SIGNE' => 'Contrat signé', 'PAYEE' => 'Payé', 'EN_COURS' => 'En cours',
+        'LIVREE' => 'Livrée', 'TERMINEE' => 'Terminée', 'REFUSEE' => 'Refusée',
     ];
+
+    /**
+     * Whether the demande is at least at the given step of SUIVI_STEPS
+     * (always false for a refused demande).
+     */
+    public function aAtteint(string $etape): bool
+    {
+        $actuelle = array_search($this->statut, self::SUIVI_STEPS, true);
+
+        return $actuelle !== false && $actuelle >= array_search($etape, self::SUIVI_STEPS, true);
+    }
+
+    /**
+     * A demande from a private individual: no contract, the devis is a
+     * proforma the client validates online before paying. Demandes from an
+     * entreprise or an organisation keep the signed contract.
+     */
+    public function estParticulier(): bool
+    {
+        return $this->client_id !== null
+            && $this->entreprise_id === null
+            && $this->client->type === 'PARTICULIER';
+    }
+
+    /**
+     * Whether the client signs a contract before paying. Only an entreprise
+     * or an organisation does, for a formule (a subscription) or for a
+     * service DAG marked as requiring one; otherwise the devis validated
+     * online is enough, as for a particulier.
+     */
+    public function exigeContrat(): bool
+    {
+        if ($this->estParticulier()) {
+            return false;
+        }
+
+        if ($this->formule_id !== null) {
+            return true;
+        }
+
+        return $this->service_id === null || (bool) $this->service?->contrat_requis;
+    }
+
+    /**
+     * Whether the client validated the devis (proforma) online.
+     */
+    public function devisEstValide(): bool
+    {
+        return $this->devis_valide_le !== null;
+    }
+
+    /**
+     * Reasons a particulier can give when declining a devis.
+     *
+     * @var array<string, string>
+     */
+    public const MOTIFS_REFUS_DEVIS = [
+        'PRIX' => 'Le prix est trop élevé',
+        'DELAI' => 'Le délai ne me convient pas',
+        'BESOIN' => 'Mon besoin a changé',
+        'AUTRE' => 'Autre raison',
+    ];
+
+    /**
+     * Whether the client declined the last devis DAG sent. A new devis
+     * clears it.
+     */
+    public function devisEstRefuse(): bool
+    {
+        return $this->devis_refuse_le !== null;
+    }
+
+    /**
+     * Whether the client accepted the devis. Every client validates the
+     * devis (proforma) online; a demande started earlier, when the contract
+     * left with the devis, counts its contract as the acceptance (sent, for
+     * an entreprise; signed, for a particulier).
+     */
+    public function devisAccepte(): bool
+    {
+        if ($this->devisEstValide()) {
+            return true;
+        }
+
+        if (! $this->exigeContrat()) {
+            return $this->contratEstSigne();
+        }
+
+        // A contract sent, signed or under correction at the client's request
+        // was only possible once the devis was agreed.
+        return $this->contrat !== null
+            && ($this->contrat->statut !== 'BROUILLON' || $this->contrat->motif_rectification !== null);
+    }
+
+    /**
+     * Whether the payment of the facture is open. Without a contract to
+     * sign, once the devis is validated; with one, once the contract the
+     * client signed is validated by DAG. A demande started under the
+     * contract procedure keeps going once that contract is validated.
+     */
+    public function paiementEstOuvert(): bool
+    {
+        if (! $this->exigeContrat()) {
+            return $this->devisEstValide() || $this->contratEstValide();
+        }
+
+        return $this->contratEstValide();
+    }
+
+    /**
+     * The steps of the status list that apply to this demande: without a
+     * contract to sign, there is no « Contrat signé ».
+     *
+     * @return list<string>
+     */
+    public function etapesSuivi(): array
+    {
+        return ! $this->exigeContrat()
+            ? array_values(array_diff(self::SUIVI_STEPS, ['CONTRAT_SIGNE']))
+            : self::SUIVI_STEPS;
+    }
+
+    /**
+     * Whether the client signed the contract of this demande.
+     */
+    public function contratEstSigne(): bool
+    {
+        return $this->contrat !== null && $this->contrat->estSigne();
+    }
+
+    /**
+     * Whether DAG validated the contract the client signed, which opens the
+     * payment of the facture.
+     */
+    public function contratEstValide(): bool
+    {
+        return $this->contrat !== null && $this->contrat->estValide();
+    }
 
     public function libelleStatut(): string
     {
@@ -49,6 +188,8 @@ class Demande extends Model
     {
         return [
             'montant_negocie' => 'decimal:2',
+            'devis_valide_le' => 'datetime',
+            'devis_refuse_le' => 'datetime',
             'est_partenaire_nova_tech' => 'boolean',
             'derniere_relance_at' => 'datetime',
         ];
@@ -110,7 +251,7 @@ class Demande extends Model
             return $this->formule->nom;
         }
 
-        return 'Demande';
+        return $this->objet ?? 'Demande';
     }
 
     /**

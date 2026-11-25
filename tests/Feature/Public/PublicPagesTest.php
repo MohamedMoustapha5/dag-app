@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\Civilite;
 use App\Models\AuditRequest;
 use App\Models\CandidatureSpontanee;
 use App\Models\EntreprisePartenaire;
@@ -113,6 +114,17 @@ test('the formations page only lists sessions that are open or full', function (
         ->component('public/formations')
         ->has('sessions', 1)
         ->where('sessions.0.sessionId', $openSession->id));
+});
+
+test('each public session card shows the image chosen for the session, else its training\'s', function () {
+    $formation = Formation::factory()->create(['statut' => 'PUBLIEE', 'image' => '/storage/formations/formation.jpg']);
+    FormationSession::factory()->for($formation)->create(['statut' => 'OUVERTE', 'image' => '/storage/formations/session.jpg', 'date_debut' => now()->addDays(5)]);
+    FormationSession::factory()->for($formation)->create(['statut' => 'OUVERTE', 'image' => null, 'date_debut' => now()->addDays(10)]);
+
+    $this->get(route('formations'))
+        ->assertInertia(fn ($page) => $page
+            ->where('sessions.0.image', '/storage/formations/session.jpg')
+            ->where('sessions.1.image', '/storage/formations/formation.jpg'));
 });
 
 test('the formations page exposes the average seats per session', function () {
@@ -305,7 +317,7 @@ test('the offres emploi page only lists published, non-expired offers', function
 });
 
 test('the developpeur account appears once in the public team, with the team size following the active accounts', function () {
-    MembreEquipe::factory()->promotrice()->create(['name' => 'Afsa Maira']);
+    MembreEquipe::factory()->promotrice()->create(['name' => 'Mandou']);
     MembreEquipe::factory()->developpeur()->create(['name' => 'Mustapha']);
     MembreEquipe::factory()->developpeur()->inactif()->create(['name' => 'Ancien']);
 
@@ -315,6 +327,20 @@ test('the developpeur account appears once in the public team, with the team siz
             ->has('equipe', 2)
             ->where('equipe.1.role', 'Développeur')
             ->where('stats.membresEquipe', 2));
+});
+
+test("the public team shows each member's name after their courtesy title, on the home and about pages", function () {
+    MembreEquipe::factory()->promotrice()->create(['name' => 'Mandou', 'civilite' => Civilite::Madame]);
+    MembreEquipe::factory()->juriste()->create(['name' => 'Pascal', 'civilite' => Civilite::Monsieur]);
+    MembreEquipe::factory()->developpeur()->create(['name' => 'Sans Civilité', 'civilite' => null]);
+
+    foreach (['a-propos', 'home'] as $route) {
+        $this->get(route($route))
+            ->assertInertia(fn ($page) => $page
+                ->where('equipe.0.nom', 'Mme Mandou')
+                ->where('equipe.1.nom', 'Mr Pascal')
+                ->where('equipe.2.nom', 'Sans Civilité'));
+    }
 });
 
 test('every public formation displays a category badge, with a default when none was entered', function () {

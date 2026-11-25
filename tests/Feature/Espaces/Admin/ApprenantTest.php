@@ -17,7 +17,7 @@ test('a promotrice can list and view an apprenant dossier', function () {
         ->get(route('espace-admin.apprenants.index'))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->component('espaces/admin-apprenants')
+            ->component('espaces/admin/apprenants')
             ->has('apprenants', 1)
             ->where('apprenants.0.id', $apprenant->id));
 
@@ -25,7 +25,7 @@ test('a promotrice can list and view an apprenant dossier', function () {
         ->get(route('espace-admin.apprenants.show', $apprenant))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->component('espaces/admin-apprenant-show')
+            ->component('espaces/admin/apprenant-show')
             ->where('apprenant.ville', 'Douala'));
 });
 

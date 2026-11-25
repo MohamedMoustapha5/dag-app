@@ -12,13 +12,13 @@ certains services, un petit adaptateur.
 
 ## 1. Vue d'ensemble
 
-| Service | État du code | Ce qui manque | Priorité |
-| ------- | ------------ | ------------- | -------- |
-| E-mail professionnel | Prêt, actif | Un serveur d'envoi (SMTP) et la configuration du domaine | Indispensable |
-| Adresses réelles de l'équipe | Prêt | La liste des adresses à enregistrer | Indispensable |
-| Paiement Orange Money, MTN MoMo, carte | Prêt, en simulation | Un compte prestataire et ses clés API, un adaptateur | Indispensable |
-| SMS | Canal prêt, désactivé | Un fournisseur, un nom d'expéditeur validé, un adaptateur | Plus tard |
-| WhatsApp | Canal prêt, désactivé | Un compte WhatsApp Business, des modèles de message approuvés, un adaptateur | Plus tard |
+| Service                                | État du code          | Ce qui manque                                                                | Priorité      |
+| -------------------------------------- | --------------------- | ---------------------------------------------------------------------------- | ------------- |
+| E-mail professionnel                   | Branché sur Brevo     | La clé API Brevo et l'authentification du domaine (SPF, DKIM)                | Indispensable |
+| Adresses réelles de l'équipe           | Prêt                  | La liste des adresses à enregistrer                                          | Indispensable |
+| Paiement Orange Money, MTN MoMo, carte | Prêt, en simulation   | Un compte prestataire et ses clés API, un adaptateur                         | Indispensable |
+| SMS                                    | Canal prêt, désactivé | Un fournisseur, un nom d'expéditeur validé, un adaptateur                    | Plus tard     |
+| WhatsApp                               | Canal prêt, désactivé | Un compte WhatsApp Business, des modèles de message approuvés, un adaptateur | Plus tard     |
 
 ## 2. E-mail professionnel (à faire en premier)
 
@@ -33,7 +33,32 @@ certains services, un petit adaptateur.
   **SPF**, **DKIM** et **DMARC**. Sans eux, une grande partie des e-mails arrive en courrier
   indésirable ou est refusée.
 
-### Configuration (fichier `.env` du serveur)
+### Configuration avec Brevo (branché)
+
+Les e-mails partent par l'API transactionnelle de Brevo
+(`App\Support\Messagerie\BrevoTransport`) : notifications, vérification d'adresse,
+mot de passe oublié, alertes de l'équipe.
+
+1. Dans Brevo : **Expéditeurs, domaines et IP dédiées > Domaines**, ajouter le domaine
+   de `MAIL_FROM_ADDRESS` et publier dans le DNS les enregistrements SPF, DKIM et DMARC
+   que Brevo indique, jusqu'à ce que le domaine soit « authentifié ».
+2. Dans Brevo : **SMTP & API > Clés API**, créer une clé (elle n'est affichée qu'une fois).
+3. Dans le `.env` du serveur :
+
+```
+MAIL_MAILER=brevo
+BREVO_API_KEY=<clé API Brevo>
+MAIL_FROM_ADDRESS="contact@agencydag.com"
+MAIL_FROM_NAME="Digital Agency Group"
+APP_URL=https://<domaine public de la plateforme>
+NOTIFICATIONS_QUEUE=database
+```
+
+La clé ne doit jamais être committée ni envoyée par message. Un e-mail que Brevo refuse
+(clé invalide, expéditeur non validé, quota) n'interrompt pas l'action en cours : l'erreur,
+avec la raison donnée par Brevo, est écrite dans `storage/logs/laravel.log`.
+
+### Autre serveur SMTP
 
 ```
 MAIL_MAILER=smtp
@@ -41,10 +66,6 @@ MAIL_HOST=<hôte SMTP>
 MAIL_PORT=<587 ou 465>
 MAIL_USERNAME=<identifiant>
 MAIL_PASSWORD=<mot de passe>
-MAIL_FROM_ADDRESS="contact@agencydag.com"
-MAIL_FROM_NAME="DAG — Digital Agency Group"
-APP_URL=https://<domaine public de la plateforme>
-NOTIFICATIONS_QUEUE=database
 ```
 
 - `APP_URL` doit être l'adresse publique en HTTPS : les liens des e-mails (payer, signer un
@@ -70,6 +91,28 @@ comptes sont mis à jour en une opération, ou la modification d'adresse est ajo
 ## 3. Paiement mobile et carte
 
 Voir `docs/06-phase-5-paiement-facturation.md`, section « Brancher un prestataire réel ».
+
+### Fapshi (branché : Orange Money et MTN MoMo)
+
+`App\Support\Paiements\FapshiPasserelle`, activé par `PAIEMENT_PASSERELLE=fapshi`.
+Fapshi n'encaisse que le mobile money : avec cette passerelle, l'option « Carte
+bancaire » n'est pas proposée au payeur (et refusée par le serveur).
+
+- **Identifiants** : `FAPSHI_API_USER` et `FAPSHI_API_KEY` du service créé sur le
+  tableau de bord Fapshi. Ceux de test vont avec `FAPSHI_URL=https://sandbox.fapshi.com`,
+  ceux de production avec `https://live.fapshi.com`.
+- **Parcours** : par défaut, le payeur est envoyé sur la page de paiement Fapshi puis
+  revient sur `/paiements/retour/…`, où le statut est relu chez Fapshi. Avec
+  `FAPSHI_PAIEMENT_DIRECT=true`, la demande arrive directement sur son téléphone ; en
+  production, Fapshi doit d'abord activer ce paiement direct.
+- **Webhook** : sur le tableau de bord Fapshi, URL `https://<domaine>/webhooks/paiements`
+  et un secret ; la même valeur va dans `FAPSHI_WEBHOOK_SECRET`. Fapshi l'envoie dans
+  l'en-tête `x-wh-secret` et ne réessaie pas : le retour du payeur relit aussi le statut.
+- **Numéros de test (sandbox)** : succès MTN `670000000`, Orange `690000000` ; échec
+  MTN `670000001`, Orange `690000001`.
+- **Frais** : 3 % par transaction ; montant minimum 100 FCFA.
+- Les retraits (décaissements) ne passent pas par Fapshi : chez Fapshi, ils demandent un
+  service séparé, à brancher plus tard.
 
 ### À fournir
 
@@ -165,12 +208,12 @@ Sources : [tarification officielle de la plateforme WhatsApp Business](https://d
 
 ## 7. Informations à rassembler
 
-| Information | Pour | Qui la détient |
-| ----------- | ---- | -------------- |
-| Nom de domaine et accès DNS | E-mail, webhooks | DAG ou son hébergeur |
-| Adresse d'expédition officielle | E-mail | DAG |
-| Liste des membres : nom, adresse, rôle | Comptes équipe | DAG |
-| Documents légaux de l'entreprise (registre, identifiants fiscaux) | Paiement, WhatsApp, SMS | DAG |
-| Nom d'expéditeur souhaité (« DAG ») | SMS | DAG |
-| Numéro dédié à WhatsApp Business | WhatsApp | DAG |
-| Budget mensuel prévu (SMS, WhatsApp) | Choix des fournisseurs | DAG |
+| Information                                                       | Pour                    | Qui la détient       |
+| ----------------------------------------------------------------- | ----------------------- | -------------------- |
+| Nom de domaine et accès DNS                                       | E-mail, webhooks        | DAG ou son hébergeur |
+| Adresse d'expédition officielle                                   | E-mail                  | DAG                  |
+| Liste des membres : nom, adresse, rôle                            | Comptes équipe          | DAG                  |
+| Documents légaux de l'entreprise (registre, identifiants fiscaux) | Paiement, WhatsApp, SMS | DAG                  |
+| Nom d'expéditeur souhaité (« DAG »)                               | SMS                     | DAG                  |
+| Numéro dédié à WhatsApp Business                                  | WhatsApp                | DAG                  |
+| Budget mensuel prévu (SMS, WhatsApp)                              | Choix des fournisseurs  | DAG                  |

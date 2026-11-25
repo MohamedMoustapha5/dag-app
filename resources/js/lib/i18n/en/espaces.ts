@@ -304,8 +304,8 @@ export const espacesEn: Record<string, string> = {
     'Voir les candidatures': 'View applications',
     'Répartition des candidatures': 'Applications breakdown',
     'Envoyer une offre à DAG': 'Send an offer to DAG',
-    'Votre offre est transmise à notre équipe, qui la publie après validation et vous propose des profils correspondants.':
-        'Your offer is passed to our team, who publish it after validation and suggest matching profiles.',
+    'Votre offre est transmise à notre équipe, qui vous propose des profils correspondants.':
+        'Your offer is passed to our team, who suggest matching profiles.',
     'Titre du poste': 'Job title',
     'Ex. Community Manager junior — Stage 3 mois':
         'E.g. Junior Community Manager — 3-month internship',
@@ -330,11 +330,33 @@ export const espacesEn: Record<string, string> = {
     'Candidatures (': 'Applications (',
 
     // Contracts
-    "Importez vous-même la photo de votre signature pour activer un contrat.":
+    'Importez vous-même la photo de votre signature pour activer un contrat.':
         'Upload the photo of your signature yourself to activate a contract.',
     'Aucun contrat pour le moment.': 'No contract yet.',
     'Réf.': 'Ref.',
     'Lire et signer': 'Read and sign',
+    'Devis proforma': 'Proforma quote',
+    'À valider': 'To approve',
+    'Valider le devis': 'Approve the quote',
+    'Consulter le devis': 'View the quote',
+    'Télécharger le devis': 'Download the quote',
+    'Relire le devis': 'Read the quote again',
+    'Je valide le devis': 'I approve the quote',
+    'Validation…': 'Approving…',
+    "Le paiement s'ouvre dès que vous validez le devis.":
+        'Payment opens as soon as you approve the quote.',
+    "Valider le devis d'abord": 'Approve the quote first',
+    'Refuser le devis': 'Decline the quote',
+    'Raison du refus': 'Reason for declining',
+    'Et ensuite ?': 'What next?',
+    'Je souhaite une nouvelle proposition': 'I would like a new proposal',
+    'DAG revoit le devis et vous l’envoie ici.':
+        'DAG revises the quote and sends it to you here.',
+    'Je ne donne pas suite': 'I will not proceed',
+    'Votre demande sera close.': 'Your request will be closed.',
+    'Confirmer le refus': 'Confirm',
+    'Par exemple : budget visé, délai souhaité…':
+        'For example: target budget, preferred timeline…',
     Voir: 'View',
     PDF: 'PDF',
     '← Tous mes contrats': '← All my contracts',
@@ -347,7 +369,7 @@ export const espacesEn: Record<string, string> = {
     'Signé par': 'Signed by',
     'Télécharger le PDF signé': 'Download signed PDF',
     'Signer le contrat': 'Sign the contract',
-    'Importez une photo ou un scan de votre signature manuscrite (PNG ou JPG). La date, l\'heure et votre adresse IP sont conservées comme preuve de signature.':
+    "Importez une photo ou un scan de votre signature manuscrite (PNG ou JPG). La date, l'heure et votre adresse IP sont conservées comme preuve de signature.":
         'Upload a photo or scan of your handwritten signature (PNG or JPG). The date, time and your IP address are kept as proof of signature.',
     'Votre signature': 'Your signature',
     'Aperçu de la signature': 'Signature preview',
@@ -356,6 +378,12 @@ export const espacesEn: Record<string, string> = {
     'Nom complet du signataire': 'Full name of the signatory',
     "J'ai lu le contrat ci-dessus et j'accepte ses termes.":
         'I have read the contract above and accept its terms.',
+    'Importez une image de votre signature.':
+        'Upload an image of your signature.',
+    'La signature doit être une image (PNG ou JPG).':
+        'The signature must be an image (PNG or JPG).',
+    'Vous devez accepter les termes du contrat pour le signer.':
+        'You must accept the terms of the contract to sign it.',
     "Ce contrat n'est pas ouvert à la signature.":
         'This contract is not open for signature.',
 
@@ -402,8 +430,7 @@ export const espacesEn: Record<string, string> = {
     // Client settings and dashboard
     'Espace client DAG': 'DAG client area',
     'Cliente DAG': 'DAG client',
-    'Nouveau devis ou mise à jour de demande':
-        'New quote or request update',
+    'Nouveau devis ou mise à jour de demande': 'New quote or request update',
     'Facture et confirmation de paiement': 'Invoice and payment confirmation',
     'Offres et actualités DAG': 'DAG offers and news',
     'La suppression de votre compte est définitive. Vos contrats déjà signés et factures payées restent archivés, conformément à la politique de confidentialité.':
@@ -411,7 +438,8 @@ export const espacesEn: Record<string, string> = {
     'Tout le catalogue DAG, accessible sans quitter votre espace client.':
         'The whole DAG catalogue, available without leaving your client area.',
     'Espace client': 'Client area',
-    'Voici un résumé de votre compte DAG.': 'Here is a summary of your DAG account.',
+    'Voici un résumé de votre compte DAG.':
+        'Here is a summary of your DAG account.',
     'Demandes en cours': 'Requests in progress',
     'Factures en attente': 'Invoices pending',
     'FCFA à régler': 'FCFA to pay',
@@ -428,4 +456,164 @@ export const espacesEn: Record<string, string> = {
     'Découvrez nos formules pour un accompagnement continu.':
         'Discover our plans for ongoing support.',
     'Voir les formules': 'See the plans',
+
+    // Card payment
+    'Cartes acceptées': 'Accepted cards',
+    'Vous êtes redirigé vers la page de paiement sécurisée de notre prestataire.':
+        'You are redirected to the secure payment page of our provider.',
+    'Vous saisissez le numéro de votre carte, sa date d’expiration et son code de sécurité (CVV).':
+        'You enter your card number, its expiry date and its security code (CVV).',
+    'Votre banque vous demande de confirmer le paiement (code reçu par SMS ou validation dans son application).':
+        'Your bank asks you to confirm the payment (code received by SMS or approval in its app).',
+    'Vous revenez automatiquement sur votre espace DAG : votre facture est mise à jour.':
+        'You come back automatically to your DAG area: your invoice is updated.',
+    'Les informations de votre carte sont saisies uniquement chez le prestataire de paiement : DAG n’y a jamais accès.':
+        'Your card details are entered only at the payment provider: DAG never has access to them.',
+    'Continuer vers le paiement sécurisé': 'Continue to secure payment',
+    'Confirmation sur la page de paiement sécurisée':
+        'Confirmation on the secure payment page',
+    'Redirection…': 'Redirecting…',
+    'Reprendre le paiement': 'Resume payment',
+    'Vérification…': 'Checking…',
+    'Paiement commencé, pas encore finalisé': 'Payment started, not finished yet',
+    'Carte de test': 'Test card',
+    'Sur la vraie page du prestataire, le client saisit ici sa carte puis confirme le paiement avec sa banque (code par SMS ou validation dans son application).':
+        'On the real provider page, the customer enters their card here, then confirms the payment with their bank (code by SMS or approval in its app).',
+
+    // Access & collaborators (Entreprise / Organisation accounts)
+    'Accès & collaborateurs': 'Access & collaborators',
+    'Titulaire du compte': 'Account holder',
+    'Invitation envoyée': 'Invitation sent',
+    "Renvoyer l'invitation": 'Resend the invitation',
+    "Retirer l'accès": 'Remove access',
+    'Aucun collaborateur pour le moment. Invitez une personne de votre structure avec le formulaire.':
+        'No collaborator yet. Invite someone from your organisation with the form.',
+    'Inviter un collaborateur': 'Invite a collaborator',
+    'Adresse e-mail professionnelle': 'Work email address',
+    "Envoyer l'invitation": 'Send the invitation',
+    'Envoi…': 'Sending…',
+    'La personne reçoit un e-mail pour choisir son mot de passe. Le lien est valable 7 jours.':
+        'They receive an email to choose their password. The link is valid for 7 days.',
+    "Ce qu'un collaborateur peut faire": 'What a collaborator can do',
+    'Faire des demandes et suivre les devis': 'Make requests and follow quotes',
+    'Payer les factures': 'Pay invoices',
+    'Signer les contrats et conventions': 'Sign contracts and agreements',
+    'Gérer les offres et les candidatures':
+        'Manage job offers and applications',
+    'Consulter et télécharger les documents': 'View and download documents',
+    'Gérer les accès : réservé au titulaire du compte':
+        'Manage access: reserved to the account holder',
+    'Cette adresse e-mail a déjà un compte DAG. Invitez une autre adresse.':
+        'This email address already has a DAG account. Invite another address.',
+    'Cet accès est déjà activé.': 'This access is already active.',
+
+    // Recruitment subscription
+    'Abonnement recrutement': 'Recruitment subscription',
+    'Mon abonnement': 'My subscription',
+    'Publier des offres': 'Publish offers',
+    'Accédez à vos pages recrutement : offres d’emploi et candidats formés par DAG.':
+        'Access your recruitment pages: job offers and candidates trained by DAG.',
+    'Accès recrutement actif jusqu’au': 'Recruitment access active until',
+    'Vous pouvez renouveler dès maintenant : la nouvelle période s’ajoute à la fin de celle en cours, sans perdre aucun jour.':
+        'You can renew right now: the new period is added at the end of the current one, without losing a single day.',
+    'Gérer mes offres →': 'Manage my offers →',
+    'Vos pages recrutement sont fermées': 'Your recruitment pages are closed',
+    'Choisissez une durée ci-dessous et réglez-la en ligne : l’accès s’ouvre dès le paiement confirmé.':
+        'Choose a duration below and pay it online: access opens as soon as the payment is confirmed.',
+    'à régler': 'to pay',
+    'Le plus avantageux': 'Best value',
+    'sans engagement': 'no commitment',
+    'Publiez vos offres de stage et d’emploi':
+        'Publish your internship and job offers',
+    'Recevez les candidats formés par DAG':
+        'Receive the candidates trained by DAG',
+    'Suivez chaque candidature jusqu’au placement':
+        'Follow every application through to placement',
+    'Formule choisie': 'Plan chosen',
+    'Historique de l’accès recrutement': 'Recruitment access history',
+    Période: 'Period',
+    'Offert par DAG': 'Offered by DAG',
+    '1 mois': '1 month',
+    '1 an': '1 year',
+
+    // Partnership with DAG
+    'Partenariat DAG': 'DAG partnership',
+    'Partenaire officiel': 'Official partner',
+    'Partenariat Digital Agency Group': 'Digital Agency Group partnership',
+    'Un cadre contractuel pour collaborer durablement avec DAG : talents, formation, projets digitaux et visibilité commune.':
+        'A contractual framework to work with DAG over time: talent, training, digital projects and shared visibility.',
+    'Statut officiel': 'Official status',
+    'Votre structure devient « Partenaire officiel de Digital Agency Group », un gage de confiance auprès de vos clients et des talents.':
+        'Your organisation becomes an “Official partner of Digital Agency Group”, a mark of trust for your clients and for talent.',
+    'Interlocuteur dédié': 'Dedicated contact',
+    'Un contact unique chez DAG suit vos besoins et traite vos demandes en priorité.':
+        'A single contact at DAG follows your needs and handles your requests first.',
+    'Accès en priorité': 'Priority access',
+    'Vous êtes informé en premier de nos programmes, de nos sessions de formation et des profils que nous formons.':
+        'You are the first to hear about our programmes, our training sessions and the profiles we train.',
+    'En cours d’étude': 'Under review',
+    'Contrat à signer': 'Contract to sign',
+    'Contrat en révision': 'Contract being revised',
+    'En validation': 'Being validated',
+    'Non retenue': 'Not accepted',
+    'Annulé': 'Cancelled',
+    'Proposition de partenariat de DAG': 'Partnership proposal from DAG',
+    'Votre demande de partenariat': 'Your partnership request',
+    'Lire et signer le contrat': 'Read and sign the contract',
+    'Le mot de l’équipe DAG': 'A word from the DAG team',
+    'Domaines de collaboration': 'Areas of collaboration',
+    'Partenariats précédents': 'Previous partnerships',
+    'Voir le contrat': 'View the contract',
+    'Télécharger le contrat signé': 'Download the signed contract',
+    'Présenter une nouvelle demande': 'Submit a new request',
+    'Demander un partenariat': 'Request a partnership',
+    'Votre demande est étudiée par l’équipe DAG. Si elle est acceptée, le contrat de partenariat est rédigé et vous est envoyé ici pour signature.':
+        'Your request is reviewed by the DAG team. If it is accepted, the partnership contract is drafted and sent to you here for signature.',
+    'Domaines de collaboration envisagés': 'Intended areas of collaboration',
+    'Présentez votre structure et votre projet': 'Present your organisation and your project',
+    'Qui êtes-vous, que souhaitez-vous construire avec DAG, et quels sont vos besoins (recrutements, formations, projets) ?':
+        'Who are you, what would you like to build with DAG, and what are your needs (hiring, training, projects)?',
+    'Recrutement et stages des talents formés par DAG':
+        'Hiring and internships of DAG-trained talent',
+    'Formation et montée en compétences des équipes':
+        'Training and upskilling of teams',
+    'Prestations digitales (site, marketing, communication)':
+        'Digital services (website, marketing, communication)',
+    'Événements, conférences et visibilité commune':
+        'Events, conferences and shared visibility',
+    'Partenariat terminé. Merci pour cette collaboration !':
+        'Partnership ended. Thank you for this collaboration!',
+    'Proposition de DAG': 'Proposal from DAG',
+    'Demande de partenariat': 'Partnership request',
+    'Étude par DAG': 'Review by DAG',
+    'Signature du contrat': 'Contract signature',
+    'Validation par DAG': 'Validation by DAG',
+    'Équipe DAG': 'DAG team',
+    Vous: 'You',
+    Structure: 'Organisation',
+    'Étude de la demande': 'Review of the request',
+    "L'équipe DAG étudie votre demande et vous répond rapidement. Si elle l'accepte, le contrat de partenariat vous est envoyé ici même.":
+        'The DAG team is reviewing your request and will get back to you shortly. If it accepts it, the partnership contract is sent to you right here.',
+    'Signature du contrat de partenariat': 'Signing the partnership contract',
+    "Lisez le contrat, importez l'image de votre signature, puis confirmez. Cela ne prend que quelques minutes.":
+        'Read the contract, upload a picture of your signature, then confirm. It only takes a few minutes.',
+    'Révision du contrat': 'Contract revision',
+    "L'équipe DAG met à jour votre contrat de partenariat. Il vous sera renvoyé pour signature.":
+        'The DAG team is updating your partnership contract. It will be sent back to you for signature.',
+    'Validation du contrat signé': 'Validation of the signed contract',
+    "Merci pour votre signature. L'équipe DAG valide le contrat, puis votre structure devient Partenaire officiel de Digital Agency Group.":
+        'Thank you for signing. The DAG team validates the contract, then your organisation becomes an Official partner of Digital Agency Group.',
+    "Le contrat de partenariat n'a pas été signé : le partenariat est annulé.":
+        'The partnership contract was not signed: the partnership is cancelled.',
+
+    // Signing a partnership contract
+    'Votre structure': 'Your organisation',
+    'Ces informations complètent l’identification de votre structure (« Partenaire 2 ») en tête du contrat signé. Le représentant est la personne qui signe ci-dessous.':
+        'This information completes the identification of your organisation (“Partner 2”) at the top of the signed contract. The representative is the person who signs below.',
+    'Forme juridique': 'Legal form',
+    'NIU (numéro d’identifiant unique)': 'NIU (unique identification number)',
+    'Qualité du représentant': 'Title of the representative',
+    'Nom complet du représentant signataire':
+        'Full name of the signing representative',
+    'Durée indéterminée': 'Open-ended',
 };

@@ -1,7 +1,6 @@
 type Service = {
     label: string;
     total: number;
-    novaTech: boolean;
 };
 
 type Props = {
@@ -33,14 +32,6 @@ export default function ServicesRanking({ services }: Props) {
                     >
                         <span style={{ fontWeight: 600 }}>
                             {service.label}
-                            {service.novaTech && (
-                                <span
-                                    className="chip chip-orange"
-                                    style={{ marginLeft: 8 }}
-                                >
-                                    Nova-Tech
-                                </span>
-                            )}
                         </span>
                         <strong>{service.total}</strong>
                     </div>
@@ -57,9 +48,7 @@ export default function ServicesRanking({ services }: Props) {
                                 height: '100%',
                                 borderRadius: 999,
                                 width: `${(service.total / max) * 100}%`,
-                                background: service.novaTech
-                                    ? 'var(--dag-orange)'
-                                    : 'var(--dag-blue)',
+                                background: 'var(--dag-blue)',
                             }}
                         />
                     </div>

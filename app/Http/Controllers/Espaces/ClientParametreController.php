@@ -17,11 +17,15 @@ class ClientParametreController extends Controller
         $user = $request->user('web');
         $client = $user->client;
 
+        // A collaborator edits their own name and address, not the client's.
+        $collaborateur = $user->estCollaborateur();
+
         return Inertia::render('espaces/client/parametres', [
             'client' => $client->espaceHeaderProps(),
+            'estCollaborateur' => $collaborateur,
             'profil' => [
-                'nom' => $client->nom,
-                'telephone' => $client->telephone,
+                'nom' => $collaborateur ? $user->name : $client->nom,
+                'telephone' => $collaborateur ? null : $client->telephone,
                 'email' => $user->email,
                 'ville' => $client->ville,
                 'statut' => $client->statut,
@@ -54,7 +58,9 @@ class ClientParametreController extends Controller
             'current_password.current_password' => 'Le mot de passe actuel est incorrect.',
         ]);
 
-        $client->update(['nom' => $data['nom'], 'telephone' => $data['telephone'] ?? null]);
+        if (! $user->estCollaborateur()) {
+            $client->update(['nom' => $data['nom'], 'telephone' => $data['telephone'] ?? null]);
+        }
 
         $user->fill(['name' => $data['nom'], 'email' => Str::lower($data['email'])]);
 

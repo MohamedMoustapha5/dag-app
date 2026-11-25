@@ -1,5 +1,6 @@
 <?php
 
+use App\Logging\AppliquerMasquage;
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
@@ -59,6 +60,7 @@ return [
         ],
 
         'single' => [
+            'tap' => [AppliquerMasquage::class],
             'driver' => 'single',
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
@@ -66,14 +68,17 @@ return [
         ],
 
         'daily' => [
+            'tap' => [AppliquerMasquage::class],
             'driver' => 'daily',
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
             'max_files' => env('LOG_DAILY_DAYS', 14),
+            'permission' => 0640,
             'replace_placeholders' => true,
         ],
 
         'monthly' => [
+            'tap' => [AppliquerMasquage::class],
             'driver' => 'monthly',
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
@@ -82,6 +87,7 @@ return [
         ],
 
         'slack' => [
+            'tap' => [AppliquerMasquage::class],
             'driver' => 'slack',
             'url' => env('LOG_SLACK_WEBHOOK_URL'),
             'username' => env('LOG_SLACK_USERNAME', env('APP_NAME', 'Laravel')),
@@ -91,6 +97,7 @@ return [
         ],
 
         'papertrail' => [
+            'tap' => [AppliquerMasquage::class],
             'driver' => 'monolog',
             'level' => env('LOG_LEVEL', 'debug'),
             'handler' => env('LOG_PAPERTRAIL_HANDLER', SyslogUdpHandler::class),
@@ -103,6 +110,7 @@ return [
         ],
 
         'stderr' => [
+            'tap' => [AppliquerMasquage::class],
             'driver' => 'monolog',
             'level' => env('LOG_LEVEL', 'debug'),
             'handler' => StreamHandler::class,
@@ -114,6 +122,7 @@ return [
         ],
 
         'syslog' => [
+            'tap' => [AppliquerMasquage::class],
             'driver' => 'syslog',
             'level' => env('LOG_LEVEL', 'debug'),
             'facility' => env('LOG_SYSLOG_FACILITY', LOG_USER),
@@ -121,6 +130,7 @@ return [
         ],
 
         'errorlog' => [
+            'tap' => [AppliquerMasquage::class],
             'driver' => 'errorlog',
             'level' => env('LOG_LEVEL', 'debug'),
             'replace_placeholders' => true,

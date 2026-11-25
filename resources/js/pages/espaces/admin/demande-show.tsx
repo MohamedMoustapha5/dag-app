@@ -1,0 +1,378 @@
+import { Head, Link, useForm } from '@inertiajs/react';
+import { Download } from 'lucide-react';
+import GenererContratButton from '@/components/espaces/generer-contrat-button';
+import SuiviProcedure, {
+    type Parcours,
+} from '@/components/espaces/suivi-procedure';
+import { STATUT_CHIP, STATUT_LABEL } from '@/lib/demande-statut';
+import contratsAdmin from '@/routes/espace-admin/contrats';
+import demandesAdmin from '@/routes/espace-admin/demandes';
+
+type Props = {
+    peutModifier: boolean;
+    peutGenererContrat: boolean;
+    demande: {
+        id: string;
+        reference: string;
+        client: string;
+        estParticulier: boolean;
+        exigeContrat: boolean;
+        devis: { numero: string; valideLe: string | null } | null;
+        refusDevis: {
+            le: string;
+            motif: string | null;
+            abandon: boolean;
+        } | null;
+        clientTelephone: string | null;
+        objet: string;
+        description: string;
+        statut: string;
+        montantNegocie: string | null;
+        payee: boolean;
+        createdAt: string;
+        contrat: { id: string; reference: string; statut: string } | null;
+        facture: { reference: string; statut: string } | null;
+    };
+    suivi: {
+        etapes: string[];
+        etapeActuelle: number | null;
+        refusee: boolean;
+    };
+    parcours: Parcours;
+};
+
+export default function AdminDemandeShow({
+    peutModifier,
+    peutGenererContrat,
+    demande,
+    suivi,
+    parcours,
+}: Props) {
+    const form = useForm({
+        statut: demande.statut,
+        montant_negocie: demande.montantNegocie ?? '',
+    });
+
+    const submit = (event: React.FormEvent) => {
+        event.preventDefault();
+        form.patch(demandesAdmin.update(demande.id).url, {
+            preserveScroll: true,
+        });
+    };
+
+    return (
+        <>
+            <Head title={`Demande ${demande.reference} — Administration`} />
+
+            <Link
+                href={demandesAdmin.index()}
+                className="link-action"
+                style={{ marginBottom: 16, display: 'inline-block' }}
+            >
+                ← Toutes les demandes
+            </Link>
+
+            <div
+                style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    gap: 16,
+                    flexWrap: 'wrap',
+                    marginBottom: 24,
+                }}
+            >
+                <div>
+                    <h1 style={{ fontSize: 22, color: 'var(--dag-navy)' }}>
+                        {demande.objet}
+                    </h1>
+                    <span className="muted" style={{ fontSize: 13 }}>
+                        {demande.reference} · {demande.client} ·{' '}
+                        {demande.estParticulier
+                            ? 'Particulier'
+                            : demande.exigeContrat
+                              ? 'Entreprise / organisation · avec contrat'
+                              : 'Entreprise / organisation · service sans contrat'}
+                    </span>
+                </div>
+                <span
+                    className={`chip ${STATUT_CHIP[demande.statut] ?? 'chip-gray'}`}
+                    style={{ fontSize: 13, padding: '8px 16px' }}
+                >
+                    {STATUT_LABEL[demande.statut] ?? demande.statut}
+                </span>
+            </div>
+
+            <SuiviProcedure
+                parcours={parcours}
+                messageTermine="Demande terminée : la procédure est complète."
+            >
+                {parcours.prochaine?.action === 'ouvrir_contrat' &&
+                    demande.contrat && (
+                        <Link
+                            href={contratsAdmin.show(demande.contrat.id)}
+                            className={
+                                parcours.prochaine.aVous
+                                    ? 'btn-primary'
+                                    : 'btn-outline'
+                            }
+                        >
+                            {parcours.prochaine.aVous
+                                ? 'Ouvrir le contrat'
+                                : 'Voir le contrat'}
+                        </Link>
+                    )}
+                {parcours.prochaine?.action === 'generer_contrat' &&
+                    peutGenererContrat && (
+                        <GenererContratButton
+                            demandeId={demande.id}
+                            variante="bouton"
+                        />
+                    )}
+                {(parcours.prochaine?.action === 'envoyer_devis' ||
+                    parcours.prochaine?.action === 'changer_statut') &&
+                    peutModifier && (
+                        <a href="#mise-a-jour-demande" className="btn-primary">
+                            {parcours.prochaine.action === 'envoyer_devis'
+                                ? 'Fixer le montant et envoyer'
+                                : 'Mettre à jour le statut'}
+                        </a>
+                    )}
+            </SuiviProcedure>
+
+            {demande.refusDevis && (
+                <div
+                    className="card devis-refuse"
+                    style={{ padding: 20, marginBottom: 24 }}
+                >
+                    <p style={{ fontWeight: 700 }}>
+                        Devis refusé par le client le{' '}
+                        {new Date(demande.refusDevis.le).toLocaleDateString(
+                            'fr-FR',
+                            { day: 'numeric', month: 'long', year: 'numeric' },
+                        )}
+                    </p>
+                    {demande.refusDevis.motif && (
+                        <p style={{ fontSize: 13.5, marginTop: 6 }}>
+                            Motif : {demande.refusDevis.motif}
+                        </p>
+                    )}
+                    <p className="muted" style={{ fontSize: 13, marginTop: 6 }}>
+                        {demande.refusDevis.abandon
+                            ? 'Le client ne donne pas suite : la demande est close.'
+                            : 'Le client attend une nouvelle proposition : envoyez un devis révisé.'}
+                    </p>
+                </div>
+            )}
+
+            <div className="card" style={{ padding: 24, marginBottom: 24 }}>
+                <h2 style={{ fontSize: 15, marginBottom: 8 }}>Description</h2>
+                <p
+                    className="muted"
+                    style={{ fontSize: 13.5, lineHeight: 1.6 }}
+                >
+                    {demande.description}
+                </p>
+                <p className="muted" style={{ fontSize: 12.5, marginTop: 12 }}>
+                    Déposée le {demande.createdAt}
+                    {demande.clientTelephone
+                        ? ` · ${demande.clientTelephone}`
+                        : ''}
+                </p>
+            </div>
+
+            {(demande.devis || demande.contrat || demande.facture) && (
+                <div
+                    className="grid-3 espace-stats-grid"
+                    style={{ marginBottom: 24 }}
+                >
+                    {demande.devis && (
+                        <div className="card" style={{ padding: 20 }}>
+                            <p className="muted" style={{ fontSize: 12.5 }}>
+                                Devis proforma
+                            </p>
+                            <p style={{ fontWeight: 600, marginBottom: 6 }}>
+                                {demande.devis.numero}
+                            </p>
+                            {demande.devis.valideLe ? (
+                                <span className="chip chip-green">
+                                    Validé par le client le{' '}
+                                    {new Date(
+                                        demande.devis.valideLe,
+                                    ).toLocaleDateString('fr-FR', {
+                                        day: 'numeric',
+                                        month: 'long',
+                                        year: 'numeric',
+                                    })}
+                                </span>
+                            ) : (
+                                <span className="chip chip-orange">
+                                    En attente de validation
+                                </span>
+                            )}
+                            <a
+                                href={demandesAdmin.proforma(demande.id).url}
+                                className="link-action"
+                                style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: 6,
+                                    marginTop: 12,
+                                }}
+                            >
+                                <Download size={14} /> Proforma (PDF)
+                            </a>
+                        </div>
+                    )}
+                    {demande.contrat && (
+                        <div className="card" style={{ padding: 20 }}>
+                            <p className="muted" style={{ fontSize: 12.5 }}>
+                                Contrat
+                            </p>
+                            <p style={{ fontWeight: 600, marginBottom: 6 }}>
+                                {demande.contrat.reference}
+                            </p>
+                            <span
+                                className={`chip ${STATUT_CHIP[demande.contrat.statut] ?? 'chip-gray'}`}
+                            >
+                                {STATUT_LABEL[demande.contrat.statut] ??
+                                    demande.contrat.statut}
+                            </span>
+                        </div>
+                    )}
+                    {!demande.contrat &&
+                        demande.facture &&
+                        demande.devis?.valideLe &&
+                        peutGenererContrat && (
+                            <div className="card" style={{ padding: 20 }}>
+                                <p className="muted" style={{ fontSize: 12.5 }}>
+                                    Contrat
+                                </p>
+                                <p
+                                    className="muted"
+                                    style={{
+                                        fontSize: 13,
+                                        margin: '6px 0 12px',
+                                    }}
+                                >
+                                    Le client doit signer le contrat avant de
+                                    payer : générez-le puis envoyez-le.
+                                </p>
+                                <GenererContratButton
+                                    demandeId={demande.id}
+                                    variante="bouton"
+                                />
+                            </div>
+                        )}
+                    {demande.facture && (
+                        <div className="card" style={{ padding: 20 }}>
+                            <p className="muted" style={{ fontSize: 12.5 }}>
+                                Facture
+                            </p>
+                            <p style={{ fontWeight: 600, marginBottom: 6 }}>
+                                {demande.facture.reference}
+                            </p>
+                            <span
+                                className={`chip ${STATUT_CHIP[demande.facture.statut] ?? 'chip-gray'}`}
+                            >
+                                {STATUT_LABEL[demande.facture.statut] ??
+                                    demande.facture.statut}
+                            </span>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {peutModifier && (
+                <form
+                    id="mise-a-jour-demande"
+                    onSubmit={submit}
+                    className="card"
+                    style={{
+                        padding: 24,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 14,
+                    }}
+                >
+                    <p style={{ fontSize: 14.5, fontWeight: 700 }}>
+                        Faire avancer la demande
+                    </p>
+                    <div
+                        style={{
+                            display: 'grid',
+                            gridTemplateColumns:
+                                'repeat(auto-fit, minmax(220px, 1fr))',
+                            gap: 14,
+                        }}
+                    >
+                        <div>
+                            <label htmlFor="statut">Statut</label>
+                            <select
+                                id="statut"
+                                value={form.data.statut}
+                                onChange={(event) =>
+                                    form.setData('statut', event.target.value)
+                                }
+                            >
+                                {suivi.etapes.map((etape) => (
+                                    <option key={etape} value={etape}>
+                                        {STATUT_LABEL[etape] ?? etape}
+                                    </option>
+                                ))}
+                                <option value="REFUSEE">Refusée</option>
+                            </select>
+                            {form.errors.statut && (
+                                <p
+                                    style={{
+                                        color: 'var(--dag-red)',
+                                        fontSize: 12.5,
+                                        marginTop: 6,
+                                    }}
+                                >
+                                    {form.errors.statut}
+                                </p>
+                            )}
+                        </div>
+                        <div>
+                            <label htmlFor="montant_negocie">
+                                Montant négocié (FCFA)
+                            </label>
+                            <input
+                                id="montant_negocie"
+                                type="number"
+                                min={0}
+                                value={form.data.montant_negocie}
+                                onChange={(event) =>
+                                    form.setData(
+                                        'montant_negocie',
+                                        event.target.value,
+                                    )
+                                }
+                            />
+                            {form.errors.montant_negocie && (
+                                <p
+                                    style={{
+                                        color: 'var(--dag-red)',
+                                        fontSize: 12,
+                                        marginTop: 4,
+                                    }}
+                                >
+                                    {form.errors.montant_negocie}
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                    <button
+                        type="submit"
+                        disabled={form.processing}
+                        className="btn-primary"
+                        style={{ alignSelf: 'flex-start' }}
+                    >
+                        {form.processing ? 'Mise à jour…' : 'Mettre à jour'}
+                    </button>
+                </form>
+            )}
+        </>
+    );
+}

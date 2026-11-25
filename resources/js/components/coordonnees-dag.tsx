@@ -31,7 +31,7 @@ const COORDONNEES = [
     {
         key: 'adresse',
         titre: 'Adresse',
-        valeur: 'Akwa, Douala, Cameroun',
+        valeur: 'Douala, Cameroun',
         href: null,
         icon: MapPin,
         iconBg: '#F1F2F6',

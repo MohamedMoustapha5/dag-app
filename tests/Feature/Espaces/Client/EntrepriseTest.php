@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\MembreEquipeRole;
 use App\Models\Apprenant;
 use App\Models\Candidature;
 use App\Models\Client;
@@ -8,18 +9,20 @@ use App\Models\EntreprisePartenaire;
 use App\Models\Facture;
 use App\Models\MembreEquipe;
 use App\Models\OffreEmploi;
+use App\Notifications\AlerteEquipeNotification;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 
-test('an entreprise client without a validated partner link cannot reach the recruitment routes', function () {
+test('an entreprise client with a partner link but no subscription is sent to the subscription page', function () {
     $client = Client::factory()->create(['type' => 'ENTREPRISE']);
+    EntreprisePartenaire::factory()->create(['client_id' => $client->id, 'statut' => 'ACTIF']);
 
-    $this->actingAs($client->user)->get(route('espace-client.offres.index'))->assertForbidden();
-    $this->actingAs($client->user)->get(route('espace-client.candidatures.index'))->assertForbidden();
+    $this->actingAs($client->user)->get(route('espace-client.offres.create'))
+        ->assertRedirect(route('espace-client.recrutement.abonnement'));
 });
 
-test('an entreprise client with an inactive partner link cannot reach the recruitment routes', function () {
-    $client = Client::factory()->create(['type' => 'ENTREPRISE']);
-    EntreprisePartenaire::factory()->create(['client_id' => $client->id, 'statut' => 'EN_ATTENTE']);
+test('a particulier client has no recruitment pages at all', function () {
+    $client = Client::factory()->create(['type' => 'PARTICULIER']);
 
     $this->actingAs($client->user)->get(route('espace-client.offres.index'))->assertForbidden();
 });
@@ -49,9 +52,9 @@ test('a validated entreprise partner can send an offre to DAG and see it listed'
     $offre = OffreEmploi::where('entreprise_id', $client->entreprisePartenaire->id)->first();
 
     expect($offre)->not->toBeNull();
-    // L'offre est envoyée à DAG pour validation — seul un membre de
-    // l'équipe DAG peut la faire passer à PUBLIEE.
-    expect($offre->statut)->toBe('BROUILLON');
+    // Seul DAG fait postuler ses profils : l'offre est ouverte aux
+    // candidatures dès son envoi, sans étape de publication.
+    expect($offre->statut)->toBe('PUBLIEE');
 
     $this->actingAs($client->user)->get(route('espace-client.offres.index'))
         ->assertOk()
@@ -230,4 +233,75 @@ test('an entreprise cannot reopen a candidature DAG has recorded as a placement'
         ->assertStatus(409);
 
     expect($candidature->fresh()->statut)->toBe('PLACEE');
+});
+
+test('the team that can apply is alerted when the entreprise decides on a candidature DAG deposited', function (string $statut, string $evenement, string $titre, string $message) {
+    Notification::fake();
+    $client = clientPartenaireValide();
+    $offre = OffreEmploi::factory()->create(['entreprise_id' => $client->entreprisePartenaire->id, 'titre' => 'Développeur web']);
+    $deposant = MembreEquipe::factory()->promotrice()->create();
+    $marketing = MembreEquipe::factory()->create(['role' => MembreEquipeRole::CommunicationMarketing]);
+    $juriste = MembreEquipe::factory()->juriste()->create();
+    $apprenant = Apprenant::factory()->create();
+    $apprenant->user->update(['name' => 'Awa Diallo']);
+    $candidature = Candidature::factory()->create([
+        'offre_id' => $offre->id,
+        'apprenant_id' => $apprenant->id,
+        'statut' => 'DEPOSEE',
+        'deposee_par_id' => $deposant->id,
+    ]);
+    $entreprise = $client->entreprisePartenaire->nom;
+
+    $this->actingAs($client->user)
+        ->patch(route('espace-client.candidatures.update', $candidature), ['statut' => $statut])
+        ->assertRedirect();
+
+    foreach ([$deposant, $marketing] as $membre) {
+        Notification::assertSentTo($membre, AlerteEquipeNotification::class, fn (AlerteEquipeNotification $alerte) => $alerte->evenement() === $evenement
+            && $alerte->titre() === $titre
+            && $alerte->message() === sprintf($message, $entreprise)
+            && $alerte->url($membre) === route('espace-admin.apprenants.show', $apprenant));
+    }
+    Notification::assertNotSentTo($juriste, AlerteEquipeNotification::class);
+})->with([
+    'selected' => ['RETENUE', 'candidature.retenue', 'Candidature retenue — Awa Diallo', "%s a retenu la candidature de Awa Diallo pour l'offre « Développeur web »."],
+    'rejected' => ['REFUSEE', 'candidature.refusee', 'Candidature refusée — Awa Diallo', "%s a refusé la candidature de Awa Diallo pour l'offre « Développeur web »."],
+]);
+
+test('no team alert for a candidature DAG did not deposit, nor when the decision does not change', function () {
+    Notification::fake();
+    $client = clientPartenaireValide();
+    $offre = OffreEmploi::factory()->create(['entreprise_id' => $client->entreprisePartenaire->id]);
+    MembreEquipe::factory()->promotrice()->create();
+    $sansDag = Candidature::factory()->create(['offre_id' => $offre->id, 'statut' => 'EN_ETUDE', 'deposee_par_id' => null]);
+    $dejaRetenue = Candidature::factory()->create([
+        'offre_id' => $offre->id,
+        'statut' => 'RETENUE',
+        'deposee_par_id' => MembreEquipe::factory()->promotrice()->create()->id,
+    ]);
+
+    $this->actingAs($client->user)->patch(route('espace-client.candidatures.update', $sansDag), ['statut' => 'RETENUE']);
+    $this->actingAs($client->user)->patch(route('espace-client.candidatures.update', $dejaRetenue), ['statut' => 'RETENUE']);
+
+    expect($sansDag->fresh()->statut)->toBe('RETENUE');
+    Notification::assertNothingSent();
+});
+
+test('a new offre is open at once: DAG applies to it without publishing it first', function () {
+    $client = clientPartenaireValide();
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+
+    $this->actingAs($client->user)->post(route('espace-client.offres.store'), [
+        'titre' => 'Développeur web junior',
+        'description' => 'Intégration et maintenance de sites.',
+        'type_contrat' => 'CDD',
+    ]);
+
+    $offre = OffreEmploi::where('titre', 'Développeur web junior')->sole();
+
+    $this->actingAs($promotrice, 'admin')
+        ->get(route('espace-admin.entreprises.index'))
+        ->assertInertia(fn ($page) => $page
+            ->where('offres.0.id', $offre->id)
+            ->where('offres.0.postulable', true));
 });

@@ -49,7 +49,7 @@ class ContactController extends Controller
         });
 
         Notifier::alerterEquipe(
-            Donnee::DemandesClients,
+            Donnee::Support,
             Action::Modifier,
             'support.message',
             "Message du site — {$ticket->reference}",

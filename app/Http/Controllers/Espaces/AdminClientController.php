@@ -9,9 +9,12 @@ use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\Apprenant;
 use App\Models\Client;
+use App\Support\Recrutement\AbonnementRecrutement;
 use App\Support\SuppressionCompte;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -26,6 +29,10 @@ class AdminClientController extends Controller
 
         $clients = Client::query()
             ->with('user')
+            ->withMax(['accesRecrutement as fin_acces_recrutement' => fn ($query) => $query
+                ->where('statut', 'ACTIF')
+                ->whereDate('fin', '>=', now()->toDateString())], 'fin')
+            ->withExists(['partenariats as partenaire_officiel' => fn ($query) => $query->enVigueur()])
             ->withCount('demandes')
             ->orderByDesc('created_at')
             ->get();
@@ -49,7 +56,7 @@ class AdminClientController extends Controller
                 ])
             : null;
 
-        return Inertia::render('espaces/admin-clients', [
+        return Inertia::render('espaces/admin/clients', [
             ...$this->adminEspaceProps($membre),
             'apprenants' => $apprenants,
             'clients' => $clients->map(fn (Client $client) => [
@@ -61,14 +68,44 @@ class AdminClientController extends Controller
                 'ville' => $client->ville,
                 'telephone' => $client->telephone,
                 'statut' => $client->statut,
+                'partenaireOfficiel' => (bool) $client->partenaire_officiel,
+                'finAccesRecrutement' => $client->fin_acces_recrutement
+                    ? Carbon::parse($client->fin_acces_recrutement)->toDateString()
+                    : null,
                 'demandesCount' => $client->demandes_count,
                 'inscritLe' => $client->created_at?->format('d/m/Y'),
             ]),
             'actions' => [
                 'supprimer' => $membre->peut(Donnee::DemandesClients, Action::Supprimer),
                 'supprimerApprenant' => $membre->peut(Donnee::DossiersApprenants, Action::Supprimer),
+                'offrirAcces' => $membre->peut(Donnee::AbonnementsRecrutement, Action::Valider),
             ],
         ]);
+    }
+
+    /**
+     * DAG offers an entreprise or an organisation a period of recruitment
+     * access, without payment (a partner, a trial). It follows any period
+     * already secured, like a renewal.
+     */
+    public function offrirAccesRecrutement(Request $request, Client $client, AbonnementRecrutement $abonnements): RedirectResponse
+    {
+        $membre = $this->membre($request);
+        abort_unless($membre->peut(Donnee::AbonnementsRecrutement, Action::Valider), 403);
+        abort_unless($client->estStructure(), 422, 'Seul un compte entreprise ou organisation peut accéder au recrutement.');
+
+        $data = $request->validate([
+            'mois' => ['required', 'integer', Rule::in([1, 3, 6, 12])],
+        ]);
+
+        $acces = $abonnements->offrir($client, (int) $data['mois'], $membre);
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => "Accès recrutement offert à {$client->nom} jusqu’au {$acces->fin->format('d/m/Y')}.",
+        ]);
+
+        return back();
     }
 
     public function destroy(Request $request, Client $client): RedirectResponse

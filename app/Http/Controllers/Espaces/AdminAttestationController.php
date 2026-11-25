@@ -49,7 +49,7 @@ class AdminAttestationController extends Controller
             ->latest('date_emission')
             ->get();
 
-        return Inertia::render('espaces/admin-attestations', [
+        return Inertia::render('espaces/admin/attestations', [
             ...$this->adminEspaceProps($membre),
             'peutTelecharger' => $membre->peut(Donnee::DossiersApprenants, Action::Telecharger),
             'enAttente' => $enAttente->map(fn (Inscription $inscription) => [

@@ -14,7 +14,7 @@ const SECTIONS: SectionJuridique[] = [
         contenu: (
             <ul>
                 <li>
-                    <strong>Dénomination</strong> : DAG — Digital Agency Group
+                    <strong>Dénomination</strong> : Digital Agency Group
                 </li>
                 <li>
                     <strong>Activité</strong> : agence digitale (création de
@@ -22,7 +22,7 @@ const SECTIONS: SectionJuridique[] = [
                     développement web, cybersécurité)
                 </li>
                 <li>
-                    <strong>Siège</strong> : Akwa, Douala, Cameroun
+                    <strong>Siège</strong> : Douala, Cameroun
                 </li>
                 <li>
                     <strong>E-mail</strong> :{' '}
@@ -41,8 +41,8 @@ const SECTIONS: SectionJuridique[] = [
         titre: 'Direction de la publication',
         contenu: (
             <p>
-                La directrice de la publication est Afsa Maira, directrice de
-                DAG — Digital Agency Group.
+                La directrice de la publication est Mme Mandou, CEO de
+                Digital Agency Group.
             </p>
         ),
     },

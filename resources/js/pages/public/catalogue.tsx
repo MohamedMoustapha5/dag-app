@@ -103,7 +103,7 @@ export default function Catalogue({ services }: CatalogueProps) {
                         <span className="badge">
                             {services.length} services
                         </span>
-                        <h1>Le catalogue de services DAG</h1>
+                        <h1>Le catalogue des services DAG</h1>
                         <p>
                             Tous les services sont proposés, gérés et facturés
                             par DAG. Un seul interlocuteur, du devis à la

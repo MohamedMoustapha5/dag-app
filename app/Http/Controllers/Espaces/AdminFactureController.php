@@ -10,9 +10,11 @@ use App\Models\ActivityLog;
 use App\Models\Demande;
 use App\Models\Facture;
 use App\Models\Paiement;
+use App\Support\FacturePdf;
 use App\Support\Paiements\PaiementService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -37,10 +39,11 @@ class AdminFactureController extends Controller
             ->with(['client', 'entreprise', 'service', 'formule'])
             ->get();
 
-        return Inertia::render('espaces/admin-factures', [
+        return Inertia::render('espaces/admin/factures', [
             ...$this->adminEspaceProps($membre),
             'peutCreer' => $membre->peut(Donnee::FacturesPaiements, Action::Creer),
             'peutGenererContrat' => $membre->peut(Donnee::ContratsClauses, Action::Creer),
+            'peutTelecharger' => $membre->peut(Donnee::FacturesPaiements, Action::Telecharger),
             'factures' => $factures->map(fn (Facture $facture) => [
                 'id' => $facture->id,
                 'reference' => $facture->reference,
@@ -92,6 +95,17 @@ class AdminFactureController extends Controller
         return to_route('espace-admin.factures.show', $facture);
     }
 
+    /**
+     * The PDF of a facture: the receipt once paid, a facture « à régler » before.
+     */
+    public function pdf(Request $request, Facture $facture): HttpResponse
+    {
+        $membre = $this->membre($request);
+        abort_unless($membre->peut(Donnee::FacturesPaiements, Action::Telecharger), 403);
+
+        return FacturePdf::telechargerPourEquipe($facture);
+    }
+
     public function show(Request $request, Facture $facture): Response
     {
         $membre = $this->membre($request);
@@ -99,11 +113,13 @@ class AdminFactureController extends Controller
 
         $facture->load(['client', 'entreprise', 'demande', 'abonnement.formule', 'inscription.formation', 'paiements']);
 
-        return Inertia::render('espaces/admin-facture-show', [
+        return Inertia::render('espaces/admin/facture-show', [
             ...$this->adminEspaceProps($membre),
             'peutCreer' => $membre->peut(Donnee::FacturesPaiements, Action::Creer),
             'peutModifier' => $membre->peut(Donnee::FacturesPaiements, Action::Modifier),
+            'peutValider' => $membre->peut(Donnee::FacturesPaiements, Action::Valider),
             'peutGenererContrat' => $membre->peut(Donnee::ContratsClauses, Action::Creer),
+            'peutTelecharger' => $membre->peut(Donnee::FacturesPaiements, Action::Telecharger),
             'facture' => [
                 'id' => $facture->id,
                 'reference' => $facture->reference,
@@ -130,7 +146,9 @@ class AdminFactureController extends Controller
     public function storePaiement(Request $request, Facture $facture, PaiementService $paiements): RedirectResponse
     {
         $membre = $this->membre($request);
-        abort_unless($membre->peut(Donnee::FacturesPaiements, Action::Creer), 403);
+        // A manual payment is confirmed as it is recorded, in the name of the
+        // member: recording it is validating money received.
+        abort_unless($membre->peut(Donnee::FacturesPaiements, Action::Creer) && $membre->peut(Donnee::FacturesPaiements, Action::Valider), 403);
 
         $data = $request->validate([
             'montant' => ['required', 'numeric', 'min:0.01'],
@@ -165,6 +183,7 @@ class AdminFactureController extends Controller
         ]);
 
         abort_unless($paiement->statut === 'EN_ATTENTE', 409, 'Ce paiement a déjà été traité.');
+        abort_if($data['statut'] === 'CONFIRME' && ! $membre->peut(Donnee::FacturesPaiements, Action::Valider), 403, 'Confirmer un paiement demande le droit de validation sur les paiements.');
 
         if ($data['statut'] === 'CONFIRME') {
             $paiements->confirmer($paiement, $membre);

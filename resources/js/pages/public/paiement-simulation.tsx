@@ -1,5 +1,5 @@
 import { Head, router } from '@inertiajs/react';
-import { Check, Lock, ShieldCheck, X } from 'lucide-react';
+import { Check, CreditCard, Lock, ShieldCheck, X } from 'lucide-react';
 import { useState } from 'react';
 import simulation from '@/routes/paiements/simulation';
 
@@ -31,6 +31,88 @@ const BOUTON = {
     fontFamily: 'inherit',
     cursor: 'pointer',
 } as const;
+
+const MOYENS: Record<string, string> = {
+    OM: 'Orange Money',
+    MTN_MOMO: 'MTN Mobile Money',
+    CARTE: 'Carte bancaire',
+};
+
+/**
+ * What the payer sees at the provider for a card payment: no field is real
+ * here (a simulation never takes card details).
+ */
+function ApercuCarte() {
+    return (
+        <div style={{ marginBottom: 18 }}>
+            <div
+                aria-hidden
+                style={{
+                    borderRadius: 14,
+                    padding: '18px 20px',
+                    color: '#fff',
+                    background: `linear-gradient(135deg, ${NAVY} 0%, ${BLUE} 100%)`,
+                    boxShadow: '0 10px 24px rgba(7,31,65,0.25)',
+                }}
+            >
+                <div
+                    style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: 22,
+                    }}
+                >
+                    <CreditCard size={22} />
+                    <span
+                        style={{
+                            fontWeight: 900,
+                            fontStyle: 'italic',
+                            letterSpacing: 0.5,
+                        }}
+                        translate="no"
+                    >
+                        VISA
+                    </span>
+                </div>
+                <p
+                    style={{
+                        fontSize: 17,
+                        letterSpacing: 2.5,
+                        fontWeight: 600,
+                        marginBottom: 14,
+                    }}
+                    translate="no"
+                >
+                    •••• •••• •••• 4242
+                </p>
+                <div
+                    style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        fontSize: 11.5,
+                        opacity: 0.85,
+                    }}
+                >
+                    <span>Carte de test</span>
+                    <span translate="no">12 / 30</span>
+                </div>
+            </div>
+            <p
+                style={{
+                    fontSize: 12.5,
+                    lineHeight: 1.55,
+                    color: MUTED,
+                    marginTop: 12,
+                }}
+            >
+                Sur la vraie page du prestataire, le client saisit ici sa carte
+                puis confirme le paiement avec sa banque (code par SMS ou
+                validation dans son application).
+            </p>
+        </div>
+    );
+}
 
 function Ligne({ libelle, valeur }: { libelle: string; valeur: string }) {
     return (
@@ -85,7 +167,7 @@ export default function PaiementSimulation({ paiement, retour }: Props) {
             >
                 <img
                     src="/images/brand/dag-logo-pdf.png"
-                    alt="DAG — Digital Agency Group"
+                    alt="Digital Agency Group"
                     style={{ height: 54 }}
                 />
 
@@ -139,11 +221,18 @@ export default function PaiementSimulation({ paiement, retour }: Props) {
                     </div>
 
                     <div style={{ padding: '10px 28px 26px' }}>
-                        <Ligne libelle="Marchand" valeur="DAG — Digital Agency Group" />
+                        <Ligne
+                            libelle="Marchand"
+                            valeur="Digital Agency Group"
+                        />
                         <Ligne libelle="Facture" valeur={paiement.facture} />
                         <Ligne
                             libelle="Moyen de paiement"
-                            valeur={paiement.moyen ?? '—'}
+                            valeur={
+                                paiement.moyen
+                                    ? (MOYENS[paiement.moyen] ?? paiement.moyen)
+                                    : '—'
+                            }
                         />
                         <Ligne
                             libelle="Référence de transaction"
@@ -165,6 +254,8 @@ export default function PaiementSimulation({ paiement, retour }: Props) {
                             la page du prestataire tant qu'aucun compte réel
                             n'est branché. Aucun argent n'est débité.
                         </p>
+
+                        {paiement.moyen === 'CARTE' && <ApercuCarte />}
 
                         <div style={{ display: 'flex', gap: 12 }}>
                             <button
@@ -189,13 +280,16 @@ export default function PaiementSimulation({ paiement, retour }: Props) {
                                     background: BLUE,
                                     color: '#fff',
                                     border: `1.5px solid ${BLUE}`,
-                                    boxShadow: '0 8px 20px rgba(1,102,254,0.28)',
+                                    boxShadow:
+                                        '0 8px 20px rgba(1,102,254,0.28)',
                                 }}
                                 disabled={envoi}
                                 onClick={() => decider('succes')}
                             >
                                 <Check size={16} />
-                                {envoi ? 'Traitement…' : 'Confirmer le paiement'}
+                                {envoi
+                                    ? 'Traitement…'
+                                    : 'Confirmer le paiement'}
                             </button>
                         </div>
 

@@ -1,10 +1,13 @@
 <?php
 
 use App\Enums\MembreEquipeRole;
+use App\Models\Client;
 use App\Models\Contrat;
 use App\Models\Demande;
 use App\Models\Facture;
 use App\Models\MembreEquipe;
+use App\Support\FacturePdf;
+use Illuminate\Support\Facades\Storage;
 
 test('a controle de gestion can generate a facture for a demande awaiting payment', function () {
     $membre = MembreEquipe::factory()->create(['role' => MembreEquipeRole::ControleGestion]);
@@ -14,7 +17,7 @@ test('a controle de gestion can generate a facture for a demande awaiting paymen
         ->get(route('espace-admin.factures.index'))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->component('espaces/admin-factures')
+            ->component('espaces/admin/factures')
             ->has('demandesAFacturer', 1)
             ->where('demandesAFacturer.0.id', $demande->id));
 
@@ -41,7 +44,8 @@ test('a demande already billed cannot be billed twice', function () {
 
 test('recording a full payment marks the facture and the linked demande as paid', function () {
     $membre = MembreEquipe::factory()->create(['role' => MembreEquipeRole::ControleGestion]);
-    $demande = Demande::factory()->create(['statut' => 'DEVIS_ENVOYE']);
+    $demande = Demande::factory()->create(['statut' => 'CONTRAT_SIGNE']);
+    Contrat::factory()->valide()->create(['demande_id' => $demande->id]);
     $facture = Facture::factory()->create([
         'demande_id' => $demande->id,
         'client_id' => null,
@@ -53,7 +57,7 @@ test('recording a full payment marks the facture and the linked demande as paid'
         ->get(route('espace-admin.factures.show', $facture))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->component('espaces/admin-facture-show')
+            ->component('espaces/admin/facture-show')
             ->where('facture.reference', $facture->reference));
 
     $this->actingAs($membre, 'admin')->post(route('espace-admin.factures.paiements.store', $facture), [
@@ -144,4 +148,55 @@ test('no manual payment can be recorded on a facture already settled', function 
     ])->assertSessionHasErrors(['montant' => 'Cette facture est déjà réglée.']);
 
     expect($facture->paiements()->count())->toBe(0);
+});
+
+test('the team downloads any facture: the receipt once paid, a facture to pay before', function () {
+    Storage::fake('local');
+    $membre = MembreEquipe::factory()->create(['role' => MembreEquipeRole::ControleGestion]);
+    $client = Client::factory()->entreprise()->create();
+    $enAttente = Facture::factory()->create(['client_id' => $client->id, 'montant' => 51200, 'montant_paye' => 0, 'statut' => 'EN_ATTENTE']);
+    $payee = Facture::factory()->payee()->create(['client_id' => $client->id]);
+
+    $this->actingAs($membre, 'admin')
+        ->get(route('espace-admin.factures.pdf', $enAttente))
+        ->assertOk()
+        ->assertHeader('Content-Type', 'application/pdf')
+        ->assertDownload("facture-{$enAttente->reference}.pdf");
+
+    // The archived receipt carries its name in filename* (with a plain fallback).
+    $recu = $this->actingAs($membre, 'admin')->get(route('espace-admin.factures.pdf', $payee));
+    $recu->assertOk()->assertHeader('Content-Type', 'application/pdf');
+    expect($recu->headers->get('Content-Disposition'))->toContain("facture-{$payee->reference}.pdf");
+
+    $this->actingAs($membre, 'admin')
+        ->get(route('espace-admin.factures.index'))
+        ->assertInertia(fn ($page) => $page->where('peutTelecharger', true));
+});
+
+test('an unpaid facture is drawn as a facture to pay, with its balance', function () {
+    $facture = Facture::factory()->create(['montant' => 51200, 'montant_paye' => 1200, 'statut' => 'PARTIELLEMENT_PAYEE']);
+
+    $html = view('pdf.facture', FacturePdf::donnees($facture))->render();
+
+    expect($html)
+        ->toContain('EN ATTENTE DE PAIEMENT')
+        ->toContain('Reste à payer')
+        ->toContain('50 000 FCFA')
+        ->toContain('Déjà réglé')
+        ->not->toContain('FACTURE ACQUITTÉE');
+});
+
+test('a role without access to the factures cannot download one, and a client still only gets its paid factures', function () {
+    $juriste = MembreEquipe::factory()->juriste()->create();
+    $facture = Facture::factory()->create(['statut' => 'EN_ATTENTE', 'montant_paye' => 0]);
+
+    $this->actingAs($juriste, 'admin')
+        ->get(route('espace-admin.factures.pdf', $facture))
+        ->assertForbidden();
+
+    $client = Client::factory()->create();
+    $facture->update(['client_id' => $client->id]);
+    $this->actingAs($client->user, 'web')
+        ->get(route('espace-client.factures.pdf', $facture))
+        ->assertForbidden();
 });

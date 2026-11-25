@@ -33,8 +33,17 @@ class InscriptionDecisionNotification extends NotificationDag
         $formation = $this->inscription->formation->nom;
 
         return $this->validee
-            ? "Votre inscription à la formation « {$formation} » est validée. Retrouvez le calendrier des séances dans votre espace."
+            ? "Votre inscription à la formation « {$formation} » est confirmée. Retrouvez le calendrier des séances dans votre espace."
             : "Votre inscription à la formation « {$formation} » n'a pas pu être retenue. Contactez-nous pour en savoir plus.";
+    }
+
+    protected function lignes(): array
+    {
+        if ($this->validee || $this->inscription->motif_decision === null) {
+            return [];
+        }
+
+        return ["Motif : {$this->inscription->motif_decision}"];
     }
 
     public function url(object $notifiable): ?string

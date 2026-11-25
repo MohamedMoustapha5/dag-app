@@ -1,6 +1,7 @@
 import { useForm } from '@inertiajs/react';
 import { X } from 'lucide-react';
 import { useEffect } from 'react';
+import Recaptcha from '@/components/recaptcha';
 import { store } from '@/routes/audit-requests';
 
 type Props = {
@@ -13,6 +14,7 @@ export default function AuditRequestModal({ open, onClose }: Props) {
         useForm({
             page_url: '',
             email: '',
+            recaptcha: '',
         });
 
     useEffect(() => {
@@ -149,6 +151,11 @@ export default function AuditRequestModal({ open, onClose }: Props) {
                                 </p>
                             )}
                         </div>
+
+                        <Recaptcha
+                            onChange={(jeton) => setData('recaptcha', jeton)}
+                            error={errors.recaptcha}
+                        />
 
                         <button
                             type="submit"

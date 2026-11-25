@@ -7,6 +7,7 @@ type Seance = {
     titre: string;
     date: string | null;
     present: boolean | null;
+    statutPresence: 'PRESENT' | 'RETARD' | 'ABSENT' | 'EXCUSE' | null;
 };
 
 type Props = {
@@ -209,9 +210,13 @@ export default function ApprenantProgressionShow({
                                     <p className="espace-timeline-date">
                                         {seance.date ?? 'Date à confirmer'}
                                         {seance.present === true &&
-                                            ' — présent'}
+                                            (seance.statutPresence === 'RETARD'
+                                                ? ' — présent (en retard)'
+                                                : ' — présent')}
                                         {seance.present === false &&
-                                            ' — absent'}
+                                            (seance.statutPresence === 'EXCUSE'
+                                                ? ' — absence excusée'
+                                                : ' — absent')}
                                         {seance.present === null &&
                                             ' — à venir'}
                                     </p>

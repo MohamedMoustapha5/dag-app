@@ -15,7 +15,7 @@ test('a promotrice can validate a pending entreprise partner', function () {
         ->get(route('espace-admin.entreprises.index'))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->component('espaces/admin-entreprises')
+            ->component('espaces/admin/entreprises')
             ->has('entreprises', 1)
             ->where('entreprises.0.statut', 'EN_ATTENTE')
             ->where('peutValider', true));
@@ -182,4 +182,20 @@ test('a past date limite is refused when prolonging an offre', function () {
     $this->actingAs($promotrice, 'admin')
         ->patch(route('espace-admin.offres.update', $offre), ['statut' => 'PUBLIEE', 'date_limite' => now()->subDay()->toDateString()])
         ->assertSessionHasErrors('date_limite');
+});
+
+test('each offre shows how many candidatures the entreprise selected and rejected', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $offre = OffreEmploi::factory()->create();
+    Candidature::factory()->create(['offre_id' => $offre->id, 'statut' => 'RETENUE']);
+    Candidature::factory()->create(['offre_id' => $offre->id, 'statut' => 'PLACEE']);
+    Candidature::factory()->create(['offre_id' => $offre->id, 'statut' => 'REFUSEE']);
+    Candidature::factory()->create(['offre_id' => $offre->id, 'statut' => 'DEPOSEE']);
+
+    $response = $this->actingAs($promotrice, 'admin')->get(route('espace-admin.entreprises.index'));
+
+    $response->assertInertia(fn ($page) => $page
+        ->where('offres.0.candidaturesCount', 4)
+        ->where('offres.0.retenuesCount', 2)
+        ->where('offres.0.refuseesCount', 1));
 });

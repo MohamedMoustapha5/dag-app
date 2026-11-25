@@ -3,15 +3,19 @@
 use App\Enums\Donnee;
 use App\Enums\MembreEquipeRole;
 use App\Enums\NiveauDroit;
+use App\Models\AccesRecrutement;
 use App\Models\Apprenant;
 use App\Models\Client;
 use App\Models\Contrat;
 use App\Models\Demande;
 use App\Models\DroitRole;
+use App\Models\EntreprisePartenaire;
 use App\Models\Facture;
 use App\Models\MembreEquipe;
+use App\Notifications\AccesRecrutementOuvertNotification;
 use App\Support\SuppressionCompte;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Notification;
 
 test('a membre with voir can list the client accounts', function () {
     $membre = MembreEquipe::factory()->juriste()->create();
@@ -22,7 +26,7 @@ test('a membre with voir can list the client accounts', function () {
 
     $response->assertOk();
     $response->assertInertia(fn ($page) => $page
-        ->component('espaces/admin-clients')
+        ->component('espaces/admin/clients')
         ->where('clients.0.nom', 'Entreprise ACME')
         ->where('clients.0.demandesCount', 1)
         ->where('actions.supprimer', false));
@@ -120,4 +124,110 @@ test('an anonymised client can no longer sign in with their former credentials',
     $this->post(route('login.store'), ['email' => $email, 'password' => 'password'])
         ->assertSessionHasErrors('email');
     $this->assertGuest();
+});
+
+test('a promotrice offers an entreprise or organisation a recruitment access from its account', function (string $type) {
+    Notification::fake();
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $client = Client::factory()->create([
+        'type' => $type,
+        'nom' => 'Batiplus SARL',
+        'secteur_activite' => 'BTP',
+        'telephone' => '690112233',
+    ]);
+
+    $response = $this->actingAs($promotrice, 'admin')
+        ->post(route('espace-admin.clients.acces-recrutement', $client), ['mois' => 3]);
+
+    $response->assertRedirect();
+    $this->assertDatabaseHas('entreprises_partenaires', [
+        'client_id' => $client->id,
+        'nom' => 'Batiplus SARL',
+        'secteur' => 'BTP',
+        'email' => $client->user->email,
+        'telephone' => '690112233',
+        'statut' => 'ACTIF',
+    ]);
+    $acces = AccesRecrutement::where('client_id', $client->id)->sole();
+    expect($acces->origine)->toBe('OFFERT')
+        ->and($acces->statut)->toBe('ACTIF')
+        ->and($acces->offert_par_id)->toBe($promotrice->id)
+        ->and($acces->debut->toDateString())->toBe(now()->toDateString())
+        ->and($acces->fin->toDateString())->toBe(now()->addMonthsNoOverflow(3)->subDay()->toDateString());
+    expect(Facture::where('client_id', $client->id)->exists())->toBeFalse();
+    Notification::assertSentTo($client->user, AccesRecrutementOuvertNotification::class);
+    $this->actingAs($client->user, 'web')->get(route('espace-client.offres.index'))->assertOk();
+})->with(['ENTREPRISE', 'ORGANISATION']);
+
+test('an offered access reactivates the existing partner record and follows the period already secured', function () {
+    Notification::fake();
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $client = Client::factory()->create(['type' => 'ENTREPRISE']);
+    $fiche = EntreprisePartenaire::factory()->create(['client_id' => $client->id, 'nom' => 'Nom de la fiche', 'statut' => 'INACTIF']);
+    $enCours = AccesRecrutement::factory()->create(['client_id' => $client->id]);
+
+    $this->actingAs($promotrice, 'admin')
+        ->post(route('espace-admin.clients.acces-recrutement', $client), ['mois' => 1])
+        ->assertRedirect();
+
+    expect(EntreprisePartenaire::where('client_id', $client->id)->count())->toBe(1);
+    expect($fiche->fresh()->statut)->toBe('ACTIF');
+    expect($fiche->fresh()->nom)->toBe('Nom de la fiche');
+    $offert = AccesRecrutement::where('origine', 'OFFERT')->sole();
+    expect($offert->debut->toDateString())->toBe($enCours->fin->copy()->addDay()->toDateString());
+});
+
+test('an offered access only accepts the proposed durations', function (mixed $mois) {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $client = Client::factory()->create(['type' => 'ENTREPRISE']);
+
+    $this->actingAs($promotrice, 'admin')
+        ->post(route('espace-admin.clients.acces-recrutement', $client), ['mois' => $mois])
+        ->assertSessionHasErrors('mois');
+
+    expect(AccesRecrutement::count())->toBe(0);
+})->with([0, 2, 24, 'abc', null]);
+
+test('a role without the validation right cannot offer a recruitment access', function () {
+    Notification::fake();
+    $membre = MembreEquipe::factory()->create(['role' => MembreEquipeRole::CommunicationMarketing]);
+    $client = Client::factory()->create(['type' => 'ENTREPRISE']);
+
+    $this->actingAs($membre, 'admin')
+        ->post(route('espace-admin.clients.acces-recrutement', $client), ['mois' => 1])
+        ->assertForbidden();
+
+    expect(AccesRecrutement::count())->toBe(0);
+    Notification::assertNothingSent();
+});
+
+test('a particulier client cannot be offered a recruitment access', function () {
+    Notification::fake();
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $client = Client::factory()->create(['type' => 'PARTICULIER']);
+
+    $this->actingAs($promotrice, 'admin')
+        ->post(route('espace-admin.clients.acces-recrutement', $client), ['mois' => 1])
+        ->assertUnprocessable();
+
+    $this->assertDatabaseMissing('entreprises_partenaires', ['client_id' => $client->id]);
+    expect(AccesRecrutement::count())->toBe(0);
+    Notification::assertNothingSent();
+});
+
+test('the comptes page shows the end of the recruitment access and who may offer one', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $client = clientPartenaireValide();
+    $sansAcces = Client::factory()->create(['type' => 'ENTREPRISE', 'created_at' => now()->subDay()]);
+    AccesRecrutement::factory()->expire()->create(['client_id' => $sansAcces->id]);
+    $finAttendue = $client->finAccesRecrutement()->toDateString();
+
+    $response = $this->actingAs($promotrice, 'admin')->get(route('espace-admin.clients.index'));
+
+    $response->assertInertia(fn ($page) => $page
+        ->where('clients.0.id', $client->id)
+        ->where('clients.0.finAccesRecrutement', $finAttendue)
+        ->where('clients.1.id', $sansAcces->id)
+        ->where('clients.1.finAccesRecrutement', null)
+        ->where('actions.offrirAcces', true));
 });

@@ -94,6 +94,7 @@ test('a client can view their own demande with its suivi', function () {
     $response->assertInertia(fn ($page) => $page
         ->component('espaces/client/demandes-show')
         ->where('demande.id', $demande->id)
+        // A particulier's steps skip « Contrat signé »: « En cours » is the 5th.
         ->where('suivi.etapeActuelle', 4)
         ->where('suivi.refusee', false));
 });

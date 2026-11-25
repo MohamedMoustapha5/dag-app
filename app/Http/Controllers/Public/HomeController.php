@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
+use App\Models\LogoPartenaire;
 use App\Models\MembreEquipe;
 use App\Models\Service;
 use Inertia\Inertia;
@@ -16,7 +17,7 @@ class HomeController extends Controller
 
             ->get()
             ->map(fn (MembreEquipe $membre) => [
-                'nom' => $membre->name,
+                'nom' => $membre->nomAvecCivilite(),
                 'role' => $membre->role->label(),
             ]);
 
@@ -25,6 +26,7 @@ class HomeController extends Controller
                 'services' => Service::publies()->count(),
             ],
             'equipe' => $equipe,
+            'partenaires' => LogoPartenaire::pourLeSite(),
         ]);
     }
 }

@@ -157,7 +157,7 @@ class SupportController extends Controller
     private function alerterEquipe(TicketSupport $ticket, string $titre, string $message): void
     {
         Notifier::alerterEquipe(
-            Donnee::DemandesClients,
+            Donnee::Support,
             Action::Modifier,
             'support.message',
             $titre,

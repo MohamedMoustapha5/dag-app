@@ -1,11 +1,14 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
+    BadgeCheck,
     Briefcase,
     FileSignature,
     FileText,
     FolderOpen,
+    Handshake,
     Headphones,
     Home,
+    KeyRound,
     LayoutDashboard,
     LogOut,
     Menu,
@@ -26,8 +29,10 @@ import RechercheEspace from '@/components/espaces/recherche-espace';
 import notificationsEspace from '@/routes/notifications';
 import espaceClient from '@/routes/espace-client';
 import candidatures from '@/routes/espace-client/candidatures';
+import collaborateurs from '@/routes/espace-client/collaborateurs';
 import demandes from '@/routes/espace-client/demandes';
 import offres from '@/routes/espace-client/offres';
+import recrutement from '@/routes/espace-client/recrutement';
 
 type NavItem = {
     label: string;
@@ -79,7 +84,10 @@ const NAV_PARTICULIER: NavGroup[] = [
     },
 ];
 
-function navEntreprise(estPartenaireValide: boolean): NavGroup[] {
+function navEntreprise(
+    estPartenaireValide: boolean,
+    gestionAcces: boolean,
+): NavGroup[] {
     const groups: NavGroup[] = [];
 
     if (estPartenaireValide) {
@@ -96,6 +104,11 @@ function navEntreprise(estPartenaireValide: boolean): NavGroup[] {
                     label: 'Candidatures',
                     icon: Users,
                     href: candidatures.index(),
+                },
+                {
+                    label: 'Mon abonnement',
+                    icon: BadgeCheck,
+                    href: recrutement.abonnement(),
                 },
             ],
         });
@@ -124,8 +137,26 @@ function navEntreprise(estPartenaireValide: boolean): NavGroup[] {
                 icon: FileSignature,
                 href: espaceClient.contrats(),
             },
+            {
+                label: 'Partenariat DAG',
+                icon: Handshake,
+                href: espaceClient.partenariat(),
+            },
         ],
     });
+
+    if (!estPartenaireValide) {
+        groups.push({
+            label: 'Recrutement',
+            items: [
+                {
+                    label: 'Publier des offres',
+                    icon: BadgeCheck,
+                    href: recrutement.abonnement(),
+                },
+            ],
+        });
+    }
 
     groups.push({
         label: 'Compte & facturation',
@@ -146,6 +177,15 @@ function navEntreprise(estPartenaireValide: boolean): NavGroup[] {
                 icon: FolderOpen,
                 href: espaceClient.documents(),
             },
+            ...(gestionAcces
+                ? [
+                      {
+                          label: 'Accès & collaborateurs',
+                          icon: KeyRound,
+                          href: collaborateurs.index(),
+                      },
+                  ]
+                : []),
             {
                 label: 'Profil / Paramètres',
                 icon: Settings,
@@ -162,11 +202,15 @@ export type EspaceClientInfo = {
     typeLabel: string;
     type: string;
     estPartenaireValide: boolean;
+    estPartenaireOfficiel?: boolean;
 };
 
 export default function EspaceClientLayout({ children }: PropsWithChildren) {
-    const { url, props } = usePage<{ client: EspaceClientInfo }>();
-    const { client } = props;
+    const { url, props } = usePage<{
+        client: EspaceClientInfo;
+        gestionAcces: boolean;
+    }>();
+    const { client, gestionAcces } = props;
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const sidebarRef = useRef<HTMLDivElement>(null);
     const [scrollThumb, setScrollThumb] = useState<{
@@ -189,7 +233,7 @@ export default function EspaceClientLayout({ children }: PropsWithChildren) {
     // (recrutement, conventions...) : les deux types partagent cette nav.
     const navGroups =
         client.type === 'ENTREPRISE' || client.type === 'ORGANISATION'
-            ? navEntreprise(client.estPartenaireValide)
+            ? navEntreprise(client.estPartenaireValide, gestionAcces)
             : NAV_PARTICULIER;
 
     const updateScrollThumb = () => {
@@ -240,7 +284,7 @@ export default function EspaceClientLayout({ children }: PropsWithChildren) {
                         >
                             <img
                                 src="/images/brand/dag-logo.jpg"
-                                alt="DAG — Digital Agency Group"
+                                alt="Digital Agency Group"
                             />
                         </Link>
 
@@ -312,7 +356,7 @@ export default function EspaceClientLayout({ children }: PropsWithChildren) {
 
                         <img
                             src="/images/brand/dag-logo.jpg"
-                            alt="DAG — Digital Agency Group"
+                            alt="Digital Agency Group"
                             className="espace-topbar-logo"
                         />
 
@@ -334,13 +378,41 @@ export default function EspaceClientLayout({ children }: PropsWithChildren) {
                             <div className="espace-user">
                                 <span className="espace-avatar">
                                     {initiales}
+                                    {client.estPartenaireOfficiel && (
+                                        <span
+                                            className="espace-avatar-sceau"
+                                            role="img"
+                                            aria-label="Partenaire officiel"
+                                            title="Partenaire officiel de Digital Agency Group"
+                                        >
+                                            <BadgeCheck
+                                                size={11}
+                                                strokeWidth={2.6}
+                                                aria-hidden="true"
+                                            />
+                                        </span>
+                                    )}
                                 </span>
-                                <div>
+                                <div className="espace-user-texte">
                                     <p className="espace-user-name">
                                         {client.nom}
                                     </p>
                                     <p className="espace-user-type">
-                                        {client.typeLabel}
+                                        <span className="espace-user-type-libelle">
+                                            {client.typeLabel}
+                                        </span>
+                                        {client.estPartenaireOfficiel && (
+                                            <span
+                                                className="espace-badge-partenaire"
+                                                title="Partenaire officiel de Digital Agency Group"
+                                            >
+                                                <BadgeCheck
+                                                    size={12}
+                                                    aria-hidden="true"
+                                                />
+                                                Partenaire officiel
+                                            </span>
+                                        )}
                                     </p>
                                 </div>
                             </div>

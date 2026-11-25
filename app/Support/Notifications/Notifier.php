@@ -28,11 +28,46 @@ class Notifier
             return;
         }
 
+        self::notifier($destinataire, $notification);
+
+        if (! $notification->partageeAvecCollaborateurs()) {
+            return;
+        }
+
+        // The colleagues an Entreprise or Organisation let into its espace
+        // are kept informed like the account holder. Each gets its own copy
+        // (its own identifier in the bell).
+        foreach (self::collaborateursDe($destinataire) as $collaborateur) {
+            self::notifier($collaborateur, clone $notification);
+        }
+    }
+
+    private static function notifier(User|MembreEquipe|EntreprisePartenaire|AnonymousNotifiable $destinataire, NotificationDag $notification): void
+    {
         try {
             $destinataire->notify($notification);
         } catch (Throwable $erreur) {
             report($erreur);
         }
+    }
+
+    /**
+     * Active collaborators of the client the recipient holds (not of a
+     * client they only collaborate on: that would notify them twice).
+     *
+     * @return iterable<User>
+     */
+    private static function collaborateursDe(User|MembreEquipe|EntreprisePartenaire|AnonymousNotifiable $destinataire): iterable
+    {
+        $client = $destinataire instanceof User ? $destinataire->getRelationValue('client') : null;
+
+        if ($client === null || ! $client->estStructure()) {
+            return [];
+        }
+
+        return User::query()
+            ->whereHas('collaboration', fn ($query) => $query->where('client_id', $client->id)->whereNotNull('accepte_le'))
+            ->get();
     }
 
     /**

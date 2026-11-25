@@ -1,5 +1,9 @@
 import { Head, Link } from '@inertiajs/react';
 import Compteur from '@/components/public/compteur';
+import {
+    BandeauLogosPartenaires,
+    type PartenairePublic,
+} from '@/components/public/logos-partenaires';
 import PublicLayout from '@/layouts/public-layout';
 import { catalogue, contact } from '@/routes';
 
@@ -11,6 +15,7 @@ type AProposProps = {
         membresEquipe: number;
     };
     equipe: Array<{ nom: string; role: string }>;
+    partenaires: PartenairePublic[];
 };
 
 const VALEURS = [
@@ -21,19 +26,8 @@ const VALEURS = [
     'Orientée résultats',
 ];
 
-const PARTENAIRES = [
-    {
-        nom: 'Nova-Tech',
-        logo: '/images/brand/partners/nova-tech.png',
-    },
-    {
-        nom: 'Nordex Consulting Group',
-        logo: '/images/brand/partners/nordex-consulting-group.jpg',
-    },
-];
-
 const EQUIPE_TAGLINES: Record<string, string> = {
-    Directrice: 'Pilote la vision et la relation client.',
+    CEO: 'Pilote la vision et la relation client.',
     Juriste: 'Sécurise chaque contrat, à la lettre.',
     'Responsable Marketing':
         'Orchestre vos campagnes et votre présence en ligne.',
@@ -43,7 +37,7 @@ const EQUIPE_TAGLINES: Record<string, string> = {
 };
 
 const EQUIPE_PHOTOS: Record<string, string> = {
-    Directrice: '/images/photos/afsa-maira-directrice.jpg',
+    CEO: '/images/photos/afsa-maira-directrice.jpg',
     Juriste: '/images/photos/pascal-juriste.jpg',
     'Responsable Marketing': '/images/photos/senghor-responsable-marketing.jpg',
     Secrétaire: '/images/photos/layana-d-secretaire.jpg',
@@ -51,7 +45,11 @@ const EQUIPE_PHOTOS: Record<string, string> = {
     Développeur: '/images/photos/mustapha-developpeur.jpg',
 };
 
-export default function APropos({ stats, equipe }: AProposProps) {
+export default function APropos({
+    stats,
+    equipe,
+    partenaires,
+}: AProposProps) {
     const equipeAffichee = equipe.map((membre) => ({
         nom: membre.nom,
         role: membre.role,
@@ -81,7 +79,7 @@ export default function APropos({ stats, equipe }: AProposProps) {
                             L'agence qui simplifie votre transformation digitale
                         </h1>
                         <p>
-                            DAG — Digital Agency Group réunit, sous un seul toit
+                            Digital Agency Group réunit, sous un seul toit
                             à Douala, la création de contenu, le community
                             management, la publicité, la formation, le
                             développement web et la cybersécurité. Un seul
@@ -231,6 +229,7 @@ export default function APropos({ stats, equipe }: AProposProps) {
                 </div>
             </section>
 
+            {partenaires.length > 0 && (
             <section
                 className="section-gap reveal container"
                 style={{
@@ -248,26 +247,14 @@ export default function APropos({ stats, equipe }: AProposProps) {
                         color: 'var(--dag-navy)',
                     }}
                 >
-                    Nos partenariats
+                    Nos partenaires
                 </h2>
                 <p className="muted" style={{ marginTop: 10, maxWidth: 560 }}>
                     Des partenaires de confiance, choisis pour leur sérieux et
                     leur exigence de qualité.
                 </p>
 
-                <div
-                    className="card partner-logo-strip"
-                    style={{ marginTop: 32 }}
-                >
-                    {PARTENAIRES.map((partenaire) => (
-                        <img
-                            key={partenaire.nom}
-                            src={partenaire.logo}
-                            alt={partenaire.nom}
-                            className="partner-logo-strip-item"
-                        />
-                    ))}
-                </div>
+                <BandeauLogosPartenaires partenaires={partenaires} />
 
                 <p className="muted" style={{ marginTop: 20, fontSize: 13 }}>
                     <Link href={catalogue()}>
@@ -275,6 +262,7 @@ export default function APropos({ stats, equipe }: AProposProps) {
                     </Link>
                 </p>
             </section>
+            )}
 
             <section
                 id="equipe"
