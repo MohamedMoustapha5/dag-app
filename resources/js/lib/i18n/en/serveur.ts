@@ -169,6 +169,10 @@ export const serveurEn: Record<string, string> = {
     'Un contrat se génère pour une entreprise ou une organisation.':
         'A contract is generated for a company or an organisation.',
 
+    // Forgotten password
+    'Si un compte existe pour cette adresse, un lien de réinitialisation vient de vous être envoyé par e-mail.':
+        'If an account exists for this address, a reset link has just been sent to it.',
+
     // Partner logos
     'Indiquez le nom du partenaire.': 'Give the partner’s name.',
     'Importez le logo du partenaire.': 'Upload the partner’s logo.',
