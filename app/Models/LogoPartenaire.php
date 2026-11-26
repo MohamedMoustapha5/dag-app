@@ -56,7 +56,7 @@ class LogoPartenaire extends Model
     /**
      * The logos of the public site, in their order.
      *
-     * @return list<array{nom: string, logo: string, lien: string|null, sombre: bool}>
+     * @return array<int, array{nom: string, logo: string, lien: string|null, sombre: bool}>
      */
     public static function pourLeSite(): array
     {

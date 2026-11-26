@@ -10,9 +10,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Carbon;
 
 /**
  * @property-read bool|null $contrat_exists Present when loaded with withExists('contrat').
+ * @property Carbon|null $devis_valide_le
+ * @property Carbon|null $devis_refuse_le
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  */
 #[Fillable([
     'reference', 'client_id', 'entreprise_id', 'service_id', 'formule_id', 'objet', 'description',

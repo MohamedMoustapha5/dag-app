@@ -29,16 +29,13 @@ return new class extends Migration
 
     private function remplacer(string $de, string $vers): void
     {
-        foreach (['modeles_contrat', 'clauses'] as $table) {
-            DB::table($table)
-                ->where('contenu', 'like', '%'.$de.'%')
-                ->update(['contenu' => DB::raw('REPLACE(contenu, '.DB::getPdo()->quote($de).', '.DB::getPdo()->quote($vers).')')]);
-        }
+        // The names go through bindings: no text is ever built into the SQL.
+        DB::update('UPDATE modeles_contrat SET contenu = REPLACE(contenu, ?, ?) WHERE contenu LIKE ?', [$de, $vers, "%{$de}%"]);
+        DB::update('UPDATE clauses SET contenu = REPLACE(contenu, ?, ?) WHERE contenu LIKE ?', [$de, $vers, "%{$de}%"]);
 
-        DB::table('contrats')
-            ->whereIn('statut', ['BROUILLON', 'ENVOYE', 'REFUSE'])
-            ->whereNull('date_signature')
-            ->where('contenu', 'like', '%'.$de.'%')
-            ->update(['contenu' => DB::raw('REPLACE(contenu, '.DB::getPdo()->quote($de).', '.DB::getPdo()->quote($vers).')')]);
+        DB::update(
+            "UPDATE contrats SET contenu = REPLACE(contenu, ?, ?) WHERE statut IN ('BROUILLON', 'ENVOYE', 'REFUSE') AND date_signature IS NULL AND contenu LIKE ?",
+            [$de, $vers, "%{$de}%"],
+        );
     }
 };

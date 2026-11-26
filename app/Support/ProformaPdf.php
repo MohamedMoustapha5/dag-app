@@ -52,7 +52,7 @@ class ProformaPdf
     {
         $demande->loadMissing(['client.user', 'entreprise', 'service', 'formule', 'facture']);
 
-        $emission = $demande->facture?->updated_at ?? $demande->updated_at ?? now();
+        $emission = $demande->facture->updated_at ?? $demande->updated_at ?? now();
         $moyens = collect(app(PaiementService::class)->moyens())->pluck('label')->implode(', ');
 
         return [
@@ -92,7 +92,7 @@ class ProformaPdf
         $entreprise = $demande->entreprise;
 
         return [
-            'nom' => $entreprise?->nom ?? '—',
+            'nom' => $entreprise->nom ?? '—',
             'type' => 'Entreprise partenaire',
             'email' => $entreprise?->email,
             'telephone' => $entreprise?->telephone,
@@ -104,7 +104,7 @@ class ProformaPdf
     {
         return Carbon::instance($date)
             ->timezone('Africa/Douala')
-            ->locale('fr')
+            ->settings(['locale' => 'fr'])
             ->translatedFormat($avecHeure ? 'j F Y \à H:i' : 'j F Y');
     }
 }

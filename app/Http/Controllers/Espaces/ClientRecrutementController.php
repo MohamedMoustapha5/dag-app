@@ -78,11 +78,11 @@ class ClientRecrutementController extends Controller
         $client = $request->user('web')->client;
         abort_unless($client->estStructure(), 403);
 
-        $data = $request->validate([
+        $request->validate([
             'forfait_id' => ['required', 'uuid', Rule::exists('forfaits_recrutement', 'id')],
         ]);
 
-        $facture = $abonnements->souscrire($client, ForfaitRecrutement::findOrFail($data['forfait_id']));
+        $facture = $abonnements->souscrire($client, ForfaitRecrutement::findOrFail($request->string('forfait_id')->value()));
 
         Inertia::flash('payerFacture', $facture->id);
 

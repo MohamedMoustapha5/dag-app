@@ -30,7 +30,7 @@ class InvitationCollaborateurNotification extends NotificationDag
 
     public function message(): string
     {
-        $invitant = $this->collaborateur->invitePar?->name ?? 'Le titulaire du compte';
+        $invitant = $this->collaborateur->invitePar->name ?? 'Le titulaire du compte';
 
         return "{$invitant} vous donne accès à l'espace DAG de {$this->collaborateur->client->nom} : demandes, devis, paiements, contrats et documents.";
     }

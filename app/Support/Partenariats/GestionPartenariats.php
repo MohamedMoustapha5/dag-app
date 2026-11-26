@@ -25,7 +25,7 @@ use Illuminate\Validation\ValidationException;
 class GestionPartenariats
 {
     /**
-     * @param  list<string>  $domaines
+     * @param  array<array-key, string>  $domaines
      *
      * @throws ValidationException
      */
@@ -97,7 +97,7 @@ class GestionPartenariats
      * DAG proposes a partnership to a structure that did not ask for it:
      * the contract goes straight to the client for signature.
      *
-     * @param  list<string>  $domaines
+     * @param  array<array-key, string>  $domaines
      *
      * @throws ValidationException
      */

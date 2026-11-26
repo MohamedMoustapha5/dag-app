@@ -313,7 +313,7 @@ class AdminContratController extends Controller
                 'domaines.min' => 'Choisissez au moins un domaine de collaboration.',
             ]);
 
-            $partenariat = $partenariats->proposer(Client::findOrFail($data['client_id']), (int) $data['duree_mois'], $data['domaines'], $data['message'] ?? null, $membre);
+            $partenariat = $partenariats->proposer(Client::findOrFail($request->string('client_id')->value()), (int) $data['duree_mois'], $data['domaines'], $data['message'] ?? null, $membre);
 
             Inertia::flash('toast', ['type' => 'success', 'message' => "Contrat de partenariat {$partenariat->contrat->reference} envoyé à {$partenariat->client->nom} pour signature."]);
 
@@ -343,14 +343,14 @@ class AdminContratController extends Controller
             'modele_contrat_id.exists' => 'Ce modèle est prévu pour un autre type de contrat.',
         ]);
 
-        $client = Client::findOrFail($data['client_id']);
+        $client = Client::findOrFail($request->string('client_id')->value());
 
         // A particulier validates a devis online: the contract path is the entreprises'.
         if (! $client->estStructure()) {
             throw ValidationException::withMessages(['client_id' => 'Un contrat se génère pour une entreprise ou une organisation.']);
         }
 
-        $modele = isset($data['modele_contrat_id']) ? ModeleContrat::find($data['modele_contrat_id']) : null;
+        $modele = $request->filled('modele_contrat_id') ? ModeleContrat::find($request->string('modele_contrat_id')->value()) : null;
         $envoyer = $request->boolean('envoyer');
 
         $contrat = DB::transaction(function () use ($client, $data, $abonnement, $modele, $paiements): Contrat {

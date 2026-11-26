@@ -86,13 +86,13 @@ class FacturePdf
             'acquittee' => $facture->statut === 'PAYEE',
             'dejaRegle' => $paye,
             'resteAPayer' => max(0, $montant - $paye),
-            'dateEmission' => $facture->created_at?->copy()->timezone('Africa/Douala')->locale('fr')->translatedFormat('j F Y') ?? '—',
+            'dateEmission' => $facture->created_at?->copy()->timezone('Africa/Douala')->settings(['locale' => 'fr'])->translatedFormat('j F Y') ?? '—',
             'objet' => $facture->libelleObjet(),
             'nature' => self::nature($facture),
             'destinataire' => self::destinataire($facture),
             'moyen' => self::moyen($facture->moyen_paiement ?? $dernierPaiement?->moyen),
             'datePaiement' => self::datePaiement($facture, $dernierPaiement),
-            'referencePaiement' => $dernierPaiement?->reference_transaction ?? $facture->reference,
+            'referencePaiement' => $dernierPaiement->reference_transaction ?? $facture->reference,
             'emetteur' => config('entreprise'),
             'signature' => DocumentAssets::signatureDirectrice(),
             'cachet' => DocumentAssets::cachet(),
@@ -139,10 +139,10 @@ class FacturePdf
     /** "12 novembre 2026 à 00:39 (UTC+1)", Douala time. */
     private static function datePaiement(Facture $facture, ?Paiement $dernierPaiement): string
     {
-        $date = $dernierPaiement?->date_paiement ?? $facture->updated_at;
+        $date = $dernierPaiement->date_paiement ?? $facture->updated_at;
 
         return $date !== null
-            ? $date->copy()->timezone('Africa/Douala')->locale('fr')->translatedFormat('j F Y \à H:i').' (UTC+1)'
+            ? $date->copy()->timezone('Africa/Douala')->settings(['locale' => 'fr'])->translatedFormat('j F Y \à H:i').' (UTC+1)'
             : '—';
     }
 }

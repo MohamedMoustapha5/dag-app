@@ -44,7 +44,8 @@ class MembresEquipeSeeder extends Seeder
         }
 
         if ($production && $crees > 0) {
-            Artisan::call('equipe:envoyer-acces', ['--tous' => true], $this->command?->getOutput());
+            // A sending that fails is reported to the log by the command itself.
+            Artisan::call('equipe:envoyer-acces', ['--tous' => true]);
         }
     }
 }
