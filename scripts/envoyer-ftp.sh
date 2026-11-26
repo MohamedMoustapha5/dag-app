@@ -39,7 +39,7 @@ trap 'rm -rf "$TRAVAIL"' EXIT
 
 # Paths of the repository that never go to the server.
 exclus() {
-    grep -zvE '^(tests/|\.github/|\.ai/|\.claude/)|(^|/)\.env$' || true
+    grep -zvE '^(tests/|\.github/|\.githooks/|\.ai/|\.claude/|scripts/envoyer-env\.ps1$)|(^|/)\.env$' || true
 }
 
 # Commands opening the FTPS connection; the password comes from LFTP_PASSWORD
@@ -47,15 +47,47 @@ exclus() {
 entete() {
     cat <<EOF
 set cmd:fail-exit yes
-set net:timeout 30
-set net:max-retries 3
+set net:timeout 20
+set net:max-retries 2
 set net:reconnect-interval-base 5
 set ftp:passive-mode yes
 set ftp:ssl-force yes
 set ftp:ssl-protect-data yes
 set ssl:verify-certificate ${FTP_VERIFIER_CERTIFICAT:-yes}
-open --env-password -u "${FTP_UTILISATEUR:-}" "ftp://${FTP_SERVEUR:-}"
 EOF
+    if [ -f /etc/ssl/certs/ca-certificates.crt ]; then
+        echo "set ssl:ca-file /etc/ssl/certs/ca-certificates.crt"
+    fi
+    echo "open --env-password -u \"${FTP_UTILISATEUR:-}\" \"ftp://${FTP_SERVEUR:-}\""
+}
+
+# Runs an lftp script, stopped after the given number of seconds: a server
+# that stops answering fails the deployment instead of holding it.
+lftp_limite() {
+    timeout --kill-after=10 "$1" lftp -f "$2"
+}
+
+# Before anything is sent: the address, the port and the sign-in, each step
+# shown in the log so a failure says where it stopped.
+diagnostic() {
+    local adresse accueil
+    adresse="$(getent ahostsv4 "$FTP_SERVEUR" | awk 'NR==1 { print $1 }')"
+    echo "Serveur FTP : $FTP_SERVEUR (${adresse:-adresse introuvable})"
+
+    accueil="$(timeout 20 bash -c 'exec 3<>"/dev/tcp/$0/21" && IFS= read -r ligne <&3 && echo "$ligne"' "$FTP_SERVEUR" 2>/dev/null | tr -d '\r' || true)"
+    if [ -z "$accueil" ]; then
+        echo "::error::Le serveur FTP $FTP_SERVEUR ne répond pas sur le port 21 depuis GitHub (pare-feu de l'hébergeur ?). Rien n'a été envoyé."
+        exit 1
+    fi
+    echo "Accueil du serveur : $accueil"
+
+    { entete; echo "cls -1 /"; } > "$TRAVAIL/test.lftp"
+    if ! lftp_limite 120 "$TRAVAIL/test.lftp" > "$TRAVAIL/test.out" 2>&1; then
+        sed 's/^/  lftp : /' "$TRAVAIL/test.out"
+        echo "::error::Connexion FTPS ou identification refusée (voir les lignes « lftp » ci-dessus). Rien n'a été envoyé."
+        exit 1
+    fi
+    echo "Connexion FTPS et identification : OK"
 }
 
 # Quotes a path for an lftp command.
@@ -88,31 +120,34 @@ verifier_exposition() {
         fi
         echo "put $(chemin "$TRAVAIL/sonde") -o $(chemin "$DOSSIER/$jeton.txt")"
     } > "$TRAVAIL/sonde.lftp"
-    lftp -f "$TRAVAIL/sonde.lftp"
+    lftp_limite 120 "$TRAVAIL/sonde.lftp"
 
     code="$(curl -sS -L -o "$TRAVAIL/reponse" -w '%{http_code}' --max-time 20 "${SITE_URL%/}/$jeton.txt" 2>/dev/null || true)"
 
     { entete; echo "rm -f $(chemin "$DOSSIER/$jeton.txt")"; } > "$TRAVAIL/nettoyage.lftp"
-    lftp -f "$TRAVAIL/nettoyage.lftp" || true
+    lftp_limite 120 "$TRAVAIL/nettoyage.lftp" || true
 
     if grep -q "$jeton" "$TRAVAIL/reponse" 2>/dev/null; then
-        echo "::error::Le dossier $DOSSIER est visible depuis Internet ($SITE_URL) : .env et storage/ y seraient téléchargeables. Faites pointer le domaine sur $DOSSIER/public, puis relancez. Rien n'a été envoyé."
+        echo "::error::Le dossier ${DOSSIER:-/} est visible depuis Internet ($SITE_URL) : .env et storage/ y seraient téléchargeables. Faites pointer le domaine sur $DOSSIER/public, puis relancez. Rien n'a été envoyé."
         exit 1
     fi
 
     if [ -z "$code" ] || [ "$code" = "000" ]; then
-        echo "::error::Le site $SITE_URL ne répond pas (HTTPS) : impossible de vérifier que $DOSSIER n'est pas public. Rien n'a été envoyé."
+        echo "::error::Le site $SITE_URL ne répond pas (HTTPS) : impossible de vérifier que ${DOSSIER:-/} n'est pas public. Rien n'a été envoyé."
         exit 1
     fi
 
-    echo "Le dossier $DOSSIER n'est pas public (le site répond $code au fichier témoin) : envoi."
+    echo "Le dossier ${DOSSIER:-/} n'est pas public (le site répond $code au fichier témoin) : envoi."
 }
 
 # The version already on the server, empty for a first deployment.
 ANCIENNE="${ENVOI_DEPUIS:-}"
 if [ -z "$A_BLANC" ]; then
+    diagnostic
     { entete; echo "cat $(chemin "$DOSSIER/.deploiement/version")"; } > "$TRAVAIL/lire.lftp"
-    ANCIENNE="$(lftp -f "$TRAVAIL/lire.lftp" 2>/dev/null | tr -d '[:space:]' || true)"
+    # Missing on a first deployment: lftp then fails, which is expected.
+    ANCIENNE="$(lftp_limite 120 "$TRAVAIL/lire.lftp" 2>/dev/null | tr -d '[:space:]' || true)"
+    echo "Version déjà sur le serveur : ${ANCIENNE:-aucune (premier envoi)}"
 fi
 
 if [ -n "$ANCIENNE" ] && ! git cat-file -e "${ANCIENNE}^{commit}" 2>/dev/null; then
@@ -168,5 +203,5 @@ if [ -n "$A_BLANC" ]; then
 fi
 
 verifier_exposition
-lftp -f "$TRAVAIL/envoi.lftp"
+lftp_limite 1500 "$TRAVAIL/envoi.lftp"
 echo "Version $VERSION envoyée : le serveur la met en ligne dans la minute (scripts/apres-deploiement.sh)."

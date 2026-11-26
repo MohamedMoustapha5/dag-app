@@ -68,10 +68,20 @@ terminer() {
 }
 trap terminer EXIT
 
+# On shared hosting the site and the terminal do not see the same paths (the
+# site sees /htdocs, the terminal /home/…/htdocs). A configuration or view
+# cache built here would hold paths the site cannot open: only the routes
+# and events, which hold no path, are cached.
+mettre_en_cache() {
+    $PHP artisan optimize:clear > /dev/null
+    $PHP artisan route:cache
+    $PHP artisan event:cache
+}
+
 if [ "$VERSION" = "$APPLIQUEE" ]; then
-    journal "Le .env a changé : cache de configuration refait."
+    journal "Le .env a changé : caches refaits."
     statut "Prise en compte du nouveau .env…"
-    $PHP artisan optimize
+    mettre_en_cache
     $PHP artisan queue:restart
     echo "$EMPREINTE_ENV" > "$ETAT/env"
     statut "En ligne : version $VERSION (.env pris en compte)."
@@ -104,11 +114,15 @@ if [ ! -f "$ETAT/seed-fait" ]; then
     date '+%Y-%m-%d %H:%M:%S' > "$ETAT/seed-fait"
 fi
 
+# The public files (partner logos, images of services and formations) are
+# served from public/storage. A relative link, so the site reaches it with
+# its own paths (artisan storage:link would write the terminal's ones).
 if [ ! -e public/storage ]; then
-    $PHP artisan storage:link || journal "storage:link impossible sur cet hébergement : voir avec l'hébergeur."
+    ln -s ../storage/app/public public/storage \
+        || journal "Lien public/storage impossible : les logos et images ne s'afficheront pas, voir avec l'hébergeur."
 fi
 
-$PHP artisan optimize
+mettre_en_cache
 $PHP artisan queue:restart
 
 echo "$VERSION" > "$ETAT/appliquee"
