@@ -28,7 +28,7 @@ class AccesRecrutementOuvertNotification extends NotificationDag
 
     public function message(): string
     {
-        $fin = $this->acces->fin?->locale('fr')->translatedFormat('j F Y');
+        $fin = $this->acces->fin?->settings(['locale' => 'fr'])->translatedFormat('j F Y');
 
         return $this->acces->origine === 'OFFERT'
             ? "L'équipe DAG vous offre {$this->acces->libelle} d'accès recrutement, jusqu'au {$fin} : publiez vos offres d'emploi et suivez vos candidats."

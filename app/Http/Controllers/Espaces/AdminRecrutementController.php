@@ -49,7 +49,7 @@ class AdminRecrutementController extends Controller
                 ]),
             'acces' => $acces->map(fn (AccesRecrutement $ligne) => [
                 'id' => $ligne->id,
-                'clientNom' => $ligne->client?->nom ?? '—',
+                'clientNom' => $ligne->client->nom ?? '—',
                 'libelle' => $ligne->libelle,
                 'origine' => $ligne->origine,
                 'offertPar' => $ligne->offertPar?->name,

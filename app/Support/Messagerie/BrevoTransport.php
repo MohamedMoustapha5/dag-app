@@ -9,6 +9,7 @@ use Symfony\Component\Mailer\SentMessage;
 use Symfony\Component\Mailer\Transport\AbstractTransport;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
+use Symfony\Component\Mime\Message;
 use Symfony\Component\Mime\MessageConverter;
 
 /**
@@ -33,7 +34,14 @@ class BrevoTransport extends AbstractTransport
             throw new TransportException('Brevo : la clé API est absente (BREVO_API_KEY).');
         }
 
-        $email = MessageConverter::toEmail($message->getOriginalMessage());
+        $original = $message->getOriginalMessage();
+
+        // Brevo's API takes structured e-mails; a raw MIME message cannot be split into its fields.
+        if (! $original instanceof Message) {
+            throw new TransportException('Brevo : seuls les e-mails structurés peuvent être envoyés (message brut reçu).');
+        }
+
+        $email = MessageConverter::toEmail($original);
 
         try {
             $reponse = Http::withHeaders(['api-key' => $this->cleApi])

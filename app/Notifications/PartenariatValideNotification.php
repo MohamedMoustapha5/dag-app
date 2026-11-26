@@ -28,7 +28,7 @@ class PartenariatValideNotification extends NotificationDag
     public function message(): string
     {
         $periode = $this->partenariat->fin !== null
-            ? "jusqu'au {$this->partenariat->fin->locale('fr')->translatedFormat('j F Y')}"
+            ? "jusqu'au {$this->partenariat->fin->settings(['locale' => 'fr'])->translatedFormat('j F Y')}"
             : 'pour une durée indéterminée';
 
         return "L'équipe DAG a validé votre contrat de partenariat : votre structure est Partenaire officiel de Digital Agency Group {$periode}. Bienvenue parmi nos partenaires !";

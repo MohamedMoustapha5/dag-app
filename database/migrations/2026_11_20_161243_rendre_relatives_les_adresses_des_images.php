@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 return new class extends Migration
 {
@@ -19,7 +20,7 @@ return new class extends Migration
                 ->select(['id', 'image'])
                 ->get()
                 ->each(fn (object $ligne) => DB::table($table)->where('id', $ligne->id)->update([
-                    'image' => substr($ligne->image, strpos($ligne->image, '/storage/')),
+                    'image' => '/storage/'.Str::after($ligne->image, '/storage/'),
                 ]));
         }
     }

@@ -33,7 +33,8 @@ class EnvoyerAccesEquipe extends Command
 {
     public function handle(): int
     {
-        $email = $this->argument('email');
+        $argument = $this->argument('email');
+        $email = is_string($argument) && $argument !== '' ? $argument : null;
 
         if ($email !== null && $this->option('tous')) {
             $this->error('Donnez une adresse ou --tous, pas les deux.');

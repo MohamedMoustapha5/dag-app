@@ -13,6 +13,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 
+/**
+ * @property-read bool|null $partenaire_officiel Present when loaded with withExists('partenariats as partenaire_officiel').
+ * @property-read string|null $fin_acces_recrutement Present when loaded with withMax('accesRecrutement as fin_acces_recrutement', 'fin').
+ */
 #[Fillable(['user_id', 'type', 'nom', 'secteur_activite', 'ville', 'telephone', 'statut'])]
 class Client extends Model
 {

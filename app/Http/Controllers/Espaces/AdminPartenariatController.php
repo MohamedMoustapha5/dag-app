@@ -131,7 +131,7 @@ class AdminPartenariatController extends Controller
             'domaines.min' => 'Choisissez au moins un domaine de collaboration.',
         ]);
 
-        $client = Client::findOrFail($data['client_id']);
+        $client = Client::findOrFail($request->string('client_id')->value());
         $partenariats->proposer($client, (int) $data['duree_mois'], $data['domaines'], $data['message'] ?? null, $membre);
 
         Inertia::flash('toast', [
@@ -145,7 +145,7 @@ class AdminPartenariatController extends Controller
     /**
      * Entreprises and organisations without a partnership under way.
      *
-     * @return list<array{id: string, nom: string, typeLabel: string}>
+     * @return array<int, array{id: string, nom: string, typeLabel: string}>
      */
     private function clientsProposables(): array
     {
