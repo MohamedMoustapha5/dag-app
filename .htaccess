@@ -1,0 +1,24 @@
+# When the domain points at the application folder (htdocs) instead of its
+# public/ subfolder: every request is served from public/, so .env, storage/,
+# vendor/ and the code are never reachable from the web. Pointing the domain
+# straight at public/ makes this file unused, which is even better.
+
+Options -Indexes
+
+# Without mod_rewrite nothing outside public/ may be served at all.
+<IfModule !mod_rewrite.c>
+    Require all denied
+</IfModule>
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Files that must never leave the server, even by mistake of a rule below.
+    RewriteRule (^|/)\.(env|git|deploiement)(/|$|\.) - [R=404,L]
+    RewriteRule ^(artisan|composer\.(json|lock)|package(-lock)?\.json)$ - [R=404,L]
+
+    # Everything else is served from public/ (its own .htaccess then sends
+    # the pages to index.php).
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
