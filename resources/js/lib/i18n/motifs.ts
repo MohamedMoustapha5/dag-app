@@ -105,13 +105,19 @@ export const motifs: [RegExp, Remplacement][] = [
     ],
 
     // Partnerships
-    [/^Contrat de partenariat — (.+)$/, (m) => `Partnership contract — ${m[1]}`],
+    [
+        /^Contrat de partenariat — (.+)$/,
+        (m) => `Partnership contract — ${m[1]}`,
+    ],
     [/^Durée : (.+)$/, (m, t) => `Duration: ${t(m[1])}`],
     [
         /^Partenaire officiel depuis le (.+) · durée indéterminée$/,
         (m) => `Official partner since ${m[1]} · open-ended`,
     ],
-    [/^Depuis le (.+) · durée indéterminée$/, (m) => `Since ${m[1]} · open-ended`],
+    [
+        /^Depuis le (.+) · durée indéterminée$/,
+        (m) => `Since ${m[1]} · open-ended`,
+    ],
     [
         /^L'équipe DAG souhaite faire de votre structure un partenaire officiel, pour une durée (.+)\. Le contrat de partenariat vous attend dans votre espace : lisez-le et signez-le pour l'accepter\.$/,
         (m) =>
@@ -135,10 +141,15 @@ export const motifs: [RegExp, Remplacement][] = [
     ],
     [/^Du (.+) au (.+)$/, (m) => `From ${m[1]} to ${m[2]}`],
     [/^durée (.+)$/, (m, t) => `duration ${t(m[1])}`],
-    [/^Demande (DAG-PAR-.+) envoyée\. .+$/, (m) => `Request ${m[1]} sent. The DAG team is reviewing it and will get back to you shortly.`],
+    [
+        /^Demande (DAG-PAR-.+) envoyée\. .+$/,
+        (m) =>
+            `Request ${m[1]} sent. The DAG team is reviewing it and will get back to you shortly.`,
+    ],
     [
         /^Demande acceptée : le contrat de partenariat est envoyé à (.+) pour signature\.$/,
-        (m) => `Request accepted: the partnership contract is sent to ${m[1]} for signature.`,
+        (m) =>
+            `Request accepted: the partnership contract is sent to ${m[1]} for signature.`,
     ],
     [
         /^Demande refusée : (.+) est informé du motif\.$/,
@@ -146,11 +157,13 @@ export const motifs: [RegExp, Remplacement][] = [
     ],
     [
         /^Partenariat proposé : le contrat est envoyé à (.+) pour signature\.$/,
-        (m) => `Partnership proposed: the contract is sent to ${m[1]} for signature.`,
+        (m) =>
+            `Partnership proposed: the contract is sent to ${m[1]} for signature.`,
     ],
     [
         /^Partenariat validé : (.+) est Partenaire officiel de Digital Agency Group\.$/,
-        (m) => `Partnership validated: ${m[1]} is an Official partner of Digital Agency Group.`,
+        (m) =>
+            `Partnership validated: ${m[1]} is an Official partner of Digital Agency Group.`,
     ],
     [/^Demande de partenariat — (.+)$/, (m) => `Partnership request — ${m[1]}`],
     [
@@ -161,7 +174,10 @@ export const motifs: [RegExp, Remplacement][] = [
         /^Votre demande n'a pas été retenue\. Motif : (.+)$/,
         (m) => `Your request was not accepted. Reason: ${m[1]}`,
     ],
-    [/^Demande refusée\. Motif : (.+)$/, (m) => `Request refused. Reason: ${m[1]}`],
+    [
+        /^Demande refusée\. Motif : (.+)$/,
+        (m) => `Request refused. Reason: ${m[1]}`,
+    ],
 
     // Generating a contract
     [
@@ -170,7 +186,8 @@ export const motifs: [RegExp, Remplacement][] = [
     ],
     [
         /^Contrat (DAG-CTR-\S+) généré : relisez-le, puis envoyez-le à (.+)\.$/,
-        (m) => `Contract ${m[1]} generated: review it, then send it to ${m[2]}.`,
+        (m) =>
+            `Contract ${m[1]} generated: review it, then send it to ${m[2]}.`,
     ],
     [
         /^Contrat de partenariat (DAG-CTR-\S+) envoyé à (.+) pour signature\.$/,
@@ -184,13 +201,22 @@ export const motifs: [RegExp, Remplacement][] = [
         (m) => `Logo “${m[1]}” added: it appears on the public site.`,
     ],
     [/^Logo « (.+) » enregistré\.$/, (m) => `Logo “${m[1]}” saved.`],
-    [/^Logo « (.+) » supprimé du site\.$/, (m) => `Logo “${m[1]}” removed from the site.`],
+    [
+        /^Logo « (.+) » supprimé du site\.$/,
+        (m) => `Logo “${m[1]}” removed from the site.`,
+    ],
     [
         /^« (.+) » est de nouveau affiché sur le site\.$/,
         (m) => `“${m[1]}” is shown on the site again.`,
     ],
-    [/^« (.+) » est masqué du site\.$/, (m) => `“${m[1]}” is hidden from the site.`],
-    [/^(\d+) logos? affichés?$/, (m) => `${m[1]} logo${Number(m[1]) > 1 ? 's' : ''} shown`],
+    [
+        /^« (.+) » est masqué du site\.$/,
+        (m) => `“${m[1]}” is hidden from the site.`,
+    ],
+    [
+        /^(\d+) logos? affichés?$/,
+        (m) => `${m[1]} logo${Number(m[1]) > 1 ? 's' : ''} shown`,
+    ],
     [/^Placer (.+) plus tôt$/, (m) => `Move ${m[1]} earlier`],
     [/^Placer (.+) plus tard$/, (m) => `Move ${m[1]} later`],
     [/^Masquer (.+) du site$/, (m) => `Hide ${m[1]} from the site`],

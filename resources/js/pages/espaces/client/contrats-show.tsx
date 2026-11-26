@@ -394,10 +394,10 @@ export default function ContratsShow({
                                 className="muted"
                                 style={{ fontSize: 12.5, marginBottom: 12 }}
                             >
-                                Ces informations complètent l’identification
-                                de votre structure (« Partenaire 2 ») en tête
-                                du contrat signé. Le représentant est la
-                                personne qui signe ci-dessous.
+                                Ces informations complètent l’identification de
+                                votre structure (« Partenaire 2 ») en tête du
+                                contrat signé. Le représentant est la personne
+                                qui signe ci-dessous.
                             </p>
                             <div
                                 style={{

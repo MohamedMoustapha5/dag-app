@@ -6553,7 +6553,11 @@
     padding: 28px;
     margin-bottom: 24px;
     border: 1.5px solid var(--dag-blue);
-    background: linear-gradient(135deg, var(--dag-blue-light), var(--dag-surface) 60%);
+    background: linear-gradient(
+        135deg,
+        var(--dag-blue-light),
+        var(--dag-surface) 60%
+    );
 }
 .dag .partenariat-officiel-sceau {
     flex: none;

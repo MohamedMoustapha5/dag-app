@@ -12,9 +12,9 @@ const SECTIONS: SectionJuridique[] = [
                 <p>
                     Les présentes conditions générales d'utilisation (« CGU »)
                     encadrent l'accès et l'utilisation de la plateforme en ligne
-                    de Digital Agency Group (« DAG »), agence digitale
-                    établie à Douala, Cameroun : site public, espace client et
-                    espace apprenant.
+                    de Digital Agency Group (« DAG »), agence digitale établie à
+                    Douala, Cameroun : site public, espace client et espace
+                    apprenant.
                 </p>
                 <p>
                     En créant un compte, vous déclarez avoir lu et accepté sans
@@ -229,8 +229,8 @@ const SECTIONS: SectionJuridique[] = [
         titre: 'Nous contacter',
         contenu: (
             <p>
-                Pour toute question relative aux présentes CGU : Digital
-                Agency Group, Douala, Cameroun —{' '}
+                Pour toute question relative aux présentes CGU : Digital Agency
+                Group, Douala, Cameroun —{' '}
                 <a href="mailto:contact@agencydag.com">contact@agencydag.com</a>{' '}
                 — +237 6 98 57 28 93.
             </p>

@@ -202,9 +202,7 @@ function FormulaireAjout() {
                         />
                     </div>
                     <div>
-                        <label htmlFor="logo-lien">
-                            Site web (facultatif)
-                        </label>
+                        <label htmlFor="logo-lien">Site web (facultatif)</label>
                         <input
                             id="logo-lien"
                             type="url"
@@ -321,7 +319,9 @@ function CarteLogo({
     };
 
     return (
-        <div className={`card logos-admin-carte${logo.visible ? '' : ' masque'}`}>
+        <div
+            className={`card logos-admin-carte${logo.visible ? '' : ' masque'}`}
+        >
             <Tuile
                 src={apercu ?? logo.logo}
                 nom={logo.nom}

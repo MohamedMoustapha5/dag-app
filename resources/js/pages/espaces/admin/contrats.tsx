@@ -295,20 +295,22 @@ export default function AdminContrats({
                                 (generation.peutFacturer ||
                                     generation.peutPartenariat ||
                                     demandesAContractualiser.length > 0) && (
-                                <button
-                                    type="button"
-                                    className="btn-primary"
-                                    onClick={() =>
-                                        setGenerationOuverte(!generationOuverte)
-                                    }
-                                >
-                                    <Plus
-                                        size={15}
-                                        style={{ marginRight: 6 }}
-                                    />
-                                    Générer un contrat
-                                </button>
-                            )}
+                                    <button
+                                        type="button"
+                                        className="btn-primary"
+                                        onClick={() =>
+                                            setGenerationOuverte(
+                                                !generationOuverte,
+                                            )
+                                        }
+                                    >
+                                        <Plus
+                                            size={15}
+                                            style={{ marginRight: 6 }}
+                                        />
+                                        Générer un contrat
+                                    </button>
+                                )}
                         </div>
                     </div>
 

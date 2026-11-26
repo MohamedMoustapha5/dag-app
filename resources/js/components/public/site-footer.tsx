@@ -209,8 +209,8 @@ export default function SiteFooter() {
 
             <div className="site-footer-bottom">
                 <span>
-                    © {new Date().getFullYear()} Digital Agency Group ·
-                    Douala, Cameroun
+                    © {new Date().getFullYear()} Digital Agency Group · Douala,
+                    Cameroun
                 </span>
                 <div className="site-footer-legal">
                     <Link href={mentionsLegales()}>Mentions légales</Link>

@@ -144,8 +144,8 @@ export default function Formations({ sessions, stats }: FormationsProps) {
                         <h1>Formations & placement en entreprise</h1>
                         <p>
                             Des parcours concrets, conçus pour vous rendre
-                            rapidement opérationnel et vous accompagner
-                            jusqu’à l’emploi.
+                            rapidement opérationnel et vous accompagner jusqu’à
+                            l’emploi.
                         </p>
                         <div className="training-hero-details">
                             <div className="training-hero-message">

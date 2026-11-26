@@ -161,7 +161,9 @@ export default function Contact() {
                                 )}
                             </div>
                             <Recaptcha
-                                onChange={(jeton) => setData('recaptcha', jeton)}
+                                onChange={(jeton) =>
+                                    setData('recaptcha', jeton)
+                                }
                                 error={errors.recaptcha}
                             />
                             <button

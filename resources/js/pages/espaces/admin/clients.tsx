@@ -337,9 +337,7 @@ export default function AdminClients({ clients, apprenants, actions }: Props) {
                                                         <select
                                                             aria-label="Durée offerte"
                                                             value={offreMois}
-                                                            onChange={(
-                                                                event,
-                                                            ) =>
+                                                            onChange={(event) =>
                                                                 setOffreMois(
                                                                     Number(
                                                                         event

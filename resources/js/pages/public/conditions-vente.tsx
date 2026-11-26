@@ -10,11 +10,10 @@ const SECTIONS: SectionJuridique[] = [
         contenu: (
             <p>
                 Les présentes conditions générales de vente (« CGV »)
-                s'appliquent à toutes les prestations vendues par Digital
-                Agency Group (« DAG ») : services à la demande, formules
-                d'abonnement et formations. Elles complètent le devis et le
-                contrat propres à chaque commande, qui prévalent en cas de
-                contradiction.
+                s'appliquent à toutes les prestations vendues par Digital Agency
+                Group (« DAG ») : services à la demande, formules d'abonnement
+                et formations. Elles complètent le devis et le contrat propres à
+                chaque commande, qui prévalent en cas de contradiction.
             </p>
         ),
     },

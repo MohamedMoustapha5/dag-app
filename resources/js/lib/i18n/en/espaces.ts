@@ -475,7 +475,8 @@ export const espacesEn: Record<string, string> = {
     'Redirection…': 'Redirecting…',
     'Reprendre le paiement': 'Resume payment',
     'Vérification…': 'Checking…',
-    'Paiement commencé, pas encore finalisé': 'Payment started, not finished yet',
+    'Paiement commencé, pas encore finalisé':
+        'Payment started, not finished yet',
     'Carte de test': 'Test card',
     'Sur la vraie page du prestataire, le client saisit ici sa carte puis confirme le paiement avec sa banque (code par SMS ou validation dans son application).':
         'On the real provider page, the customer enters their card here, then confirms the payment with their bank (code by SMS or approval in its app).',
@@ -556,7 +557,7 @@ export const espacesEn: Record<string, string> = {
     'Contrat en révision': 'Contract being revised',
     'En validation': 'Being validated',
     'Non retenue': 'Not accepted',
-    'Annulé': 'Cancelled',
+    Annulé: 'Cancelled',
     'Proposition de partenariat de DAG': 'Partnership proposal from DAG',
     'Votre demande de partenariat': 'Your partnership request',
     'Lire et signer le contrat': 'Read and sign the contract',
@@ -570,7 +571,8 @@ export const espacesEn: Record<string, string> = {
     'Votre demande est étudiée par l’équipe DAG. Si elle est acceptée, le contrat de partenariat est rédigé et vous est envoyé ici pour signature.':
         'Your request is reviewed by the DAG team. If it is accepted, the partnership contract is drafted and sent to you here for signature.',
     'Domaines de collaboration envisagés': 'Intended areas of collaboration',
-    'Présentez votre structure et votre projet': 'Present your organisation and your project',
+    'Présentez votre structure et votre projet':
+        'Present your organisation and your project',
     'Qui êtes-vous, que souhaitez-vous construire avec DAG, et quels sont vos besoins (recrutements, formations, projets) ?':
         'Who are you, what would you like to build with DAG, and what are your needs (hiring, training, projects)?',
     'Recrutement et stages des talents formés par DAG':

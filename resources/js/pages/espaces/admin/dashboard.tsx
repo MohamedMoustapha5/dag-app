@@ -43,9 +43,7 @@ type Props = {
         total: number;
         segments: { label: string; montant: number }[];
     } | null;
-    servicesPlusDemandes:
-        | { label: string; total: number }[]
-        | null;
+    servicesPlusDemandes: { label: string; total: number }[] | null;
 };
 
 const PERIODES = [
