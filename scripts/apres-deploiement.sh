@@ -1,18 +1,9 @@
 #!/bin/sh
 #
 # Met en ligne, sur le serveur, la version que GitHub vient d'envoyer par FTP
-# (scripts/envoyer-ftp.sh). Lancé chaque minute par le cron de l'hébergement ;
-# il ne fait rien tant qu'aucune nouvelle version n'est arrivée.
-#
-# À régler une fois dans le panneau de l'hébergeur (tâches cron), en
-# remplaçant /chemin/vers/dag-app par le dossier de l'application :
-#
-#   * * * * * cd /chemin/vers/dag-app && sh scripts/apres-deploiement.sh >> storage/logs/deploiement.log 2>&1
-#   * * * * * cd /chemin/vers/dag-app && php artisan schedule:run >> /dev/null 2>&1
-#   * * * * * cd /chemin/vers/dag-app && php artisan queue:work --stop-when-empty --max-time=55 >> /dev/null 2>&1
-#
-# Si « php » ou « composer » ne sont pas les bons sur le serveur, préfixez la
-# première ligne, par exemple : PHP=/usr/local/bin/php8.4 COMPOSER="php8.4 /home/moi/composer.phar" sh scripts/...
+# (scripts/envoyer-ftp.sh). Lancé chaque minute par scripts/cron.sh, l'unique
+# tâche cron de l'hébergement (la ligne à mettre dans le panneau y est) ; il
+# ne fait rien tant qu'aucune nouvelle version n'est arrivée.
 #
 # À chaque nouvelle version : composer install, migrate, cache, redémarrage
 # de la file d'attente. À la toute première : aussi db:seed (comptes de
