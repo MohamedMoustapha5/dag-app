@@ -27,8 +27,9 @@ use Illuminate\Notifications\Notifiable;
  * @property string $email
  * @property MembreEquipeRole $role
  * @property string $statut
+ * @property bool $visible_sur_le_site
  */
-#[Fillable(['name', 'civilite', 'email', 'password', 'role', 'statut'])]
+#[Fillable(['name', 'civilite', 'email', 'password', 'role', 'statut', 'visible_sur_le_site'])]
 #[Hidden(['password', 'remember_token'])]
 class MembreEquipe extends Authenticatable
 {
@@ -43,6 +44,7 @@ class MembreEquipe extends Authenticatable
             'role' => MembreEquipeRole::class,
             'civilite' => Civilite::class,
             'password' => 'hashed',
+            'visible_sur_le_site' => 'boolean',
         ];
     }
 

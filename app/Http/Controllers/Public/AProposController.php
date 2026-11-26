@@ -14,7 +14,7 @@ class AProposController extends Controller
     public function __invoke(): Response
     {
         $equipe = MembreEquipe::where('statut', 'ACTIF')
-
+            ->where('visible_sur_le_site', true)
             ->get()
             ->map(fn (MembreEquipe $membre) => [
                 'nom' => $membre->nomAvecCivilite(),
@@ -32,7 +32,7 @@ class AProposController extends Controller
                 // suivent les logos affichés, l'équipe les comptes actifs.
                 'partenariats' => count($partenaires),
                 'contratsEnLigne' => 100,
-                'membresEquipe' => MembreEquipe::where('statut', 'ACTIF')->count(),
+                'membresEquipe' => MembreEquipe::where('statut', 'ACTIF')->where('visible_sur_le_site', true)->count(),
             ],
             'equipe' => $equipe,
             'partenaires' => $partenaires,

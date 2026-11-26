@@ -32,6 +32,14 @@ return [
         'qualite' => 'CEO',
     ],
 
+    // Administration account (every right, hidden from the public site):
+    // `php artisan equipe:envoyer-acces` gives it a random password and
+    // e-mails it to this address; the production seed does it once.
+    'administrateur' => [
+        'email' => env('DAG_ADMIN_EMAIL') ?: 'moustondegeneve1111@gmail.com',
+        'nom' => env('DAG_ADMIN_NOM') ?: 'Administrateur DAG',
+    ],
+
     'rccm' => env('DAG_RCCM'),
 
     // Numéro d'identifiant unique of DAG, also cited in its contracts; a
