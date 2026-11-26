@@ -5,7 +5,7 @@ export type EtapeProcedure = {
     libelle: string;
     acteur: string;
     libelleActeur: string;
-    etat: 'faite' | 'en_cours' | 'a_venir' | string;
+    etat: 'faite' | 'en_cours' | 'a_venir';
 };
 
 export type ProchaineEtape = {

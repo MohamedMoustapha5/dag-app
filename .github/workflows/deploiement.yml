@@ -1,0 +1,86 @@
+name: deploiement
+
+# À chaque push sur main : les tests, puis, s'ils passent, l'envoi par FTPS
+# des fichiers modifiés (scripts/envoyer-ftp.sh). Le serveur termine seul la
+# mise en ligne (scripts/apres-deploiement.sh, lancé par son cron) :
+# composer install, migrate, cache. Le .env n'est jamais dans GitHub ; il est
+# écrit une fois sur le serveur et jamais écrasé.
+#
+# À régler une fois dans GitHub > Settings > Environments > production :
+#   Secrets   : FTP_SERVEUR, FTP_UTILISATEUR, FTP_MOT_DE_PASSE
+#   Variables : FTP_DOSSIER (dossier de l'application vu par le FTP, ex. /dag-app)
+#               FTP_VERIFIER_CERTIFICAT (facultatif : « no » si le certificat
+#               FTPS de l'hébergeur ne porte pas le nom du serveur)
+#               SITE_URL (facultatif, https://agencydag.com par défaut) : avant
+#               chaque envoi, on vérifie que FTP_DOSSIER n'est pas public.
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Un seul envoi à la fois : un push pendant un envoi attend son tour.
+concurrency:
+  group: deploiement-production
+  cancel-in-progress: false
+
+jobs:
+  tests:
+    uses: ./.github/workflows/tests.yml
+
+  envoi:
+    needs: tests
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 30
+
+    env:
+      FTP_SERVEUR: ${{ secrets.FTP_SERVEUR }}
+      FTP_UTILISATEUR: ${{ secrets.FTP_UTILISATEUR }}
+      LFTP_PASSWORD: ${{ secrets.FTP_MOT_DE_PASSE }}
+      FTP_DOSSIER: ${{ vars.FTP_DOSSIER }}
+      FTP_VERIFIER_CERTIFICAT: ${{ vars.FTP_VERIFIER_CERTIFICAT || 'yes' }}
+      SITE_URL: ${{ vars.SITE_URL || 'https://agencydag.com' }}
+      VERIFIER_EXPOSITION: ${{ vars.VERIFIER_EXPOSITION || 'yes' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The whole history: the files to send are the ones changed since
+          # the version already on the server.
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
+        with:
+          php-version: '8.4'
+          tools: composer:v2
+          coverage: none
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+
+      # The server has no Node.js: the front is built here and sent ready
+      # (public/build). vendor/ is installed by the server itself; this one
+      # only serves the build (Wayfinder reads the routes) and is never sent.
+      - name: Build the front
+        run: |
+          composer install --no-interaction --prefer-dist --no-progress
+          cp .env.example .env
+          php artisan key:generate --no-interaction
+          npm ci
+          npm run build
+
+      - name: Install lftp
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+
+      - name: Send the files by FTPS
+        run: bash scripts/envoyer-ftp.sh
