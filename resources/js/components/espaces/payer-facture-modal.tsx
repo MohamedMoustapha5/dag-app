@@ -474,11 +474,12 @@ export default function PayerFactureModal({ facture, moyens, onClose }: Props) {
                                 />
                                 <span>
                                     Vous allez être redirigé vers la page de
-                                    paiement sécurisée de notre partenaire. Saisissez-y
-                                    votre numéro {moyenChoisi?.label}, puis
-                                    validez la demande reçue sur votre téléphone
-                                    avec votre code secret. Vous revenez
-                                    ensuite automatiquement sur DAG.
+                                    paiement sécurisée de notre partenaire.
+                                    Saisissez-y votre numéro{' '}
+                                    {moyenChoisi?.label}, puis validez la
+                                    demande reçue sur votre téléphone avec votre
+                                    code secret. Vous revenez ensuite
+                                    automatiquement sur DAG.
                                 </span>
                             </div>
                         ) : moyenChoisi?.mobile ? (

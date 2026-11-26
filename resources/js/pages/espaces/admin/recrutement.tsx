@@ -56,7 +56,8 @@ export default function AdminRecrutement({
             <div
                 className="espace-hero"
                 style={{
-                    backgroundImage: "url('/images/photos/handshake-dashboard.jpg')",
+                    backgroundImage:
+                        "url('/images/photos/handshake-dashboard.jpg')",
                 }}
             >
                 <div className="espace-hero-overlay" />
@@ -307,9 +308,7 @@ function ForfaitLigne({
     return (
         <tr>
             <td style={{ fontWeight: 600 }}>{forfait.libelle}</td>
-            <td className="muted">
-                {forfait.dureeMois} mois
-            </td>
+            <td className="muted">{forfait.dureeMois} mois</td>
             <td>{formatMontant(forfait.prix)}</td>
             <td style={{ textAlign: 'right' }}>
                 {peutModifier && (

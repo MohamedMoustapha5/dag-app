@@ -45,11 +45,7 @@ const EQUIPE_PHOTOS: Record<string, string> = {
     Développeur: '/images/photos/mustapha-developpeur.jpg',
 };
 
-export default function APropos({
-    stats,
-    equipe,
-    partenaires,
-}: AProposProps) {
+export default function APropos({ stats, equipe, partenaires }: AProposProps) {
     const equipeAffichee = equipe.map((membre) => ({
         nom: membre.nom,
         role: membre.role,
@@ -79,8 +75,8 @@ export default function APropos({
                             L'agence qui simplifie votre transformation digitale
                         </h1>
                         <p>
-                            Digital Agency Group réunit, sous un seul toit
-                            à Douala, la création de contenu, le community
+                            Digital Agency Group réunit, sous un seul toit à
+                            Douala, la création de contenu, le community
                             management, la publicité, la formation, le
                             développement web et la cybersécurité. Un seul
                             interlocuteur, du premier message à la livraison.
@@ -230,38 +226,44 @@ export default function APropos({
             </section>
 
             {partenaires.length > 0 && (
-            <section
-                className="section-gap reveal container"
-                style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    textAlign: 'center',
-                }}
-            >
-                <span className="badge badge-partner">Écosystème DAG</span>
-                <h2
+                <section
+                    className="section-gap reveal container"
                     style={{
-                        marginTop: 14,
-                        fontSize: 26,
-                        color: 'var(--dag-navy)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        textAlign: 'center',
                     }}
                 >
-                    Nos partenaires
-                </h2>
-                <p className="muted" style={{ marginTop: 10, maxWidth: 560 }}>
-                    Des partenaires de confiance, choisis pour leur sérieux et
-                    leur exigence de qualité.
-                </p>
+                    <span className="badge badge-partner">Écosystème DAG</span>
+                    <h2
+                        style={{
+                            marginTop: 14,
+                            fontSize: 26,
+                            color: 'var(--dag-navy)',
+                        }}
+                    >
+                        Nos partenaires
+                    </h2>
+                    <p
+                        className="muted"
+                        style={{ marginTop: 10, maxWidth: 560 }}
+                    >
+                        Des partenaires de confiance, choisis pour leur sérieux
+                        et leur exigence de qualité.
+                    </p>
 
-                <BandeauLogosPartenaires partenaires={partenaires} />
+                    <BandeauLogosPartenaires partenaires={partenaires} />
 
-                <p className="muted" style={{ marginTop: 20, fontSize: 13 }}>
-                    <Link href={catalogue()}>
-                        Découvrir l'ensemble de nos services →
-                    </Link>
-                </p>
-            </section>
+                    <p
+                        className="muted"
+                        style={{ marginTop: 20, fontSize: 13 }}
+                    >
+                        <Link href={catalogue()}>
+                            Découvrir l'ensemble de nos services →
+                        </Link>
+                    </p>
+                </section>
             )}
 
             <section

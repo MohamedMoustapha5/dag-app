@@ -157,7 +157,9 @@ export default function AdminPartenariats({
                     <button
                         type="button"
                         className="btn-primary"
-                        onClick={() => setPropositionOuverte((ouvert) => !ouvert)}
+                        onClick={() =>
+                            setPropositionOuverte((ouvert) => !ouvert)
+                        }
                     >
                         <Handshake size={16} /> Proposer un partenariat
                     </button>
@@ -331,7 +333,10 @@ function CartePartenariat({
             >
                 {action === 'etudier' && actions.gerer && (
                     <div className="partenariat-actions">
-                        <label className="sr-only" htmlFor={`duree-${partenariat.id}`}>
+                        <label
+                            className="sr-only"
+                            htmlFor={`duree-${partenariat.id}`}
+                        >
                             Durée du partenariat
                         </label>
                         <select
@@ -495,8 +500,8 @@ function FormulaireProposition({
         >
             <p className="partenariat-suivi-titre">Proposer un partenariat</p>
             <p className="muted" style={{ fontSize: 13, marginBottom: 18 }}>
-                Le contrat de partenariat est rédigé à partir du modèle actif
-                et envoyé tout de suite à la structure, qui le signe depuis son
+                Le contrat de partenariat est rédigé à partir du modèle actif et
+                envoyé tout de suite à la structure, qui le signe depuis son
                 espace. Vous le validez ensuite.
             </p>
 
@@ -620,7 +625,10 @@ function FormulaireProposition({
                         placeholder="Quelques mots pour présenter la proposition de DAG."
                     />
 
-                    <div className="partenariat-actions" style={{ marginTop: 16 }}>
+                    <div
+                        className="partenariat-actions"
+                        style={{ marginTop: 16 }}
+                    >
                         <button
                             type="submit"
                             className="btn-primary"

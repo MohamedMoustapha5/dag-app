@@ -295,19 +295,21 @@ export default function Home({ stats, equipe, partenaires }: HomeProps) {
             </section>
 
             {partenaires.length > 0 && (
-            <section
-                className="home-partenaires reveal"
-                aria-labelledby="home-partenaires-titre"
-            >
-                <div className="container home-partenaires-entete">
-                    <span className="badge badge-partner">Nos partenaires</span>
-                    <h2 id="home-partenaires-titre">
-                        Ils avancent avec nous
-                    </h2>
-                </div>
+                <section
+                    className="home-partenaires reveal"
+                    aria-labelledby="home-partenaires-titre"
+                >
+                    <div className="home-partenaires-entete container">
+                        <span className="badge badge-partner">
+                            Nos partenaires
+                        </span>
+                        <h2 id="home-partenaires-titre">
+                            Ils avancent avec nous
+                        </h2>
+                    </div>
 
-                <BandeLogosPartenaires partenaires={partenaires} />
-            </section>
+                    <BandeLogosPartenaires partenaires={partenaires} />
+                </section>
             )}
 
             <section className="section-gap reveal container">

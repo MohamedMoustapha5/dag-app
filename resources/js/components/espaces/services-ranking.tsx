@@ -30,9 +30,7 @@ export default function ServicesRanking({ services }: Props) {
                             marginBottom: 6,
                         }}
                     >
-                        <span style={{ fontWeight: 600 }}>
-                            {service.label}
-                        </span>
+                        <span style={{ fontWeight: 600 }}>{service.label}</span>
                         <strong>{service.total}</strong>
                     </div>
                     <div

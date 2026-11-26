@@ -14,7 +14,7 @@ class HomeController extends Controller
     public function __invoke(): Response
     {
         $equipe = MembreEquipe::where('statut', 'ACTIF')
-
+            ->where('visible_sur_le_site', true)
             ->get()
             ->map(fn (MembreEquipe $membre) => [
                 'nom' => $membre->nomAvecCivilite(),

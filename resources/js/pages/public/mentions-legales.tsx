@@ -41,8 +41,8 @@ const SECTIONS: SectionJuridique[] = [
         titre: 'Direction de la publication',
         contenu: (
             <p>
-                La directrice de la publication est Mme Mandou, CEO de
-                Digital Agency Group.
+                La directrice de la publication est Mme Mandou, CEO de Digital
+                Agency Group.
             </p>
         ),
     },

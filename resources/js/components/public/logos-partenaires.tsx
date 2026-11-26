@@ -65,7 +65,9 @@ export function BandeLogosPartenaires({
                                                 href={partenaire.lien}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                tabIndex={original ? undefined : -1}
+                                                tabIndex={
+                                                    original ? undefined : -1
+                                                }
                                                 aria-label={
                                                     original
                                                         ? `${partenaire.nom} (nouvel onglet)`

@@ -373,7 +373,10 @@ export default function GenererContrat({
                                 >
                                     <option value="">Modèle par défaut</option>
                                     {modelesDuType.map((modele) => (
-                                        <option key={modele.id} value={modele.id}>
+                                        <option
+                                            key={modele.id}
+                                            value={modele.id}
+                                        >
                                             {modele.nom}
                                         </option>
                                     ))}
@@ -386,8 +389,8 @@ export default function GenererContrat({
                         <p className="generer-contrat-note generer-contrat-large">
                             La facture du montant est émise avec le contrat :
                             l’entreprise la règle en ligne une fois le contrat
-                            signé et validé par vous. Elle retrouve tout dans
-                            « Mes demandes ».
+                            signé et validé par vous. Elle retrouve tout dans «
+                            Mes demandes ».
                         </p>
                     </>
                 )}

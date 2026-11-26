@@ -136,7 +136,10 @@ const ONGLETS: {
 ];
 
 /** Help line of a tab, worded for particuliers (no contract) when needed. */
-function aideOnglet(onglet: (typeof ONGLETS)[number], type: TypeClient): string {
+function aideOnglet(
+    onglet: (typeof ONGLETS)[number],
+    type: TypeClient,
+): string {
     if (type === 'entreprise') {
         return onglet.aide;
     }
@@ -610,8 +613,7 @@ export default function AdminDemandes({
                                                                 fontWeight: 400,
                                                             }}
                                                         >
-                                                            Service sans
-                                                            contrat
+                                                            Service sans contrat
                                                         </span>
                                                     )}
                                             </td>

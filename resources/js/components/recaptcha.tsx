@@ -36,7 +36,8 @@ function chargerRecaptcha(): Promise<Grecaptcha> {
     }
 
     chargement ??= new Promise<Grecaptcha>((resolve, reject) => {
-        window.dagRecaptchaPret = () => resolve(window.grecaptcha as Grecaptcha);
+        window.dagRecaptchaPret = () =>
+            resolve(window.grecaptcha as Grecaptcha);
 
         const script = document.createElement('script');
         script.src = `https://www.google.com/recaptcha/api.js?render=explicit&onload=dagRecaptchaPret&hl=${langueActive()}`;
@@ -110,7 +111,8 @@ export default function Recaptcha({ onChange, error }: Props) {
                         ? 'dark'
                         : 'light',
                     size:
-                        hote.clientWidth > 0 && hote.clientWidth < LARGEUR_WIDGET
+                        hote.clientWidth > 0 &&
+                        hote.clientWidth < LARGEUR_WIDGET
                             ? 'compact'
                             : 'normal',
                     callback: changer,

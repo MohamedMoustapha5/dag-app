@@ -306,8 +306,7 @@ export default function DemandesShow({
                                         gap: 6,
                                     }}
                                 >
-                                    <Download size={14} /> Télécharger le
-                                    devis
+                                    <Download size={14} /> Télécharger le devis
                                 </a>
                                 {devis.peutValider && (
                                     <button
@@ -399,8 +398,8 @@ export default function DemandesShow({
                                         className="muted"
                                         style={{ fontSize: 12, marginTop: 12 }}
                                     >
-                                        Le paiement s'ouvre dès que vous
-                                        validez le devis.
+                                        Le paiement s'ouvre dès que vous validez
+                                        le devis.
                                     </p>
                                 ) : demande.facture.attendSignatureContrat ? (
                                     <p
@@ -647,7 +646,9 @@ function RefuserDevisModal({
                                 name="suite"
                                 value="abandon"
                                 checked={form.data.suite === 'abandon'}
-                                onChange={() => form.setData('suite', 'abandon')}
+                                onChange={() =>
+                                    form.setData('suite', 'abandon')
+                                }
                             />
                             <span>
                                 <strong>Je ne donne pas suite</strong>
@@ -676,9 +677,7 @@ function RefuserDevisModal({
                             className="btn-primary"
                             disabled={form.processing}
                         >
-                            {form.processing
-                                ? 'Envoi…'
-                                : 'Confirmer le refus'}
+                            {form.processing ? 'Envoi…' : 'Confirmer le refus'}
                         </button>
                     </div>
                 </form>
@@ -775,7 +774,6 @@ function ValiderDevisModal({
                             <strong>{formatMontant(montant)}</strong>
                         </>
                     ) : null}
-
                     {particulier
                         ? ". Le paiement s'ouvre aussitôt, et la prestation démarre dès réception de votre règlement."
                         : '. Votre contrat vous est aussitôt envoyé pour signature ; après sa validation par DAG, vous réglez la facture.'}

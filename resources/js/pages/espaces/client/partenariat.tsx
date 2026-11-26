@@ -104,8 +104,8 @@ export default function PartenariatPage({
                     <h1>Partenariat Digital Agency Group</h1>
                     <p className="muted">
                         Un cadre contractuel pour collaborer durablement avec
-                        DAG : talents, formation, projets digitaux et
-                        visibilité commune.
+                        DAG : talents, formation, projets digitaux et visibilité
+                        commune.
                     </p>
                 </div>
             </div>
@@ -130,8 +130,7 @@ export default function PartenariatPage({
                                 {partenariat.reference}
                                 {partenariat.creeLe &&
                                     ` · ${dateLongue(partenariat.creeLe)}`}
-                                {partenariat.duree &&
-                                    ` · ${partenariat.duree}`}
+                                {partenariat.duree && ` · ${partenariat.duree}`}
                             </p>
                         </div>
                         <span className="chip chip-blue">
@@ -153,8 +152,8 @@ export default function PartenariatPage({
                                     )}
                                     className="btn-primary"
                                 >
-                                    <FileSignature size={16} /> Lire et
-                                    signer le contrat
+                                    <FileSignature size={16} /> Lire et signer
+                                    le contrat
                                 </Link>
                             )}
                     </SuiviProcedure>
@@ -293,11 +292,12 @@ function PartenaireOfficiel({
                             <FileSignature size={15} /> Voir le contrat
                         </Link>
                         <a
-                            href={contratsRoutes.pdf(partenariat.contrat.id).url}
+                            href={
+                                contratsRoutes.pdf(partenariat.contrat.id).url
+                            }
                             className="btn-outline"
                         >
-                            <Download size={15} /> Télécharger le contrat
-                            signé
+                            <Download size={15} /> Télécharger le contrat signé
                         </a>
                     </div>
                 )}
@@ -391,7 +391,9 @@ function FormulaireDemande({
                 id="message"
                 rows={5}
                 value={form.data.message}
-                onChange={(event) => form.setData('message', event.target.value)}
+                onChange={(event) =>
+                    form.setData('message', event.target.value)
+                }
                 placeholder="Qui êtes-vous, que souhaitez-vous construire avec DAG, et quels sont vos besoins (recrutements, formations, projets) ?"
             />
             {form.errors.message && (
