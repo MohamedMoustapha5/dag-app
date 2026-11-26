@@ -1,0 +1,20 @@
+#!/bin/sh
+#
+# Before each push: when .env.production (never in git) changed since its
+# last sending, it goes to the server alone, by FTPS (scripts/envoyer-env.ps1).
+# A failure is reported but never stops the push.
+#
+# Enabled once per clone with: git config core.hooksPath .githooks
+
+[ -f .env.production ] || exit 0
+
+if command -v pwsh > /dev/null 2>&1; then
+    POWERSHELL=pwsh
+else
+    POWERSHELL=powershell
+fi
+
+"$POWERSHELL" -NoProfile -ExecutionPolicy Bypass -File scripts/envoyer-env.ps1 -SiChange \
+    || echo "Attention : .env.production n'a pas pu être envoyé (le push continue). Lancez « pwsh scripts/envoyer-env.ps1 » pour voir pourquoi."
+
+exit 0

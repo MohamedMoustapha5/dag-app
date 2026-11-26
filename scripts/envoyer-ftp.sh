@@ -39,7 +39,7 @@ trap 'rm -rf "$TRAVAIL"' EXIT
 
 # Paths of the repository that never go to the server.
 exclus() {
-    grep -zvE '^(tests/|\.github/|\.ai/|\.claude/)|(^|/)\.env$' || true
+    grep -zvE '^(tests/|\.github/|\.githooks/|\.ai/|\.claude/|scripts/envoyer-env\.ps1$)|(^|/)\.env$' || true
 }
 
 # Commands opening the FTPS connection; the password comes from LFTP_PASSWORD
@@ -128,16 +128,16 @@ verifier_exposition() {
     lftp_limite 120 "$TRAVAIL/nettoyage.lftp" || true
 
     if grep -q "$jeton" "$TRAVAIL/reponse" 2>/dev/null; then
-        echo "::error::Le dossier $DOSSIER est visible depuis Internet ($SITE_URL) : .env et storage/ y seraient téléchargeables. Faites pointer le domaine sur $DOSSIER/public, puis relancez. Rien n'a été envoyé."
+        echo "::error::Le dossier ${DOSSIER:-/} est visible depuis Internet ($SITE_URL) : .env et storage/ y seraient téléchargeables. Faites pointer le domaine sur $DOSSIER/public, puis relancez. Rien n'a été envoyé."
         exit 1
     fi
 
     if [ -z "$code" ] || [ "$code" = "000" ]; then
-        echo "::error::Le site $SITE_URL ne répond pas (HTTPS) : impossible de vérifier que $DOSSIER n'est pas public. Rien n'a été envoyé."
+        echo "::error::Le site $SITE_URL ne répond pas (HTTPS) : impossible de vérifier que ${DOSSIER:-/} n'est pas public. Rien n'a été envoyé."
         exit 1
     fi
 
-    echo "Le dossier $DOSSIER n'est pas public (le site répond $code au fichier témoin) : envoi."
+    echo "Le dossier ${DOSSIER:-/} n'est pas public (le site répond $code au fichier témoin) : envoi."
 }
 
 # The version already on the server, empty for a first deployment.
