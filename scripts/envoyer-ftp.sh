@@ -127,7 +127,10 @@ verifier_exposition() {
     { entete; echo "rm -f $(chemin "$DOSSIER/$jeton.txt")"; } > "$TRAVAIL/nettoyage.lftp"
     lftp_limite 120 "$TRAVAIL/nettoyage.lftp" || true
 
-    if grep -q "$jeton" "$TRAVAIL/reponse" 2>/dev/null; then
+    # Exposed only when the site serves the file itself: status 200 and its
+    # exact content. The application's 404 page repeats the address asked
+    # for, so merely finding the token in the answer proves nothing.
+    if [ "$code" = "200" ] && [ "$(cat "$TRAVAIL/reponse" 2>/dev/null)" = "$jeton" ]; then
         echo "::error::Le dossier ${DOSSIER:-/} est visible depuis Internet ($SITE_URL) : .env et storage/ y seraient téléchargeables. Faites pointer le domaine sur $DOSSIER/public, puis relancez. Rien n'a été envoyé."
         exit 1
     fi
