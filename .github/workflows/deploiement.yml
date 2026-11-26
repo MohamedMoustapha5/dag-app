@@ -2,7 +2,7 @@ name: deploiement
 
 # À chaque push sur main : les tests, puis, s'ils passent, l'envoi par FTPS
 # des fichiers modifiés (scripts/envoyer-ftp.sh). Le serveur termine seul la
-# mise en ligne (scripts/apres-deploiement.sh, lancé par son cron) :
+# mise en ligne (scripts/cron.php, lancé par son cron) :
 # composer install, migrate, cache. Le .env n'est jamais dans GitHub ; il est
 # écrit une fois sur le serveur et jamais écrasé.
 #
