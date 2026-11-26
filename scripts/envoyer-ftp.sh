@@ -78,7 +78,16 @@ verifier_exposition() {
     jeton="sonde-$(openssl rand -hex 16)"
     printf '%s' "$jeton" > "$TRAVAIL/sonde"
 
-    { entete; echo "put $(chemin "$TRAVAIL/sonde") -o $(chemin "$DOSSIER/$jeton.txt")"; } > "$TRAVAIL/sonde.lftp"
+    # When the FTP folder is the public root of the site (shared hosting),
+    # the root .htaccess is what keeps the folder private (everything served
+    # from public/): it goes first, and the probe then checks it works.
+    {
+        entete
+        if [ -f .htaccess ]; then
+            echo "put $(chemin ".htaccess") -o $(chemin "$DOSSIER/.htaccess")"
+        fi
+        echo "put $(chemin "$TRAVAIL/sonde") -o $(chemin "$DOSSIER/$jeton.txt")"
+    } > "$TRAVAIL/sonde.lftp"
     lftp -f "$TRAVAIL/sonde.lftp"
 
     code="$(curl -sS -L -o "$TRAVAIL/reponse" -w '%{http_code}' --max-time 20 "${SITE_URL%/}/$jeton.txt" 2>/dev/null || true)"
