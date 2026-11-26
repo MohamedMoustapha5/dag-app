@@ -10,7 +10,7 @@
 #  - Jamais envoyés : .env, vendor/, node_modules/, tests/, .github/. Rien
 #    d'autre n'est supprimé sur le serveur (storage/, .env, vendor/ restent).
 #  - En dernier, .deploiement/version reçoit le commit envoyé : le cron du
-#    serveur (scripts/apres-deploiement.sh) voit alors qu'une version est
+#    serveur (scripts/cron.php) voit alors qu'une version est
 #    arrivée et termine la mise en ligne. Si l'envoi échoue avant, la
 #    version n'est pas écrite et le prochain envoi reprend depuis l'ancienne.
 #
@@ -204,4 +204,4 @@ fi
 
 verifier_exposition
 lftp_limite 1500 "$TRAVAIL/envoi.lftp"
-echo "Version $VERSION envoyée : le serveur la met en ligne dans la minute (scripts/apres-deploiement.sh)."
+echo "Version $VERSION envoyée : le serveur la met en ligne dans la minute (scripts/cron.php)."
