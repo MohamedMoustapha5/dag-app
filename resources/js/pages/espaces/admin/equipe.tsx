@@ -132,6 +132,22 @@ export default function AdminEquipe({
         });
     };
 
+    const envoyerAcces = (membre: Membre) => {
+        if (
+            !confirm(
+                `Envoyer de nouveaux accès à ${membre.nom} ? Un mot de passe aléatoire lui sera envoyé à ${membre.email} et l'ancien ne fonctionnera plus.`,
+            )
+        ) {
+            return;
+        }
+
+        router.post(
+            equipeAdmin.acces(membre.id).url,
+            {},
+            { preserveScroll: true },
+        );
+    };
+
     const libelleCivilite = (valeur: string | null) =>
         civilites.find((civilite) => civilite.value === valeur)?.label;
 
@@ -479,6 +495,20 @@ export default function AdminEquipe({
                                             </button>
                                             {!membre.soiMeme && (
                                                 <>
+                                                    {membre.statut ===
+                                                        'ACTIF' && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                envoyerAcces(
+                                                                    membre,
+                                                                )
+                                                            }
+                                                            className="link-action"
+                                                        >
+                                                            Envoyer les accès
+                                                        </button>
+                                                    )}
                                                     <button
                                                         type="button"
                                                         onClick={() =>

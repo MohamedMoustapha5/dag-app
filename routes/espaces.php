@@ -190,6 +190,7 @@ Route::middleware(['auth:admin', 'auth.session', EnsureMembreActif::class])
         Route::post('equipe', [AdminEquipeController::class, 'store'])->name('espace-admin.equipe.store');
         Route::patch('equipe/{membreEquipe}', [AdminEquipeController::class, 'update'])->name('espace-admin.equipe.update');
         Route::delete('equipe/{membreEquipe}', [AdminEquipeController::class, 'destroy'])->name('espace-admin.equipe.destroy');
+        Route::post('equipe/{membreEquipe}/acces', [AdminEquipeController::class, 'envoyerAcces'])->middleware('throttle:6,1')->name('espace-admin.equipe.acces');
         Route::put('equipe-droits', [AdminEquipeController::class, 'updateDroit'])->name('espace-admin.equipe.droits.update');
         Route::delete('equipe-droits/{role}', [AdminEquipeController::class, 'reinitialiserDroits'])->name('espace-admin.equipe.droits.reset');
         Route::post('notifications/toutes-lues', [NotificationCentreController::class, 'toutesLues'])->name('espace-admin.notifications.toutes-lues');

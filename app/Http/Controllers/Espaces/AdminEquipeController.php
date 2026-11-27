@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Espaces;
 
+use App\Actions\Equipe\EnvoyerAccesMembre;
 use App\Concerns\PasswordValidationRules;
 use App\Concerns\SharesAdminEspaceProps;
 use App\Enums\Civilite;
@@ -19,6 +20,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
+use Throwable;
 
 class AdminEquipeController extends Controller
 {
@@ -170,6 +172,43 @@ class AdminEquipeController extends Controller
         ActivityLog::record($this->membre($request), 'a supprimé le compte de', null, "{$nom} — {$role}.");
 
         Inertia::flash('toast', ['type' => 'success', 'message' => "Compte de {$nom} supprimé."]);
+
+        return back();
+    }
+
+    /**
+     * E-mails a member a new random password, e.g. after their address
+     * changed or when they lost it. The CEO changes her own password from
+     * « Mon mot de passe ».
+     */
+    public function envoyerAcces(Request $request, MembreEquipe $membreEquipe, EnvoyerAccesMembre $envoyerAcces): RedirectResponse
+    {
+        $this->authorizePromotrice($request);
+
+        abort_if(
+            $membreEquipe->id === $this->membre($request)->id,
+            403,
+            'Changez votre propre mot de passe depuis « Mon mot de passe ».'
+        );
+
+        if (! $membreEquipe->estActif()) {
+            Inertia::flash('toast', ['type' => 'error', 'message' => "Le compte de {$membreEquipe->name} est désactivé : réactivez-le d'abord."]);
+
+            return back();
+        }
+
+        try {
+            $envoyerAcces->handle($membreEquipe);
+        } catch (Throwable $exception) {
+            report($exception);
+            Inertia::flash('toast', ['type' => 'error', 'message' => "L'e-mail n'a pas pu partir : le mot de passe de {$membreEquipe->name} n'a pas changé. Réessayez dans un instant."]);
+
+            return back();
+        }
+
+        ActivityLog::record($this->membre($request), 'a envoyé de nouveaux accès à', $membreEquipe, "{$membreEquipe->name} — {$membreEquipe->email}.");
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => "Nouveaux accès envoyés à {$membreEquipe->name} ({$membreEquipe->email})."]);
 
         return back();
     }

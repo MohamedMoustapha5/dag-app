@@ -2,14 +2,12 @@
 
 namespace App\Console\Commands;
 
+use App\Actions\Equipe\EnvoyerAccesMembre;
 use App\Enums\MembreEquipeRole;
 use App\Models\MembreEquipe;
-use App\Notifications\AccesEquipeNotification;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -95,15 +93,8 @@ class EnvoyerAccesEquipe extends Command
 
     private function envoyer(MembreEquipe $membre, bool $administrateur = false): bool
     {
-        $motDePasse = Str::password(16, symbols: false);
-
         try {
-            DB::transaction(function () use ($membre, $motDePasse, $administrateur): void {
-                $membre->password = $motDePasse;
-                $membre->save();
-
-                $membre->notifyNow(new AccesEquipeNotification($motDePasse, $administrateur));
-            });
+            app(EnvoyerAccesMembre::class)->handle($membre, $administrateur);
         } catch (Throwable $exception) {
             report($exception);
             $this->error("{$membre->email} : l'e-mail n'a pas pu partir ({$exception->getMessage()}). Le mot de passe n'a pas changé.");
