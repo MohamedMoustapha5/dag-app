@@ -361,6 +361,24 @@ export const motifs: [RegExp, Remplacement][] = [
     ],
     [/^Compte de (.+) supprimé\.$/, (m) => `Account of ${m[1]} deleted.`],
     [
+        /^Envoyer de nouveaux accès à (.+) \? Un mot de passe aléatoire lui sera envoyé à (\S+) et l'ancien ne fonctionnera plus\.$/,
+        (m) =>
+            `Send new sign-in details to ${m[1]}? A random password will be sent to ${m[2]} and the old one will stop working.`,
+    ],
+    [
+        /^Nouveaux accès envoyés à (.+) \((\S+)\)\.$/,
+        (m) => `New sign-in details sent to ${m[1]} (${m[2]}).`,
+    ],
+    [
+        /^Le compte de (.+) est désactivé : réactivez-le d'abord\.$/,
+        (m) => `The account of ${m[1]} is deactivated: reactivate it first.`,
+    ],
+    [
+        /^L'e-mail n'a pas pu partir : le mot de passe de (.+) n'a pas changé\. Réessayez dans un instant\.$/,
+        (m) =>
+            `The email could not be sent: the password of ${m[1]} has not changed. Try again in a moment.`,
+    ],
+    [
         /^Remettre les droits de « (.+) » à leurs valeurs par défaut \?$/,
         (m) => `Reset the rights of “${m[1]}” to their default values?`,
     ],

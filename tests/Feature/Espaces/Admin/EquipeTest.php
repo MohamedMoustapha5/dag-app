@@ -7,7 +7,10 @@ use App\Enums\MembreEquipeRole;
 use App\Models\Facture;
 use App\Models\MembreEquipe;
 use App\Models\Paiement;
+use App\Notifications\AccesEquipeNotification;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification;
 
 test('the index page exposes the access matrix, confirming the juriste role grants contract management', function () {
     $promotrice = MembreEquipe::factory()->promotrice()->create();
@@ -301,4 +304,35 @@ test('a promotrice can create a cybersecurity account, which reads the platform 
     expect($cyber->peut(Donnee::DemandesClients, Action::Voir))->toBeTrue();
     expect($cyber->peut(Donnee::DemandesClients, Action::Modifier))->toBeFalse();
     expect($cyber->peut(Donnee::FacturesPaiements, Action::Voir))->toBeFalse();
+});
+
+test('a promotrice e-mails a member a new random password, which replaces the old one and ends their sessions', function () {
+    Notification::fake();
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $membre = MembreEquipe::factory()->create(['email' => 'nouvelle.adresse@dag.cm']);
+    DB::table('sessions')->insert(['id' => 'ancienne-session', 'user_id' => $membre->id, 'payload' => '', 'last_activity' => now()->timestamp]);
+
+    $this->actingAs($promotrice, 'admin')
+        ->post(route('espace-admin.equipe.acces', $membre))
+        ->assertRedirect();
+
+    $motDePasse = Notification::sent($membre, AccesEquipeNotification::class)->sole()->motDePasse;
+    expect(Hash::check($motDePasse, $membre->fresh()->password))->toBeTrue();
+    expect(Hash::check('password', $membre->fresh()->password))->toBeFalse();
+    $this->assertDatabaseMissing('sessions', ['id' => 'ancienne-session']);
+    $this->assertDatabaseHas('activity_logs', ['membre_equipe_id' => $promotrice->id, 'action' => 'a envoyé de nouveaux accès à']);
+});
+
+test('new access is only sent by the promotrice, to an active member other than herself', function () {
+    Notification::fake();
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $marketing = MembreEquipe::factory()->create(['role' => MembreEquipeRole::CommunicationMarketing]);
+    $inactif = MembreEquipe::factory()->inactif()->create();
+
+    $this->actingAs($marketing, 'admin')->post(route('espace-admin.equipe.acces', $promotrice))->assertForbidden();
+    $this->actingAs($promotrice, 'admin')->post(route('espace-admin.equipe.acces', $promotrice))->assertForbidden();
+    $this->actingAs($promotrice, 'admin')->post(route('espace-admin.equipe.acces', $inactif))->assertRedirect();
+
+    Notification::assertNothingSent();
+    expect(Hash::check('password', $inactif->fresh()->password))->toBeTrue();
 });

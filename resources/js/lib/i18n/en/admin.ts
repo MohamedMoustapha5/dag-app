@@ -283,6 +283,9 @@ export const adminEn: Record<string, string> = {
     "Cette adresse e-mail est déjà utilisée par un autre membre de l'équipe.":
         'This email address is already used by another team member.',
     Cybersécurité: 'Cybersecurity',
+    'Envoyer les accès': 'Send sign-in details',
+    'Changez votre propre mot de passe depuis « Mon mot de passe ».':
+        'Change your own password from “My password”.',
     "Créer un compte membre de l'équipe": 'Create a team member account',
     Rôle: 'Role',
     Civilité: 'Title',
