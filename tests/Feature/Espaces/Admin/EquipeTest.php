@@ -4,7 +4,10 @@ use App\Enums\Action;
 use App\Enums\Civilite;
 use App\Enums\Donnee;
 use App\Enums\MembreEquipeRole;
+use App\Models\Facture;
 use App\Models\MembreEquipe;
+use App\Models\Paiement;
+use Illuminate\Support\Facades\DB;
 
 test('the index page exposes the access matrix, confirming the juriste role grants contract management', function () {
     $promotrice = MembreEquipe::factory()->promotrice()->create();
@@ -14,7 +17,7 @@ test('the index page exposes the access matrix, confirming the juriste role gran
     $response->assertOk();
     $response->assertInertia(fn ($page) => $page
         ->component('espaces/admin/equipe')
-        ->has('matriceRoles', 6)
+        ->has('matriceRoles', 7)
         ->where('matriceRoles.1.role', 'JURISTE')
         ->where('matriceRoles.1.droits.CONTRATS_CLAUSES', 'TOTAL')
         ->has('domaines', count(Donnee::cases())));
@@ -216,4 +219,86 @@ test('the developpeur can open the admin space but cannot manage the team', func
     $this->actingAs($developpeur, 'admin')
         ->get(route('espace-admin.equipe.index'))
         ->assertForbidden();
+});
+
+test('a promotrice edits the name and e-mail of a member', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $membre = MembreEquipe::factory()->create(['name' => 'Ancien Nom', 'email' => 'ancien@dag.cm']);
+
+    $this->actingAs($promotrice, 'admin')
+        ->patch(route('espace-admin.equipe.update', $membre), ['name' => 'Awa Diallo', 'email' => ' Awa.Diallo@DAG.cm '])
+        ->assertSessionHasNoErrors()
+        ->assertRedirect();
+
+    $membre->refresh();
+    expect($membre->name)->toBe('Awa Diallo');
+    expect($membre->email)->toBe('awa.diallo@dag.cm');
+});
+
+test('a member cannot be given the e-mail of another member', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    MembreEquipe::factory()->create(['email' => 'prise@dag.cm']);
+    $membre = MembreEquipe::factory()->create(['email' => 'membre@dag.cm']);
+
+    $this->actingAs($promotrice, 'admin')
+        ->patch(route('espace-admin.equipe.update', $membre), ['name' => $membre->name, 'email' => 'prise@dag.cm'])
+        ->assertSessionHasErrors(['email' => 'Cette adresse e-mail est déjà utilisée par un autre membre de l\'équipe.']);
+
+    expect($membre->fresh()->email)->toBe('membre@dag.cm');
+});
+
+test('a promotrice deletes a member: the account goes, its history stays', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $membre = MembreEquipe::factory()->create(['name' => 'Ancien Membre']);
+    $paiement = Paiement::create([
+        'facture_id' => Facture::factory()->create()->id, 'montant' => 5000, 'moyen' => 'ESPECES',
+        'statut' => 'CONFIRME', 'valide_par_id' => $membre->id,
+    ]);
+    DB::table('sessions')->insert(['id' => 'session-du-membre', 'user_id' => $membre->id, 'payload' => '', 'last_activity' => now()->timestamp]);
+
+    $this->actingAs($promotrice, 'admin')
+        ->delete(route('espace-admin.equipe.destroy', $membre))
+        ->assertRedirect();
+
+    $this->assertModelMissing($membre);
+    $this->assertModelExists($paiement);
+    expect($paiement->fresh()->valide_par_id)->toBeNull();
+    $this->assertDatabaseMissing('sessions', ['id' => 'session-du-membre']);
+    $this->assertDatabaseHas('activity_logs', ['membre_equipe_id' => $promotrice->id, 'action' => 'a supprimé le compte de']);
+});
+
+test('a promotrice cannot delete her own account and other roles cannot delete anyone', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+    $marketing = MembreEquipe::factory()->create(['role' => MembreEquipeRole::CommunicationMarketing]);
+    $membre = MembreEquipe::factory()->create();
+
+    $this->actingAs($promotrice, 'admin')->delete(route('espace-admin.equipe.destroy', $promotrice))->assertForbidden();
+    $this->actingAs($marketing, 'admin')->delete(route('espace-admin.equipe.destroy', $membre))->assertForbidden();
+    $this->actingAs($marketing, 'admin')
+        ->patch(route('espace-admin.equipe.update', $membre), ['name' => 'Piraté'])
+        ->assertForbidden();
+
+    $this->assertModelExists($promotrice);
+    $this->assertModelExists($membre);
+    expect($membre->fresh()->name)->not->toBe('Piraté');
+});
+
+test('a promotrice can create a cybersecurity account, which reads the platform but not the finances', function () {
+    $promotrice = MembreEquipe::factory()->promotrice()->create();
+
+    $this->actingAs($promotrice, 'admin')->post(route('espace-admin.equipe.store'), [
+        'name' => 'Expert Sécurité',
+        'email' => 'cyber@dag.cm',
+        'password' => 'mot-de-passe-sur',
+        'password_confirmation' => 'mot-de-passe-sur',
+        'role' => MembreEquipeRole::Cybersecurite->value,
+    ])->assertSessionHasNoErrors()->assertRedirect();
+
+    $cyber = MembreEquipe::where('email', 'cyber@dag.cm')->firstOrFail();
+
+    expect($cyber->role->label())->toBe('Cybersécurité');
+    expect($cyber->peut(Donnee::Statistiques, Action::Voir))->toBeTrue();
+    expect($cyber->peut(Donnee::DemandesClients, Action::Voir))->toBeTrue();
+    expect($cyber->peut(Donnee::DemandesClients, Action::Modifier))->toBeFalse();
+    expect($cyber->peut(Donnee::FacturesPaiements, Action::Voir))->toBeFalse();
 });

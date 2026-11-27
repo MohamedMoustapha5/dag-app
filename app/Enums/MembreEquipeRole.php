@@ -10,6 +10,7 @@ enum MembreEquipeRole: string
     case ControleGestion = 'CONTROLE_GESTION';
     case CreationContenu = 'CREATION_CONTENU';
     case Developpeur = 'DEVELOPPEUR';
+    case Cybersecurite = 'CYBERSECURITE';
 
     public function label(): string
     {
@@ -26,6 +27,7 @@ enum MembreEquipeRole: string
             self::ControleGestion => 'Secrétaire',
             self::CreationContenu => 'Création de contenu',
             self::Developpeur => 'Développeur',
+            self::Cybersecurite => 'Cybersécurité',
         };
     }
 }

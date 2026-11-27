@@ -1,4 +1,6 @@
 import { Head, router, useForm } from '@inertiajs/react';
+import { X } from 'lucide-react';
+import { useState } from 'react';
 import { NIVEAU_CHIP, NIVEAU_LABEL } from '@/lib/niveau-droit';
 import equipeAdmin from '@/routes/espace-admin/equipe';
 
@@ -86,13 +88,52 @@ export default function AdminEquipe({
         });
     };
 
-    const changerCivilite = (membreId: string, civilite: string) => {
-        router.patch(
-            equipeAdmin.update(membreId).url,
-            { civilite },
-            { preserveScroll: true },
-        );
+    const [membreEdite, setMembreEdite] = useState<Membre | null>(null);
+    const editForm = useForm({ civilite: '', name: '', email: '' });
+
+    const ouvrirEdition = (membre: Membre) => {
+        editForm.clearErrors();
+        editForm.setData({
+            civilite: membre.civilite ?? '',
+            name: membre.nom,
+            email: membre.email,
+        });
+        setMembreEdite(membre);
     };
+
+    const submitEdition = (event: React.FormEvent) => {
+        event.preventDefault();
+
+        if (!membreEdite) {
+            return;
+        }
+
+        editForm.transform((data) => ({
+            ...data,
+            civilite: data.civilite === '' ? null : data.civilite,
+        }));
+        editForm.patch(equipeAdmin.update(membreEdite.id).url, {
+            preserveScroll: true,
+            onSuccess: () => setMembreEdite(null),
+        });
+    };
+
+    const supprimer = (membre: Membre) => {
+        if (
+            !confirm(
+                `Supprimer définitivement le compte de ${membre.nom} ? Cette personne ne pourra plus se connecter. L'historique de ses actions (paiements validés, messages, journal) est conservé.`,
+            )
+        ) {
+            return;
+        }
+
+        router.delete(equipeAdmin.destroy(membre.id).url, {
+            preserveScroll: true,
+        });
+    };
+
+    const libelleCivilite = (valeur: string | null) =>
+        civilites.find((civilite) => civilite.value === valeur)?.label;
 
     const changerRole = (membreId: string, role: string) => {
         router.patch(
@@ -132,9 +173,9 @@ export default function AdminEquipe({
                 <div className="espace-hero-content">
                     <h1>Équipe DAG</h1>
                     <p>
-                        Seule la Promotrice peut créer un compte ou changer le
-                        rôle d'un membre. Désactiver un compte lui retire
-                        immédiatement l'accès.
+                        Seule la CEO peut créer, modifier ou supprimer un compte
+                        et changer le rôle d'un membre. Désactiver un compte lui
+                        retire immédiatement l'accès.
                     </p>
                 </div>
             </div>
@@ -349,33 +390,9 @@ export default function AdminEquipe({
                                 <tr key={membre.id}>
                                     <td>
                                         <p style={{ fontWeight: 600 }}>
-                                            <select
-                                                aria-label={`Civilité de ${membre.nom}`}
-                                                value={membre.civilite ?? ''}
-                                                style={{
-                                                    padding: '2px 6px',
-                                                    fontSize: 12.5,
-                                                    marginRight: 6,
-                                                    width: 'auto',
-                                                }}
-                                                onChange={(event) =>
-                                                    changerCivilite(
-                                                        membre.id,
-                                                        event.target.value,
-                                                    )
-                                                }
-                                            >
-                                                <option value="">—</option>
-                                                {civilites.map((civilite) => (
-                                                    <option
-                                                        key={civilite.value}
-                                                        value={civilite.value}
-                                                    >
-                                                        {civilite.label}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                            {membre.nom}
+                                            {libelleCivilite(membre.civilite)
+                                                ? `${libelleCivilite(membre.civilite)} ${membre.nom}`
+                                                : membre.nom}
                                             {membre.soiMeme && (
                                                 <span
                                                     className="muted"
@@ -438,27 +455,62 @@ export default function AdminEquipe({
                                                 : 'Inactif'}
                                         </span>
                                     </td>
-                                    <td style={{ textAlign: 'right' }}>
-                                        {!membre.soiMeme && (
+                                    <td
+                                        style={{
+                                            textAlign: 'right',
+                                            whiteSpace: 'nowrap',
+                                        }}
+                                    >
+                                        <div
+                                            style={{
+                                                display: 'inline-flex',
+                                                gap: 14,
+                                                alignItems: 'center',
+                                            }}
+                                        >
                                             <button
                                                 type="button"
                                                 onClick={() =>
-                                                    basculerStatut(membre)
+                                                    ouvrirEdition(membre)
                                                 }
                                                 className="link-action"
-                                                style={
-                                                    membre.statut === 'ACTIF'
-                                                        ? {
-                                                              color: 'var(--dag-red)',
-                                                          }
-                                                        : undefined
-                                                }
                                             >
-                                                {membre.statut === 'ACTIF'
-                                                    ? 'Désactiver'
-                                                    : 'Réactiver'}
+                                                Modifier
                                             </button>
-                                        )}
+                                            {!membre.soiMeme && (
+                                                <>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            basculerStatut(
+                                                                membre,
+                                                            )
+                                                        }
+                                                        className="link-action"
+                                                        style={{
+                                                            color: 'var(--dag-text-muted)',
+                                                        }}
+                                                    >
+                                                        {membre.statut ===
+                                                        'ACTIF'
+                                                            ? 'Désactiver'
+                                                            : 'Réactiver'}
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            supprimer(membre)
+                                                        }
+                                                        className="link-action"
+                                                        style={{
+                                                            color: 'var(--dag-red)',
+                                                        }}
+                                                    >
+                                                        Supprimer
+                                                    </button>
+                                                </>
+                                            )}
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -579,6 +631,175 @@ export default function AdminEquipe({
                     </table>
                 </div>
             </div>
+
+            {membreEdite && (
+                <div
+                    className="modal-backdrop"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label="Modifier un membre"
+                    onClick={(event) => {
+                        if (event.target === event.currentTarget) {
+                            setMembreEdite(null);
+                        }
+                    }}
+                >
+                    <form
+                        className="modal-panel"
+                        style={{
+                            maxWidth: 460,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 16,
+                        }}
+                        onSubmit={submitEdition}
+                    >
+                        <button
+                            type="button"
+                            className="modal-close"
+                            onClick={() => setMembreEdite(null)}
+                            aria-label="Fermer"
+                        >
+                            <X size={16} />
+                        </button>
+                        <div>
+                            <h2
+                                style={{
+                                    fontSize: 19,
+                                    color: 'var(--dag-navy)',
+                                }}
+                            >
+                                Modifier le membre
+                            </h2>
+                            <p
+                                className="muted"
+                                style={{ fontSize: 13, marginTop: 4 }}
+                            >
+                                <span>{membreEdite.roleLabel}</span> ·{' '}
+                                <span>
+                                    {membreEdite.statut === 'ACTIF'
+                                        ? 'Actif'
+                                        : 'Inactif'}
+                                </span>
+                            </p>
+                        </div>
+
+                        <div className="form-row-2">
+                            <div>
+                                <label htmlFor="edition-civilite">
+                                    Civilité
+                                </label>
+                                <select
+                                    id="edition-civilite"
+                                    value={editForm.data.civilite}
+                                    onChange={(event) =>
+                                        editForm.setData(
+                                            'civilite',
+                                            event.target.value,
+                                        )
+                                    }
+                                >
+                                    <option value="">—</option>
+                                    {civilites.map((civilite) => (
+                                        <option
+                                            key={civilite.value}
+                                            value={civilite.value}
+                                        >
+                                            {civilite.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label htmlFor="edition-nom">Nom complet</label>
+                                <input
+                                    id="edition-nom"
+                                    value={editForm.data.name}
+                                    onChange={(event) =>
+                                        editForm.setData(
+                                            'name',
+                                            event.target.value,
+                                        )
+                                    }
+                                    required
+                                />
+                                {editForm.errors.name && (
+                                    <p
+                                        style={{
+                                            color: 'var(--dag-red)',
+                                            fontSize: 12,
+                                            marginTop: 4,
+                                        }}
+                                    >
+                                        {editForm.errors.name}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+
+                        <div>
+                            <label htmlFor="edition-email">
+                                Adresse e-mail
+                            </label>
+                            <input
+                                id="edition-email"
+                                type="email"
+                                value={editForm.data.email}
+                                onChange={(event) =>
+                                    editForm.setData(
+                                        'email',
+                                        event.target.value,
+                                    )
+                                }
+                                required
+                            />
+                            {editForm.errors.email ? (
+                                <p
+                                    style={{
+                                        color: 'var(--dag-red)',
+                                        fontSize: 12,
+                                        marginTop: 4,
+                                    }}
+                                >
+                                    {editForm.errors.email}
+                                </p>
+                            ) : (
+                                <p
+                                    className="muted"
+                                    style={{ fontSize: 12, marginTop: 4 }}
+                                >
+                                    C'est l'adresse qui sert à se connecter.
+                                </p>
+                            )}
+                        </div>
+
+                        <div
+                            style={{
+                                display: 'flex',
+                                justifyContent: 'flex-end',
+                                gap: 12,
+                            }}
+                        >
+                            <button
+                                type="button"
+                                className="btn-outline"
+                                onClick={() => setMembreEdite(null)}
+                            >
+                                Annuler
+                            </button>
+                            <button
+                                type="submit"
+                                className="btn-primary"
+                                disabled={editForm.processing}
+                            >
+                                {editForm.processing
+                                    ? 'Enregistrement…'
+                                    : 'Enregistrer'}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            )}
         </>
     );
 }

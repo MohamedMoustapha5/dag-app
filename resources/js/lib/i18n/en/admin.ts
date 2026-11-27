@@ -274,8 +274,15 @@ export const adminEn: Record<string, string> = {
 
     // Team
     'Équipe DAG — Administration': 'DAG team — Administration',
-    "Seule la Promotrice peut créer un compte ou changer le rôle d'un membre. Désactiver un compte lui retire immédiatement l'accès.":
-        'Only the Promoter can create an account or change a member’s role. Deactivating an account removes access immediately.',
+    "Seule la CEO peut créer, modifier ou supprimer un compte et changer le rôle d'un membre. Désactiver un compte lui retire immédiatement l'accès.":
+        'Only the CEO can create, edit or delete an account and change a member’s role. Deactivating an account removes access immediately.',
+    'Modifier le membre': 'Edit member',
+    "C'est l'adresse qui sert à se connecter.":
+        'This is the address used to sign in.',
+    'Enregistrement…': 'Saving…',
+    "Cette adresse e-mail est déjà utilisée par un autre membre de l'équipe.":
+        'This email address is already used by another team member.',
+    Cybersécurité: 'Cybersecurity',
     "Créer un compte membre de l'équipe": 'Create a team member account',
     Rôle: 'Role',
     Civilité: 'Title',
