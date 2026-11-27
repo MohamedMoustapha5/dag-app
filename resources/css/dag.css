@@ -7065,3 +7065,50 @@
     gap: 5px;
     margin-right: 14px;
 }
+
+/* Steps to add DAG to the home screen (iPhone, some Android browsers). */
+.installer-application-etapes {
+    list-style: none;
+    margin: 14px 0 0;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+    border-radius: 12px;
+    background: var(--dag-blue-light);
+}
+.installer-application-etapes li {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--dag-text);
+}
+.installer-application-etapes strong {
+    color: var(--dag-navy);
+}
+.installer-application-numero {
+    flex: none;
+    width: 22px;
+    height: 22px;
+    margin-top: 2px;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    background: var(--dag-blue);
+    color: #fff;
+    font-size: 11.5px;
+    font-weight: 700;
+}
+
+/* On the public site the contact bubble sits in the bottom-right corner:
+   the install card stays just above it, so nothing hides its buttons. */
+html:has(.contact-fab) .installer-application {
+    bottom: 96px;
+}
+@media (max-width: 640px) {
+    html:has(.contact-fab) .installer-application {
+        bottom: 84px;
+    }
+}

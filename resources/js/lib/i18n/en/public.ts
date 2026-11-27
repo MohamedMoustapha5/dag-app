@@ -356,7 +356,22 @@ export const publicEn: Record<string, string> = {
     Installer: 'Install',
     "J'ai compris": 'Got it',
     Touchez: 'Tap',
-    "en bas de Safari, puis « Sur l'écran d'accueil ».":
-        'at the bottom of Safari, then “Add to Home Screen”.',
     Partager: 'Share',
+    'En 3 étapes, depuis votre navigateur :': 'In 3 steps, from your browser:',
+    'Touchez le bouton': 'Tap the',
+    ", en bas de l'écran dans Safari ou dans la barre d'adresse dans Chrome.":
+        'button, at the bottom of the screen in Safari or in the address bar in Chrome.',
+    'Faites défiler puis touchez': 'Scroll down and tap',
+    "Sur l'écran d'accueil": 'Add to Home Screen',
+    Ajouter: 'Add',
+    ", en haut à droite : l'icône DAG apparaît sur votre écran d'accueil.":
+        ', at the top right: the DAG icon appears on your home screen.',
+    'Touchez le menu': 'Tap the',
+    'du navigateur, en haut à droite.': 'browser menu, at the top right.',
+    "Installer l'application": 'Install app',
+    ou: 'or',
+    "Ajouter à l'écran d'accueil": 'Add to Home screen',
+    'Confirmez avec': 'Confirm with',
+    ": l'icône DAG apparaît sur votre écran d'accueil.":
+        ': the DAG icon appears on your home screen.',
 };

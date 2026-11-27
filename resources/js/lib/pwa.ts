@@ -26,16 +26,20 @@ export function estInstallee(): boolean {
     );
 }
 
-/** iPhone / iPad Safari: no install prompt, the user adds it from Share. */
-export function estAppleSafari(): boolean {
+/**
+ * iPhone / iPad, whatever the browser (Safari, Chrome, Edge…): no install
+ * prompt there, the user adds the site from the Share button.
+ */
+export function estAppareilApple(): boolean {
     const agent = navigator.userAgent;
-    const appareilApple =
-        /iPad|iPhone|iPod/.test(agent) ||
-        (agent.includes('Macintosh') && navigator.maxTouchPoints > 1);
 
     return (
-        appareilApple &&
-        /Safari/.test(agent) &&
-        !/CriOS|FxiOS|EdgiOS/.test(agent)
+        /iPad|iPhone|iPod/.test(agent) ||
+        (agent.includes('Macintosh') && navigator.maxTouchPoints > 1)
     );
+}
+
+/** Android phone or tablet. */
+export function estAndroid(): boolean {
+    return /Android/i.test(navigator.userAgent);
 }
