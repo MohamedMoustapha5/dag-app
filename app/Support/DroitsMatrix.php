@@ -113,6 +113,23 @@ class DroitsMatrix
             Donnee::AbonnementsRecrutement->value => NiveauDroit::Lecture,
             Donnee::Statistiques->value => NiveauDroit::Lecture,
         ],
+        // Audits the platform: reads everything, including the activity
+        // journal (Statistiques), but not the financial records by default.
+        MembreEquipeRole::Cybersecurite->value => [
+            Donnee::Catalogue->value => NiveauDroit::Lecture,
+            Donnee::Formations->value => NiveauDroit::Lecture,
+            Donnee::DemandesClients->value => NiveauDroit::Lecture,
+            Donnee::Support->value => NiveauDroit::Lecture,
+            Donnee::Abonnements->value => NiveauDroit::Lecture,
+            Donnee::FacturesPaiements->value => NiveauDroit::Aucun,
+            Donnee::ContratsClauses->value => NiveauDroit::Lecture,
+            Donnee::DossiersApprenants->value => NiveauDroit::Lecture,
+            Donnee::EntreprisesOffres->value => NiveauDroit::Lecture,
+            Donnee::Partenariats->value => NiveauDroit::Lecture,
+            Donnee::LogosPartenaires->value => NiveauDroit::Lecture,
+            Donnee::AbonnementsRecrutement->value => NiveauDroit::Lecture,
+            Donnee::Statistiques->value => NiveauDroit::Lecture,
+        ],
     ];
 
     private const CACHE_KEY = 'droits_roles';

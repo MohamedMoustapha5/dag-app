@@ -351,6 +351,16 @@ export const motifs: [RegExp, Remplacement][] = [
         (m) => `Deactivate the account of ${m[1]}?`,
     ],
     [
+        /^Supprimer définitivement le compte de (.+) \? .*$/,
+        (m) =>
+            `Permanently delete the account of ${m[1]}? This person will no longer be able to sign in. The history of their actions (validated payments, messages, journal) is kept.`,
+    ],
+    [
+        /^Informations de (.+) mises à jour\.$/,
+        (m) => `Details of ${m[1]} updated.`,
+    ],
+    [/^Compte de (.+) supprimé\.$/, (m) => `Account of ${m[1]} deleted.`],
+    [
         /^Remettre les droits de « (.+) » à leurs valeurs par défaut \?$/,
         (m) => `Reset the rights of “${m[1]}” to their default values?`,
     ],

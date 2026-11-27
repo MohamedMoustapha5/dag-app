@@ -14,6 +14,8 @@ use App\Models\MembreEquipe;
 use App\Support\DroitsMatrix;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -103,10 +105,18 @@ class AdminEquipeController extends Controller
     {
         $this->authorizePromotrice($request);
 
+        if ($request->has('email')) {
+            $request->merge(['email' => Str::lower(trim((string) $request->input('email')))]);
+        }
+
         $data = $request->validate([
             'civilite' => ['sometimes', 'nullable', Rule::enum(Civilite::class)],
+            'name' => ['sometimes', 'required', 'string', 'max:191'],
+            'email' => ['sometimes', 'required', 'string', 'email', 'max:191', Rule::unique('membres_equipe', 'email')->ignore($membreEquipe->id)],
             'role' => ['sometimes', Rule::enum(MembreEquipeRole::class)],
             'statut' => ['sometimes', Rule::in(['ACTIF', 'INACTIF'])],
+        ], [
+            'email.unique' => 'Cette adresse e-mail est déjà utilisée par un autre membre de l\'équipe.',
         ]);
 
         abort_if(
@@ -124,6 +134,42 @@ class AdminEquipeController extends Controller
         $membreEquipe->update($data);
 
         ActivityLog::record($this->membre($request), 'a modifié le compte de', $membreEquipe, "{$membreEquipe->name} : ".json_encode($data, JSON_UNESCAPED_UNICODE).'.');
+
+        if (isset($data['name']) || isset($data['email'])) {
+            Inertia::flash('toast', ['type' => 'success', 'message' => "Informations de {$membreEquipe->name} mises à jour."]);
+        }
+
+        return back();
+    }
+
+    /**
+     * Removes a team account for good. Its history stays: payments it
+     * validated, messages it sent, actions in the journal keep their record
+     * and only lose the link to the person. Its open sessions and its
+     * notifications go with it.
+     */
+    public function destroy(Request $request, MembreEquipe $membreEquipe): RedirectResponse
+    {
+        $this->authorizePromotrice($request);
+
+        abort_if(
+            $membreEquipe->id === $this->membre($request)->id,
+            403,
+            'Vous ne pouvez pas supprimer votre propre compte.'
+        );
+
+        $nom = $membreEquipe->name;
+        $role = $membreEquipe->role->label();
+
+        DB::transaction(function () use ($membreEquipe): void {
+            DB::table('sessions')->where('user_id', $membreEquipe->id)->delete();
+            $membreEquipe->notifications()->delete();
+            $membreEquipe->delete();
+        });
+
+        ActivityLog::record($this->membre($request), 'a supprimé le compte de', null, "{$nom} — {$role}.");
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => "Compte de {$nom} supprimé."]);
 
         return back();
     }
