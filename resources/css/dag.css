@@ -6869,6 +6869,47 @@
     color: var(--dag-red);
     border-color: var(--dag-red);
 }
+/* Row actions as icon buttons (tooltip + aria-label): they stay on one line
+   in a table and in its mobile card. */
+.dag .actions-icones {
+    display: inline-flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.dag .action-icone {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    border: 1px solid var(--dag-border);
+    background: var(--dag-surface);
+    color: var(--dag-text-muted);
+    cursor: pointer;
+    transition:
+        color 0.15s var(--dag-ease),
+        border-color 0.15s var(--dag-ease),
+        background-color 0.15s var(--dag-ease);
+}
+.dag .action-icone:hover {
+    color: var(--dag-blue);
+    border-color: var(--dag-blue);
+}
+.dag .action-icone.danger:hover {
+    color: var(--dag-red);
+    border-color: var(--dag-red);
+}
+.dag .action-icone:focus-visible {
+    outline: 2px solid var(--dag-blue);
+    outline-offset: 2px;
+}
+@media (max-width: 640px) {
+    .dag .action-icone {
+        width: 40px;
+        height: 40px;
+    }
+}
 .dag .logos-admin-outil:disabled {
     opacity: 0.35;
     cursor: default;

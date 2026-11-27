@@ -1,5 +1,5 @@
 import { Head, router, useForm } from '@inertiajs/react';
-import { X } from 'lucide-react';
+import { KeyRound, Pencil, Trash2, UserCheck, UserX, X } from 'lucide-react';
 import { useState } from 'react';
 import { NIVEAU_CHIP, NIVEAU_LABEL } from '@/lib/niveau-droit';
 import equipeAdmin from '@/routes/espace-admin/equipe';
@@ -471,27 +471,18 @@ export default function AdminEquipe({
                                                 : 'Inactif'}
                                         </span>
                                     </td>
-                                    <td
-                                        style={{
-                                            textAlign: 'right',
-                                            whiteSpace: 'nowrap',
-                                        }}
-                                    >
-                                        <div
-                                            style={{
-                                                display: 'inline-flex',
-                                                gap: 14,
-                                                alignItems: 'center',
-                                            }}
-                                        >
+                                    <td style={{ textAlign: 'right' }}>
+                                        <div className="actions-icones">
                                             <button
                                                 type="button"
                                                 onClick={() =>
                                                     ouvrirEdition(membre)
                                                 }
-                                                className="link-action"
+                                                className="action-icone"
+                                                title="Modifier"
+                                                aria-label="Modifier"
                                             >
-                                                Modifier
+                                                <Pencil size={16} />
                                             </button>
                                             {!membre.soiMeme && (
                                                 <>
@@ -504,9 +495,13 @@ export default function AdminEquipe({
                                                                     membre,
                                                                 )
                                                             }
-                                                            className="link-action"
+                                                            className="action-icone"
+                                                            title="Envoyer les accès"
+                                                            aria-label="Envoyer les accès"
                                                         >
-                                                            Envoyer les accès
+                                                            <KeyRound
+                                                                size={16}
+                                                            />
                                                         </button>
                                                     )}
                                                     <button
@@ -516,27 +511,39 @@ export default function AdminEquipe({
                                                                 membre,
                                                             )
                                                         }
-                                                        className="link-action"
-                                                        style={{
-                                                            color: 'var(--dag-text-muted)',
-                                                        }}
+                                                        className="action-icone"
+                                                        title={
+                                                            membre.statut ===
+                                                            'ACTIF'
+                                                                ? 'Désactiver'
+                                                                : 'Réactiver'
+                                                        }
+                                                        aria-label={
+                                                            membre.statut ===
+                                                            'ACTIF'
+                                                                ? 'Désactiver'
+                                                                : 'Réactiver'
+                                                        }
                                                     >
                                                         {membre.statut ===
-                                                        'ACTIF'
-                                                            ? 'Désactiver'
-                                                            : 'Réactiver'}
+                                                        'ACTIF' ? (
+                                                            <UserX size={16} />
+                                                        ) : (
+                                                            <UserCheck
+                                                                size={16}
+                                                            />
+                                                        )}
                                                     </button>
                                                     <button
                                                         type="button"
                                                         onClick={() =>
                                                             supprimer(membre)
                                                         }
-                                                        className="link-action"
-                                                        style={{
-                                                            color: 'var(--dag-red)',
-                                                        }}
+                                                        className="action-icone danger"
+                                                        title="Supprimer"
+                                                        aria-label="Supprimer"
                                                     >
-                                                        Supprimer
+                                                        <Trash2 size={16} />
                                                     </button>
                                                 </>
                                             )}
