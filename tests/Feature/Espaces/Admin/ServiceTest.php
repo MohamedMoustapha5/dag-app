@@ -18,7 +18,7 @@ test('the index page exposes the actions allowed for the current role', function
         ->where('actions.modifier', false)
         ->where('actions.supprimer', false)
         ->where('droits.CATALOGUE', 'LECTURE')
-        ->where('droitsResume', 'Visible par : CEO (total), Responsable Marketing & Création de contenu (gestion), Juriste, Secrétaire & Développeur (lecture).'));
+        ->where('droitsResume', 'Visible par : CEO (total), Responsable Marketing & Création de contenu (gestion), Juriste, Secrétaire, Développeur & Cybersécurité (lecture).'));
 });
 
 test('an uploaded service image is saved with an address relative to the site, whatever its domain', function () {
