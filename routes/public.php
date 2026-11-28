@@ -53,10 +53,11 @@ Route::inertia('conditions-generales-vente', 'public/conditions-vente')->name('c
 Route::inertia('mentions-legales', 'public/mentions-legales')->name('mentions-legales');
 
 /*
-| Référencement : plan du site et consignes pour les moteurs de recherche.
+| Référencement : plan du site pour les moteurs de recherche. Les consignes
+| (public/robots.txt) restent un vrai fichier : sans lui, l'hébergeur sert
+| son propre robots.txt.
 */
 Route::get('sitemap.xml', [ReferencementController::class, 'sitemap'])->name('sitemap');
-Route::get('robots.txt', [ReferencementController::class, 'robots'])->name('robots');
 
 Route::middleware(['throttle:formulaires-publics', VerifierRecaptcha::class])->group(function () {
     Route::post('contact', [ContactController::class, 'store'])->name('contact.store');

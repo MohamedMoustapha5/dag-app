@@ -1,0 +1,8 @@
+User-agent: *
+Disallow: /espace-admin
+Disallow: /espace-client
+Disallow: /espace-apprenant
+Disallow: /settings
+Disallow: /paiements
+
+Sitemap: https://agencydag.com/sitemap.xml
