@@ -33,24 +33,4 @@ class ReferencementController extends Controller
             ->view('referencement.sitemap', ['pages' => $pages->concat($formations)])
             ->header('Content-Type', 'application/xml; charset=UTF-8');
     }
-
-    /**
-     * Crawlers stay out of the private espaces and are shown the sitemap.
-     */
-    public function robots(): Response
-    {
-        $lignes = [
-            'User-agent: *',
-            'Disallow: /espace-admin',
-            'Disallow: /espace-client',
-            'Disallow: /espace-apprenant',
-            'Disallow: /settings',
-            'Disallow: /paiements',
-            '',
-            'Sitemap: '.route('sitemap'),
-        ];
-
-        return response(implode("\n", $lignes)."\n")
-            ->header('Content-Type', 'text/plain; charset=UTF-8');
-    }
 }

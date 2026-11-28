@@ -55,10 +55,13 @@ test('the sitemap lists the public pages and the published formations only', fun
 });
 
 test('robots.txt keeps crawlers out of the espaces and points to the sitemap', function () {
-    $this->get('/robots.txt')
-        ->assertOk()
-        ->assertSee('Disallow: /espace-admin')
-        ->assertSee('Sitemap: '.route('sitemap'));
+    $robots = file_get_contents(public_path('robots.txt'));
+
+    expect($robots)
+        ->toContain('Disallow: /espace-admin')
+        ->toContain('Disallow: /espace-client')
+        ->toContain('Disallow: /espace-apprenant')
+        ->toContain('Sitemap: https://agencydag.com/sitemap.xml');
 });
 
 test('the home page carries the Search Console code once it is configured', function () {
