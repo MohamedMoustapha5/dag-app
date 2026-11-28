@@ -29,7 +29,7 @@ export default function PageJuridique({
 }: Props) {
     return (
         <PublicLayout>
-            <Head title={`${titre} — DAG`} />
+            <Head title={titre} />
 
             <section className="contact-hero-wrap reveal container">
                 <div

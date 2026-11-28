@@ -20,7 +20,7 @@ type GrilleTarifaireProps = {
 export default function GrilleTarifaire({ categories }: GrilleTarifaireProps) {
     return (
         <PublicLayout>
-            <Head title="Grille tarifaire — DAG" />
+            <Head title="Grille tarifaire des services digitaux" />
 
             <section className="service-catalogue-intro reveal container">
                 <div

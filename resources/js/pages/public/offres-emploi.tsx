@@ -20,7 +20,7 @@ type OffresEmploiProps = {
 export default function OffresEmploi({ offres }: OffresEmploiProps) {
     return (
         <PublicLayout>
-            <Head title="Offres de stage & emploi — DAG" />
+            <Head title="Offres de stage et d'emploi au Cameroun" />
 
             <section className="service-catalogue-intro reveal container">
                 <div

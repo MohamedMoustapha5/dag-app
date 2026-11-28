@@ -17,6 +17,10 @@ Options -Indexes
     RewriteRule (^|/)\.(env|git|deploiement)(/|$|\.) - [R=404,L]
     RewriteRule ^(artisan|composer\.(json|lock)|package(-lock)?\.json)$ - [R=404,L]
 
+    # One address per page for search engines: www.<domain> sends to <domain>.
+    RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+    RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
+
     # Everything else is served from public/ (its own .htaccess then sends
     # the pages to index.php).
     RewriteCond %{REQUEST_URI} !^/public/

@@ -207,7 +207,7 @@ export default function Home({ stats, equipe, partenaires }: HomeProps) {
 
     return (
         <PublicLayout>
-            <Head title="Digital Agency Group" />
+            <Head title="Digital Agency Group — Agence digitale à Douala, Cameroun" />
 
             <section
                 className="hero-full home-hero"

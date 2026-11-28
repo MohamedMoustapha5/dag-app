@@ -61,6 +61,9 @@ export const publicEn: Record<string, string> = {
     'Digital Agency Group · Douala, Cameroun':
         'Digital Agency Group · Douala, Cameroon',
     'Mentions légales': 'Legal notice',
+    'Politique de confidentialité': 'Privacy policy',
+    "Conditions générales d'utilisation": 'Terms of use',
+    'Conditions générales de vente': 'Terms of sale',
     Confidentialité: 'Privacy',
     CGU: 'Terms of use',
     CGV: 'Terms of sale',
@@ -91,7 +94,8 @@ export const publicEn: Record<string, string> = {
     'Conçoit et fait évoluer la plateforme DAG, de bout en bout.':
         'Designs and develops the DAG platform, end to end.',
     'Accompagne vos projets au quotidien.': 'Supports your projects every day.',
-    'À propos — DAG': 'About — DAG',
+    'À propos : votre agence digitale à Douala':
+        'About: your digital agency in Douala',
     'À propos de DAG': 'About DAG',
     "L'agence qui simplifie votre transformation digitale":
         'The agency that simplifies your digital transformation',
@@ -119,7 +123,8 @@ export const publicEn: Record<string, string> = {
     "Parlons de votre projet, ou découvrez nos services et nos formules d'abonnement.":
         'Let’s talk about your project, or discover our services and subscription plans.',
     'Voir nos services': 'See our services',
-    "Formules d'abonnement — DAG": 'Subscription plans — DAG',
+    "Formules d'abonnement marketing digital":
+        'Digital marketing subscription plans',
     'Un accompagnement continu, à prix fixe':
         'Ongoing support at a fixed price',
     'Choisissez la formule qui correspond à votre rythme de croissance, sans engagement caché.':
@@ -131,7 +136,8 @@ export const publicEn: Record<string, string> = {
     'Tous les services': 'All services',
     'Création & communication': 'Creation & communication',
     'Technique & digital': 'Technical & digital',
-    'Catalogue de services — DAG': 'Service catalogue — DAG',
+    'Services digitaux : marketing, sites web, branding':
+        'Digital services: marketing, websites, branding',
     'Le catalogue des services DAG': 'The DAG service catalogue',
     'Tous les services sont proposés, gérés et facturés par DAG. Un seul interlocuteur, du devis à la livraison.':
         'All services are offered, managed and invoiced by DAG. One point of contact, from quote to delivery.',
@@ -156,7 +162,8 @@ export const publicEn: Record<string, string> = {
     'Autre demande': 'Other request',
     'Douala, Cameroun': 'Douala, Cameroon',
     'Lun – Ven, 8h – 18h': 'Mon – Fri, 8am – 6pm',
-    'Contact — DAG': 'Contact — DAG',
+    'Contact : parlons de votre projet digital':
+        "Contact: let's talk about your digital project",
     'Parlons de votre projet': 'Let’s talk about your project',
     'Notre équipe vous répond sous 48h ouvrées pour comprendre votre besoin et vous orienter.':
         'Our team replies within 48 business hours to understand your needs and guide you.',
@@ -186,7 +193,8 @@ export const publicEn: Record<string, string> = {
     'Toutes les périodes': 'All periods',
     'Community management': 'Community management',
     'Stratégie & publicité': 'Strategy & advertising',
-    'Formations — DAG': 'Training — DAG',
+    'Formations digitales et placement en entreprise':
+        'Digital training and job placement',
     'Module formation': 'Training module',
     'Formations & placement en entreprise': 'Training & job placement',
     'Des parcours concrets, conçus pour vous rendre rapidement opérationnel et vous accompagner jusqu’à l’emploi.':
@@ -211,7 +219,7 @@ export const publicEn: Record<string, string> = {
         'No open session matches these filters.',
     '🎓 Formateur :': '🎓 Trainer:',
     'Voir la session': 'View session',
-    'Grille tarifaire — DAG': 'Price list — DAG',
+    'Grille tarifaire des services digitaux': 'Digital services price list',
     'Tarifs indicatifs': 'Indicative prices',
     'Grille tarifaire DAG': 'DAG price list',
     'Fourchettes de départ en FCFA, à confirmer selon le cahier des charges. Un devis précise les livrables, délais, retouches et modalités de paiement.':
@@ -326,7 +334,10 @@ export const publicEn: Record<string, string> = {
     'Contactez-nous directement, ou demandez un audit gratuit de votre page sans créer de compte.':
         'Contact us directly, or request a free audit of your page without creating an account.',
     'Audit gratuit': 'Free audit',
-    'Offres de stage & emploi — DAG': 'Internship & job offers — DAG',
+    "Offres de stage et d'emploi au Cameroun":
+        'Internship and job offers in Cameroon',
+    'Digital Agency Group — Agence digitale à Douala, Cameroun':
+        'Digital Agency Group — Digital agency in Douala, Cameroon',
     'Rejoignez une entreprise partenaire de DAG': 'Join a DAG partner company',
     'Stages et emplois proposés par nos entreprises partenaires, pour nos apprenants formés.':
         'Internships and jobs offered by our partner companies for our trained learners.',

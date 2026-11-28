@@ -134,7 +134,7 @@ export default function Formations({ sessions, stats }: FormationsProps) {
 
     return (
         <PublicLayout>
-            <Head title="Formations — DAG" />
+            <Head title="Formations digitales et placement en entreprise" />
 
             <section className="training-hero-wrap container">
                 <div className="training-hero">

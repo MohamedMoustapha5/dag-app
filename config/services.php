@@ -33,6 +33,12 @@ return [
         'timeout' => 5,
     ],
 
+    /*
+    | Google Search Console : code de la balise « google-site-verification »
+    | (méthode « Balise HTML »), placé sur la page d'accueil. Vide : rien.
+    */
+    'google_search_console' => env('GOOGLE_SITE_VERIFICATION'),
+
     'resend' => [
         'key' => env('RESEND_API_KEY'),
     ],

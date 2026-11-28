@@ -21,7 +21,7 @@ type AbonnementProps = {
 export default function Abonnement({ formules }: AbonnementProps) {
     return (
         <PublicLayout>
-            <Head title="Formules d'abonnement — DAG" />
+            <Head title="Formules d'abonnement marketing digital" />
 
             <section className="subscription-hero-wrap container">
                 <div className="subscription-hero">
