@@ -9,6 +9,7 @@ use App\Http\Controllers\Public\FormationController;
 use App\Http\Controllers\Public\FormuleController;
 use App\Http\Controllers\Public\GrilleTarifaireController;
 use App\Http\Controllers\Public\OffreEmploiController;
+use App\Http\Controllers\Public\ReferencementController;
 use App\Http\Middleware\GarderDansSonEspace;
 use App\Http\Middleware\VerifierRecaptcha;
 use Illuminate\Support\Facades\Route;
@@ -50,6 +51,12 @@ Route::inertia('conditions-generales-utilisation', 'public/conditions-utilisatio
 Route::inertia('politique-de-confidentialite', 'public/politique-confidentialite')->name('politique-confidentialite');
 Route::inertia('conditions-generales-vente', 'public/conditions-vente')->name('conditions-vente');
 Route::inertia('mentions-legales', 'public/mentions-legales')->name('mentions-legales');
+
+/*
+| Référencement : plan du site et consignes pour les moteurs de recherche.
+*/
+Route::get('sitemap.xml', [ReferencementController::class, 'sitemap'])->name('sitemap');
+Route::get('robots.txt', [ReferencementController::class, 'robots'])->name('robots');
 
 Route::middleware(['throttle:formulaires-publics', VerifierRecaptcha::class])->group(function () {
     Route::post('contact', [ContactController::class, 'store'])->name('contact.store');

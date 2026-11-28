@@ -32,7 +32,7 @@ export default function Contact() {
 
     return (
         <PublicLayout>
-            <Head title="Contact — DAG" />
+            <Head title="Contact : parlons de votre projet digital" />
 
             <section className="contact-hero-wrap reveal container">
                 <div className="contact-hero">

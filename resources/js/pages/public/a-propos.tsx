@@ -58,7 +58,7 @@ export default function APropos({ stats, equipe, partenaires }: AProposProps) {
 
     return (
         <PublicLayout>
-            <Head title="À propos — DAG" />
+            <Head title="À propos : votre agence digitale à Douala" />
 
             <section className="contact-hero-wrap container">
                 <div

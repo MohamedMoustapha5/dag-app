@@ -38,6 +38,7 @@
         <env name="MONEROO_SECRET_KEY" value=""/>
         <env name="RECAPTCHA_SITE_KEY" value=""/>
         <env name="RECAPTCHA_SECRET_KEY" value=""/>
+        <env name="GOOGLE_SITE_VERIFICATION" value=""/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="PULSE_ENABLED" value="false"/>

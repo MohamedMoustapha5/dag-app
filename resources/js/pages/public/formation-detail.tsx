@@ -38,7 +38,7 @@ export default function FormationDetail({
 }: FormationDetailProps) {
     return (
         <PublicLayout>
-            <Head title={`${formation.nom} — Formations DAG`} />
+            <Head title={`Formation ${formation.nom}`} />
 
             <section className="container" style={{ paddingTop: 32 }}>
                 <p className="breadcrumb">

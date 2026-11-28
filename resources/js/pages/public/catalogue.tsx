@@ -88,7 +88,7 @@ export default function Catalogue({ services }: CatalogueProps) {
 
     return (
         <PublicLayout>
-            <Head title="Catalogue de services — DAG" />
+            <Head title="Services digitaux : marketing, sites web, branding" />
 
             <section className="service-catalogue-intro container">
                 <div
